@@ -40,7 +40,7 @@ const componentSource = compile('web/components/LiveSessionView.tsx');
 const directorySource = compile('shared/liveDirectory.ts');
 
 function harness(role = 'host') {
-  const slots = [], effects = [], commands = [], reads = [];
+  const slots = [], effects = [], commands = [], reads = [], confirmations = [], confirmationAnswers = [];
   let cursor = 0, dirty = false, tree, serial = 0;
   const client = {}, identity = { owner: ownerId, scope: 'synthetic-owner-scope' };
   const navigation = { subscribe() { return () => {}; }, getSnapshot: () => identity, getServerSnapshot: () => identity };
@@ -101,7 +101,10 @@ function harness(role = 'host') {
   };
   const module = { exports: {} };
   vm.runInNewContext(componentSource, { module, exports: module.exports, URLSearchParams,
-    window: { location: { search: '' } },
+    window: { location: { search: '' }, confirm(message) {
+      assert.ok(confirmationAnswers.length, 'Every confirmation must have an explicit answer.');
+      confirmations.push(message); return confirmationAnswers.shift();
+    } },
     crypto: { randomUUID: () => `33333333-3333-4333-8333-${String(++serial).padStart(12, '0')}` },
     require(name) { assert.ok(Object.hasOwn(imports, name), 'Unexpected component import: ' + name); return imports[name]; },
   });
@@ -116,6 +119,12 @@ function harness(role = 'host') {
     throw Error('Component did not settle within the bounded React scheduling harness.');
   }
   const selector = label => nodes(tree).find(node => node.type === 'select' && node.props['aria-label'] === label);
+  const button = label => nodes(tree).find(node => node.type === 'button' && text(node) === label);
+  function click(label) {
+    const control = button(label); assert.ok(control, label);
+    if (control.props.disabled) return false;
+    control.props.onClick(); return true;
+  }
   function choose(label, value) {
     const control = selector(label); assert.ok(control, label);
     if (control.props.disabled) return false;
@@ -124,7 +133,8 @@ function harness(role = 'host') {
   async function ready(overrides = {}) {
     await flush(); assert.equal(reads.length, 1); reads[0].resolve(detail(overrides, role)); await flush();
   }
-  return { ready, flush, selector, choose, commands, reads, tree: () => tree };
+  return { ready, flush, selector, choose, button, click, commands, reads, confirmations,
+    answerConfirmation: answer => confirmationAnswers.push(answer), tree: () => tree };
 }
 function settings(h, { mode = 'open', slow = '0', busy = false } = {}) {
   for (const [label, value] of [['Who can chat', mode], ['Slow mode', slow]]) {
@@ -153,6 +163,52 @@ test('chat close and reopen preserve confirmed values and block both selectors t
   assert.notEqual(h.commands[1].requestId, h.commands[0].requestId);
   h.commands[1].resolve({ ok: true }); await h.flush(); settings(h, { mode: 'closed', busy: true });
   h.reads[2].resolve(detail()); await h.flush(); settings(h);
+});
+
+test('saving chat settings on a scheduled private stream disables cancellation without claiming it is cancelling', async () => {
+  const h = harness(), scheduled = { state: 'scheduled', audience: 'invite' };
+  await h.ready(scheduled);
+  assert.equal(h.button('Cancel stream').props.disabled, false);
+  h.choose('Who can chat', 'closed'); await h.flush();
+  for (const boundary of ['command', 'detail refresh']) {
+    assert.equal(h.button('Cancelling…'), undefined, boundary + ' must not claim a cancellation');
+    assert.equal(h.button('Cancel stream').props.disabled, true, boundary + ' retains the shared action lock');
+    assert.equal(h.click('Cancel stream'), false);
+    assert.equal(h.commands.length, 1); assert.equal(h.commands[0].action, 'chat_settings');
+    assert.deepEqual(h.commands[0].payload, { chat_mode: 'closed' });
+    if (boundary === 'command') { h.commands[0].resolve({ ok: true }); await h.flush(); }
+  }
+  assert.equal(h.reads.length, 2); assert.equal(h.confirmations.length, 0);
+  h.reads[1].resolve(detail({ ...scheduled, chat_mode: 'closed' })); await h.flush();
+  settings(h, { mode: 'closed' });
+  assert.equal(h.button('Cancel stream').props.disabled, false);
+  assert.ok(h.button('Open studio'));
+  assert.match(text(h.tree()), /This stream is coming up/);
+});
+
+test('an actual cancellation retains its confirmation, pending label and failed-intent retry identity', async () => {
+  const h = harness(), scheduled = { state: 'scheduled', audience: 'invite', chat_mode: 'closed' };
+  await h.ready(scheduled);
+  h.answerConfirmation(false); assert.equal(h.click('Cancel stream'), true); await h.flush();
+  assert.equal(h.commands.length, 0); assert.equal(h.button('Cancel stream').props.disabled, false);
+  h.answerConfirmation(true); h.click('Cancel stream'); await h.flush();
+  assert.equal(h.commands.length, 1); assert.equal(h.commands[0].action, 'cancel');
+  assert.deepEqual(h.commands[0].payload, {});
+  assert.equal(h.button('Cancelling…').props.disabled, true); assert.equal(h.button('Cancel stream'), undefined);
+  settings(h, { mode: 'closed', busy: true });
+  h.commands[0].reject(new Error('Synthetic cancellation rejection')); await h.flush();
+  assert.equal(h.button('Cancel stream').props.disabled, false); assert.equal(h.button('Cancelling…'), undefined);
+  assert.match(text(h.tree()), /Synthetic cancellation rejection/);
+  h.answerConfirmation(true); h.click('Cancel stream'); await h.flush();
+  assert.equal(h.commands.length, 2); assert.equal(h.commands[1].action, 'cancel');
+  assert.equal(h.commands[1].requestId, h.commands[0].requestId);
+  h.commands[1].resolve({ ok: true }); await h.flush();
+  assert.equal(h.button('Cancelling…').props.disabled, true, 'cancellation still awaits confirmed detail');
+  assert.equal(h.reads.length, 2);
+  h.reads[1].resolve(detail({ ...scheduled, state: 'cancelled' })); await h.flush();
+  assert.equal(h.button('Cancel stream'), undefined); assert.equal(h.button('Cancelling…'), undefined);
+  assert.equal(h.button('Open studio'), undefined); assert.match(text(h.tree()), /This stream was cancelled/);
+  assert.deepEqual(h.confirmations, Array(3).fill('Cancel this stream? It will no longer be available.'));
 });
 
 for (const control of [
