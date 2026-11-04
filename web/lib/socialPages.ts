@@ -1,3 +1,5 @@
+import { isAccessDeniedError } from "./errors";
+
 export type PageState<T> = {
   items: T[]; loading: boolean; error: string | null; hasMore: boolean;
 };
@@ -25,6 +27,13 @@ export function createPagedCollection<T>(options: {
     epoch++; offset = 0; loaded = false; retryRefresh = false; asOf = new Date().toISOString();
     emit({ items: [], loading: false, error: null, hasMore: true });
   };
+  const failed = (error: unknown) => {
+    const message = error instanceof Error ? error.message : "Could not load this page. Please try again.";
+    if (isAccessDeniedError(error)) {
+      offset = 0; loaded = false; retryRefresh = true;
+      emit({ items: [], hasMore: true, loading: false, error: message });
+    } else emit({ loading: false, error: message });
+  };
   const next = async () => {
     if (state.loading) return;
     if (retryRefresh) return refresh();
@@ -47,7 +56,7 @@ export function createPagedCollection<T>(options: {
       emit({ items: [...state.items, ...added], hasMore: page.length === size, loading: false });
     } catch (error) {
       controller.abort();
-      if (version === epoch) emit({ loading: false, error: error instanceof Error ? error.message : "Could not load this page. Please try again." });
+      if (version === epoch) failed(error);
     } finally {
       if (request === controller) request = null;
     }
@@ -88,7 +97,7 @@ export function createPagedCollection<T>(options: {
       emit({ items: merged, hasMore, loading: false });
     } catch (error) {
       controller.abort();
-      if (version === epoch) emit({ loading: false, error: error instanceof Error ? error.message : "Could not load this page. Please try again." });
+      if (version === epoch) failed(error);
     }
     })();
     refreshWork = work;
@@ -101,7 +110,7 @@ export function createPagedCollection<T>(options: {
     subscribe(listener: () => void) { listeners.add(listener); return () => { listeners.delete(listener); }; },
     next, reset, refresh,
     remember: (): PageMemory<T> | null => loaded && state.items.length <= 200 ? { items: state.items, hasMore: state.hasMore, offset, asOf } : null,
-    reload: () => { reset(); return next(); },
+    reload: () => refresh(true),
     setItems(update: (items: T[]) => T[]) { emit({ items: update(state.items) }); },
     cancel() { epoch++; request?.abort(); refreshWork = null; emit({ loading: false }); },
   };

@@ -286,7 +286,7 @@ export function RecruiterSeg({ role, navigation, onBack }: { role: string | null
   return (
     <View style={{ flex: 1 }}>
       <BackRow title="Recruiter" sub="Every application moves through one pipeline. Candidates hear from you on offer, hire, rejection and interviews." label="More" onBack={onBack} />
-      {loading ? <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={getTheme().ink.primary} /></View>
+      {loading && jobs.length === 0 ? <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={getTheme().ink.primary} /></View>
       : <FlatList data={jobs} keyExtractor={j => j.id} contentContainerStyle={{ padding: 16, paddingBottom: TAB_CLEAR }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await loadJobs(); setRefreshing(false); }} />}
           ListHeaderComponent={jobsError ? <View style={s.card}><Text accessibilityRole="alert" style={s.cardTxt}>{jobsError}</Text><TouchableOpacity style={{ minHeight: 44, justifyContent: 'center' }} onPress={() => void loadJobs()}><Text style={s.cardTxt}>Try again</Text></TouchableOpacity></View> : null}
@@ -404,7 +404,7 @@ export function AdsSeg({ role, navigation, onBack }: { role: string | null; navi
     <View style={{ flex: 1 }}>
       <BackRow title="Ads" sub="Campaigns with an objective, budget and schedule. Ads inside them run as Sponsored posts once the campaign is approved and live." label="More" onBack={onBack} right={canSpend ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Create campaign" style={s.plusBtn} onPress={() => { setF(emptyForm()); setOpen(true); }}><Feather name="plus" size={18} color={getTheme().ink.inverse} /></TouchableOpacity> : null} />
       {loadError ? <TouchableOpacity accessibilityRole="button" onPress={() => void load(true)} style={[s.card, { margin: 16, minHeight: 48 }]}><Text style={s.cardTxt}>Could not refresh campaigns. Tap to retry.</Text>{rows.length ? <Text style={s.cardMuted}>Showing the last loaded campaigns.</Text> : null}</TouchableOpacity> : null}
-      {loading ? <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={getTheme().ink.primary} /></View>
+      {loading && rows.length === 0 ? <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={getTheme().ink.primary} /></View>
       : loadError && !rows.length ? null : <FlatList data={rows} keyExtractor={c => c.id} contentContainerStyle={{ padding: 16, paddingBottom: TAB_CLEAR }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await load(true); setRefreshing(false); }} />}
           ListHeaderComponent={

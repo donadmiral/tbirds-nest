@@ -53,6 +53,7 @@ function harness({ role = 'owner', members = [], rpc: customRpc, session: custom
     if (name.endsWith('/SafeArea')) return { SafeAreaView: 'SafeAreaView', useSafeAreaInsets: () => ({ bottom: 20 }) };
     if (name.endsWith('/StudioLoadError')) return { StudioLoadError: 'StudioLoadError' };
     if (name.endsWith('/useStudioResource')) return resource ?? (resource = compile(read('src/hooks/useStudioResource.ts'), requireMock));
+    if (name.endsWith('/readContinuity')) return compile(read('shared/readContinuity.ts'));
     throw new Error(`Unhandled import ${name}`);
   }
   const Component = compile(read('src/screens/profile/BusinessAccessScreen.tsx'), requireMock).default;

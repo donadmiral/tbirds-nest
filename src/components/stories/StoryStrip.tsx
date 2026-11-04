@@ -1,5 +1,6 @@
 import { useLiveStoryPresence } from '../../hooks/useLiveStoryPresence';
 import LiveStoryBubble from './LiveStoryBubble';
+import StoryRing from './PlatinumRing';
 import { themedSheet } from '../../theme/useTheme';
 import TierName from '../TierName';
 import VerifiedBadge from '../VerifiedBadge';
@@ -13,8 +14,6 @@ import { useAuthStore } from '../../stores/authStore';
 import { supabase } from '../../services/supabase';
 import { flagsService } from '../../services/flagsService';
 import { prefetchStoryEntry, invalidateStoryEntries } from '../../services/storyReadiness';
-
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 type Props = {
   mode?: 'primary' | 'all' | 'global';
@@ -32,9 +31,6 @@ const RING_SIZE = 66;
 const RING_CENTER = RING_SIZE / 2;
 const RING_RADIUS = 30;
 const AVATAR_SIZE = 54;
-const ARC_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
-const ARC_DASH = 35;
-const ARC_GAP = ARC_CIRCUMFERENCE - ARC_DASH;
 
 function initials(name?: string | null) {
   if (!name) return 'U';
@@ -42,72 +38,8 @@ function initials(name?: string | null) {
   return p.length === 1 ? p[0][0].toUpperCase() : `${p[0][0]}${p[1][0]}`.toUpperCase();
 }
 
-function hashSpeed(userId: string): number {
-  let hash = 0;
-  for (let i = 0; i < userId.length; i++) {
-    hash = ((hash << 5) - hash + userId.charCodeAt(i)) | 0;
-  }
-  return 3500 + (Math.abs(hash) % 1500);
-}
-
 function PlatinumRing({ userId }: { userId: string }) {
-  const arcOffset = useRef(new Animated.Value(0)).current;
-  const speed = hashSpeed(userId);
-  const safeId = `plat_${userId.replace(/[^a-zA-Z0-9_]/g, '_')}`;
-
-  useEffect(() => {
-    const anim = Animated.loop(
-      Animated.timing(arcOffset, {
-        toValue: ARC_CIRCUMFERENCE,
-        duration: speed,
-        useNativeDriver: false,
-      })
-    );
-    anim.start();
-    return () => anim.stop();
-  }, [arcOffset, speed]);
-
-  return (
-    <Svg width={RING_SIZE} height={RING_SIZE} viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}>
-      <Defs>
-        <LinearGradient id={safeId} x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0" stopColor={PLATINUM_GLOW} />
-          <Stop offset="0.4" stopColor={PLATINUM_START} />
-          <Stop offset="1" stopColor={PLATINUM_END} />
-        </LinearGradient>
-      </Defs>
-      {/* Layer 1: Platinum gradient ring */}
-      <Circle
-        cx={RING_CENTER}
-        cy={RING_CENTER}
-        r={RING_RADIUS}
-        fill="none"
-        stroke={`url(#${safeId})`}
-        strokeWidth={2.5}
-      />
-      {/* Layer 2: Inner glow edge */}
-      <Circle
-        cx={RING_CENTER}
-        cy={RING_CENTER}
-        r={RING_RADIUS - 1.5}
-        fill="none"
-        stroke="rgba(255,255,255,0.25)"
-        strokeWidth={0.5}
-      />
-      {/* Layer 3: Moving highlight arc */}
-      <AnimatedCircle
-        cx={RING_CENTER}
-        cy={RING_CENTER}
-        r={RING_RADIUS}
-        fill="none"
-        stroke="rgba(255,255,255,0.45)"
-        strokeWidth={1.5}
-        strokeDasharray={`${ARC_DASH} ${ARC_GAP}`}
-        strokeLinecap="round"
-        strokeDashoffset={arcOffset}
-      />
-    </Svg>
-  );
+  return <StoryRing userId={userId} size={RING_SIZE} />;
 }
 
 function SeenRing() {
@@ -243,6 +175,7 @@ function StoryStrip({ mode = 'all' }: Props) {
       if (!current()) return;
       setCatchup(rows);
       setMyHasStories(!!myId && rows.some(r => r.user_id === myId));
+      setLoading(false);
       // The first unseen ring is the likely next tap. Warm one author without
       // competing with the feed for every ring's videos at startup.
       const next = rows.find(row => row.has_unseen && row.user_id !== myId) || rows[0];
@@ -251,8 +184,10 @@ function StoryStrip({ mode = 'all' }: Props) {
       // engagement, after your own and followed rings. A story posted to
       // Everyone is eligible on its own.
       try {
-        const { data: hot } = await supabase.rpc('get_trending_stories', { p_limit: 12 });
+        const { data: hot, error, status } = await supabase.rpc('get_trending_stories', { p_limit: 12 });
         if (!current()) return;
+        if (status === 401 || status === 403 || error?.code === '42501') { setSpotlight([]); return; }
+        if (error || !Array.isArray(hot)) return;
         const known = new Set<string>(rows.map(r => r.user_id));
         if (myId) known.add(myId);
         setSpotlight(((hot ?? []) as any[]).filter(h => h?.user_id && !known.has(h.user_id)));
@@ -265,9 +200,9 @@ function StoryStrip({ mode = 'all' }: Props) {
   }, [mode, myId]);
 
   useEffect(() => {
+    setCatchup([]); setSpotlight([]); setMyHasStories(false);
     setLoading(true);
-    load();
-  }, [load]);
+  }, [myId, mode]);
 
   useFocusEffect(
     useCallback(() => {

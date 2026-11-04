@@ -2,7 +2,7 @@ import { parseCreatorSnapshot, validMinor, type CreatorSnapshot } from './domain
 import { parseCreatorStatement, type StatementCursor } from './statement';
 import { FINANCE_OPERATIONS_ENABLED, FINANCE_OPERATIONS_UNAVAILABLE } from './availability';
 export type FinanceClient = {
-  rpc(name: string, args?: Record<string, unknown>): PromiseLike<{ data: unknown; error: { message?: string; code?: string } | null }>;
+  rpc(name: string, args?: Record<string, unknown>): PromiseLike<{ data: unknown; error: { message?: string; code?: string } | null; status?: number }>;
 };
 /** Stops waiting, not the server operation. Mutations must retain uncertainty. */
 export async function withFinanceDeadline<T>(work: PromiseLike<T>, message: string, ms = 15000): Promise<T> {
@@ -12,8 +12,19 @@ export async function withFinanceDeadline<T>(work: PromiseLike<T>, message: stri
   } finally { if (timer) clearTimeout(timer); }
 }
 export async function readCreatorSnapshot(client: FinanceClient, userId: string): Promise<CreatorSnapshot> {
-  const { data, error } = await withFinanceDeadline(client.rpc('creator_monetization_snapshot'), 'The earnings service took too long. Please refresh.');
-  if (error) throw new Error(error.code === 'PGRST202' ? 'Creator monetization is not available on this deployment yet.' : 'Could not load your monetization status. Please try again.');
+  let result: Awaited<ReturnType<FinanceClient['rpc']>>;
+  try {
+    result = await withFinanceDeadline(client.rpc('creator_monetization_snapshot'), 'The earnings service took too long. Please refresh.');
+  } catch (cause) {
+    const failure = cause as { status?: number; statusCode?: number; code?: string; message?: string } | null;
+    const status = failure?.status ?? failure?.statusCode ?? 0;
+    const denied = status === 401 || status === 403 || /^(42501|PGRST30[123]|AUTH_REQUIRED|ACCESS_DENIED|UNAUTHORIZED|FORBIDDEN)$/i.test(failure?.code ?? '') || /^(AUTH_REQUIRED|ACCESS_DENIED|UNAUTHORIZED|FORBIDDEN)$/i.test(failure?.message?.trim() ?? '');
+    throw Object.assign(new Error('Could not load your monetization status. Please try again.'), { retainPreviousSnapshot: !denied && (status === 0 || status === 408 || status === 429 || status >= 500) });
+  }
+  const { data, error, status } = result;
+  if (error) throw Object.assign(new Error(error.code === 'PGRST202' ? 'Creator monetization is not available on this deployment yet.' : 'Could not load your monetization status. Please try again.'), {
+    retainPreviousSnapshot: !/^(42501|PGRST30[123]|AUTH_REQUIRED|ACCESS_DENIED|UNAUTHORIZED|FORBIDDEN)$/i.test(error.code ?? '') && !/^(AUTH_REQUIRED|ACCESS_DENIED|UNAUTHORIZED|FORBIDDEN)$/i.test(error.message?.trim() ?? '') && (status === 0 || status === 408 || status === 429 || (status !== undefined && status >= 500)),
+  });
   return parseCreatorSnapshot(data, userId);
 }
 export async function registerCreatorInterest(client: FinanceClient, owner: string): Promise<void> {

@@ -7,7 +7,8 @@ export function isJobId(value: unknown): value is string { return typeof value =
 export async function loadApplicantPage<T>(client: Client, jobId: string, status = 'all', cursor: ApplicantCursor | null = null): Promise<ApplicantPage<T>> {
   if (!isJobId(jobId)) throw new Error('This job link is invalid.');
   const { data, error } = await client.rpc('studio_applicant_page', { p_job: jobId, p_status: status, p_before_at: cursor?.applied_at ?? null, p_before_id: cursor?.id ?? null, p_limit: 25 });
-  if (error || !data || !Array.isArray(data.applications) || !data.counts) throw new Error(error?.message || 'Applicants could not be loaded. Please try again.');
+  if (error) throw error;
+  if (!data || !Array.isArray(data.applications) || !data.counts) throw new Error('Applicants could not be loaded. Please try again.');
   return data as ApplicantPage<T>;
 }
 export function mergeApplicants<T extends { id: string }>(current: T[], next: T[]): T[] { return [...new Map([...current, ...next].map(row => [row.id, row])).values()]; }
@@ -16,9 +17,10 @@ export function canWithdrawApplication(status: string): boolean {
 }
 export async function loadMyApplicationPage<T>(client: Client, cursor: ApplicantCursor | null = null, status = 'all'): Promise<MyApplicationPage<T>> {
  const { data, error } = await client.rpc('my_application_page', { p_status: status, p_before_at: cursor?.applied_at ?? null, p_before_id: cursor?.id ?? null, p_limit: 25 });
- if (error || !data || !Array.isArray(data.applications) || typeof data.has_more !== 'boolean'
+ if (error) throw error;
+ if (!data || !Array.isArray(data.applications) || typeof data.has_more !== 'boolean'
    || (data.has_more && (!isJobId(data.cursor?.id) || !Number.isFinite(Date.parse(data.cursor?.applied_at))))) {
-  throw new Error(error?.message || 'Applications could not be loaded. Please try again.');
+  throw new Error('Applications could not be loaded. Please try again.');
  }
  return data as MyApplicationPage<T>;
 }

@@ -275,8 +275,11 @@ export function sourceApplicability(git, source, base = PINNED.source, nativeRul
       permittedChanges: allowed, verifiedFiles: feedRule.files};
   }
   const native = parents.includes(nativeRule.parent);
-  // Other normal releases retain real connected acceptance. A mismatch inside
-  // an explicit exception throws, so it cannot fall through to provider work.
+  // Other normal releases retain real connected acceptance. In particular,
+  // children of the reviewed selector correction are new release candidates,
+  // including refresh, story and shared-preview changes. They cannot inherit
+  // its pinned receipt. A mismatch inside an explicit exception still throws,
+  // so it cannot fall through to provider work.
   if (!native && !parents.includes(base)) return null;
   assert.deepEqual(parents, [native ? nativeRule.parent : base], 'Reuse must be a reviewed single-parent correction');
   assert.equal(git(['status', '--porcelain=v1', '--untracked-files=no']).trim(), '', 'Tracked checkout or index differs from the verified source');

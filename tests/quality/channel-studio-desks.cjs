@@ -46,6 +46,8 @@ function nativeHarness(file, component, rpc, initialProps = {}) {
     if (name.endsWith('/SafeArea')) return { SafeAreaView: 'SafeAreaView', useSafeAreaInsets: () => ({ top: 0, bottom: 20 }) };
     if (name.endsWith('/StudioLoadError')) return { StudioLoadError: 'StudioLoadError' };
     if (name.endsWith('/useStudioResource')) return resource ?? (resource = compile(read('src/hooks/useStudioResource.ts'), { require: requireMock }));
+    if (name.endsWith('/readContinuity')) return compile(read('shared/readContinuity.ts'));
+    if (name.endsWith('/useStudioLive')) return { useStudioLive() {} };
     return stubs;
   }
   const target = compile(read(file) + '\nexports.TestComponent = ' + component, { require: requireMock, setTimeout, clearTimeout });
@@ -184,4 +186,22 @@ test('web channel read markers ignore hidden, unfocused, obscured and scrolled-a
   globals.readState.current.ready = false; await mark(); globals.readState.current.ready = true;
   rect.bottom = 1200; await mark(); rect.bottom = 501;
   assert.equal(writes, 0); await mark(); await mark(); assert.equal(writes, 1);
+});
+
+test('native Studio Inbox keeps its rendered list during refresh and transient failure, but clears it on denial', async () => {
+  let response = { data: [{ id: 'thread', title: 'Visible conversation', kind: 'dm', done: false }], error: null };
+  const h = nativeHarness('src/screens/studio/StudioScreen.tsx', 'InboxSeg', () => response, { me: {}, navigation: {}, setSeg() {} });
+  h.render(); await h.flush();
+  assert.equal(h.nodes().find(node => node.type === 'FlatList').props.data[0].id, 'thread');
+  const load = h.nodes().find(node => node.type === 'StudioLoadError').props.onRetry;
+  const pending = deferred(); response = pending.promise;
+  const work = load(); h.render();
+  assert.equal(h.nodes().find(node => node.type === 'FlatList').props.data[0].id, 'thread');
+  assert.equal(h.nodes().some(node => node.type === 'ActivityIndicator'), false);
+  pending.resolve({ data: null, error: Error('Network failed') }); await work; await h.flush();
+  assert.equal(h.nodes().find(node => node.type === 'FlatList').props.data[0].id, 'thread');
+  assert.ok(h.nodes().find(node => node.type === 'StudioLoadError').props.message);
+  response = { data: null, error: { code: 'PGRST301' } };
+  await load(); await h.flush();
+  assert.equal(h.nodes().some(node => node.type === 'FlatList' && node.props.data.some(row => row.id === 'thread')), false);
 });

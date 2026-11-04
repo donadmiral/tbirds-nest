@@ -17,7 +17,7 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, Animated, Easing, AccessibilityInfo, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, Animated, AccessibilityInfo, StatusBar } from 'react-native';
 import { useSafeAreaInsets } from '../../components/SafeArea';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import {
@@ -164,7 +164,7 @@ export default function MemoryArrangementScreen() {
   const animX = useRef(new Animated.Value(initialX)).current;
   const animY = useRef(new Animated.Value(initialY)).current;
   const animScale = useRef(new Animated.Value(initialScale)).current;
-  const animBubbleOpacity = useRef(new Animated.Value(0)).current;
+  const animBubbleOpacity = useRef(new Animated.Value(1)).current;
 
   // Gesture base refs (captured at gesture start)
   const panBaseX = useRef(initialX);
@@ -178,10 +178,10 @@ export default function MemoryArrangementScreen() {
   const swapping = useRef(false);
 
   // ── UI entry animation values ──
-  const topBarOpacity = useRef(new Animated.Value(0)).current;
-  const bottomStripTransY = useRef(new Animated.Value(60)).current;
-  const bottomStripOpacity = useRef(new Animated.Value(0)).current;
-  const presetStripOpacity = useRef(new Animated.Value(0)).current;
+  const topBarOpacity = useRef(new Animated.Value(0.6)).current;
+  const bottomStripTransY = useRef(new Animated.Value(0)).current;
+  const bottomStripOpacity = useRef(new Animated.Value(1)).current;
+  const presetStripOpacity = useRef(new Animated.Value(1)).current;
 
   // ── Guide line state ──
   const [guideX, setGuideX] = useState<number | null>(null);
@@ -206,59 +206,8 @@ export default function MemoryArrangementScreen() {
     return () => sub?.remove?.();
   }, []);
 
-  // ── Entry animation ──
-  useEffect(() => {
-    if (!hasValidAsset) return;
-
-    if (reduceMotion) {
-      animBubbleOpacity.setValue(1);
-      topBarOpacity.setValue(0.6);
-      bottomStripTransY.setValue(0);
-      bottomStripOpacity.setValue(1);
-      presetStripOpacity.setValue(1);
-      return;
-    }
-
-    // Bubble springs in
-    Animated.parallel([
-      Animated.spring(animBubbleOpacity, { toValue: 1, delay: 200, ...SPRINGS.bubbleEntry }),
-      Animated.spring(animScale, { toValue: initialScale, delay: 200, ...SPRINGS.bubbleEntry }),
-    ]).start();
-
-    // Top bar fades in
-    Animated.timing(topBarOpacity, {
-      toValue: 0.6,
-      duration: 300,
-      delay: 400,
-      easing: Easing.out(Easing.ease),
-      useNativeDriver: true,
-    }).start();
-
-    // Bottom strip slides up
-    Animated.parallel([
-      Animated.timing(bottomStripTransY, {
-        toValue: 0,
-        duration: 280,
-        delay: 500,
-        easing: Easing.out(Easing.ease),
-        useNativeDriver: true,
-      }),
-      Animated.timing(bottomStripOpacity, {
-        toValue: 1,
-        duration: 280,
-        delay: 500,
-        useNativeDriver: true,
-      }),
-    ]).start();
-
-    // Preset strip fades in
-    Animated.timing(presetStripOpacity, {
-      toValue: 1,
-      duration: 250,
-      delay: 600,
-      useNativeDriver: true,
-    }).start();
-  }, [hasValidAsset, reduceMotion]);
+  // Keep the captured memory and controls visible immediately. Gesture and
+  // explicit swap/exit animations remain independent of page readiness.
 
   // ── Safe zone clamping for bubble center ──
   const clampToSafe = useCallback((x: number, y: number, scale: number): { x: number; y: number } => {

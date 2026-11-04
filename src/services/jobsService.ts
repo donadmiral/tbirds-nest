@@ -2,6 +2,7 @@ import { supabase } from './supabase';
 import { flagsService } from './flagsService';
 import { authorId as currentAuthorId } from '../stores/actorStore';
 import { loadMyApplicationPage, withdrawApplication, type ApplicantCursor, type MyApplicationPage } from '../../shared/hiring';
+import { requireReadRows } from '../../shared/readContinuity';
 
 /**
  * Canonical jobs service. Every jobs call in the app goes through this.
@@ -171,7 +172,7 @@ async function attachPosterProfiles(rows: any[], options: JobReadOptions = {}): 
     .in('id', posterIds), options);
   if (error) throw error;
   const map: Record<string, PosterLite> = {};
-  (profiles || []).forEach((p: any) => { map[p.id] = p; });
+  requireReadRows<any>(profiles).forEach((p: any) => { map[p.id] = p; });
   return rows.map(j => ({ ...j, profile: map[j.posted_by] || null })) as Job[];
 }
 
@@ -315,7 +316,7 @@ export const jobsService = {
     const { data, error } = await supabase.from('jobs').select('*').in('id', ids)
       .order('created_at', { ascending: false });
     if (error) throw error;
-    return attachPosterProfiles(data || []);
+    return attachPosterProfiles(requireReadRows<any>(data));
   },
 
   async getSavedJobIds(userId: string, options: JobReadOptions = {}): Promise<string[]> {
@@ -324,7 +325,7 @@ export const jobsService = {
       .select('job_id')
       .eq('user_id', userId), options);
     if (error) throw error;
-    return (data || []).map((r: any) => r.job_id);
+    return requireReadRows<any>(data).map((r: any) => r.job_id);
   },
 
   async applyToJob(

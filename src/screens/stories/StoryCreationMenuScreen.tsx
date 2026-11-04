@@ -6,7 +6,7 @@ import { ensureImagePickerLibraryPermission } from '../../services/devicePermiss
  * and platinum environmental palette.
  */
 
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Alert, Animated, Pressable } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
@@ -98,50 +98,10 @@ export default function StoryCreationMenuScreen() {
 
   const { mode: _m, assets: _a, ...extraParams } = route.params || {};
 
-  const bgOpacity = useRef(new Animated.Value(0)).current;
-  const headerOpacity = useRef(new Animated.Value(0)).current;
-  const row1Opacity = useRef(new Animated.Value(0)).current;
-  const row2Opacity = useRef(new Animated.Value(0)).current;
-  const row3Opacity = useRef(new Animated.Value(0)).current;
-  const row4Opacity = useRef(new Animated.Value(0)).current;
-  const row5Opacity = useRef(new Animated.Value(0)).current;
-  const footerOpacity = useRef(new Animated.Value(0)).current;
-
-  const row1TransY = useRef(new Animated.Value(8)).current;
-  const row2TransY = useRef(new Animated.Value(8)).current;
-  const row3TransY = useRef(new Animated.Value(8)).current;
-  const row4TransY = useRef(new Animated.Value(8)).current;
-  const row5TransY = useRef(new Animated.Value(8)).current;
-
-  useEffect(() => {
-    Animated.timing(bgOpacity, { toValue: 1, duration: 150, useNativeDriver: true }).start();
-    Animated.timing(headerOpacity, { toValue: 1, duration: 200, useNativeDriver: true }).start();
-
-    const stagger = 80;
-    const optionDuration = 220;
-    const baseDelay = 100;
-
-    [
-      { opacity: row1Opacity, transY: row1TransY, delay: baseDelay },
-      { opacity: row2Opacity, transY: row2TransY, delay: baseDelay + stagger },
-      { opacity: row3Opacity, transY: row3TransY, delay: baseDelay + stagger * 2 },
-      { opacity: row4Opacity, transY: row4TransY, delay: baseDelay + stagger * 3 },
-      { opacity: row5Opacity, transY: row5TransY, delay: baseDelay + stagger * 4 },
-    ].forEach(({ opacity, transY, delay }) => {
-      Animated.sequence([
-        Animated.delay(delay),
-        Animated.parallel([
-          Animated.timing(opacity, { toValue: 1, duration: optionDuration, useNativeDriver: true }),
-          Animated.timing(transY, { toValue: 0, duration: optionDuration, useNativeDriver: true }),
-        ]),
-      ]).start();
-    });
-
-    Animated.sequence([
-      Animated.delay(baseDelay + stagger * 5),
-      Animated.timing(footerOpacity, { toValue: 1, duration: 200, useNativeDriver: true }),
-    ]).start();
-  }, []);
+  // All creation choices are usable on the first frame. Press feedback stays local.
+  const bgOpacity = 1, headerOpacity = 1, footerOpacity = 1;
+  const row1Opacity = 1, row2Opacity = 1, row3Opacity = 1, row4Opacity = 1, row5Opacity = 1;
+  const row1TransY = 0, row2TransY = 0, row3TransY = 0, row4TransY = 0, row5TransY = 0;
 
   const openTextStory = () => {
     navigation.navigate('StoryComposer', { mode: 'text', assets: [], ...extraParams });

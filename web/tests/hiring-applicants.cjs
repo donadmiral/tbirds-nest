@@ -21,10 +21,12 @@ const jobId='00000000-0000-4000-8000-000000000010';
 const helperModule={exports:{}};
 vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname,'../../shared/hiring.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module:helperModule,exports:helperModule.exports,Date});
 const hiring=helperModule.exports;
+const errorsModule={exports:{}};
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname,'../lib/errors.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module:errorsModule,exports:errorsModule.exports,Error});
 function harness({read = async () => ({data: {id: jobId, posted_by:'owner', title:'Engineer'}, error: null}), rpc = async () => ({data:{applications:[],counts:{all:0},cursor:null,has_more:false}}), sessionError = null, user='owner'} = {}) {
   let authCallback;
   const slots = [], effects = [], calls = [], routes = [];
-  let cursor = 0, tree, stateWrites = 0;
+  let cursor = 0, tree, stateWrites = 0, currentJob = jobId;
   const same = (a, b) => a && b && a.length === b.length && a.every((v, i) => Object.is(v, b[i]));
   const hooks = {
     useState(initial) {
@@ -72,8 +74,9 @@ function harness({read = async () => ({data: {id: jobId, posted_by:'owner', titl
       if (id === '@/lib/jobs') return {STATUS_META: {applied:{label:'Applied'}, interview:{label:'Interview'}, rejected:{label:'Rejected'}}, APPLICATION_STATUS_ORDER:['applied','interview','rejected']};
       if (id === '@/lib/profileLookup') return {profilePath: (name,id)=>'/u/'+id};
       if (id === '@/lib/feed') return {timeAgo: date => date};
+      if (id === '@/lib/errors') return errorsModule.exports;
       if (id.endsWith('/shared/hiring')) return hiring;
-      if (id === 'next/navigation') return {useParams: () => ({id:jobId}), useRouter: () => ({push: path => routes.push(path)})};
+      if (id === 'next/navigation') return {useParams: () => ({id:currentJob}), useRouter: () => ({push: path => routes.push(path)})};
       if (id.endsWith('/LoadError')) return { StudioLoadError: 'StudioLoadError' };
       if (id === 'next/link') return { __esModule: true, default: 'Link' };
       return stubs;
@@ -90,7 +93,7 @@ function harness({read = async () => ({data: {id: jobId, posted_by:'owner', titl
   const flush = async () => { for (let i = 0; i < 5; i++) { await new Promise(resolve => setImmediate(resolve)); render(); } };
   const unmount = () => slots.filter(s => s?.effect).forEach(s => s.cleanup?.());
   const error = word => find(n => n.type === 'StudioLoadError' && n.props.message?.startsWith(word));
-  return { render, flush, find, click, unmount, error, calls, routes, nodes, setUser(next) {user=next; authCallback?.("SIGNED_IN", next ? {user:{id:next}} : null);}, get text() { return text(tree); }, get stateWrites() { return stateWrites; } };
+  return { render, flush, find, click, unmount, error, calls, routes, nodes, setJob(next) { currentJob = next; render(); }, setUser(next) {user=next; authCallback?.("SIGNED_IN", next ? {user:{id:next}} : null);}, get text() { return text(tree); }, get stateWrites() { return stateWrites; } };
 }
 
 
@@ -114,4 +117,49 @@ test('interview action uses checked RPC once and passes the displayed version',a
  const row=applicantRow(1),wait=deferred();const app=harness({rpc:async(name)=>name==='studio_applicant_page'?page([row]):wait.promise});app.render();await app.flush();
  app.find(n=>n.type==='select').props.onChange({target:{value:'interview'}});app.render();app.find(n=>n.type==='input'&&n.props.type==='datetime-local').props.onChange({target:{value:'2027-01-01T10:00'}});app.render();
  app.click('Schedule interview');app.click('Schedule interview');await app.flush();const calls=app.calls.filter(c=>c.name==='studio_schedule_interview');assert.equal(calls.length,1);assert.equal(calls[0].args.p_expected_updated_at,row.updated_at);assert.equal(calls[0].args.p_expected_status,'applied');wait.resolve({data:{...row,status:'interview'},error:null});await app.flush();app.unmount();
+});
+
+test('status revalidation keeps candidate cards and counts visible until the confirmed replacement arrives',async()=>{
+ const wait=deferred(),row=applicantRow('retained');let reads=0;
+ const app=harness({rpc:async(name,args)=>name==='studio_applicant_page'?(++reads===1?page([row],62):wait.promise):{data:{...row,status:args.p_status},error:null}});
+ app.render();await app.flush();
+ app.find(n=>n.type==='select').props.onChange({target:{value:'rejected'}});await app.flush();
+ assert.ok(app.text.includes('Candidate retained'));assert.ok(app.text.includes('All (62)'));
+ assert.equal(app.nodes().some(n=>n.type==='p'&&text(n)==='Loading'),false);
+ wait.resolve(page([],0));await app.flush();
+ assert.equal(app.text.includes('Candidate retained'),false);assert.equal(app.text.includes('All (62)'),false);
+ assert.ok(app.text.includes('Applications will appear here'));app.unmount();
+});
+
+test('a transient refresh error stays beside retained applicants and retry keeps them visible',async()=>{
+ const wait=deferred(),row=applicantRow('retained');let reads=0;
+ const app=harness({rpc:async(name,args)=>{
+   if(name!=='studio_applicant_page')return{data:{...row,status:args.p_status},error:null};
+   reads++;return reads===1?page([row],12):reads===2?{data:null,error:{message:'Network unavailable',code:'NETWORK_ERROR'}}:wait.promise;
+ }});
+ app.render();await app.flush();app.find(n=>n.type==='select').props.onChange({target:{value:'rejected'}});await app.flush();
+ assert.ok(app.text.includes('Candidate retained'));assert.ok(app.text.includes('All (12)'));assert.ok(app.find(n=>n.props?.role==='alert'));
+ app.click('Retry');await app.flush();assert.ok(app.text.includes('Candidate retained'));assert.ok(app.text.includes('All (12)'));
+ assert.equal(app.nodes().some(n=>n.type==='p'&&text(n)==='Loading'),false);
+ wait.resolve(page([applicantRow('fresh')],13));await app.flush();assert.ok(app.text.includes('Candidate fresh'));assert.equal(app.text.includes('Candidate retained'),false);app.unmount();
+});
+
+for(const denial of [{code:'42501',message:'Denied'},{status:403,message:'Denied'}])test('confirmed access loss clears retained applicant cards and totals: '+JSON.stringify(denial),async()=>{
+ const row=applicantRow('private');let reads=0;
+ const app=harness({rpc:async(name,args)=>name==='studio_applicant_page'?(++reads===1?page([row],8):{data:null,error:denial}):{data:{...row,status:args.p_status},error:null}});
+ app.render();await app.flush();app.find(n=>n.type==='select').props.onChange({target:{value:'rejected'}});await app.flush();
+ assert.equal(app.text.includes('Candidate private'),false);assert.equal(app.text.includes('All (8)'),false);assert.ok(app.text.includes('Only the poster'));app.unmount();
+});
+
+test('a route change hides the previous job before its new request starts',async()=>{
+ const wait=deferred(),other='00000000-0000-4000-8000-000000000020';let reads=0;
+ const app=harness({read:async(_table,call)=>({data:{id:call.filters[0][1],title:'Engineer',posted_by:'owner'},error:null}),rpc:async()=>++reads===1?page([applicantRow('old')],7):wait.promise});
+ app.render();await app.flush();assert.ok(app.text.includes('Candidate old'));
+ app.setJob(other);assert.equal(app.text.includes('Candidate old'),false);assert.equal(app.text.includes('All (7)'),false);
+ await app.flush();wait.resolve(page([{...applicantRow('new'),job_id:other}],1));await app.flush();assert.ok(app.text.includes('Candidate new'));app.unmount();
+});
+
+test('an account change removes already visible candidate cards immediately',async()=>{
+ const app=harness({rpc:async()=>page([applicantRow('private')],11)});app.render();await app.flush();assert.ok(app.text.includes('Candidate private'));
+ app.setUser('other');app.render();assert.equal(app.text.includes('Candidate private'),false);assert.equal(app.text.includes('All (11)'),false);await app.flush();assert.ok(app.text.includes('Only the poster'));app.unmount();
 });

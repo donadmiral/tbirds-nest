@@ -125,7 +125,7 @@ export default function ConversationsScreen({ navigation }: any) {
       const map: Record<string, boolean> = {};
       (users || []).forEach((u: any) => { if (u?.user_id) map[u.user_id] = !!u.has_unseen; });
       setStoryRings(map);
-    });
+    }).catch(() => { /* Keep the current rings during a transient refresh failure. */ });
     return () => { alive = false; };
   }, []));
   useFocusEffect(useCallback(() => { useUnreadStore.getState().refresh(); }, []));

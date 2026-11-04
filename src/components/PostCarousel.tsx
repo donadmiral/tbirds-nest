@@ -1,4 +1,5 @@
 import { privateImageCachePolicy } from '../../shared/mediaDelivery';
+import { imageDisplayIdentity } from '../lib/imageDisplayIdentity';
 import { postPlaybackSettings } from '../../shared/postVoiceEffects';
 import { postAspectRatio, type PostFrameRecipe } from '../../shared/postMediaEditing';
 import { carouselIndex } from '../../shared/carouselNavigation';
@@ -22,7 +23,7 @@ import PostCaption from './PostCaption';
  *  - Identical layout on feed and post screens
  */
 import { themedSheet, useTheme } from '../theme/useTheme';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, ViewToken, Animated } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { VideoView, type VideoPlayer } from 'expo-video';
@@ -36,6 +37,8 @@ import { useSettingsStore } from '../stores/settingsStore';
 import PostSoundtrack from './PostSoundtrack';
 import { readSoundtrack, type SoundtrackSelection } from '../../shared/soundtrack';
 import { Feather } from '@expo/vector-icons';
+import { navigationScope, subscribeNavigationScope } from '../lib/navigationCache';
+import { SUPABASE_URL } from '../services/supabase';
 
 export type CarouselMedia = {
   id: string;
@@ -68,33 +71,44 @@ const HEIGHT_RATIO = 5 / 4; // 1.25
 // Feed sound rule: autoplay muted; once the user unmutes, new videos inherit sound this session
 let sessionMuted = true;
 
-function CarouselImage({ uri, width, height, edit, fullFrame }: { uri: string; width: number; height: number; edit?: CarouselMedia['edit']; fullFrame?: boolean }) {
-  const [loadedUri, setLoadedUri] = useState<string | null>(null);
-  const [failedUri, setFailedUri] = useState<string | null>(null);
+function CarouselImage({ uri, width, height, edit, fullFrame, postId }: { uri: string; width: number; height: number; edit?: CarouselMedia['edit']; fullFrame?: boolean; postId?: string | null }) {
+  const scope = useSyncExternalStore(subscribeNavigationScope, navigationScope, navigationScope);
+  const grant = useRef({ uri, scope });
+  if (grant.current.uri !== uri) grant.current = { uri, scope };
+  const cachePolicy = privateImageCachePolicy(uri);
+  const allowed = cachePolicy !== 'none' || (!!scope && grant.current.scope === scope);
+  const identity = JSON.stringify([scope, postId ?? null, imageDisplayIdentity(uri, SUPABASE_URL)]);
+  const request = JSON.stringify([scope, postId ?? null, uri]);
+  const activeRequest = useRef(request); activeRequest.current = request;
+  const source = useMemo(() => ({ uri }), [uri]);
+  const [loadedIdentity, setLoadedIdentity] = useState<string | null>(null);
+  const [failedRequest, setFailedRequest] = useState<string | null>(null);
+  const failedRequestRef = useRef<string | null>(null);
+  const showImage = allowed && !!uri && failedRequest !== request;
   const fit = edit?.fit === 'contain' || (fullFrame && !edit?.aspect && !edit?.aspectRatio) ? 'contain' : 'cover';
   const hasXform = !!(edit?.scale && edit.scale !== 1) || !!edit?.translateNX || !!edit?.translateNY || !!edit?.rotation || !!edit?.flipX;
   const xform = hasXform ? [{ translateX: (edit?.translateNX || 0) * width }, { translateY: (edit?.translateNY || 0) * height }, { scale: edit?.scale || 1 },{rotate: `${edit?.rotation || 0}deg`},{scaleX:edit?.flipX?-1:1}] : undefined;
 
   const image = (
     <View style={{ width, height, backgroundColor: '#F0F0F0' }}>
-      <ExpoImage
-        key={uri}
-        recyclingKey={uri}
-        source={{ uri }}
+      {showImage ? <ExpoImage
+        key={identity}
+        recyclingKey={identity}
+        source={source}
         style={{ width: '100%', height: '100%', transform: xform as any }}
         contentFit={fit}
         contentPosition="center"
-        cachePolicy={privateImageCachePolicy(uri)}
+        cachePolicy={cachePolicy}
         priority="high"
         transition={0}
-        onLoad={() => setLoadedUri(uri)}
-        onError={() => setFailedUri(uri)}
-      />
+        onDisplay={() => { if (activeRequest.current === request && failedRequestRef.current !== request) setLoadedIdentity(identity); }}
+        onError={() => { if (activeRequest.current === request) { failedRequestRef.current = request; setFailedRequest(request); setLoadedIdentity(null); } }}
+      /> : null}
       {edit?.filterId ? <FilterLayer filterId={edit.filterId} amt={edit.filterAmt ?? 100} /> : null}
       {edit?.adjust ? <AdjustLayer adjust={edit.adjust} /> : null}
-      {loadedUri !== uri && (
+      {(!showImage || loadedIdentity !== identity) && (
         <View style={st.loadingOverlay}>
-          <>{failedUri === uri ? <Text style={{ color: '#6B7280' }}>Image could not load</Text> : <ActivityIndicator color="#C7C7CC" size="small" />}</>
+          <>{!showImage ? <Text style={{ color: '#6B7280' }}>Image could not load</Text> : <ActivityIndicator color="#C7C7CC" size="small" />}</>
         </View>
       )}
     </View>
@@ -405,8 +419,9 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
       <View>
         <TouchableOpacity activeOpacity={0.97} onPress={() => onMediaPress && onMediaPress(index)} disabled={!onMediaPress}>
           <CarouselImage
-            key={`${item.id}:${item.url}`}
+            key={`${item.id}:${imageDisplayIdentity(item.url, SUPABASE_URL)}`}
             uri={item.url}
+            postId={postId}
             width={containerWidth}
             height={slideHeight}
             fullFrame={fullFrame}
@@ -442,13 +457,13 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
           {item.media_type === 'video' ? (
             <View>
               <CarouselVideo
-            key={`${item.id}:${item.url}`}
+                key={`${item.id}:${item.url}`}
                 uri={item.url}
                 postId={postId ?? null}
                 holdView={!!holdView}
                 poster={(item as any).edit?.coverUrl || null}
-            edit={item.edit}
-            soundtrack={soundtrack}
+                edit={item.edit}
+                soundtrack={soundtrack}
                 width={containerWidth}
                 height={slideHeight}
                 fullFrame={fullFrame}
@@ -462,8 +477,9 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
             <View>
               <TouchableOpacity activeOpacity={0.97} onPress={() => onMediaPress && onMediaPress(0)} disabled={!onMediaPress}>
                 <CarouselImage
-            key={`${item.id}:${item.url}`}
+                  key={`${item.id}:${imageDisplayIdentity(item.url, SUPABASE_URL)}`}
                   uri={item.url}
+                  postId={postId}
                   width={containerWidth}
                   height={slideHeight}
                   fullFrame={fullFrame}
@@ -488,7 +504,7 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
           ref={listRef}
           key={containerWidth}
           data={media}
-          keyExtractor={(item) => `${item.id || item.sort_order}:${item.url}`}
+          keyExtractor={(item) => `${item.id || item.sort_order}:${item.media_type === 'image' ? imageDisplayIdentity(item.url, SUPABASE_URL) : item.url}`}
           renderItem={renderItem}
           horizontal
           pagingEnabled

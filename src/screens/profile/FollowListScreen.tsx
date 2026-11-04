@@ -245,7 +245,7 @@ export default function FollowListScreen() {
           <Text style={s.followTxt}>Retry</Text>
         </TouchableOpacity>
       </View>}
-      {loading ? (
+      {loading && people.length === 0 ? (
         <View style={s.center}><ActivityIndicator color={NAVY} /></View>
       ) : filtered.length === 0 ? (
         <View style={s.center}>

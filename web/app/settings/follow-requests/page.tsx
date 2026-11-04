@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ResourceRefreshNotice } from "@/components/ResourceRefreshNotice";
 import { useAccountResource } from "@/lib/useAccountResource";
 import { errorMessage } from "@/lib/errors";
 import { withTimeout } from "@/lib/withTimeout";
@@ -27,7 +28,7 @@ async function fetchRows(supabase: ReturnType<typeof createClient>, uid: string)
 }
 
 export default function FollowRequestsPage() {
-  const { client: supabase, data: rows, setData: setRows, error: loadError, loading, retry, assertOwner } = useAccountResource<Row[]>(fetchRows, []);
+  const { client: supabase, data: rows, setData: setRows, error: loadError, loading, retry, assertOwner, refreshError, refreshing } = useAccountResource<Row[]>(fetchRows, []);
   const [actionError, setActionError] = useState("");
   const [busy, setBusy] = useState<Record<string, boolean>>({});
 
@@ -49,6 +50,7 @@ export default function FollowRequestsPage() {
       <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><UserCheck size={19} className="text-accent" /> Follow requests</h1>
       <p className="pb-5 text-[13px] text-muted">People asking to follow your private account.</p>
       {actionError ? <p role="alert" className="text-sm text-danger">{actionError}</p> : null}
+      <ResourceRefreshNotice error={refreshError} refreshing={refreshing} retry={retry} />
       {loadError ? <ErrorState title={loadError} onRetry={retry} /> : null}
       {loading ? <p className="py-10 text-center text-sm text-muted">Loading</p>
       : loadError ? null : rows.length === 0 ? (

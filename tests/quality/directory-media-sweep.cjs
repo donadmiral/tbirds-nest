@@ -8,6 +8,8 @@ const tick=()=>new Promise(resolve=>setImmediate(resolve));
 function client(responses){const calls=[];return{calls,from(table){const call={table,action:'select',filters:[]};calls.push(call);const q={};for(const method of ['select','eq','neq','order','limit','in','is','or','delete','insert','maybeSingle'])q[method]=(...args)=>{if(['delete','insert','maybeSingle'].includes(method))call.action=method;call.filters.push([method,...args]);return q;};q.then=(yes,no)=>Promise.resolve(typeof responses[table]==='function'?responses[table](call):responses[table]||{data:[],error:null}).then(yes,no);return q;},rpc(name,args){calls.push({rpc:name,args});return Promise.resolve(typeof responses[name]==='function'?responses[name](args):responses[name]||{data:[],error:null});}};}
 const normalize=compile(read('src/utils/profilePost.ts')).normalizeProfilePost;
 const media=compile(read('shared/contentMedia.ts'));
+const {isReadAccessDenied,requireReadRows}=compile(read('shared/readContinuity.ts'));
+const {reuseFeedMediaGrants}=compile(read('shared/feedMediaReuse.ts'),{require:id=>{if(id==='./contentMedia')return media;throw Error('Unexpected dependency: '+id);}});
 const base='https://fixture.supabase.co', canonical=base+'/storage/v1/object/public/post-media/owner/photo.jpg', signed=base+'/storage/v1/object/sign/post-media/owner/photo.jpg?token=fresh';
 const without=rows=>media.replaceContentMedia(rows,base,new Map());
 const getNetwork=compile(read('shared/networkDirectory.ts')).readNetworkDirectory;
@@ -53,8 +55,10 @@ test('Saved Posts fences stale accounts and a failed unsave never resurrects a s
 });
 function searchFixture(responses={},hydrate=async rows=>rows){
  const c=client(responses),state={people:[],posts:[],jobs:[],market:[],loading:false,errors:{},visible:''};
- const scope={myId:'owner',postMode:'top',identity:{current:{myId:'owner'}},mounted:{current:true},request:{current:0},searchScope:{current:'owner:test:top'},supabase:c,profileRead:async q=>await q,hydratePostMedia:hydrate,withoutPrivateMedia:without,normalizeProfilePost:normalize,
- setPeople:value=>state.people=value,setPosts:value=>state.posts=value,setJobs:value=>state.jobs=value,setListings:value=>state.market=value,setLoading:value=>state.loading=value,setErrors:value=>state.errors=typeof value==='function'?value(state.errors):value,setVisibleScope:value=>state.visible=value};
+ const update=key=>value=>state[key]=typeof value==='function'?value(state[key]):value;
+ const scope={myId:'owner',postMode:'top',identity:{current:{myId:'owner'}},mounted:{current:true},request:{current:0},searchScope:{current:'owner:test:top'},resultsScope:{current:''},supabase:c,profileRead:async q=>await q,hydratePostMedia:hydrate,withoutPrivateMedia:without,normalizeProfilePost:normalize,isReadAccessDenied,requireReadRows,
+ retainFeedMedia:(old,incoming,before,next)=>reuseFeedMediaGrants(old,incoming,base,before,next),
+ setPeople:update('people'),setPosts:update('posts'),setJobs:update('jobs'),setListings:update('market'),setLoading:update('loading'),setErrors:update('errors'),setVisibleScope:value=>{state.visible=value;scope.resultsScope.current=value;}};
  return{state,scope,client:c,run:callback('src/screens/feed/SearchScreen.tsx','runSearch',scope)};
 }
 test('search source errors stay separate, signed media is required, and old query responses cannot win',async()=>{

@@ -5,10 +5,8 @@
  * inactive: a single still platinum hairline - the brand frame.
  */
 import React, { useEffect, useRef } from 'react';
-import { Animated } from 'react-native';
+import { Animated, Easing, StyleSheet, View } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
-
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 const PLATINUM_GLOW = '#F5F0E8';
 const PLATINUM_START = '#C9BFB0';
@@ -36,11 +34,12 @@ export default function PlatinumRing({ userId, size, active = true }: {
   useEffect(() => {
     if (!active) return;
     const anim = Animated.loop(
-      Animated.timing(arcOffset, { toValue: circumference, duration: speed, useNativeDriver: false })
+      Animated.timing(arcOffset, { toValue: 1, duration: speed, easing: Easing.linear,
+        useNativeDriver: true, isInteraction: false })
     );
     anim.start();
     return () => anim.stop();
-  }, [arcOffset, speed, active, circumference]);
+  }, [arcOffset, speed, active]);
 
   if (!active) {
     return (
@@ -51,6 +50,7 @@ export default function PlatinumRing({ userId, size, active = true }: {
   }
 
   return (
+    <View pointerEvents="none" style={{ width: size, height: size }}>
     <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
       <Defs>
         <LinearGradient id={safeId} x1="0" y1="0" x2="1" y2="1">
@@ -61,12 +61,19 @@ export default function PlatinumRing({ userId, size, active = true }: {
       </Defs>
       <Circle cx={center} cy={center} r={radius} fill="none" stroke={`url(#${safeId})`} strokeWidth={2.5} />
       <Circle cx={center} cy={center} r={radius - 1.5} fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth={0.5} />
-      <AnimatedCircle
+    </Svg>
+    <Animated.View style={[StyleSheet.absoluteFillObject, {
+      transform: [{ rotate: arcOffset.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '-360deg'] }) }],
+    }]}>
+      <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <Circle
         cx={center} cy={center} r={radius} fill="none"
         stroke="rgba(255,255,255,0.45)" strokeWidth={1.5}
         strokeDasharray={`${arcDash} ${circumference - arcDash}`}
-        strokeLinecap="round" strokeDashoffset={arcOffset}
+        strokeLinecap="round"
       />
-    </Svg>
+      </Svg>
+    </Animated.View>
+    </View>
   );
 }

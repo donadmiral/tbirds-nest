@@ -84,6 +84,7 @@ import StoryBar from '../../components/stories/StoryStrip';
 import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
 import TrendingTopicsStrip from '../../components/TrendingTopicsStrip';
 import PostCarousel, { CarouselMedia } from '../../components/PostCarousel';
+import FeedAuthorAvatar from '../../components/feed/FeedAuthorAvatar';
 import ProductCarousel, { PostProduct } from '../../components/ProductCarousel';
 import ProductPickerSheet from '../../components/ProductPickerSheet';
 import { useActorStore, authorId as currentAuthorId } from '../../stores/actorStore';
@@ -449,7 +450,13 @@ export default function FeedScreen({ navigation }: any) {
   const hydratePolls = useCallback((ids: string[]) => {
     if (!ids.length) return;
     const isCurrent = metadataFence();
-    supabase.from('post_polls').select('post_id').in('post_id', ids).then(({ data }) => { if (!isCurrent()) return; const m: Record<string, boolean> = {}; (data || []).forEach((r: any) => { m[r.post_id] = true; }); setPollPosts(prev => ({ ...prev, ...m })); }, () => {});
+    supabase.from('post_polls').select('post_id').in('post_id', ids).then(({ data, error, status }) => {
+      const denied = status === 401 || status === 403 || error?.code === '42501';
+      if (!isCurrent() || (error && !denied) || (!denied && !Array.isArray(data))) return;
+      const m: Record<string, boolean> = Object.fromEntries(ids.map(id => [id, false]));
+      (denied ? [] : data ?? []).forEach((r: any) => { m[r.post_id] = true; });
+      setPollPosts(prev => isCurrent() ? { ...prev, ...m } : prev);
+    }, () => {});
   }, [metadataFence]);
   const [collabs, setCollabs] = useState<Record<string, { id: string; username: string | null; full_name: string | null }[]>>({});
   const [collabPicker, setCollabPicker] = useState<'composer' | { postId: string } | null>(null);
@@ -457,11 +464,12 @@ export default function FeedScreen({ navigation }: any) {
   const hydrateCollabs = useCallback((ids: string[]) => {
     if (!ids.length) return;
     const isCurrent = metadataFence();
-    supabase.from('post_collaborators').select('post_id, user_id, status, profile:profiles!post_collaborators_user_id_fkey(username, full_name, avatar_url, is_verified, verified_tier)').in('post_id', ids).eq('status', 'accepted').then(({ data }) => {
-      if (!isCurrent()) return;
+    supabase.from('post_collaborators').select('post_id, user_id, status, profile:profiles!post_collaborators_user_id_fkey(username, full_name, avatar_url, is_verified, verified_tier)').in('post_id', ids).eq('status', 'accepted').then(({ data, error, status }) => {
+      const denied = status === 401 || status === 403 || error?.code === '42501';
+      if (!isCurrent() || (error && !denied) || (!denied && !Array.isArray(data))) return;
       const m: Record<string, { id: string; username: string | null; full_name: string | null }[]> = Object.fromEntries(ids.map(id => [id, []]));
-      (data || []).forEach((r: any) => { const pr = Array.isArray(r.profile) ? r.profile[0] : r.profile; if (!pr) return; (m[r.post_id] = m[r.post_id] || []).push({ id: r.user_id, username: pr.username ?? null, full_name: pr.full_name ?? null, avatar_url: pr.avatar_url ?? null, is_verified: !!pr.is_verified, verified_tier: pr.verified_tier ?? null } as any); });
-      setCollabs(prev => ({ ...prev, ...m }));
+      (denied ? [] : data ?? []).forEach((r: any) => { const pr = Array.isArray(r.profile) ? r.profile[0] : r.profile; if (!pr) return; (m[r.post_id] = m[r.post_id] || []).push({ id: r.user_id, username: pr.username ?? null, full_name: pr.full_name ?? null, avatar_url: pr.avatar_url ?? null, is_verified: !!pr.is_verified, verified_tier: pr.verified_tier ?? null } as any); });
+      setCollabs(prev => isCurrent() ? { ...prev, ...m } : prev);
     }, () => {});
   }, [metadataFence]);
   const COMMENT_META: Record<string, { label: string; icon: string }> = {
@@ -946,7 +954,9 @@ export default function FeedScreen({ navigation }: any) {
         bm0[r.post_id] = !!r.viewer_bookmarked;
         rm0[r.post_id] = !!r.viewer_reposted;
       });
-      setProfilesMap(prev => preservePosition ? { ...prev, ...pmFromFeed } : pmFromFeed);
+      // Quote authors are loaded separately. Keep their current identity while
+      // the refreshed post and its source media are being enriched.
+      setProfilesMap(prev => isCurrent() ? { ...prev, ...pmFromFeed } : prev);
       const mergeFlags = (prev: Record<string, boolean>, incoming: Record<string, boolean>) => {
         const next = preservePosition ? { ...prev } : {};
         Object.keys(incoming).forEach(id => { if ((feedLiveDeniedAt.current[id] ?? -1) < requestedAt)
@@ -955,28 +965,63 @@ export default function FeedScreen({ navigation }: any) {
       };
       setLikedPosts(prev => mergeFlags(prev, lm0)); setBookmarkedPosts(prev => mergeFlags(prev, bm0)); setRepostedPosts(prev => mergeFlags(prev, rm0));
       const likerIds = scored.filter(p => p.likes_count > 0).map(p => p.id);
-      if (likerIds.length > 0) supabase.rpc('get_recent_likers', { post_ids: likerIds }).then(({ data }) => { if (!isCurrent()) return; const m: Record<string, string[]> = {}; (data ?? []).forEach((r: any) => { m[r.post_id] = r.liker_names ?? []; }); setLikerNames(prev => preservePosition ? { ...prev, ...m } : m); });
+      if (likerIds.length > 0) supabase.rpc('get_recent_likers', { post_ids: likerIds }).then(({ data, error, status }) => {
+        const denied = status === 401 || status === 403 || error?.code === '42501';
+        if (!isCurrent() || (error && !denied) || (!denied && !Array.isArray(data))) return;
+        const m: Record<string, string[]> = Object.fromEntries(likerIds.map(id => [id, []]));
+        (denied ? [] : data ?? []).forEach((r: any) => { m[r.post_id] = r.liker_names ?? []; });
+        setLikerNames(prev => {
+          if (!isCurrent()) return prev;
+          const next = preservePosition ? { ...prev, ...m } : m;
+          if (denied) likerIds.forEach(id => { delete next[id]; });
+          return next;
+        });
+      }, () => {});
       const qIds = Array.from(new Set(scored.map(p => p.quoted_post_id).filter(Boolean))) as string[];
       let qRows: any[] = [];
       if (qIds.length > 0) {
-        const { data: qData } = await supabase.from('posts').select('id, content, body, user_id, media_url, image_url, post_media(url, media_type, sort_order, edit)').in('id', qIds);
+        const { data: qData, error: qError, status: qStatus } = await supabase.from('posts').select('id, content, body, user_id, media_url, image_url, post_media(url, media_type, sort_order, edit)').in('id', qIds);
         if (!isCurrent()) return;
-        const publishPreview = (sources: any[]) => {
-          const qm: typeof quotedMap = {};
-          sources.forEach((qr: any) => { qm[qr.id] = { content: qr.content ?? qr.body ?? '', user_id: qr.user_id, ...sharedPostPreview(qr) }; });
-          setQuotedMap(prev => preservePosition ? { ...prev, ...qm } : qm);
-        };
-        publishPreview(withoutPrivateMedia(qData ?? []));
-        qRows = await hydratePostMedia(qData ?? []).catch(() => withoutPrivateMedia(qData ?? []));
-        if (!isCurrent()) return;
-        publishPreview(qRows);
+        const denied = qStatus === 401 || qStatus === 403 || qError?.code === '42501';
+        if (denied || (!qError && Array.isArray(qData))) {
+          const sources = denied ? [] : qData ?? [];
+          // An authoritative missing source is removed immediately. A source
+          // still present keeps its painted preview until its new grant is ready.
+          const available = new Set(sources.map((row: any) => row.id));
+          const initialPreviews = withoutPrivateMedia(sources);
+          setQuotedMap(prev => {
+            if (!isCurrent()) return prev;
+            const next = { ...prev };
+            qIds.forEach(id => { if (!available.has(id)) delete next[id]; });
+            initialPreviews.forEach((qr: any) => {
+              if (!next[qr.id]) next[qr.id] = { content: qr.content ?? qr.body ?? '', user_id: qr.user_id, ...sharedPostPreview(qr) };
+            });
+            return next;
+          });
+          const publishPreview = (sources: any[]) => {
+            const qm: typeof quotedMap = {};
+            sources.forEach((qr: any) => { qm[qr.id] = { content: qr.content ?? qr.body ?? '', user_id: qr.user_id, ...sharedPostPreview(qr) }; });
+            setQuotedMap(prev => !isCurrent() ? prev : preservePosition ? { ...prev, ...qm } : qm);
+          };
+          qRows = await hydratePostMedia(sources).catch(() => withoutPrivateMedia(sources));
+          if (!isCurrent()) return;
+          publishPreview(qRows);
+        }
       }
       const uids = Array.from(new Set([...scored.map(p => p.user_id), ...qRows.map((qr: any) => qr.user_id)]));
-      const { data: pData } = await supabase.from('profiles').select('id, full_name, username, avatar_url, profile_visibility, is_verified, verified_tier').in('id', uids);
+      const { data: pData, error: profilesError, status: profilesStatus } = await supabase.from('profiles').select('id, full_name, username, avatar_url, profile_visibility, is_verified, verified_tier').in('id', uids);
       if (!isCurrent()) return;
-      const pm: ProfileMap = { ...pmFromFeed };
-      (pData || []).forEach((p: any) => { pm[p.id] = p; });
-      setProfilesMap(prev => ({ ...prev, ...pm }));
+      const profilesDenied = profilesStatus === 401 || profilesStatus === 403 || profilesError?.code === '42501';
+      if (profilesDenied || (!profilesError && Array.isArray(pData))) {
+        const pm: ProfileMap = { ...pmFromFeed };
+        (profilesDenied ? [] : pData ?? []).forEach((p: any) => { pm[p.id] = p; });
+        setProfilesMap(prev => {
+          if (!isCurrent()) return prev;
+          const next = { ...prev, ...pm };
+          qRows.forEach((row: any) => { if (!pm[row.user_id]) delete next[row.user_id]; });
+          return next;
+        });
+      }
       if (userId) {
         supabase.from('profiles')
           .select('id, full_name, username, avatar_url, headline, connections_count')
@@ -989,24 +1034,26 @@ export default function FeedScreen({ navigation }: any) {
       if (userId) {
         const ids = scored.map(p => p.id);
         if (ids.length > 0) {
-          const { data: cData } = await supabase
+          const { data: cData, error: commentsError, status: commentsStatus } = await supabase
             .from('post_comments')
             .select('post_id, body, user_id, parent_comment_id, created_at, likes_count')
             .in('post_id', ids)
             .order('created_at', { ascending: false });
 
-          if (!isCurrent()) return;
+          const commentsDenied = commentsStatus === 401 || commentsStatus === 403 || commentsError?.code === '42501';
+          if (!isCurrent() || (commentsError && !commentsDenied) || (!commentsDenied && !Array.isArray(cData))) return;
           // These rows are previews, and the API may return only a prefix.
           // Keep the authoritative comments_count returned by get_feed.
           const cpMap: Record<string, CommentPreview> = {};
-          const topLevelComments = (cData || []).filter((c: any) => !c.parent_comment_id);
+          const topLevelComments = (commentsDenied ? [] : cData ?? []).filter((c: any) => !c.parent_comment_id);
           const aIds = Array.from(new Set(topLevelComments.map((c: any) => c.user_id).filter(Boolean)));
           let authors: Record<string, any> = {};
 
           if (aIds.length > 0) {
-            const { data: aData } = await supabase.from('profiles').select('id, full_name, username').in('id', aIds);
-            if (!isCurrent()) return;
-            (aData || []).forEach((a: any) => { authors[a.id] = a; });
+            const { data: aData, error: authorsError, status: authorsStatus } = await supabase.from('profiles').select('id, full_name, username').in('id', aIds);
+            const authorsDenied = authorsStatus === 401 || authorsStatus === 403 || authorsError?.code === '42501';
+            if (!isCurrent() || (authorsError && !authorsDenied) || (!authorsDenied && !Array.isArray(aData))) return;
+            (authorsDenied ? [] : aData ?? []).forEach((a: any) => { authors[a.id] = a; });
           }
 
           topLevelComments.forEach((c: any) => {
@@ -1018,7 +1065,12 @@ export default function FeedScreen({ navigation }: any) {
           });
 
           setCommentPreviews(prev => {
+            if (!isCurrent()) return prev;
             const next = preservePosition ? { ...prev } : {};
+            ids.forEach(id => {
+              if (commentsDenied || feedSnapshotFresh(id, requestedAt, liveFence())) delete next[id];
+              else if (prev[id]) next[id] = prev[id];
+            });
             Object.keys(cpMap).forEach(id => {
               if (!feedSnapshotFresh(id, requestedAt, liveFence())) { if (prev[id]) next[id] = prev[id]; }
               else next[id] = cpMap[id];
@@ -2146,17 +2198,32 @@ export default function FeedScreen({ navigation }: any) {
       const qIds2 = Array.from(new Set(scored.map(p => p.quoted_post_id).filter(Boolean))) as string[];
       let qRows2: any[] = [];
       if (qIds2.length > 0) {
-        const { data: qData } = await supabase.from('posts').select('id, content, body, user_id, media_url, image_url, post_media(url, media_type, sort_order, edit)').in('id', qIds2);
+        const { data: qData, error: qError, status: qStatus } = await supabase.from('posts').select('id, content, body, user_id, media_url, image_url, post_media(url, media_type, sort_order, edit)').in('id', qIds2);
         if (!isCurrent()) return;
-        const publishPreview = (sources: any[]) => setQuotedMap(prev => {
-          const qm = { ...prev };
-          sources.forEach((qr: any) => { qm[qr.id] = { content: qr.content ?? qr.body ?? '', user_id: qr.user_id, ...sharedPostPreview(qr) }; });
-          return qm;
-        });
-        publishPreview(withoutPrivateMedia(qData ?? []));
-        qRows2 = await hydratePostMedia(qData ?? []).catch(() => withoutPrivateMedia(qData ?? []));
-        if (!isCurrent()) return;
-        publishPreview(qRows2);
+        const denied = qStatus === 401 || qStatus === 403 || qError?.code === '42501';
+        if (denied || (!qError && Array.isArray(qData))) {
+          const sources = denied ? [] : qData ?? [];
+          const available = new Set(sources.map((row: any) => row.id));
+          const initialPreviews = withoutPrivateMedia(sources);
+          setQuotedMap(prev => {
+            if (!isCurrent()) return prev;
+            const next = { ...prev };
+            qIds2.forEach(id => { if (!available.has(id)) delete next[id]; });
+            initialPreviews.forEach((qr: any) => {
+              if (!next[qr.id]) next[qr.id] = { content: qr.content ?? qr.body ?? '', user_id: qr.user_id, ...sharedPostPreview(qr) };
+            });
+            return next;
+          });
+          const publishPreview = (sources: any[]) => setQuotedMap(prev => {
+            if (!isCurrent()) return prev;
+            const qm = { ...prev };
+            sources.forEach((qr: any) => { qm[qr.id] = { content: qr.content ?? qr.body ?? '', user_id: qr.user_id, ...sharedPostPreview(qr) }; });
+            return qm;
+          });
+          qRows2 = await hydratePostMedia(sources).catch(() => withoutPrivateMedia(sources));
+          if (!isCurrent()) return;
+          publishPreview(qRows2);
+        }
       }
       const uids2 = Array.from(new Set([...scored.map(p => p.user_id), ...qRows2.map((qr: any) => qr.user_id)]));
       const missingU = uids2.filter(u => !profilesMap[u]);
@@ -2360,22 +2427,9 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
       <View style={s.postCard}>
         <View style={s.postTopRow}>
           <TouchableOpacity style={s.postMeta} onPress={() => { prefetch('profile:' + post.user_id, async () => (await supabase.rpc('get_profile', { p_profile_id: post.user_id })).data); navigation.navigate('UserProfile', { userId: post.user_id, user: author }); }} activeOpacity={0.8}>
-            {(() => {
-              const ring = postRings[post.user_id];
-              const ringStyle = ring === undefined ? null
-                : ring ? { borderWidth: 2.5, borderColor: '#B08D3F', borderRadius: 999, padding: 2 }
-                : { borderWidth: 2, borderColor: 'rgba(11,30,61,0.18)', borderRadius: 999, padding: 2 };
-              const av = author?.avatar_url
-                ? <ExpoImage source={{ uri: author.avatar_url }} style={s.avatar} contentFit="cover" cachePolicy="memory-disk" transition={150} />
-                : <View style={s.avatarFb}><Text style={s.avatarFbTxt}>{initials(author?.full_name || author?.username)}</Text></View>;
-              if (ring === undefined) return av;
-              return (
-                <TouchableOpacity activeOpacity={0.8} style={ringStyle}
-                  onPress={() => (navigation as any).navigate('StoryViewer', { userId: post.user_id })}>
-                  {av}
-                </TouchableOpacity>
-              );
-            })()}
+            <FeedAuthorAvatar userId={post.user_id} uri={author?.avatar_url} name={author?.full_name || author?.username}
+              storyUnseen={postRings[post.user_id]}
+              onStory={() => (navigation as any).navigate('StoryViewer', { userId: post.user_id })} />
             <View style={s.postMetaTxt}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
                 <TierName tier={(author as any)?.verified_tier ?? (((author as any)?.is_verified) ? 'business' : null)} baseStyle={s.postAuthor} text={author?.full_name || 'Member'} />

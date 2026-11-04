@@ -116,7 +116,12 @@ function resourceHarness() {
     useCallback(fn, deps) { const i = index++; if (!slots[i] || !same(slots[i].deps, deps)) slots[i] = { deps, value: fn }; return slots[i].value; },
     useEffect(fn, deps) { const i = index++; if (!slots[i] || !same(slots[i].deps, deps)) { pending.push(() => { slots[i]?.cleanup?.(); slots[i] = { deps, cleanup: fn() }; }); } },
   };
-  const { useStudioResource } = compile(read('src/hooks/useStudioResource.ts'), { require: name => name === 'react' ? react : { useAuthStore: selector => selector({ session: { user: { id: owner } }, profile: { id: owner } }) } });
+  const { useStudioResource } = compile(read('src/hooks/useStudioResource.ts'), { require: name => {
+    if (name === 'react') return react;
+    if (name.endsWith('/readContinuity')) return compile(read('shared/readContinuity.ts'));
+    if (name.endsWith('/authStore')) return { useAuthStore: selector => selector({ session: { user: { id: owner } }, profile: { id: owner } }) };
+    throw new Error('Unexpected resource dependency ' + name);
+  } });
   function render(next = fetch, account = owner) { fetch = next; owner = account; index = 0; const value = useStudioResource(fetch, 'Unable to load'); const effects = pending; pending = []; effects.forEach(fn => fn()); return value; }
   return { render };
 }

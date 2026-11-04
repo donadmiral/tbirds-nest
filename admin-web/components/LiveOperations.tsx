@@ -1,6 +1,6 @@
 'use client';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { liveId } from '@/lib/liveOperations';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { liveId, invalidatesLiveRead, liveReadFailure } from '@/lib/liveOperations';
 
 type Row=Record<string,unknown>;
 const object=(v:unknown):v is Row=>!!v&&typeof v==='object'&&!Array.isArray(v);
@@ -12,16 +12,48 @@ const audienceLabels:Record<string,string>={public:'Public',followers:'Followers
 function BroadcastState({value}:{value:unknown}){const state=text(value,30),tone=state==='live'?'var(--bad)':['starting','reconnecting','ending'].includes(state)?'var(--warn)':'var(--txt-muted)';return <span style={{display:'inline-flex',alignItems:'center',gap:6,padding:'5px 9px',borderRadius:7,color:tone,background:`color-mix(in srgb, ${tone} 10%, transparent)`,fontSize:12,fontWeight:700,whiteSpace:'nowrap'}}><span aria-hidden style={{width:6,height:6,borderRadius:6,background:tone}}/>{stateLabels[state]||'Unavailable'}</span>;}
 const button:React.CSSProperties={minHeight:44,minWidth:44,border:'1px solid var(--line)',borderRadius:9,padding:'8px 14px',background:'var(--panel)',color:'var(--txt)',fontSize:13,cursor:'pointer'};
 const input:React.CSSProperties={...button,width:'100%',textAlign:'left',cursor:'text'};
-async function call(path:string,init?:RequestInit){const response=await fetch(path,{...init,credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(18000)});const data:unknown=await response.json();if(!response.ok||!object(data))throw new Error(object(data)&&text(data.error)?text(data.error,300):'The operation could not be confirmed.');return data;}
-export default function LiveOperations(){
+async function call(path:string,init?:RequestInit){const response=await fetch(path,{...init,credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(18000)});const data:unknown=await response.json().catch(()=>null);if(!response.ok||!object(data))throw Object.assign(new Error(object(data)&&text(data.error)?text(data.error,300):'The operation could not be confirmed.'),{status:response.status});return data;}
+export default function LiveOperations({active=true}:{active?:boolean}={}){
   const [directory,setDirectory]=useState<Row>({items:[]}),[state,setState]=useState(''),[selected,setSelected]=useState(''),[detail,setDetail]=useState<Row|null>(null);
   const [error,setError]=useState(''),[loading,setLoading]=useState(false),[busy,setBusy]=useState(false),[reason,setReason]=useState(''),[target,setTarget]=useState(''),[notice,setNotice]=useState('');
   const generation=useRef(0),detailGeneration=useRef(0),lock=useRef(false),request=useRef<{signature:string;id:string}|null>(null);
-  const load=useCallback(async(cursor:unknown=null)=>{const version=++generation.current;setLoading(true);setError('');try{const params=new URLSearchParams();if(state)params.set('state',state);if(cursor)params.set('cursor',JSON.stringify(cursor));const data=await call('/api/live?'+params);if(version===generation.current)setDirectory(data);}catch(reason){if(version===generation.current)setError(reason instanceof Error?reason.message:'Live operations could not load.');}finally{if(version===generation.current)setLoading(false);}},[state]);
-  const inspect=useCallback(async(id:string,extra:Record<string,unknown>={})=>{const version=++detailGeneration.current;setSelected(id);setDetail(null);setReason('');setTarget('');setError('');try{const params=new URLSearchParams({session:id});Object.entries(extra).forEach(([k,v])=>{if(v)params.set(k,JSON.stringify(v));});const data=await call('/api/live?'+params);if(version===detailGeneration.current)setDetail(data);}catch(reason){if(version===detailGeneration.current){setDetail(null);setError(reason instanceof Error?reason.message:'Stream review could not load.');}}},[]);
-  useEffect(()=>{void load();return()=>{generation.current++;};},[load]);
-  useEffect(()=>()=>{detailGeneration.current++;},[]);
-  const execute=async(action:string,payload:Row={})=>{if(lock.current||!liveId(selected)||!reason.trim())return;const merged={reason:reason.trim(),...payload},signature=JSON.stringify([selected,action,merged]);if(request.current?.signature!==signature)request.current={signature,id:crypto.randomUUID()};lock.current=true;setBusy(true);setError('');setNotice('');try{const result=await call('/api/live',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,sessionId:selected,requestId:request.current.id,payload:merged})});if(result.ok!==true)throw new Error('The action was not confirmed.');request.current=null;setNotice(action==='stop'?'Stop requested. Confirm the broadcast reaches ended state.':'Action recorded.');await inspect(selected);}catch(reason){setError(reason instanceof Error?reason.message:'The action was not confirmed.');}finally{lock.current=false;setBusy(false);}};
+  const selectedRef=useRef('');
+  const mounted=useRef(false),activeRef=useRef(active),context=useRef(0);
+  useLayoutEffect(()=>{const lifetime=context,reads=generation,details=detailGeneration;mounted.current=true;activeRef.current=active;lifetime.current++;return()=>{mounted.current=false;activeRef.current=false;lifetime.current++;reads.current++;details.current++;};},[active]);
+  const clearReview=useCallback((cause:unknown)=>{
+    const removed=selectedRef.current,status=liveReadFailure(cause,'').status;
+    context.current++;generation.current++;detailGeneration.current++;setLoading(false);setDetail(null);setReason('');setTarget('');setNotice('');
+    setDirectory(previous=>status===404?{...previous,items:rows(previous.items,24).filter(item=>item.id!==removed)}:{items:[]});
+  },[]);
+  const load=useCallback(async(cursor:unknown=null)=>{
+    if(!activeRef.current)return;const version=++generation.current;setLoading(true);setError('');
+    try{const params=new URLSearchParams();if(state)params.set('state',state);if(cursor)params.set('cursor',JSON.stringify(cursor));const data=await call('/api/live?'+params);if(version===generation.current&&activeRef.current)setDirectory(data);}
+    catch(reason){if(version===generation.current&&activeRef.current){if(invalidatesLiveRead(reason))clearReview(reason);setError(reason instanceof Error?reason.message:'Live operations could not load.');}}
+    finally{if(version===generation.current&&activeRef.current)setLoading(false);}
+  },[state,clearReview]);
+  const inspect=useCallback(async(id:string,extra:Record<string,unknown>={})=>{
+    if(!activeRef.current)return;const version=++detailGeneration.current,changed=selectedRef.current!==id;
+    selectedRef.current=id;setSelected(id);if(changed){context.current++;setDetail(null);setReason('');setTarget('');setNotice('');}setError('');
+    try{const params=new URLSearchParams({session:id});Object.entries(extra).forEach(([k,v])=>{if(v)params.set(k,JSON.stringify(v));});const data=await call('/api/live?'+params);if(version===detailGeneration.current&&activeRef.current)setDetail(data);}
+    catch(reason){if(version===detailGeneration.current&&activeRef.current){if(invalidatesLiveRead(reason))clearReview(reason);setError(reason instanceof Error?reason.message:'Stream review could not load.');}}
+  },[clearReview]);
+  useEffect(()=>{const reads=generation;let cancelled=false;if(active)queueMicrotask(()=>{if(!cancelled)void load();});return()=>{cancelled=true;reads.current++;};},[load,active]);
+  useEffect(()=>{let cancelled=false;if(active)queueMicrotask(()=>{if(!cancelled&&selectedRef.current)void inspect(selectedRef.current);});return()=>{cancelled=true;};},[active,inspect]);
+  const execute=async(action:string,payload:Row={})=>{
+    if(!activeRef.current||lock.current||selectedRef.current!==selected||!liveId(selected)||!reason.trim())return;
+    const version=context.current,sentReason=reason,sentTarget=target,current=()=>mounted.current&&activeRef.current&&context.current===version&&selectedRef.current===selected;
+    const merged={reason:reason.trim(),...payload},signature=JSON.stringify([selected,action,merged]);
+    if(request.current?.signature!==signature)request.current={signature,id:crypto.randomUUID()};
+    const attempt=request.current;lock.current=true;setBusy(true);setError('');setNotice('');
+    try{
+      const result=await call('/api/live',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,sessionId:selected,requestId:attempt.id,payload:merged})});
+      if(!current())return;if(result.ok!==true)throw new Error('The action was not confirmed.');
+      if(request.current===attempt)request.current=null;
+      setReason(value=>current()&&value===sentReason?'':value);setTarget(value=>current()&&value===sentTarget?'':value);
+      setNotice(action==='stop'?'Stop requested. Confirm the broadcast reaches ended state.':'Action recorded.');await inspect(selected);
+    }catch(reason){if(current()){if(invalidatesLiveRead(reason))clearReview(reason);setError(reason instanceof Error?reason.message:'The action was not confirmed.');}}
+    finally{lock.current=false;if(mounted.current)setBusy(false);}
+  };
   const session=object(detail?.session)?detail.session:{},permissions=object(detail?.permissions)?detail.permissions:{},canModerate=permissions.moderate===true;
   const reports=object(detail?.reports)?detail.reports:{},audit=object(detail?.audit)?detail.audit:{},messages=object(detail?.messages)?detail.messages:{};
   const readiness=object(directory.capabilities)?directory.capabilities:{};

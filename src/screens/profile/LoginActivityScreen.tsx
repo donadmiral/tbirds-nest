@@ -13,6 +13,8 @@ import * as Device from 'expo-device';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { themedSheet, useTheme } from '../../theme/useTheme';
+import { createScreenReadGuard, isReadAccessDenied, requireReadRows } from '../../../shared/readContinuity';
+import { orderTimeout } from '../../../shared/orderRequest';
 
 type Row = { id: string; device_name: string | null; platform: string | null; updated_at: string | null; created_at: string | null };
 
@@ -30,16 +32,26 @@ export default function LoginActivityScreen() {
   const { profile } = useAuthStore();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const userId = profile?.id ?? null;
+  const [reads] = useState(() => createScreenReadGuard(userId));
+  reads.setScope(userId);
   const thisDevice = (Device.deviceName || '').trim();
 
   const load = useCallback(async () => {
-    if (!profile?.id) return;
-    setLoading(true);
-    const { data } = await supabase.from('user_push_tokens').select('id, device_name, platform, updated_at, created_at').eq('user_id', profile.id).order('updated_at', { ascending: false });
-    setRows((data as Row[]) || []);
-    setLoading(false);
-  }, [profile?.id]);
-  useEffect(() => { load(); }, [load]);
+    if (!userId) { setLoading(false); return; }
+    const current = reads.begin(userId);
+    if (!current()) return;
+    setLoading(true); setLoadError(null);
+    try {
+      const { data, error } = await orderTimeout(supabase.from('user_push_tokens').select('id, device_name, platform, updated_at, created_at').eq('user_id', userId).order('updated_at', { ascending: false }), 15000, 'Login activity could not be loaded.');
+      if (error) throw error;
+      if (current()) setRows(requireReadRows<Row>(data));
+    } catch (error) {
+      if (current()) { if (isReadAccessDenied(error)) setRows([]); setLoadError('Login activity could not be refreshed. Tap to retry.'); }
+    } finally { if (current()) setLoading(false); }
+  }, [userId, reads]);
+  useEffect(() => { setRows([]); setLoading(!!userId); setLoadError(null); void load(); return () => reads.invalidate(); }, [load, userId, reads]);
 
   const logOutOthers = () => {
     Alert.alert('Log out of all other devices?', 'Every other phone, tablet and browser signed in to this account is signed out. This device stays.', [
@@ -64,7 +76,8 @@ export default function LoginActivityScreen() {
       </View>
       <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}>
         <Text style={s.lede}>Devices signed in to your account. If one isn't yours, log the others out and change your password.</Text>
-        {loading ? <ActivityIndicator color={t.ink.primary} style={{ marginTop: 20 }} /> : rows.map((r) => {
+        {loadError ? <TouchableOpacity accessibilityRole="button" onPress={() => { void load(); }}><Text accessibilityRole="alert" style={s.lede}>{loadError}</Text></TouchableOpacity> : null}
+        {loading && rows.length === 0 ? <ActivityIndicator color={t.ink.primary} style={{ marginTop: 20 }} /> : rows.map((r) => {
           const mine = !!thisDevice && r.device_name === thisDevice;
           return (
             <View key={r.id} style={s.row}>
@@ -76,7 +89,7 @@ export default function LoginActivityScreen() {
             </View>
           );
         })}
-        {!loading && rows.length === 0 ? <Text style={[s.lede, { marginTop: 10 }]}>No devices recorded yet.</Text> : null}
+        {!loading && !loadError && rows.length === 0 ? <Text style={[s.lede, { marginTop: 10 }]}>No devices recorded yet.</Text> : null}
         <TouchableOpacity style={s.btn} onPress={logOutOthers} activeOpacity={0.85}><Text style={s.btnTxt}>Log out of all other devices</Text></TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

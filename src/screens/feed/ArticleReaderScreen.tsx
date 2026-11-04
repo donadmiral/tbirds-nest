@@ -12,6 +12,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { hydratePostMedia } from '../../services/contentMedia';
 import { replaceContentMedia } from '../../../shared/contentMedia';
 import ArticleBody from '../../components/ArticleBody';
+import { isReadAccessDenied } from '../../../shared/readContinuity';
 
 const W = Dimensions.get('window').width;
 
@@ -28,6 +29,7 @@ export default function ArticleReaderScreen({ route, navigation }: any) {
     let alive = true, generation = 0;
     const load = async () => {
       const request = ++generation;
+      let checkingMedia = false;
       try {
         let images: { url: string; width?: number; height?: number }[] = [];
         if (source.postId) {
@@ -39,9 +41,10 @@ export default function ArticleReaderScreen({ route, navigation }: any) {
             if (Array.isArray(block?.content?.images)) images = block.content.images;
           }
         }
+        checkingMedia = true;
         const [hydrated] = await hydratePostMedia([{ ...source, id: source.postId, gallery: images }]);
         if (alive && generation === request) { setResult({ source, viewer, article: hydrated, gallery: hydrated.gallery }); setError(null); }
-      } catch { if (alive && generation === request) { setResult(null); setError('The article media could not load. Tap to retry.'); } }
+      } catch (failure) { if (alive && generation === request) { if (checkingMedia || isReadAccessDenied(failure)) setResult(null); setError('The article could not be refreshed. Tap to retry.'); } }
     };
     void load();
     const app = AppState.addEventListener('change', value => { if (value === 'active') void load(); });

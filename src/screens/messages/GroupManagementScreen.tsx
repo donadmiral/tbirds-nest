@@ -25,6 +25,8 @@ import { useAuthStore } from '../../stores/authStore';
 import { signChatMedia, signGroupAvatars } from '../../services/chatMediaService';
 import { uploadMedia } from '../../services/mediaService';
 import MediaViewer, { MediaViewerItem } from '../../components/messages/MediaViewer';
+import { createScreenReadGuard, isReadAccessDenied, requireReadRows } from '../../../shared/readContinuity';
+import { orderTimeout } from '../../../shared/orderRequest';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const GALLERY_GAP = 2;
@@ -150,6 +152,9 @@ export default function GroupManagementScreen({ route, navigation }: any) {
 
   const context = `${myId}:${conversationId}`;
   const contextRef = useRef(context); contextRef.current = context;
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reads] = useState(() => ({ info: createScreenReadGuard(context), media: createScreenReadGuard(context) }));
+  reads.info.setScope(context); reads.media.setScope(context);
   const canEditInfo = isAdmin || !adminOnlyEdit;
   const canAddMembers = isAdmin || !adminOnlyInvite;
   const muteLabel = useMemo(() => fmtMuteUntil(mutedUntil), [mutedUntil]);
@@ -168,10 +173,12 @@ export default function GroupManagementScreen({ route, navigation }: any) {
   const photoCount = mediaCount - videoCount;
 
   const loadAll = useCallback(async () => {
-    if (!conversationId || !myId) return;
-    setLoading(true);
+    if (!conversationId || !myId) { setLoading(false); setLoadError('This group is unavailable.'); return; }
+    const current = reads.info.begin(context);
+    if (!current()) return;
+    setLoading(true); setLoadError(null);
     try {
-      const [convRes, memberRes, settingsRes, starRes] = await Promise.all([
+      const [convRes, memberRes, settingsRes, starRes] = await orderTimeout(Promise.all([
         supabase.from('conversations')
           .select('id, group_name, group_avatar_url, description, admin_only_edit, admin_only_invite')
           .eq('id', conversationId)
@@ -188,11 +195,15 @@ export default function GroupManagementScreen({ route, navigation }: any) {
         supabase.from('starred_messages')
           .select('id', { count: 'exact', head: true })
           .eq('conversation_id', conversationId),
-      ]);
+      ]), 15000, 'Group details could not be loaded.');
 
-      if (contextRef.current !== context) return;
-      const conv = convRes.data ? (await signGroupAvatars([convRes.data]))[0] : null;
-      if (contextRef.current !== context) return;
+      if (!current()) return;
+      if (convRes.error) throw convRes.error;
+      if (!convRes.data) throw Object.assign(new Error('This group is unavailable.'), { status: 403 });
+      if (memberRes.error) throw memberRes.error;
+      const loadedMembers = requireReadRows<Member>(memberRes.data);
+      const conv = convRes.data ? (await orderTimeout(signGroupAvatars([convRes.data]), 15000, 'The group photo could not be loaded.').catch(error => { if (current()) setAvatarUrl(null); throw error; }))[0] : null;
+      if (!current()) return;
       if (conv) {
         setGroupName(conv.group_name || initName || 'Group');
         setAvatarUrl(conv.group_avatar_url || null);
@@ -202,24 +213,32 @@ export default function GroupManagementScreen({ route, navigation }: any) {
         setAdminOnlyInvite(!!conv.admin_only_invite);
       }
 
-      const loadedMembers = (memberRes.data || []) as unknown as Member[];
       setMembers(loadedMembers);
       const me = loadedMembers.find(m => m.user_id === myId);
       setIsAdmin(me?.role === 'admin');
 
-      setMutedUntil(settingsRes.data?.muted_until || null);
-      setStarredCount((starRes as any)?.count || 0);
+      if (!settingsRes.error) setMutedUntil(settingsRes.data?.muted_until || null);
+      else if (isReadAccessDenied(settingsRes.error)) setMutedUntil(null);
+      if (!starRes.error) setStarredCount((starRes as any)?.count || 0);
+      else if (isReadAccessDenied(starRes.error)) setStarredCount(0);
+      if (settingsRes.error || starRes.error) setLoadError('Some group details could not be refreshed. Tap to retry.');
     } catch (e) {
-      console.log('[GROUP_LOAD_ERR]', e);
+      if (current()) {
+        if (isReadAccessDenied(e)) { reads.media.invalidate(); setMembers([]); setAvatarUrl(null); setMedia([]); setFiles([]); setIsAdmin(false); setViewerOpen(false); setGalleryOpen(false); }
+        setLoadError('Group details could not be refreshed. Tap to retry.');
+      }
     } finally {
-      setLoading(false);
+      if (current()) setLoading(false);
     }
-  }, [conversationId, myId, initName, context]);
+  }, [conversationId, myId, initName, context, reads]);
 
   const loadMediaAndFiles = useCallback(async () => {
     if (!conversationId || !myId) return;
+    const current = reads.media.begin(context);
+    if (!current()) return;
+    let checkingMedia = false;
     try {
-      const { data, error } = await supabase
+      const { data, error } = await orderTimeout(supabase
         .from('messages')
         .select('id, media_url, media_type, text, created_at, deleted_at, view_limit')
         .eq('conversation_id', conversationId)
@@ -227,18 +246,20 @@ export default function GroupManagementScreen({ route, navigation }: any) {
         .is('deleted_at', null)
         .is('view_limit', null)
         .order('created_at', { ascending: false })
-        .limit(200);
+        .limit(200), 15000, 'Group media could not be loaded.');
       if (error) throw error;
-      const rows = (await signChatMedia(data || [])).filter(row => !!row.media_url);
-      if (contextRef.current !== context) return;
+      const raw = requireReadRows<any>(data);
+      checkingMedia = true;
+      const rows = (await orderTimeout(signChatMedia(raw), 15000, 'Group media could not be loaded.')).filter(row => !!row.media_url);
+      if (!current()) return;
       setMedia(rows.filter(r => r.media_type === 'image' || r.media_type === 'video' || r.media_type === 'gif') as MediaMsg[]);
       setFiles(rows.filter(r => r.media_type === 'document') as FileMsg[]);
     } catch (e) {
-      console.log('[GROUP_MEDIA_LOAD_ERR]', e);
+      if (current()) { if (checkingMedia || isReadAccessDenied(e)) { setMedia([]); setFiles([]); setViewerOpen(false); setGalleryOpen(false); } setLoadError('Group media could not be refreshed. Tap to retry.'); }
     }
-  }, [conversationId, myId, context]);
+  }, [conversationId, myId, context, reads]);
 
-  useEffect(() => { setMedia([]); setFiles([]); setMembers([]); setAvatarUrl(null); }, [context]);
+  useEffect(() => { setMedia([]); setFiles([]); setMembers([]); setAvatarUrl(null); setGroupName(initName || 'Group'); setDescription(''); setIsAdmin(false); setAdminOnlyEdit(false); setAdminOnlyInvite(false); setMutedUntil(null); setStarredCount(0); setViewerOpen(false); setGalleryOpen(false); setLoadError(null); setLoading(true); return () => { reads.info.invalidate(); reads.media.invalidate(); }; }, [context, reads]);
   useEffect(() => { loadAll(); }, [loadAll]);
   useEffect(() => { loadMediaAndFiles(); }, [loadMediaAndFiles]);
 
@@ -489,6 +510,7 @@ export default function GroupManagementScreen({ route, navigation }: any) {
         contentContainerStyle={{ paddingBottom: insets.bottom + TAB_BAR_CLEARANCE + 24 }}
         showsVerticalScrollIndicator={false}
       >
+        {loadError ? <TouchableOpacity accessibilityRole="button" onPress={() => { void loadAll(); void loadMediaAndFiles(); }}><Text accessibilityRole="alert" style={{ padding: 16 }}>{loadError}</Text></TouchableOpacity> : null}
         <View style={s.hero}>
           <TouchableOpacity onPress={pickGroupAvatar} disabled={!canEditInfo || uploadingAvatar} activeOpacity={0.85}>
             <View style={s.heroAvatarWrap}>
@@ -639,7 +661,7 @@ export default function GroupManagementScreen({ route, navigation }: any) {
             </View>
           )}
 
-          {loading ? <ActivityIndicator color={NAVY} style={{ marginVertical: 16 }} /> : (
+          {loading && members.length === 0 ? <ActivityIndicator color={NAVY} style={{ marginVertical: 16 }} /> : (
             <View>
               {members.slice(0, 8).map((m) => (
                 <View key={m.user_id} style={s.memberRow}>

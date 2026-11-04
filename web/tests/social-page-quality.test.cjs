@@ -7,7 +7,7 @@ const ts = require('typescript');
 function load(name) {
  const module={exports:{}};
  const js=ts.transpileModule(fs.readFileSync(path.join(__dirname,'../lib/',name),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText;
- vm.runInNewContext(js,{module,exports:module.exports,URL,Date,Map,Set,Error,AbortController,require:(id)=>{if(id==="../../shared/channelMedia")return require("../../shared/channelMedia.ts");throw new Error(id);}});return module.exports;
+ vm.runInNewContext(js,{module,exports:module.exports,URL,Date,Map,Set,Error,AbortController,require:(id)=>{if(id==="./errors")return load('errors.ts');if(id==="../../shared/channelMedia")return require("../../shared/channelMedia.ts");throw new Error(id);}});return module.exports;
 }
 const {createPagedCollection}=load('socialPages.ts');
 const {channelMediaObject}=load('channelMedia.ts');
@@ -21,7 +21,7 @@ test('double Load more dispatch cannot issue duplicate reads',async()=>{
 test('old identity and route responses cannot overwrite reset results',async()=>{
  const old=defer();let calls=0;
  const store=createPagedCollection({key:x=>x.id,fetchPage:()=>++calls===1?old.promise:Promise.resolve([{id:'new'}])});
- const a=store.next();await store.reload();old.resolve([{id:'private-old'}]);await a;
+ const a=store.next();store.reset();await store.next();old.resolve([{id:'private-old'}]);await a;
  assert.equal(store.snapshot().items[0].id,'new');assert.equal(store.snapshot().items.length,1);
 });
 test('failed continuation preserves rows and retries exact offset and snapshot',async()=>{
@@ -74,4 +74,28 @@ test('failed warm refresh preserves content and retry restarts at zero instead o
 test('cancel aborts transport and prevents a late warm refresh from publishing or replacing remembered rows',async()=>{
  const gate=defer();let signal;const old={id:'kept'};const store=createPagedCollection({key:x=>x.id,memory:{items:[old],offset:1,asOf:'old',hasMore:false},fetchPage:(_o,_s,_a,s)=>{signal=s;return gate.promise;}});
  const work=store.refresh();store.cancel();assert.equal(signal.aborted,true);gate.resolve([{id:'secret-old-session'}]);await work;assert.equal(store.snapshot().items[0],old);
+});
+
+test('explicit reload keeps the same cards while pending, preserves them on network failure and accepts empty replacement',async()=>{
+ const gate=defer(),old={id:'visible'};let attempt=0;
+ const store=createPagedCollection({key:x=>x.id,memory:{items:[old],offset:1,asOf:'old',hasMore:false},fetchPage:()=>++attempt===1?gate.promise:Promise.resolve([])});
+ const pending=store.reload();assert.equal(store.snapshot().items[0],old);assert.equal(store.snapshot().loading,true);
+ gate.reject(Error('offline'));await pending;assert.equal(store.snapshot().items[0],old);assert.equal(store.snapshot().error,'offline');
+ await store.reload();assert.equal(store.snapshot().items.length,0);assert.equal(store.snapshot().error,null);assert.equal(store.snapshot().hasMore,false);
+});
+
+test('reload after a confirmed write supersedes an older refresh without clearing visible cards',async()=>{
+ const first=defer(),second=defer();let attempts=0;const old={id:'visible',joined:false};
+ const store=createPagedCollection({key:x=>x.id,memory:{items:[old],offset:1,asOf:'old',hasMore:false},fetchPage:()=>++attempts===1?first.promise:second.promise});
+ const a=store.refresh(),b=store.reload();assert.equal(store.snapshot().items[0],old);assert.equal(attempts,2);
+ second.resolve([{id:'visible',joined:true}]);await b;first.resolve([old]);await a;assert.equal(store.snapshot().items[0].joined,true);
+});
+
+test('confirmed authorization loss clears social rows and remembered data for refresh and continuation',async()=>{
+ for(const error of [{status:403},{code:'42501'},Error('AUTH_REQUIRED'),Error('ACCESS_DENIED'),Error('FORBIDDEN'),Error('Media could not be loaded. Please try again.')]) {
+  for(const method of ['reload','next']) {
+   const store=createPagedCollection({key:x=>x.id,memory:{items:[{id:'private'}],offset:1,asOf:'old',hasMore:true},fetchPage:async()=>{throw error;}});
+   await store[method]();assert.equal(store.snapshot().items.length,0);assert.equal(store.remember(),null);assert.ok(store.snapshot().error);
+  }
+ }
 });

@@ -17,14 +17,21 @@ function execute(node, ast, context) {
   const code = ts.transpileModule('module.exports = ' + node.getText(ast), { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.CommonJS } }).outputText;
   vm.runInNewContext(code, { module, exports: module.exports, ...context }); return module.exports;
 }
+function pureModule(file) {
+  const module = {exports:{}};
+  vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(root,file),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,{module,exports:module.exports,URL,Map,Set,Error});
+  return module.exports;
+}
+const {isReadAccessDenied}=pureModule('shared/readContinuity.ts');
+const {replaceContentMedia}=pureModule('shared/contentMedia.ts');
 function nativeLoad({ hydrationFailure = false, pendingHydration, visible = true } = {}) {
   const ast = source('src/screens/feed/PostScreen.tsx');
   const node = find(ast, n => ts.isVariableDeclaration(n) && n.name.getText(ast) === 'load').initializer.arguments[0];
   const state = { post: { id: 'old' }, galleryImages: [{ url: 'old' }] }, references = [], reads = [];
   const identityRef = { current: { postId, userId: 'viewer' } };
-  const context = { postId, userId: 'viewer', loadEpoch: { current: 0 }, identityRef, bounded: value => Promise.resolve(value) };
-  for (const key of ['Post','GalleryImages','ThreadAbove','ThreadBelow','NotFound','Loading','LoadError','PostCollabs','CollabInvite','LikedPost','LinkPreview']) context['set'+key] = value => { state[key[0].toLowerCase()+key.slice(1)] = value; };
-  context.hydratePostMedia = async rows => { references.push(rows); if (pendingHydration) await pendingHydration; if (hydrationFailure) throw new Error('Denied'); return JSON.parse(JSON.stringify(rows).replaceAll(canonical, signed)); };
+  const context = { postId, userId: 'viewer', loadEpoch: { current: 0 }, identityRef, bounded: value => Promise.resolve(value),isReadAccessDenied,withoutPrivateMedia:rows=>replaceContentMedia(rows,'https://qa.supabase.co',new Map()) };
+  for (const key of ['Post','GalleryImages','ThreadAbove','ThreadBelow','NotFound','Loading','LoadError','PostCollabs','CollabInvite','LikedPost','LinkPreview','ViewerIndex']) context['set'+key] = value => { const name=key[0].toLowerCase()+key.slice(1);state[name]=typeof value==='function'?value(state[name]):value; };
+  context.hydratePostMedia = async rows => { references.push(rows); if (pendingHydration) await pendingHydration; if (hydrationFailure) throw Object.assign(new Error('Denied'),{status:403}); return JSON.parse(JSON.stringify(rows).replaceAll(canonical, signed)); };
   context.supabase = {
     rpc: async () => ({ data: visible, error: null }),
     from(table) {
@@ -53,7 +60,7 @@ test('native standalone post signs its main media, product images and article ga
 test('native standalone reader fails closed when media access is denied', async () => {
   const run = nativeLoad({ hydrationFailure: true }); await run.load();
   assert.equal(run.state.post,null); assert.equal(run.state.galleryImages.length,0);
-  assert.match(run.state.loadError,/could not be loaded/); assert.equal(run.state.loading,false);
+  assert.match(run.state.loadError,/could not be refreshed/); assert.equal(run.state.loading,false);
 });
 test('native post response cannot publish after an account switch', async () => {
   const pending = deferred(), run = nativeLoad({ pendingHydration: pending.promise });

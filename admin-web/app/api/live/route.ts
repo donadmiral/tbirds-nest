@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getAdmin } from '@/lib/adminAuth';
 import { canAccessOperations } from '@/lib/adminAssurance';
 import { canOpen, canPerform } from '@/lib/permissions';
-import { liveId, parseLiveCursor, parseStaffLiveCommand, readLiveBody } from '@/lib/liveOperations';
+import { liveId, parseLiveCursor, parseStaffLiveCommand, readLiveBody, liveReadFailure, invalidatesLiveRead } from '@/lib/liveOperations';
 
 export const dynamic = 'force-dynamic';
 const headers = { 'Cache-Control':'private, no-store', 'Content-Type':'application/json', 'X-Content-Type-Options':'nosniff' };
@@ -28,14 +28,15 @@ export async function GET(request:Request){
       const auditCursor=parseLiveCursor(params.get('auditCursor')),reportCursor=parseLiveCursor(params.get('reportCursor'));
       if(auditCursor===false||reportCursor===false)return json(400,{error:'Invalid review page.'});
       const [detail,messages,analytics]=await Promise.all([context.client.rpc('live_admin_session',{p_session_id:id,p_audit_cursor:auditCursor,p_report_cursor:reportCursor}),context.client.rpc('live_messages',{p_session_id:id,p_before:cursor,p_limit:50}),context.client.rpc('live_analytics',{p_session_id:id})]);
-      if(detail.error||messages.error||analytics.error)return json(503,{error:'Stream review could not load. Retry shortly.'});
+      const cause=[detail.error,messages.error,analytics.error].find(error=>error&&invalidatesLiveRead(error))||detail.error||messages.error||analytics.error;
+      if(cause){const failure=liveReadFailure(cause,'Stream review could not load. Retry shortly.');return json(failure.status,{error:failure.error});}
       return json(200,{...detail.data,messages:messages.data,analytics:analytics.data});
     }
     const state=params.get('state');if(state&&!['draft','scheduled','backstage','starting','live','reconnecting','ending','ended','cancelled'].includes(state))return json(400,{error:'Invalid stream state.'});
     const {data,error}=await context.client.rpc('live_admin_directory',{p_state:state||null,p_cursor:cursor,p_limit:24});
-    if(error)return json(503,{error:'Live operations are unavailable. Retry shortly.'});
+    if(error){const failure=liveReadFailure(error,'Live operations are unavailable. Retry shortly.');return json(failure.status,{error:failure.error});}
     return json(200,{...data,canModerate:canPerform(context.admin.role,'post_moderate')});
-  } catch { return json(503,{error:'Live operations are unavailable. Retry shortly.'}); }
+  } catch (error) { const failure=liveReadFailure(error,'Live operations are unavailable. Retry shortly.');return json(failure.status,{error:failure.error}); }
 }
 export async function POST(request:Request){
   if(request.headers.get('origin')!==new URL(request.url).origin || !request.headers.get('content-type')?.startsWith('application/json'))return json(403,{error:'Use the operations desk to make this change.'});

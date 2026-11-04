@@ -3,6 +3,7 @@ import NextImage from "next/image";
 
 import Link from "next/link";
 import { useCurrentTime } from "@/lib/useCurrentTime";
+import { ResourceRefreshNotice } from "@/components/ResourceRefreshNotice";
 import { useAccountResource } from "@/lib/useAccountResource";
 import { errorMessage } from "@/lib/errors";
 import { withTimeout } from "@/lib/withTimeout";
@@ -30,7 +31,7 @@ function PostPoll({postId}:{postId:string}) {
   const voted=!!opts[0]?.viewer_vote,total=opts[0]?.total??0,showResults=voted||ended;
   const hoursLeft=opts.length&&now!==null?Math.max(0,Math.round((new Date(opts[0].ends_at).getTime()-now)/3600000)):null;
   async function vote(id:string){
-    if(showResults||pending.current)return;pending.current=true;setBusy(true);setError("");
+    if(showResults||pending.current||resource.refreshing)return;pending.current=true;setBusy(true);setError("");
     try{await resource.assertOwner();const {error}=await withTimeout(resource.client.rpc("vote_poll",{p_post_id:postId,p_option_id:id}));if(error)throw error;await resource.assertOwner();resource.reload();}
     catch(cause){setError(errorMessage(cause,"Your vote could not be saved. Please retry."));}
     finally{pending.current=false;setBusy(false);}
@@ -40,6 +41,7 @@ function PostPoll({postId}:{postId:string}) {
   return (
     <StableAsyncBlock blockKey={'poll:'+postId} state="ready">
     <div className="mt-3 flex flex-col gap-1.5" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+      <ResourceRefreshNotice error={resource.refreshError} refreshing={resource.refreshing} retry={resource.retry} />
       {error?<p role="alert" className="text-sm text-danger">{error}</p>:null}
       {opts.map((o) => {
         const pct = total > 0 ? Math.round((o.votes / total) * 100) : 0;
@@ -53,7 +55,7 @@ function PostPoll({postId}:{postId:string}) {
             </span>
           </span>
         ) : (
-          <button key={o.option_id} disabled={busy||resource.loading} onClick={() => vote(o.option_id)}
+          <button key={o.option_id} disabled={busy||resource.loading||resource.refreshing} onClick={() => vote(o.option_id)}
             className="rounded-md border border-pearl px-3 py-2 text-left text-[13.5px] font-semibold text-ink transition-colors hover:bg-pearl/15"
           >
             {o.label}
@@ -79,6 +81,7 @@ export function PollVoters({ postId, onClose }: { postId: string; onClose: () =>
     <ProductDialog open title="Poll votes" onClose={onClose}>
       <div className="max-h-[70vh] w-full max-w-md overflow-y-auto rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="mb-3 text-[15px] font-semibold">Votes</div>
+        <ResourceRefreshNotice error={resource.refreshError} refreshing={resource.refreshing} retry={resource.retry} />
         {resource.error?<p role="alert">{resource.error} <button onClick={resource.retry}>Retry</button></p>:resource.loading ? <div className="text-[13px] text-muted">Loading</div> : rows.length === 0 ? <div className="text-[13px] text-muted">No votes yet</div> : Object.entries(groups).map(([label, list]) => (
           <div key={label} className="mb-3">
             <div className="mb-1 text-[12px] font-semibold uppercase tracking-wide text-muted">{label} · {list?.length}</div>

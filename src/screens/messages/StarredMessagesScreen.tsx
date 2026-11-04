@@ -9,14 +9,18 @@ import EmptyState from '../../components/EmptyState';
  * All messages I personally starred, across DMs and groups.
  * Tap a row to open the chat. Tap the star to unstar.
  */
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { supabase } from '../../services/supabase';
-import { signChatMediaMap, isChatMediaUrl, signGroupAvatars } from '../../services/chatMediaService';
+import { signGroupAvatars, isChatMediaUrl } from '../../services/chatMediaService';
 import { useAuthStore } from '../../stores/authStore';
+import { createScreenReadGuard, isReadAccessDenied, requireReadRows } from '../../../shared/readContinuity';
+import { orderTimeout } from '../../../shared/orderRequest';
+
+const bounded = <T,>(work: PromiseLike<T>) => orderTimeout(work, 15000, 'Starred messages could not be loaded.');
 
 type Row = {
   id: string;
@@ -64,43 +68,54 @@ export default function StarredMessagesScreen() {
   const { t, isDark } = useTheme();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
-  const { profile } = useAuthStore();
-  const myId = profile?.id ?? null;
+  const myId = useAuthStore(state => state.profile?.id ?? null);
 
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-
-  const accountRef = useRef(myId); accountRef.current = myId;
-  useEffect(() => { setRows([]); }, [myId]);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reads] = useState(() => createScreenReadGuard(myId));
+  reads.setScope(myId);
+  useEffect(() => { setRows([]); setLoading(!!myId); setRefreshing(false); setLoadError(null); }, [myId]);
   const [q, setQ] = useState('');
   const load = useCallback(async () => {
     if (!myId) { setLoading(false); return; }
+    const current = reads.begin(myId);
+    if (!current()) return;
+    setLoadError(null);
     try {
-      const { data: starred, error } = await supabase
+      const { data: starred, error } = await bounded(supabase
         .from('starred_messages')
         .select('id, message_id, starred_at, conversation_id, msg:messages!message_id(id, text, media_url, media_type, created_at, sender_id)')
         .eq('starred_by', myId)
-        .order('starred_at', { ascending: false });
+        .order('starred_at', { ascending: false }));
 
-      if (accountRef.current !== myId) return;
-      if (error) { console.log('[STARRED_SCREEN_ERR]', error.message); setRows([]); return; }
-      const starredRows = (starred || []) as any[];
+      if (!current()) return;
+      if (error) throw error;
+      const starredRows = requireReadRows<any>(starred);
       if (starredRows.length === 0) { setRows([]); return; }
-      const signedMap = await signChatMediaMap(starredRows.map((r: any) => r.msg).filter(Boolean));
-      starredRows.forEach((r: any) => { if (r.msg && isChatMediaUrl(r.msg.media_url)) r.msg.media_url = signedMap[r.msg.id] || null; });
+      // Message attachments are not rendered here. Chat authorizes them on open.
 
       const convIds = Array.from(new Set(starredRows.map(r => r.conversation_id)));
-      const { data: convs } = await supabase
+      const { data: convs, error: conversationError } = await bounded(supabase
         .from('conversations')
         .select('id, is_group, group_name, group_emoji, group_avatar_url, user_1, user_2')
-        .in('id', convIds);
+        .in('id', convIds));
+      if (conversationError) throw conversationError;
+      if (!current()) return;
+      const conversations = requireReadRows<any>(convs);
       const convMap: Record<string, any> = {};
-      (await signGroupAvatars(convs || [])).forEach((c: any) => { convMap[c.id] = c; });
+      const privateIds = new Set(conversations.filter(c => isChatMediaUrl(c.group_avatar_url)).map(c => c.id));
+      const discardAvatars = (ids: Set<string>) => {
+        if (current() && ids.size) setRows(previous => current() ? previous.map(row => row.conv && ids.has(row.conv.id) ? { ...row, conv: { ...row.conv, group_avatar_url: null } } : row) : previous);
+      };
+      const signedConversations = await bounded(signGroupAvatars(conversations)).catch(error => { discardAvatars(privateIds); throw error; });
+      signedConversations.forEach((c: any) => { convMap[c.id] = c; });
+      discardAvatars(new Set([...privateIds].filter(id => !convMap[id]?.group_avatar_url)));
 
       const senderIds = Array.from(new Set(starredRows.map(r => r.msg?.sender_id).filter(Boolean)));
       const dmOtherIds = new Set<string>();
-      (convs || []).forEach((c: any) => {
+      conversations.forEach((c: any) => {
         if (!c.is_group) {
           const other = c.user_1 === myId ? c.user_2 : c.user_1;
           if (other) dmOtherIds.add(other);
@@ -109,9 +124,10 @@ export default function StarredMessagesScreen() {
       const allProfileIds = Array.from(new Set([...senderIds, ...dmOtherIds]));
       const profileMap: Record<string, any> = {};
       if (allProfileIds.length > 0) {
-        const { data: profs } = await supabase
-          .from('profiles').select('id, full_name, avatar_url').in('id', allProfileIds);
-        (profs || []).forEach((p: any) => { profileMap[p.id] = p; });
+        const { data: profs, error: profileError } = await bounded(supabase
+          .from('profiles').select('id, full_name, avatar_url').in('id', allProfileIds));
+        if (profileError) throw profileError;
+        requireReadRows<any>(profs).forEach((p: any) => { profileMap[p.id] = p; });
       }
 
       const composed: Row[] = starredRows.map((r: any) => {
@@ -133,22 +149,32 @@ export default function StarredMessagesScreen() {
           other_party: otherParty,
         };
       });
-      if (accountRef.current === myId) setRows(composed);
+      if (current()) setRows(composed);
     } catch (e) {
-      console.log('[STARRED_LOAD_CATCH]', e);
+      if (current()) {
+        if (isReadAccessDenied(e)) setRows([]);
+        setLoadError('Starred messages could not be refreshed. Tap to retry.');
+      }
     } finally {
-      if (accountRef.current === myId) { setLoading(false); setRefreshing(false); }
+      if (current()) { setLoading(false); setRefreshing(false); }
     }
-  }, [myId]);
+  }, [myId, reads]);
 
   // Reload every time the screen comes into focus. Stars removed
   // elsewhere (reaction sheet, chat info modal) show up immediately.
-  useFocusEffect(useCallback(() => { load(); }, [load]));
+  useFocusEffect(useCallback(() => { void load(); return () => reads.invalidate(); }, [load, reads]));
 
   const unstar = async (row: Row) => {
+    reads.begin(myId);
+    const current = reads.capture(myId);
+    if (!current()) return;
+    setLoading(false); setRefreshing(false);
     setRows(prev => prev.filter(r => r.id !== row.id));
-    const { error } = await supabase.from('starred_messages').delete().eq('id', row.id);
-    if (error) { console.log('[UNSTAR_ERR]', error.message); load(); }
+    try {
+      const { error } = await bounded(supabase.from('starred_messages').delete().eq('id', row.id));
+      if (error) throw error;
+      if (current()) { reads.begin(myId); setRows(prev => prev.filter(r => r.id !== row.id)); setLoading(false); setRefreshing(false); }
+    } catch { if (current()) void load(); }
   };
 
   const openChat = (row: Row) => {
@@ -228,9 +254,10 @@ export default function StarredMessagesScreen() {
         <View style={{ minWidth: 90 }} />
       </View>
 
-      {loading ? (
+      {loadError ? <TouchableOpacity accessibilityRole="button" onPress={() => { setRefreshing(true); void load(); }}><Text accessibilityRole="alert" style={{ padding: 16, color: t.status.danger }}>{loadError}</Text></TouchableOpacity> : null}
+      {loading && rows.length === 0 ? (
         <ListRowSkeleton />
-      ) : rows.length === 0 ? (
+      ) : rows.length === 0 && !loadError ? (
         <View style={s.empty}>
           <Text style={s.emptyStar}>★</Text>
           <Text style={s.emptyTitle}>No starred messages</Text>
@@ -239,7 +266,8 @@ export default function StarredMessagesScreen() {
           </Text>
         </View>
       ) : (
-        <FlatList ListHeaderComponent={<View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 6 }}><TextInput value={q} onChangeText={setQ} placeholder="Search saved messages" placeholderTextColor="#9A9DA4" autoCapitalize="none" style={{ backgroundColor: '#F2F2F7', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14.5, color: '#111' }} /></View>} ListEmptyComponent={<EmptyState icon="star" title="No starred messages" line="Star a message to keep it within reach." />}
+        <FlatList ListHeaderComponent={<View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 6 }}><TextInput value={q} onChangeText={setQ} placeholder="Search saved messages" placeholderTextColor="#9A9DA4" autoCapitalize="none" style={{ backgroundColor: '#F2F2F7', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14.5, color: '#111' }} /></View>}
+ ListEmptyComponent={loadError ? null : <EmptyState icon="star" title="No starred messages" line="Star a message to keep it within reach." />}
           data={filteredRows}
           keyExtractor={r => r.id}
           renderItem={renderRow}

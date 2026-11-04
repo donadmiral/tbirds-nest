@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { RelativeTime } from "@/components/RelativeTime";
 import { STATUS_META, APPLICATION_STATUS_ORDER, type ApplicationStatus } from "@/lib/jobs";
+import { isAccessDeniedError } from "@/lib/errors";
 
 import { loadApplicantPage, mergeApplicants, saveApplicationStatus, saveInterview, type ApplicantCursor } from "../../../../../shared/hiring";
 
@@ -49,29 +50,49 @@ export default function ApplicantsPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const morePending = useRef(false);
   const account = useRef<string | null>(null);
+  const selection = JSON.stringify([jobId, filter]);
+  const currentSelection = useRef(selection); currentSelection.current = selection;
+  const dataFor = useRef<{ selection: string; owner: string | null } | null>(null);
+  const [hasResult, setHasResult] = useState(false);
+  const ownsData = dataFor.current?.selection === selection && dataFor.current.owner === account.current;
+  const clearRows = useCallback(() => {
+    setApps([]); setCounts({ all: 0 }); setNextCursor(null); setHasResult(false);
+    pending.current.clear(); setPendingIds(new Set());
+  }, []);
   const load = useCallback(async () => {
     const token = request.current += 1;
-    setLoading(true); setError(null); setApps([]); setCounts({ all: 0 }); setNextCursor(null);
+    const isCurrent = () => token === request.current && currentSelection.current === selection;
+    if (dataFor.current?.selection !== selection || dataFor.current.owner !== account.current) {
+      dataFor.current = { selection, owner: account.current };
+      clearRows(); setAllowed(null); setJobTitle('');
+    }
+    setLoading(true); setError(null);
     morePending.current = false; setLoadingMore(false);
     try {
       const { data: sess, error: sessionError } = await supabase.auth.getSession();
-      if (token !== request.current) return;
+      if (!isCurrent()) return;
       const uid = sess.session?.user.id ?? null;
+      const sameSource = dataFor.current?.selection === selection && dataFor.current.owner === uid;
       account.current = uid;
-      if (sessionError || !uid) { setAllowed(false); return; }
+      if (!sameSource) { clearRows(); setAllowed(null); setJobTitle(''); }
+      dataFor.current = { selection, owner: uid };
+      if (sessionError || !uid) { clearRows(); setAllowed(false); return; }
       const { data: job, error: jobError } = await supabase.from('jobs').select('id, title, posted_by').eq('id', jobId).maybeSingle();
-      if (token !== request.current) return;
+      if (!isCurrent()) return;
       if (jobError) throw jobError;
-      if (!job || job.posted_by !== uid) { setAllowed(false); return; }
+      if (!job || job.posted_by !== uid) { clearRows(); setAllowed(false); return; }
       setJobTitle(job.title); setAllowed(true);
       const page = await loadApplicantPage<AppRow>(supabase, jobId, filter);
-      if (token !== request.current || uid !== account.current) return;
+      if (!isCurrent() || uid !== account.current) return;
       setApps(page.applications.map(row => ({ ...row, profile: row.applicant })));
-      setCounts(page.counts); setNextCursor(page.has_more ? page.cursor : null);
+      setCounts(page.counts); setNextCursor(page.has_more ? page.cursor : null); setHasResult(true);
     } catch (reason) {
-      if (token === request.current) setError(reason instanceof Error ? reason.message : 'Could not load applicants. Please try again.');
-    } finally { if (token === request.current) setLoading(false); }
-  }, [supabase, jobId, filter]);
+      if (isCurrent()) {
+        if (isAccessDeniedError(reason)) { clearRows(); setAllowed(false); }
+        setError(reason instanceof Error ? reason.message : 'Could not load applicants. Please try again.');
+      }
+    } finally { if (isCurrent()) setLoading(false); }
+  }, [supabase, jobId, filter, selection, clearRows]);
 
   useEffect(() => {
     let cancelled = false;
@@ -80,46 +101,52 @@ export default function ApplicantsPage() {
       const next = session?.user.id ?? null;
       if (next === account.current) return;
       account.current = next; request.current += 1;
-      setApps([]); setCounts({ all: 0 }); setAllowed(null); setScheduling(null); setWhen(''); setWhere('');
+      dataFor.current = null; clearRows(); setJobTitle(''); setAllowed(null); setScheduling(null); setWhen(''); setWhere('');
       pending.current.clear(); setPendingIds(new Set());
       queueMicrotask(() => { if (!cancelled) void load(); });
     });
     return () => { cancelled = true; request.current += 1; subscription.unsubscribe(); };
-  }, [load, supabase]);
+  }, [load, supabase, clearRows]);
 
   async function loadMore() {
-    if (!nextCursor || morePending.current) return;
+    if (!ownsData || loading || !nextCursor || morePending.current) return;
     morePending.current = true; setLoadingMore(true); setError(null);
     const token = request.current;
     try {
       const page = await loadApplicantPage<AppRow>(supabase, jobId, filter, nextCursor);
-      if (token !== request.current) return;
-      setApps(list => mergeApplicants(list, page.applications.map(row => ({ ...row, profile: row.applicant }))));
+      if (token !== request.current || currentSelection.current !== selection) return;
+      setApps(list => token === request.current && currentSelection.current === selection
+        ? mergeApplicants(list, page.applications.map(row => ({ ...row, profile: row.applicant }))) : list);
       setCounts(page.counts); setNextCursor(page.has_more ? page.cursor : null);
-    } catch { if (token === request.current) setError('More applicants could not be loaded. Please try again.'); }
-    finally { if (token === request.current) { morePending.current = false; setLoadingMore(false); } }
+    } catch (reason) { if (token === request.current && currentSelection.current === selection) {
+      if (isAccessDeniedError(reason)) { clearRows(); setAllowed(false); }
+      setError('More applicants could not be loaded. Please try again.');
+    } }
+    finally { if (token === request.current && currentSelection.current === selection) { morePending.current = false; setLoadingMore(false); } }
   }
-  const shown = apps;
+  const shown = ownsData ? apps : [];
+  const shownCounts: Record<string, number> = ownsData ? counts : {};
   async function setStatus(app: AppRow, status: ApplicationStatus, extra?: { interview_at?: string; interview_location?: string | null }): Promise<boolean> {
-    if (app.status === 'withdrawn' || status === 'withdrawn' || pending.current.has(app.id)) return false;
+    if (!ownsData || currentSelection.current !== selection || app.status === 'withdrawn' || status === 'withdrawn' || pending.current.has(app.id)) return false;
     const token = request.current;
+    const isCurrent = () => token === request.current && currentSelection.current === selection;
     pending.current.add(app.id); setPendingIds(new Set(pending.current)); setError(null);
     try {
       const saved = extra?.interview_at
         ? await saveInterview(supabase, app, extra.interview_at, extra.interview_location ?? null)
         : await saveApplicationStatus(supabase, app, status);
-      if (token !== request.current) return false;
-      setApps(list => list.map(row => row.id === app.id ? saved : row));
+      if (!isCurrent()) return false;
+      setApps(list => isCurrent() ? list.map(row => row.id === app.id ? saved : row) : list);
       pending.current.delete(app.id); setPendingIds(new Set(pending.current));
       void load();
       return true;
     } catch (reason) {
-      if (token === request.current) setError(reason instanceof Error ? reason.message : 'Could not update application. Refresh and try again.');
+      if (isCurrent()) setError(reason instanceof Error ? reason.message : 'Could not update application. Refresh and try again.');
       return false;
-    } finally { pending.current.delete(app.id); if (token === request.current) setPendingIds(new Set(pending.current)); }
+    } finally { if (isCurrent()) { pending.current.delete(app.id); setPendingIds(new Set(pending.current)); } }
   }
 
-  if (allowed === false) {
+  if (ownsData && allowed === false) {
     return (
       <div className="px-1 py-16 text-center">
         <p className="text-[15px] text-ink/70">Only the poster of this job can view its applicants.</p>
@@ -130,7 +157,7 @@ export default function ApplicantsPage() {
 
   return (
     <div className="px-1">
-      <Link href={"/jobs/" + jobId} className="mb-4 inline-block text-sm text-muted hover:text-ink">← {jobTitle || "Job"}</Link>
+      <Link href={"/jobs/" + jobId} className="mb-4 inline-block text-sm text-muted hover:text-ink">← {(ownsData && jobTitle) || "Job"}</Link>
       <h1 className="font-display text-xl text-porcelain">Applicants</h1>
 
       <div className="mt-3 flex gap-2 overflow-x-auto pb-2">
@@ -139,13 +166,13 @@ export default function ApplicantsPage() {
             onClick={() => { if (s !== filter) { request.current += 1; setFilter(s); setScheduling(null); } }}
             className={"shrink-0 rounded-md px-3 py-1.5 text-[13px] transition-colors " + (filter === s ? "bg-surface-elevated font-semibold text-ink" : "bg-surface text-ink/60 hover:text-ink")}
           >
-            {s === "all" ? "All" : STATUS_META[s as ApplicationStatus].label} {counts[s] ? "(" + counts[s] + ")" : ""}
+            {s === "all" ? "All" : STATUS_META[s as ApplicationStatus].label} {shownCounts[s] ? "(" + shownCounts[s] + ")" : ""}
           </button>
         ))}
       </div>
 
-      {error ? <p role="alert" className="py-3 text-sm text-danger">{error} <button onClick={() => { setLoading(true); void load(); }} className="underline">Retry</button></p> : null}
-      {loading ? (
+      {ownsData && error ? <p role="alert" className="py-3 text-sm text-danger">{error} <button onClick={() => { void load(); }} className="underline">Retry</button></p> : null}
+      {!ownsData || (!hasResult && loading) ? (
         <p className="py-16 text-center text-sm text-muted">Loading</p>
       ) : shown.length === 0 && !error ? (
         <p className="py-16 text-center text-sm text-muted">{filter === "all" ? "Applications will appear here as they come in." : "Move applicants here from their status menu."}</p>
@@ -244,7 +271,7 @@ export default function ApplicantsPage() {
           })}
         </div>
       )}
-      {nextCursor && !loading ? <button type="button" disabled={loadingMore} onClick={() => { void loadMore(); }} className="my-4 rounded-md bg-surface px-4 py-2 text-sm text-ink">{loadingMore ? 'Loading applicants…' : 'Load more applicants'}</button> : null}
+      {ownsData && nextCursor && !loading ? <button type="button" disabled={loadingMore} onClick={() => { void loadMore(); }} className="my-4 rounded-md bg-surface px-4 py-2 text-sm text-ink">{loadingMore ? 'Loading applicants…' : 'Load more applicants'}</button> : null}
     </div>
   );
 }

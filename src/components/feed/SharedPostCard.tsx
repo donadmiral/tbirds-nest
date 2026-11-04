@@ -6,7 +6,7 @@
  *   full     → media hero on top, author row, text (chat bubbles)
  */
 import { themedSheet } from '../../theme/useTheme';
-import React, { useState } from 'react';
+import React, { useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { Feather } from '@expo/vector-icons';
@@ -14,6 +14,9 @@ import VerifiedBadge from '../VerifiedBadge';
 import TierName from '../TierName';
 import { privateImageCachePolicy } from '../../../shared/mediaDelivery';
 import { sharedPostImageUri, sharedPostMediaKind, sharedPostMediaLabel } from '../../../shared/sharedPostPreview';
+import { imageDisplayIdentity } from '../../lib/imageDisplayIdentity';
+import { navigationScope, subscribeNavigationScope } from '../../lib/navigationCache';
+import { SUPABASE_URL } from '../../services/supabase';
 
 export type SharedPostData = {
   id: string;
@@ -27,19 +30,30 @@ export function SharedPostThumbnail({ postId, media, mediaCount = 0, compact = f
   postId: string; media: NonNullable<SharedPostData['media']>; mediaCount?: number; compact?: boolean; width?: number;
 }) {
   const uri = sharedPostImageUri(media);
-  const identity = `${postId}:${uri ?? ''}`;
+  const scope = useSyncExternalStore(subscribeNavigationScope, navigationScope, navigationScope);
+  // Parent data can lag an account change. Do not replay that old capability
+  // into a fresh image view while waiting for the new account's source.
+  const grant = useRef({ uri, scope });
+  if (grant.current.uri !== uri) grant.current = { uri, scope };
+  const cachePolicy = privateImageCachePolicy(uri);
+  const allowed = cachePolicy !== 'none' || (!!scope && grant.current.scope === scope);
+  const identity = JSON.stringify([scope, postId, uri ? imageDisplayIdentity(uri, SUPABASE_URL) : null]);
+  const request = JSON.stringify([scope, postId, uri]);
+  const activeRequest = useRef(request);
+  activeRequest.current = request;
+  const source = useMemo(() => uri ? { uri } : null, [uri]);
   const [failed, setFailed] = useState<string | null>(null);
-  const showImage = !!uri && failed !== identity;
+  const showImage = allowed && !!source && failed !== request;
   const kind = sharedPostMediaKind(media.media_type, media.url);
   const label = sharedPostMediaLabel(media, mediaCount);
   const icon = mediaCount > 1 ? 'layers' : kind === 'video' ? 'video' : kind === 'audio' ? 'music' : kind === 'file' ? 'file-text' : 'image';
   return (
-    <View accessibilityLabel={`${label} from original post${failed === identity ? '. Preview unavailable' : ''}`} style={compact ? c.thumbWrap : { width: '100%', height: Math.round(width * 0.95), backgroundColor: c.thumbWrap.backgroundColor }}>
+    <View accessibilityLabel={`${label} from original post${failed === request ? '. Preview unavailable' : ''}`} style={compact ? c.thumbWrap : { width: '100%', height: Math.round(width * 0.95), backgroundColor: c.thumbWrap.backgroundColor }}>
       <View style={c.previewFallback}>
         <Feather name={icon} size={compact ? 20 : 32} color={c.previewLabel.color} />
         <Text style={c.previewLabel} numberOfLines={1}>{label}</Text>
       </View>
-      {showImage ? <ExpoImage key={identity} recyclingKey={identity} source={{ uri }} cachePolicy={privateImageCachePolicy(uri)} transition={0} style={StyleSheet.absoluteFill} contentFit="cover" onError={() => setFailed(identity)} /> : null}
+      {showImage ? <ExpoImage key={identity} recyclingKey={identity} source={source!} cachePolicy={cachePolicy} transition={0} style={StyleSheet.absoluteFill} contentFit="cover" onError={() => { if (activeRequest.current === request) setFailed(request); }} /> : null}
       {showImage && kind === 'video' ? <View style={compact ? c.playSmall : c.playBig}><Feather name="play" size={compact ? 11 : 18} color={compact ? '#FFFFFF' : '#0B1E3D'} /></View> : null}
       {showImage && mediaCount > 1 ? <View style={c.countPill}><Feather name="layers" size={11} color="#FFFFFF" /><Text style={c.countTxt}>{mediaCount}</Text></View> : null}
     </View>

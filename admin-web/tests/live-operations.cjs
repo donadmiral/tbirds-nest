@@ -11,3 +11,9 @@ test('cross-site writes and read-only staff cannot call mutation RPCs',async()=>
 test('read endpoints are no-store, paginated and reject malformed audit cursors',async()=>{const a=route();let r=await a.GET(new Request('https://admin.test/api/live'));assert.equal(r.status,200);assert.equal(r.headers.get('cache-control'),'private, no-store');assert.equal(a.calls.find(c=>c.name).args.p_limit,24);r=await a.GET(new Request('https://admin.test/api/live?session='+sid+'&auditCursor=invalid'));assert.equal(r.status,400);});
 test('unconfirmed provider stop is surfaced as failure',async()=>{const a=route();a.state.result={data:{ok:false,state:'unconfirmed'},error:null};const r=await a.POST(request('stop'));assert.equal(r.status,409);assert.equal(a.calls.find(c=>c.name).name,'live-control');assert.equal((await r.json()).ok,undefined);});
 test('oversized chunked input is rejected before any database write',async()=>{const a=route();const r=await a.POST(new Request('https://admin.test/api/live',{method:'POST',headers:{origin:'https://admin.test','content-type':'application/json'},body:'x'.repeat(12289)}));assert.equal(r.status,413);assert.equal(a.calls.some(c=>c.name),false);});
+
+test('Live reads preserve database authorization and missing-record failures instead of reporting them as transient',async()=>{
+ for(const [error,status] of [[{code:'42501',message:'ADMIN_ACCESS_DENIED'},403],[{code:'42501',message:'AUTH_REQUIRED'},401],[{code:'P0001',message:'LIVE_NOT_AVAILABLE'},404],[{code:'PGRST301',message:'JWT expired'},401],[Error('Connection unavailable'),503]]){
+  for(const suffix of ['', '?session='+sid]){const a=route();a.state.result={data:null,error};const response=await a.GET(new Request('https://admin.test/api/live'+suffix));assert.equal(response.status,status);assert.equal(response.headers.get('cache-control'),'private, no-store');}
+ }
+});

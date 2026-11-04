@@ -13,6 +13,8 @@
  * empty rather than as an error.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { isAccessDeniedError } from "@/lib/errors";
+import { ResourceRefreshNotice } from "@/components/ResourceRefreshNotice";
 import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { ArrowLeft, Building2, Clock, Crown, MapPin, Plus, Shield, Trash2, UserPlus, Users } from "lucide-react";
@@ -91,12 +93,13 @@ export default function OrganizationPage() {
     const read = async () => {
       const { data: sess, error: sessionError } = await supabase.auth.getSession();
       const me = sess.session?.user.id ?? null;
-      if (sessionError || me !== accountId) throw new Error("Your account changed. Reopen Team and access.");
+      if (sessionError) throw sessionError;
+      if (me !== accountId) throw new Error("Your account changed. Reopen Team and access.");
       if (!mounted.current || version !== generation.current) return null;
 
       const { data: o, error } = await supabase.from("organizations").select("id, kind, name, slug, profile_id, parent_id").eq("profile_id", me).maybeSingle();
-      if (error) throw new Error(error.message + (error.code ? " (" + error.code + ")" : ""));
-      if (!o) throw new Error("This account does not have an organization workspace yet. Open a business account or contact support.");
+      if (error) throw error;
+      if (!o) return { missing: true as const };
       const [m, t, s, d, a] = await Promise.all([
         supabase.from("org_memberships").select("id, user_id, role, expires_at, created_at, profile:profiles!org_memberships_user_id_fkey(full_name, username, avatar_url)").eq("org_id", o.id).order("created_at"),
         supabase.rpc("org_tree", { p_root: o.id }),
@@ -104,11 +107,16 @@ export default function OrganizationPage() {
         supabase.from("org_delegations").select("id, principal_org_id, client_org_id, scopes, expires_at, principal:organizations!org_delegations_principal_org_id_fkey(name, slug), client:organizations!org_delegations_client_org_id_fkey(name, slug)").or("client_org_id.eq." + o.id + ",principal_org_id.eq." + o.id),
         supabase.from("org_audit_log").select("id, action, target_type, target_id, meta, created_at, actor:profiles!org_audit_log_actor_id_fkey(full_name, username)").eq("org_id", o.id).order("created_at", { ascending: false }).limit(60),
       ]);
-      for (const result of [m, t, s, d, a]) if (result.error) throw new Error("Organization data could not be loaded. Please try again.");
+      for (const result of [m, t, s, d, a]) if (result.error) throw result.error;
       return { me, o, m, t, s, d, a };
     };
     return withTimeout(read()).then(result => {
       if (!result || !mounted.current || version !== generation.current) return;
+      if ("missing" in result) {
+        setOrg(null); setMembers([]); setTree([]); setSurfaces({}); setDelegations([]); setAudit([]);
+        setFailed("This account does not have an organization workspace yet. Open a business account or contact support.");
+        return;
+      }
       const { me, o, m, t, s, d, a } = result;
       setUid(me);
       setOrg(o as Org);
@@ -119,7 +127,10 @@ export default function OrganizationPage() {
       setAudit(((a.data ?? []) as unknown) as Audit[]);
       setFailed(false);
     }).catch((e: unknown) => {
-      if (mounted.current && version === generation.current) setFailed(e instanceof Error ? e.message : "Organization could not be loaded.");
+      if (mounted.current && version === generation.current) {
+        if (isAccessDeniedError(e)) { setOrg(null); setMembers([]); setTree([]); setSurfaces({}); setDelegations([]); setAudit([]); }
+        setFailed(e instanceof Error ? e.message : "Organization could not be loaded.");
+      }
     }).finally(() => {
       if (mounted.current && version === generation.current) setLoading(false);
     });
@@ -153,11 +164,12 @@ export default function OrganizationPage() {
     }
   }
 
-  if (loading) return <p className="py-14 text-center text-sm text-muted">Loading</p>;
-  if (failed || !org) return <ErrorState title="Could not load your organization" line={failed || "No organization found for this account."} onRetry={() => { setLoading(true); void load(); }} />;
+  if (loading && !org) return <p className="py-14 text-center text-sm text-muted">Loading</p>;
+  if (!org) return <ErrorState title="Could not load your organization" line={failed || "No organization found for this account."} onRetry={() => { setLoading(true); void load(); }} />;
 
   return (
     <div>
+      <ResourceRefreshNotice error={failed || ""} refreshing={loading} retry={() => { setLoading(true); void load(); }} />
       <div className="mb-4 flex items-start gap-3">
         <Link href="/studio/settings" className="mt-1 rounded-full p-1.5 text-muted transition-colors duration-[140ms] hover:bg-surface hover:text-ink" aria-label="Back to settings"><ArrowLeft size={18} /></Link>
         <div className="min-w-0 flex-1">

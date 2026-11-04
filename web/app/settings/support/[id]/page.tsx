@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { isAccessDeniedError } from "@/lib/errors";
+import { ResourceRefreshNotice } from "@/components/ResourceRefreshNotice";
 import { createClient } from "@/lib/supabase/client";
 import { replyToMemberSupport } from "@/lib/memberSupport";
 import { readSupportConversation, supportError, type SupportTicket, type SupportMessage } from "../../../../../shared/memberSupport";
@@ -40,10 +42,15 @@ export default function TicketPage() {
       const result = await readSupportConversation(supabase, owner, ticketId);
       if (!current()) return;
       setTicket(result.ticket);
-      setMsgs(result.messages);
+      const retainHistory = !!result.ticket && !!result.historyError && !isAccessDeniedError(result.historyFailure)
+        && !(result.historyFailure instanceof Error && /SUPPORT_(?:ACCOUNT_CHANGED|HISTORY_UNCONFIRMED)/.test(result.historyFailure.message));
+      setMsgs(previous => !current() ? previous : retainHistory ? previous : result.messages);
       setHistoryError(result.historyError);
-    } catch {
-      if (current()) setError("This ticket could not be loaded. Please try again.");
+    } catch (cause) {
+      if (current()) {
+        if (isAccessDeniedError(cause) || (cause instanceof Error && /SUPPORT_(?:ACCOUNT_CHANGED|TICKET_UNCONFIRMED)/.test(cause.message))) { setTicket(null); setMsgs([]); }
+        setError("This ticket could not be loaded. Please try again.");
+      }
     } finally {
       if (current()) setLoading(false);
     }
@@ -82,7 +89,7 @@ export default function TicketPage() {
   }, [initialize, invalidateVisit]);
 
   const send = async () => {
-    if (!draft.trim() || submitting.current || !uid || !ticket) return;
+    if (!draft.trim() || submitting.current || !uid || !ticket || ticket.id !== ticketId) return;
     submitting.current = true;
     setBusy(true);
     const generation = visit.current, sentBody = draft;
@@ -105,8 +112,8 @@ export default function TicketPage() {
   };
 
   const back = <Link href="/settings/support" className="mb-4 inline-block text-sm text-ink underline">Back to support</Link>;
-  if (loading && !ticket) return <div className="mx-auto max-w-[600px] px-1">{back}<p role="status" className="py-10 text-center text-sm text-muted">Loading</p></div>;
-  if (error) return <div className="mx-auto max-w-[600px] px-1">{back}<div role="alert" className="rounded-lg border border-danger/30 p-4 text-sm text-ink"><p>{error}</p><button onClick={() => void initialize()} className="mt-3 rounded-lg bg-ink px-4 py-2 font-bold text-white">Try again</button></div></div>;
+  if ((loading && !ticket) || (ticket && ticket.id !== ticketId)) return <div className="mx-auto max-w-[600px] px-1">{back}<p role="status" className="py-10 text-center text-sm text-muted">Loading</p></div>;
+  if (error && !ticket) return <div className="mx-auto max-w-[600px] px-1">{back}<div role="alert" className="rounded-lg border border-danger/30 p-4 text-sm text-ink"><p>{error}</p><button onClick={() => void initialize()} className="mt-3 rounded-lg bg-ink px-4 py-2 font-bold text-white">Try again</button></div></div>;
   if (!uid) return <div className="mx-auto max-w-[600px] px-1">{back}<p className="py-8 text-sm text-muted">Sign in to view this support ticket.</p></div>;
   if (!ticket) return <div className="mx-auto max-w-[600px] px-1">{back}<p role="status" className="py-8 text-sm text-muted">This ticket is not available to this account.</p></div>;
   const meta = STATUS_META[ticket.status] || STATUS_META.open;
@@ -116,6 +123,7 @@ export default function TicketPage() {
       {back}
       <div className="mb-4 flex items-center gap-2"><h1 className="min-w-0 flex-1 truncate font-display text-xl text-porcelain">{ticket.subject}</h1><span className={"shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold " + meta.cls}>{meta.label}</span></div>
       <div className="mb-2 rounded-xl bg-ink/[0.035] p-3.5"><p className="text-[13.5px] leading-relaxed text-ink/80">{ticket.body}</p><p className="mt-2 text-[11px] text-muted">{new Date(ticket.created_at).toLocaleString()}</p></div>
+      <ResourceRefreshNotice error={error || ""} refreshing={loading} retry={() => { if (uid) void load(uid); }} />
       {historyError ? <div role="alert" className="mb-3 rounded-lg border border-danger/30 p-3 text-sm text-ink"><p>{historyError}</p><button disabled={loading} onClick={() => void load(uid)} className="mt-2 underline">Try again</button></div> : null}
       {loading ? <p role="status" className="text-sm text-muted">Refreshing conversation</p> : null}
       {msgs.map(message => (

@@ -11,46 +11,61 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, ActivityIndi
 import { SafeAreaView } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
+import { useAuthStore } from '../../stores/authStore';
+import { createScreenReadGuard, isReadAccessDenied, requireReadRows } from '../../../shared/readContinuity';
+import { orderTimeout } from '../../../shared/orderRequest';
 
 export default function MutedStoriesScreen({ navigation }: any) {
   useTheme();
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const userId = useAuthStore(state => state.session?.user.id ?? null);
+  const [reads] = useState(() => createScreenReadGuard(userId));
+  reads.setScope(userId);
 
   const load = useCallback(async () => {
+    if (!userId) { setRows([]); setLoading(false); return; }
+    const current = reads.begin(userId);
+    if (!current()) return;
+    setLoading(true); setLoadError(null);
     try {
-      const { data: me } = await supabase.auth.getUser();
-      if (!me?.user) { setRows([]); return; }
-      const { data: mutes, error: mErr } = await supabase
+      const { data: mutes, error: mErr } = await orderTimeout(supabase
         .from('muted_stories')
         .select('muted_id, created_at')
-        .eq('user_id', me.user.id)
-        .order('created_at', { ascending: false });
-      if (mErr) { console.log('[MutedStories] mutes', mErr.message); setRows([]); return; }
-      const ids = (mutes || []).map((m: any) => m.muted_id);
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false }), 15000, 'Muted stories could not be loaded.');
+      if (mErr) throw mErr;
+      if (!current()) return;
+      const ids = requireReadRows<any>(mutes).map((m: any) => m.muted_id);
       if (!ids.length) { setRows([]); return; }
-      const { data: profs, error: pErr } = await supabase
+      const { data: profs, error: pErr } = await orderTimeout(supabase
         .from('profiles')
         .select('id, full_name, username, avatar_url')
-        .in('id', ids);
-      if (pErr) { console.log('[MutedStories] profiles', pErr.message); }
-      const byId = new Map((profs || []).map((p: any) => [p.id, p]));
-      setRows((mutes || []).map((m: any) => ({ ...m, profile: byId.get(m.muted_id) || { id: m.muted_id, full_name: 'Unknown', username: '', avatar_url: null } })));
-    } catch (e) { console.log('[MutedStories]', e); }
-    finally { setLoading(false); }
-  }, []);
+        .in('id', ids), 15000, 'Muted stories could not be loaded.');
+      if (pErr) throw pErr;
+      const byId = new Map(requireReadRows<any>(profs).map((p: any) => [p.id, p]));
+      if (current()) setRows(requireReadRows<any>(mutes).map((m: any) => ({ ...m, profile: byId.get(m.muted_id) || { id: m.muted_id, full_name: 'Unknown', username: '', avatar_url: null } })));
+    } catch (error) {
+      if (current()) { if (isReadAccessDenied(error)) setRows([]); setLoadError('Muted stories could not be refreshed. Tap to retry.'); }
+    } finally { if (current()) setLoading(false); }
+  }, [userId, reads]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { setRows([]); setLoading(!!userId); setLoadError(null); void load(); return () => reads.invalidate(); }, [load, userId, reads]);
 
   const unmute = useCallback(async (mutedId: string) => {
+    if (!userId) return;
+    reads.begin(userId);
+    const current = reads.capture(userId);
+    if (!current()) return;
+    setLoading(false);
     setRows(prev => prev.filter(r => r.muted_id !== mutedId));
     try {
-      const { data: me } = await supabase.auth.getUser();
-      if (me?.user) {
-        await supabase.from('muted_stories').delete().eq('user_id', me.user.id).eq('muted_id', mutedId);
-      }
-    } catch (e) { console.log('[unmute]', e); load(); }
-  }, [load]);
+      const { error } = await orderTimeout(supabase.from('muted_stories').delete().eq('user_id', userId).eq('muted_id', mutedId), 15000, 'The story could not be unmuted.');
+      if (error) throw error;
+      if (current()) { reads.begin(userId); setRows(prev => prev.filter(r => r.muted_id !== mutedId)); setLoading(false); }
+    } catch { if (current()) { setLoadError('The story could not be unmuted. Refreshing your list.'); void load(); } }
+  }, [load, reads, userId]);
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
@@ -62,17 +77,20 @@ export default function MutedStoriesScreen({ navigation }: any) {
         <View style={{ width: 26 }} />
       </View>
 
-      {loading ? (
+      {loadError ? <TouchableOpacity accessibilityRole="button" onPress={() => { void load(); }}><Text accessibilityRole="alert" style={{ padding: 16 }}>{loadError}</Text></TouchableOpacity> : null}
+      {loading && rows.length === 0 ? (
         <View style={s.center}><ActivityIndicator /></View>
-      ) : rows.length === 0 ? (
+      ) : rows.length === 0 && !loadError ? (
         <View style={s.center}>
           <Text style={s.emptyTitle}>Nobody is muted</Text>
           <Text style={s.emptySub}>Press and hold a story to mute someone.</Text>
         </View>
       ) : (
         <FlatList ListFooterComponent={<View style={{ height: 120 }} />}
- ListEmptyComponent={<EmptyState icon="eye-off" title="Nobody muted" line="Muted people stay in your feed but their stories stay hidden." />}
+ ListEmptyComponent={loadError ? null : <EmptyState icon="eye-off" title="Nobody muted" line="Muted people stay in your feed but their stories stay hidden." />}
           data={rows}
+          refreshing={loading}
+          onRefresh={() => { void load(); }}
           keyExtractor={r => r.muted_id}
           contentContainerStyle={{ paddingVertical: 8 }}
           renderItem={({ item }) => (

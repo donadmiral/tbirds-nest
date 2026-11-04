@@ -80,6 +80,8 @@ function harness(extraProps = {}) {
     '../theme/useTheme': { themedSheet: () => ({}), useTheme() {} },
     '../stores/settingsStore': { useSettingsStore: select => select({ autoplayVideos: true }) },
     '../../shared/mediaDelivery': { privateImageCachePolicy: () => 'none' },
+    '../lib/imageDisplayIdentity': { imageDisplayIdentity: uri => uri },
+    '../lib/navigationCache': {}, '../services/supabase': {},
     '../../shared/postVoiceEffects': { postPlaybackSettings: () => ({ rate: 1, preservesPitch: true }) },
     '../../shared/postMediaEditing': {}, '../../shared/carouselNavigation': {}, '../../shared/soundtrack': {},
     './PostCaption': { default: 'PostCaption' }, './PostSoundtrack': { default: 'PostSoundtrack' }, './VideoThumb': { default: 'VideoThumb' },

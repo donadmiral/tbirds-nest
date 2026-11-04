@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuthStore } from '../stores/authStore';
+import { isReadAccessDenied } from '../../shared/readContinuity';
 
 /** Keeps data scoped to the signed-in business and rejects late tab/search
  * responses. A transport failure stays an error, never an empty business. */
@@ -15,12 +16,12 @@ export function useStudioResource<T>(fetchData: () => Promise<T>, failure: strin
     const request = ++version.current;
     const current = () => mounted.current && currentScope.current === scope && currentFetch.current === fetchData && version.current === request;
     if (!current()) return;
-    setResult(previous => ({ scope, fetch: fetchData, data: previous?.scope === scope && previous.fetch === fetchData ? previous.data : null, error: null, loading: true }));
+    setResult(previous => current() ? ({ scope, fetch: fetchData, data: previous?.scope === scope && previous.fetch === fetchData ? previous.data : null, error: null, loading: true }) : previous);
     try {
       const data = await fetchData();
-      if (current()) setResult({ scope, fetch: fetchData, data, error: null, loading: false });
-    } catch {
-      if (current()) setResult(previous => ({ scope, fetch: fetchData, data: previous?.scope === scope && previous.fetch === fetchData ? previous.data : null, error: failure, loading: false }));
+      if (current()) setResult(previous => current() ? { scope, fetch: fetchData, data, error: null, loading: false } : previous);
+    } catch (error) {
+      if (current()) setResult(previous => current() ? ({ scope, fetch: fetchData, data: !isReadAccessDenied(error) && previous?.scope === scope && previous.fetch === fetchData ? previous.data : null, error: failure, loading: false }) : previous);
     }
   }, [fetchData, scope, failure]);
   useEffect(() => {

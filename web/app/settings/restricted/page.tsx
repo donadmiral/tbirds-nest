@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ResourceRefreshNotice } from "@/components/ResourceRefreshNotice";
 import { useAccountResource } from "@/lib/useAccountResource";
 import { errorMessage } from "@/lib/errors";
 import { withTimeout } from "@/lib/withTimeout";
@@ -23,7 +24,7 @@ async function fetchRows(supabase: ReturnType<typeof createClient>): Promise<Row
 }
 
 export default function RestrictedAccountsPage() {
-  const { client: supabase, data: rows, setData: setRows, error: loadError, loading, retry, assertOwner } = useAccountResource<Row[]>(fetchRows, []);
+  const { client: supabase, data: rows, setData: setRows, error: loadError, loading, retry, assertOwner, refreshError, refreshing } = useAccountResource<Row[]>(fetchRows, []);
   const [actionError, setActionError] = useState("");
   const err = actionError || loadError;
   const [busy, setBusy] = useState<Record<string, boolean>>({});
@@ -47,6 +48,7 @@ export default function RestrictedAccountsPage() {
     <div className="mx-auto max-w-[560px] px-1">
       <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><UserMinus size={19} className="text-accent" /> Restricted accounts</h1>
       <p className="pb-5 text-[13px] text-muted">Comments from a restricted person on your posts wait for your approval, their messages go to Message requests, and nothing they do notifies you. They are not told. Restrict someone from their profile or from one of their comments.</p>
+      <ResourceRefreshNotice error={refreshError} refreshing={refreshing} retry={retry} />
       {err ? <ErrorState title={err} onRetry={() => { setActionError(""); retry(); }} /> : loading ? <p className="py-10 text-center text-sm text-muted">Loading</p>
       : rows.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-ink/15 py-14 text-center">

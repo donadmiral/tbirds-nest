@@ -1,6 +1,7 @@
 "use client";
 // Login activity: devices signed in, and one action to log every other one out.
 import { useState } from "react";
+import { ResourceRefreshNotice } from "@/components/ResourceRefreshNotice";
 import { useAccountResource } from "@/lib/useAccountResource";
 import { errorMessage } from "@/lib/errors";
 import { withTimeout } from "@/lib/withTimeout";
@@ -19,7 +20,7 @@ async function fetchRows(supabase: ReturnType<typeof createClient>, uid: string)
 }
 
 export default function LoginActivityPage() {
-  const { client: supabase, data: rows, error: loadError, loading, retry, assertOwner } = useAccountResource<Row[]>(fetchRows, []);
+  const { client: supabase, data: rows, error: loadError, loading, retry, assertOwner, refreshError, refreshing } = useAccountResource<Row[]>(fetchRows, []);
   const [msg, setMsg] = useState<string | null>(null);
   const logOutOthers = async () => {
     if (!window.confirm("Log out of all other devices? This browser stays signed in.")) return;
@@ -33,6 +34,7 @@ export default function LoginActivityPage() {
     <div className="mx-auto max-w-[640px] px-4 py-6">
       <h1 className="mt-4 font-display text-[24px] font-bold text-ink">Login activity</h1>
       <p className="mt-1 text-[13.5px] text-ink/60">Phones and tablets signed in to your account. This browser is a separate session. If a device is not yours, log the others out and change your password.</p>
+      <ResourceRefreshNotice error={refreshError} refreshing={refreshing} retry={retry} />
       {loadError ? <ErrorState title={loadError} onRetry={retry} /> : null}
       <ul className="mt-4 divide-y divide-ink/8">
         {rows.map((r) => (

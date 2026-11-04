@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ResourceRefreshNotice } from "@/components/ResourceRefreshNotice";
 import { useAccountResource } from "@/lib/useAccountResource";
 import { errorMessage } from "@/lib/errors";
 import { withTimeout } from "@/lib/withTimeout";
@@ -25,7 +26,7 @@ async function fetchRows(supabase: ReturnType<typeof createClient>, uid: string)
 }
 
 export default function BlockedAccountsPage() {
-  const { client: supabase, data: rows, setData: setRows, error: loadError, loading, retry, assertOwner } = useAccountResource<Row[]>(fetchRows, []);
+  const { client: supabase, data: rows, setData: setRows, error: loadError, loading, retry, assertOwner, refreshError, refreshing } = useAccountResource<Row[]>(fetchRows, []);
   const [actionError, setActionError] = useState("");
   const err = actionError || loadError;
   const [busy, setBusy] = useState<Record<string, boolean>>({});
@@ -49,6 +50,7 @@ export default function BlockedAccountsPage() {
     <div className="mx-auto max-w-[560px] px-1">
       <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><ShieldOff size={19} className="text-accent" /> Blocked accounts</h1>
       <p className="pb-5 text-[13px] text-muted">When you block someone they cannot see your posts or message you. You can undo it here.</p>
+      <ResourceRefreshNotice error={refreshError} refreshing={refreshing} retry={retry} />
       {err ? <ErrorState title={err} onRetry={() => { setActionError(""); retry(); }} /> : loading ? <p className="py-10 text-center text-sm text-muted">Loading</p>
       : rows.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-ink/15 py-14 text-center">

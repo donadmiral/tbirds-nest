@@ -61,26 +61,51 @@ test('native live bubble routes the ring and story independently without nesting
   assert.equal(nodes(Bubble({session:live()})).filter(node=>node.type==='Button').length,1);
 });
 
-function nativeStrip({ following=[], stories=[], spot=[] }={}) {
+function nativeStrip({ following=[], stories=[], spot=[], readStories, readSpot }={}) {
   let cursor=0,dirty=true,tree,effects=[],scope=[];
   const actions=[],slots=[];const jsx=(type,props,key)=>({type,props,key});
   const same=(a,b)=>a&&b&&a.length===b.length&&a.every((v,i)=>Object.is(v,b[i]));
   const react={memo:x=>x,useState(value){const i=cursor++;if(!(i in slots))slots[i]=typeof value==='function'?value():value;return[slots[i],next=>{const value=typeof next==='function'?next(slots[i]):next;if(!Object.is(slots[i],value)){slots[i]=value;dirty=true;}}];},useRef(value){const i=cursor++;return slots[i]??={current:value};},useCallback(fn,deps){const i=cursor++;if(!slots[i]||!same(slots[i].deps,deps))slots[i]={fn,deps};return slots[i].fn;},useEffect(fn,deps){const i=cursor++;if(!slots[i]||!same(slots[i].deps,deps)){const old=slots[i];slots[i]={deps};effects.push(()=>{old?.cleanup?.();slots[i].cleanup=fn();});}}};
   const native=new Proxy({Animated:{createAnimatedComponent:x=>x}}, {get:(o,k)=>o[k]??k});
-  const channel={on(){return channel;},subscribe(){return channel;}};
+  let storyRequests=0, storyChanged;
+  const channel={on(_event,_filter,callback){storyChanged=callback;return channel;},subscribe(){return channel;}};
   const Strip=load('src/components/stories/StoryStrip.tsx',{
     react,'react/jsx-runtime':{jsx,jsxs:jsx,Fragment:'Fragment'},'react-native':native,
     '../../hooks/useLiveStoryPresence':{useLiveStoryPresence:()=>following},'./LiveStoryBubble':{__esModule:true,default:'LiveStoryBubble'},
+    './PlatinumRing':{__esModule:true,default:'PlatinumRing'},
     '../../theme/useTheme':{themedSheet:fn=>fn({surface:{canvas:'#fff',hairline:'#eee'},ink:{inverse:'#fff'}})},
     '../TierName':{default:'TierName'},'../VerifiedBadge':{default:'VerifiedBadge'},'@expo/vector-icons':{Feather:'Feather'},'react-native-svg':{Circle:'Circle'},
     '@react-navigation/native':{useNavigation:()=>({navigate:(...args)=>actions.push(args)}),useFocusEffect:fn=>react.useEffect(fn,[fn])},
-    '../../services/storiesService':{storiesService:{getCatchupFeed:async()=>stories}},'../../stores/authStore':{useAuthStore:()=>({profile:{id:id(200),full_name:'Self'}})},
-    '../../services/supabase':{supabase:{rpc:async()=>({data:spot}),channel:()=>channel,removeChannel(){}}},'../../services/flagsService':{flagsService:{isEnabled:async()=>true}},
+    '../../services/storiesService':{storiesService:{getCatchupFeed:async()=>{storyRequests++;return readStories?readStories():stories;}}},'../../stores/authStore':{useAuthStore:()=>({profile:{id:id(200),full_name:'Self'}})},
+    '../../services/supabase':{supabase:{rpc:async()=>readSpot?readSpot():({data:spot}),channel:()=>channel,removeChannel(){}}},'../../services/flagsService':{flagsService:{isEnabled:async()=>true}},
     '../../services/storyReadiness':{prefetchStoryEntry(){},invalidateStoryEntries(){}},
   }).default;
   const render=()=>{let n=0;while(dirty){if(++n>30)throw Error('Render loop');dirty=false;cursor=0;tree=Strip({});const pending=effects;effects=[];pending.forEach(fn=>fn());}return tree;};
-  render();return{get tree(){return render();},actions,async flush(){for(let i=0;i<6;i++){await flush();render();}},refresh(){dirty=true;render();},cleanup(){slots.forEach(s=>s?.cleanup?.());}};
+  render();return{get tree(){return render();},get storyRequests(){return storyRequests;},reload(){storyChanged();},actions,async flush(){for(let i=0;i<6;i++){await flush();render();}},refresh(){dirty=true;render();},cleanup(){slots.forEach(s=>s?.cleanup?.());}};
 }
+test('story entry makes one core request and displays its result without waiting for spotlight',async()=>{
+  let release;const held=new Promise(resolve=>{release=resolve;});
+  const h=nativeStrip({readSpot:()=>held});await h.flush();
+  assert.equal(h.storyRequests,1,'Mount and focus must not duplicate the same read');
+  assert.ok(nodes(h.tree).some(n=>n.type==='Text'&&n.props.children==='Your story'),'Known core content appears while optional spotlight is pending');
+  release({data:[]});await h.flush();h.cleanup();
+});
+test('a failed story refresh retains the visible strip and an authoritative empty response removes old stories',async()=>{
+  const row={user_id:id(100),full_name:'Author',has_unseen:true};let fail=false,rows=[row];
+  const h=nativeStrip({readStories:()=>{if(fail)throw Error('offline');return rows;}});await h.flush();
+  assert.ok(nodes(h.tree).some(n=>n.key===row.user_id));
+  fail=true;h.reload();await h.flush();assert.ok(nodes(h.tree).some(n=>n.key===row.user_id));
+  fail=false;rows=[];h.reload();await h.flush();assert.equal(nodes(h.tree).some(n=>n.key===row.user_id),false);h.cleanup();
+});
+test('story spotlight retains visible suggestions on transient failure and clears them on explicit denial',async()=>{
+  const row={user_id:id(100),story_id:id(50),full_name:'Spotlight author'};
+  let response={data:[row],error:null,status:200};
+  const h=nativeStrip({readSpot:()=>response});await h.flush();
+  const visible=()=>nodes(h.tree).some(n=>n.key==='spot-'+row.user_id);
+  assert.equal(visible(),true);
+  response={data:null,error:{message:'offline'},status:503};h.reload();await h.flush();assert.equal(visible(),true);
+  response={data:null,error:{code:'42501'},status:403};h.reload();await h.flush();assert.equal(visible(),false);h.cleanup();
+});
 test('actual native story strip deduplicates followed live hosts and preserves their story sequence',async()=>{
   const session=live();const following=[session,live(2)];const stories=[{user_id:session.host.id,full_name:'Author',has_unseen:true}];
   const h=nativeStrip({following,stories});await h.flush();

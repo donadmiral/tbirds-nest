@@ -1,7 +1,7 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),ts=require('typescript'),{randomUUID}=require('node:crypto');
 const record=value=>!!value&&typeof value==='object'&&!Array.isArray(value),isLiveUuid=value=>typeof value==='string'&&/^[a-f0-9]{8}(-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(value),plain=value=>JSON.parse(JSON.stringify(value));
 const id=n=>'10000000-0000-4000-8000-'+String(n).padStart(12,'0'),owner=id(1),clipId=id(2),jobId=id(3);
-function evaluate(file,imports,globals={}){const module={exports:{}};vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText,{module,exports:module.exports,require:name=>{if(Object.hasOwn(imports,name))return imports[name];throw Error(name);},URL,Date,Error,JSON,crypto:{randomUUID},...globals});return module.exports;}
+function evaluate(file,imports,globals={}){const module={exports:{}};vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText,{module,exports:module.exports,require:name=>{if(Object.hasOwn(imports,name))return imports[name];throw Error(name);},URL,Date,Error,JSON,queueMicrotask,crypto:{randomUUID},...globals});return module.exports;}
 const children=value=>Array.isArray(value)?value.flatMap(children):value&&typeof value==='object'?[value,...children(value.props?.children)]:[];
 const text=value=>Array.isArray(value)?value.map(text).join(''):typeof value==='string'||typeof value==='number'?String(value):text(value?.props?.children||'');
 const helpers=(invoke=async()=>({}))=>{const api={record,liveRpc:async(_client,name,params)=>invoke({name,params}),liveInvoke:async(_client,name,body)=>invoke({name,body})};const connections=evaluate('lib/liveConnections.ts',{'./liveApi':api});return{connections,social:evaluate('lib/liveSocial.ts',{'./liveApi':api,'./liveConnections':connections,'../../shared/liveDirectory':{isLiveUuid}}),captions:evaluate('lib/liveCaptions.ts',{'./liveApi':api,'../../shared/liveDirectory':{isLiveUuid}})};};
@@ -10,8 +10,9 @@ function harness(componentName='LiveSocialPublisher',options={}){
  let snapshot={owner,scope:'one',initialized:true,...options.identity},cursor=0,dirty=false,tree,component;const slots=[],effects=[],calls=[],client={};
  const equal=(a,b)=>a&&b&&a.length===b.length&&a.every((v,i)=>Object.is(v,b[i]));
  const hooks={useState(initial){const i=cursor++;if(!(i in slots))slots[i]=typeof initial==='function'?initial():initial;return[slots[i],next=>{const value=typeof next==='function'?next(slots[i]):next;if(value!==slots[i]){slots[i]=value;dirty=true;}}];},useRef(initial){const i=cursor++;return slots[i]??={current:initial};},useCallback(fn,deps){const i=cursor++;if(!equal(slots[i]?.deps,deps))slots[i]={value:fn,deps};return slots[i].value;},useSyncExternalStore(){cursor++;return snapshot;},useEffect(fn,deps){const i=cursor++,old=slots[i];if(equal(old?.deps,deps))return;const slot={deps,fn};slots[i]=slot;effects.push(()=>{old?.cleanup?.();slot.cleanup=fn();});}};
+ hooks.useLayoutEffect=hooks.useEffect;
  const invoke=async input=>{calls.push(input);if(options.invoke)return options.invoke(input);return input.name==='live-social'?{platform:input.body.platform,can_publish:true,account_name:'Connected creator',privacy_options:['SELF_ONLY','PUBLIC_TO_EVERYONE'],max_duration_seconds:60,comment_disabled:true}:input.params?.p_action==='status'?{enabled:false,items:[]}:{items:[]};};
- const lib=helpers(invoke),imports={react:hooks,'react/jsx-runtime':{jsx:(type,props,key)=>({type,props,key}),jsxs:(type,props,key)=>({type,props,key})},'next/link':{default:'a'},'lucide-react':{ArrowLeft:'icon',ExternalLink:'icon',RefreshCw:'icon',Send:'icon'},'@/lib/supabase/client':{createClient:()=>client},'@/lib/navigationCache':{getNavigationStore:()=>({subscribe(){},getSnapshot(){},getServerSnapshot(){}})},'@/lib/liveClips':{getLiveClip:async()=>options.detail||structuredClone(baseDetail)},'@/lib/liveConnections':lib.connections,'@/lib/liveSocial':lib.social,'@/lib/liveCaptions':lib.captions,'../../shared/liveDirectory':{isLiveUuid},'./LiveClipPublishPreview':{LiveClipPublishPreview:'preview'}};
+ const lib=helpers(invoke),imports={react:hooks,'react/jsx-runtime':{jsx:(type,props,key)=>({type,props,key}),jsxs:(type,props,key)=>({type,props,key})},'next/link':{default:'a'},'lucide-react':{ArrowLeft:'icon',ExternalLink:'icon',RefreshCw:'icon',Send:'icon'},'@/lib/errors':evaluate('lib/errors.ts',{}),'@/lib/supabase/client':{createClient:()=>client},'@/lib/navigationCache':{getNavigationStore:()=>({subscribe(){},getSnapshot(){return snapshot;},getServerSnapshot(){return snapshot;}})},'@/lib/liveClips':{getLiveClip:async()=>options.detail||structuredClone(baseDetail)},'@/lib/liveConnections':lib.connections,'@/lib/liveSocial':lib.social,'@/lib/liveCaptions':lib.captions,'../../shared/liveDirectory':{isLiveUuid},'./LiveClipPublishPreview':{LiveClipPublishPreview:'preview'}};
  const exports=evaluate('components/'+componentName+'.tsx',imports);component=()=>exports[componentName]({clipId});
  const render=()=>{let guard=0;do{dirty=false;cursor=0;tree=component();while(effects.length)effects.shift()();assert.ok(++guard<30,'render must converge');}while(dirty);return tree;};
  render();return{calls,render,async flush(){for(let i=0;i<6;i++){await new Promise(setImmediate);render();}},auth(value){snapshot={...snapshot,...value};render();},get text(){return text(render());},get nodes(){return children(render());},button(label){return this.nodes.find(node=>node.type==='button'&&text(node).trim()===label);},control(label,type='input'){const parent=this.nodes.find(node=>node.type==='label'&&text(node).startsWith(label));assert.ok(parent,'missing label '+label);const input=children(parent).find(node=>node.type===type);assert.ok(input,'missing control '+label);return input;},change(label,value,type='input'){this.control(label,type).props.onChange({target:{value,checked:!!value}});render();},ready(){const preview=this.nodes.find(node=>node.type==='preview');assert.ok(preview);preview.props.onReady(true);render();}};
@@ -30,3 +31,46 @@ test('late platform-account response is discarded after an identity switch',asyn
 test('automatic captions are unavailable when admission is off and do not invent a draft',async()=>{const h=harness('LiveCaptionReview');await h.flush();assert.match(h.text,/not active yet/);assert.equal(h.button('Request caption draft'),undefined);assert.equal(h.button('Review draft'),undefined);assert.ok(h.calls.every(c=>c.params.p_action==='status'));});
 test('caption draft requires explicit full review and valid timing before editing the real clip',async()=>{const cues=[{start_ms:100,end_ms:900,text:'Hello world.'}],h=harness('LiveCaptionReview',{invoke:async input=>input.params.p_action==='status'?{enabled:true,items:[{id:jobId,state:'draft',language:'en-US',created_at:new Date().toISOString(),draft:{cues}}]}:{state:'queued'}});await h.flush();assert.ok(h.calls.every(c=>c.params.p_action==='status'));h.button('Review draft').props.onClick();h.render();assert.equal(h.button('Approve captions and render video').props.disabled,true);h.change('I reviewed every caption',true);assert.equal(h.button('Approve captions and render video').props.disabled,false);h.change('End (seconds)','100');assert.equal(h.control('I reviewed every caption').props.checked,false);h.change('I reviewed every caption',true);assert.equal(h.button('Approve captions and render video').props.disabled,true);h.change('End (seconds)','0.9');h.change('Caption text','Corrected words','textarea');h.change('I reviewed every caption',true);await h.button('Approve captions and render video').props.onClick();await h.flush();const review=h.calls.find(c=>c.params.p_action==='review');assert.equal(review.params.p_clip_id,clipId);assert.equal(review.params.p_payload.reviewed,true);assert.equal(review.params.p_payload.cues[0].text,'Corrected words');assert.equal(review.params.p_payload.cues[0].end_ms,900);assert.match(h.text,/new video render is queued/);});
 test('caption rejection and review never become a social publishing command',async()=>{const h=harness('LiveCaptionReview',{invoke:async input=>input.params.p_action==='status'?{enabled:true,items:[{id:jobId,state:'pending',language:'en-US',created_at:new Date().toISOString()}]}:{ok:true}});await h.flush();await h.button('Discard request').props.onClick();await h.flush();assert.equal(h.calls.filter(c=>c.params.p_action==='reject').length,1);assert.ok(h.calls.every(c=>c.name==='live_transcription_command'));});
+test('caption refresh retains edited cues on transient failure and removes them on access denial',async()=>{
+ let failure=null;
+ const h=harness('LiveCaptionReview',{invoke:async()=>{if(failure)throw failure;return{enabled:true,items:[{id:jobId,state:'draft',language:'en-US',draft:{cues:[{start_ms:100,end_ms:900,text:'Original caption'}]}}]};}});
+ await h.flush();h.button('Review draft').props.onClick();h.render();h.change('Caption text','Unsaved correction','textarea');
+ failure=Object.assign(new Error('temporarily offline'),{status:503});h.button('Refresh status').props.onClick();await h.flush();
+ assert.equal(h.control('Caption text','textarea').props.value,'Unsaved correction');assert.ok(h.button('Review draft'));assert.match(h.text,/could not complete/);
+ failure=Object.assign(new Error('ACCESS_DENIED'),{code:'42501'});h.button('Refresh status').props.onClick();await h.flush();
+ assert.equal(h.button('Review draft'),undefined);assert.equal(h.nodes.some(node=>node.type==='textarea'),false);
+});
+test('caption status rejects malformed results instead of inventing an empty or disabled service',async()=>{
+ for(const response of [{},{enabled:false},{enabled:'yes',items:[]}]){
+  const lib=helpers(async()=>response);await assert.rejects(()=>lib.captions.captionStatus({},clipId,30000),/INVALID_SERVICE_RESPONSE/);
+ }
+});
+test('caption command denial removes the private draft and editor',async()=>{
+ const h=harness('LiveCaptionReview',{invoke:async input=>{
+  if(input.params.p_action==='review')throw Object.assign(new Error('ACCESS_DENIED'),{code:'42501'});
+  return{enabled:true,items:[{id:jobId,state:'draft',language:'en-US',draft:{cues:[{start_ms:100,end_ms:900,text:'Private draft'}]}}]};
+ }});
+ await h.flush();h.button('Review draft').props.onClick();h.render();h.change('I reviewed every caption',true);
+ await h.button('Approve captions and render video').props.onClick();await h.flush();
+ assert.equal(h.nodes.some(node=>node.type==='textarea'),false);assert.equal(h.button('Review draft'),undefined);
+ assert.equal(h.button('Approve captions and render video'),undefined);
+});
+test('retained caption editor callbacks cannot edit or approve another account draft',async()=>{
+ const h=harness('LiveCaptionReview',{invoke:async()=>({enabled:true,items:[{id:jobId,state:'draft',language:'en-US',draft:{cues:[{start_ms:100,end_ms:900,text:'Current draft'}]}}]})});
+ await h.flush();h.button('Review draft').props.onClick();h.render();h.change('I reviewed every caption',true);
+ const oldEdit=h.control('Caption text','textarea').props.onChange,oldApprove=h.button('Approve captions and render video').props.onClick;
+ h.auth({owner:id(90),scope:'two'});await h.flush();h.button('Review draft').props.onClick();h.render();
+ h.change('Caption text','New account draft','textarea');
+ oldEdit({target:{value:'Stale account overwrite'}});await oldApprove();await h.flush();
+ assert.equal(h.control('Caption text','textarea').props.value,'New account draft');
+ assert.equal(h.calls.filter(call=>call.params?.p_action==='review').length,0);
+});
+test('confirmed caption management loss clears the editor before optional status can fail',async()=>{
+ const options={detail:structuredClone(baseDetail),invoke:async()=>({enabled:true,items:[{id:jobId,state:'draft',language:'en-US',draft:{cues:[{start_ms:100,end_ms:900,text:'Private draft'}]}}]})};
+ const h=harness('LiveCaptionReview',options);await h.flush();h.button('Review draft').props.onClick();h.render();h.change('I reviewed every caption',true);
+ const oldApprove=h.button('Approve captions and render video').props.onClick;
+ options.detail={...baseDetail,can_manage:false};options.invoke=async()=>{throw Object.assign(new Error('offline'),{status:503});};
+ const statusCount=h.calls.length;h.button('Refresh status').props.onClick();await h.flush();await oldApprove();await h.flush();
+ assert.equal(h.nodes.some(node=>node.type==='textarea'),false);assert.equal(h.button('Approve captions and render video'),undefined);
+ assert.equal(h.calls.length,statusCount,'no private status read or command after confirmed management loss');
+});

@@ -3,6 +3,7 @@ import NextImage from "next/image";
 // Your activity: likes, comments, reposts and saves with the post each happened on.
 import { useCallback, useState } from "react";
 import Link from "next/link";
+import { ResourceRefreshNotice } from "@/components/ResourceRefreshNotice";
 import { useAccountResource } from "@/lib/useAccountResource";
 import { hydratePostMedia } from "@/lib/contentMedia";
 import { ErrorState } from "@/components/ErrorState";
@@ -25,11 +26,12 @@ export default function ActivityPage() {
     if (ids.length) { const { data: ps, error: postsError } = await supabase.from("posts").select("id, content, body, article_title, post_media(url, media_type)").in("id", ids); if (postsError) throw postsError; const safe = await hydratePostMedia(ps || [], supabase); safe.forEach((p) => { posts[(p as { id: string }).id] = p as never; }); }
     return list.filter((r) => posts[r.post_id]).map((r, i) => { const p = posts[r.post_id]; return { key: (r.id || r.post_id) + ":" + i, post_id: r.post_id, when: r.created_at, note: kind === "comments" ? (r.body || r.content || "") : null, text: p.article_title || p.content || p.body || "Post", image: (p.post_media || []).find((m) => m.media_type === "image")?.url || null }; });
   }, [kind]);
-  const { data: items, loading, error, retry } = useAccountResource(load, []);
+  const { data: items, loading, error, retry, refreshError, refreshing } = useAccountResource(load, []);
   return (
     <div className="mx-auto max-w-[640px] px-4 py-6">
       <h1 className="mt-4 font-display text-[24px] font-bold text-ink">Your activity</h1>
       <div className="mt-4 flex gap-2">{TABS.map((x) => <button key={x.key} type="button" onClick={() => setKind(x.key)} className={"rounded-full border px-3.5 py-1.5 text-[13px] font-semibold " + (kind === x.key ? "border-ink bg-ink text-white" : "border-ink/15 text-ink/70 hover:border-ink/40")}>{x.label}</button>)}</div>
+      <ResourceRefreshNotice error={refreshError} refreshing={refreshing} retry={retry} />
       {error ? <ErrorState title={error} onRetry={retry} /> : null}
       {loading ? <p role="status" className="py-4 text-sm text-muted">Loading activity…</p> : null}
       <ul className="mt-4 divide-y divide-ink/8">

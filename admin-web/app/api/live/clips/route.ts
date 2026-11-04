@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getAdmin } from '@/lib/adminAuth';
 import { canAccessOperations } from '@/lib/adminAssurance';
 import { canOpen, canPerform } from '@/lib/permissions';
-import { liveId, parseLiveCursor, readLiveBody } from '@/lib/liveOperations';
+import { liveId, parseLiveCursor, readLiveBody, liveReadFailure } from '@/lib/liveOperations';
 import { clipReviewResponse, parseStaffClipCommand, staffClipStateFilters } from '@/lib/liveClipOperations';
 export const dynamic='force-dynamic';
 const headers={'Cache-Control':'private, no-store','Content-Type':'application/json','X-Content-Type-Options':'nosniff'};
@@ -24,15 +24,15 @@ export async function GET(request:Request){
     if(format){
       if(!clip||!['vertical','horizontal'].includes(format))return json(400,{error:'Invalid clip preview format.'});
       const result=await context.client.functions.invoke('live-clip-media',{body:{clipId:clip,format}});
-      if(result.error)return json(503,{error:'Clip preview is not available.'});
+      if(result.error){const failure=liveReadFailure(result.error,'Clip preview is not available.');return json(failure.status,{error:failure.error});}
       const url=new URL(String(result.data?.url)),expires=Date.parse(String(result.data?.expires_at));
       if(url.protocol!=='https:'||url.username||url.password||!Number.isFinite(expires)||expires<=Date.now()+1000||expires>Date.now()+15*60*1000)return json(503,{error:'Clip preview access could not be verified.'});
       return json(200,{url:url.href,expires_at:new Date(expires).toISOString()});
     }
     const result=clip?await context.client.rpc('live_admin_clip',{p_clip_id:clip,p_cursor:cursor}):await context.client.rpc('live_admin_clips',{p_session_id:session,p_state:state||null,p_cursor:cursor,p_limit:24});
-    if(result.error)return json(503,{error:'Clip review could not load. Retry shortly.'});
+    if(result.error){const failure=liveReadFailure(result.error,'Clip review could not load. Retry shortly.');return json(failure.status,{error:failure.error});}
     return json(200,clipReviewResponse(result.data));
-  }catch{return json(503,{error:'Clip operations are unavailable. Retry shortly.'});}
+  }catch(error){const failure=liveReadFailure(error,'Clip operations are unavailable. Retry shortly.');return json(failure.status,{error:failure.error});}
 }
 export async function POST(request:Request){
   if(request.headers.get('origin')!==new URL(request.url).origin||!request.headers.get('content-type')?.startsWith('application/json'))return json(403,{error:'Use the operations desk to review clips.'});

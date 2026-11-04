@@ -33,7 +33,7 @@ export function useSocialPages<T extends object>(rpc: string, args: Record<strin
         });
         const { data, error } = await withTimeout(signal ? query.abortSignal(signal) : query);
         if (!current()) throw new Error("The profile session changed. Please try again.");
-        if (error) throw new Error("Could not load this page. Please try again.");
+        if (error) throw error;
         const rows = (data ?? []) as T[];
         return postMedia ? withTimeout(hydratePostMedia(rows, client)) : rows;
       },
@@ -45,7 +45,14 @@ export function useSocialPages<T extends object>(rpc: string, args: Record<strin
     if (ownProfileId) {
       if (!session.initialized) return;
       const remember = () => {
-        if (reader.snapshot().loading || reader.snapshot().error) return;
+        const current = reader.snapshot();
+        if (current.loading) return;
+        if (current.error) {
+          // A denied read clears the reader. Remove its old navigation memory
+          // too so returning to this route cannot restore revoked content.
+          if (current.items.length === 0) navigationStore.cache.remove(cacheScope, cacheKey);
+          return;
+        }
         const memory = reader.remember();
         if (memory) navigationStore.cache.save(cacheScope, cacheKey, memory);
       };

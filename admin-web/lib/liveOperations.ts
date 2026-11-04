@@ -1,6 +1,27 @@
 /** Validate the small staff command surface before it reaches Supabase. */
 export const liveId = (value: unknown): value is string => typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 const object = (value: unknown): value is Record<string,unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
+
+/** Preserve the existing database's denial/removal contracts across the HTTP read boundary. */
+export function liveReadFailure(cause: unknown, fallback: string): { status: number; error: string } {
+  const value = object(cause) ? cause : {};
+  const status = value.status ?? value.statusCode ?? (object(value.context) ? value.context.status : undefined);
+  const code = typeof value.code === 'string' ? value.code : '';
+  const message = typeof value.message === 'string' ? value.message.trim() : '';
+  if (status === 404 || status === 410 || /^(LIVE_NOT_AVAILABLE|CLIP_NOT_AVAILABLE|CLIP_NOT_FOUND)$/.test(message)) {
+    return { status: 404, error: 'This broadcast or clip is no longer available.' };
+  }
+  if (status === 401 || /^PGRST30[123]$/.test(code) || message === 'AUTH_REQUIRED') {
+    return { status: 401, error: 'Sign in with an authorized staff account.' };
+  }
+  if (status === 403 || code === '42501' || /^(ADMIN_ACCESS_DENIED|ACCESS_DENIED|FORBIDDEN|UNAUTHORIZED)$/.test(message)) {
+    return { status: 403, error: 'Your staff account no longer has access to this review.' };
+  }
+  return { status: 503, error: fallback };
+}
+
+export const invalidatesLiveRead = (cause: unknown): boolean => liveReadFailure(cause, '').status !== 503;
+
 export type StaffLiveCommand = { action: string; sessionId: string; requestId: string; payload: Record<string,unknown> };
 export function parseStaffLiveCommand(value: unknown): StaffLiveCommand | null {
   if (!object(value) || Object.keys(value).some(k=>!['action','sessionId','requestId','payload'].includes(k)) || !liveId(value.sessionId) || !liveId(value.requestId) || !object(value.payload)) return null;

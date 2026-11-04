@@ -157,9 +157,12 @@ test('actual denied poll and order reads remain errors rather than empty success
   } finally { h.dispose(); }
 });
 
-function loadPure(file) {
+function loadPure(file, imports = {}) {
   const mod = { exports: {} };
-  new Function('require', 'module', 'exports', compile(source(file), file))(() => { throw new Error('Unexpected dependency in pure client helper'); }, mod, mod.exports);
+  new Function('require', 'module', 'exports', compile(source(file), file))(id => {
+    if (id in imports) return imports[id];
+    throw new Error('Unexpected dependency in pure client helper: ' + id);
+  }, mod, mod.exports);
   return mod.exports;
 }
 function actualCallback(file, name, values, updates) {
@@ -203,13 +206,17 @@ test('actual newly reachable Post and Comments load callbacks complete every unc
 test('actual Search success callback finishes all verticals and analytics with the scripted peer and no hidden501', async () => {
   const { sdk, fixture } = await signed('feed-search-controls'); const updates = {};
   const media = loadPure('shared/contentMedia.ts');
+  const { isReadAccessDenied, requireReadRows } = loadPure('shared/readContinuity.ts');
+  const { reuseFeedMediaGrants } = loadPure('shared/feedMediaReuse.ts', { './contentMedia': media });
   const scope = OWNER + ':qa_jordan:top';
   const search = actualCallback('src/screens/feed/SearchScreen.tsx', 'runSearch', {
     myId: OWNER, postMode: 'top', supabase: sdk, identity: { current: 'login-a' }, request: { current: 0 },
-    mounted: { current: true }, searchScope: { current: scope },
+    mounted: { current: true }, searchScope: { current: scope }, resultsScope: { current: '' },
+    isReadAccessDenied, requireReadRows,
     profileRead: loadPure('src/utils/profileRead.ts').profileRead,
     withoutPrivateMedia: rows => media.replaceContentMedia(rows, ORIGIN, new Map()),
     hydratePostMedia: rows => media.hydrateContentMedia(sdk, ORIGIN, rows, 'post'),
+    retainFeedMedia: (old, incoming, before, next) => reuseFeedMediaGrants(old, incoming, ORIGIN, before, next),
     normalizeProfilePost() { throw new Error('No seeded post matches the scripted peer search'); },
   }, updates);
   await search('qa_jordan');

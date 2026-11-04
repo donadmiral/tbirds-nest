@@ -648,15 +648,17 @@ export const storiesService = {
   },
 
   async getCatchupFeed(mode: CatchupMode = 'all', limit = 30): Promise<CatchupUser[]> {
-    const { data, error } = await supabase.rpc('get_catchup_feed', {
+    const { data, error, status } = await supabase.rpc('get_catchup_feed', {
       p_mode: mode,
       p_limit: limit,
     });
     if (error) {
       console.log('[storiesService.getCatchupFeed]', error.message);
-      return [];
+      if (status === 401 || status === 403 || error.code === '42501') return [];
+      throw new Error('Stories could not refresh. Please try again.');
     }
-    return (data || []) as CatchupUser[];
+    if (!Array.isArray(data)) throw new Error('Stories could not refresh. Please try again.');
+    return data as CatchupUser[];
   },
 
   async getStoryOwner(storyId: string): Promise<string> {

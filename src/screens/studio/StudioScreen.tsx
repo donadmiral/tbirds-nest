@@ -21,6 +21,7 @@ import { parseStudioLocalDate } from '../../../shared/studioValidation';
 import { saveStudioDraft } from '../../../shared/studioDraftRetry';
 import { MoreSeg, ReviewsSeg, AudienceSeg, CommerceSeg } from './StudioMoreSegs';
 import { RecruiterSeg, AdsSeg } from './StudioHiringAdsSegs';
+import { requireReadRows } from '../../../shared/readContinuity';
 
 const NAVY = '#0B1E3D';
 const TAB_CLEAR = 110;
@@ -59,7 +60,7 @@ export default function StudioScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const profile = useAuthStore(st => st.profile) as any;
-  const fetchMe = useCallback(async () => { const { data, error } = await supabase.rpc('studio_me'); if (error || !data) throw new Error('Studio unavailable'); return data as Me; }, []);
+  const fetchMe = useCallback(async () => { const { data, error } = await supabase.rpc('studio_me'); if (error) throw error; if (!data) throw new Error('Studio unavailable'); return data as Me; }, []);
   const { data: me, loading, error: meError, reload: loadMe } = useStudioResource(fetchMe, 'Business access could not be loaded. Please try again.');
   const [seg, setSeg] = useState<Seg>('home');
   const [code, setCode] = useState('');
@@ -80,9 +81,9 @@ export default function StudioScreen() {
 
   const canPublish = !!me?.role && PUBLISH_ROLES.includes(me.role);
 
-  if (loading) return <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={getTheme().ink.primary} /></View>;
+  if (loading && !me) return <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={getTheme().ink.primary} /></View>;
 
-  if (meError) return <SafeAreaView style={s.safe}><StudioLoadError message={meError} onRetry={loadMe} busy={loading} /></SafeAreaView>;
+  if (meError && !me) return <SafeAreaView style={s.safe}><StudioLoadError message={meError} onRetry={loadMe} busy={loading} /></SafeAreaView>;
 
   if (!me || !me.is_business) {
     return (
@@ -117,6 +118,7 @@ export default function StudioScreen() {
 
   return (
     <SafeAreaView style={s.safe} edges={['left', 'right']}>
+      <StudioLoadError message={meError} onRetry={loadMe} busy={loading} />
       <View style={[s.band, { paddingTop: insets.top + 8 }]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           {me.avatar_url ? <ExpoImage source={{ uri: me.avatar_url }} style={s.bandIcon} contentFit="cover" /> : <View style={[s.bandIcon, { backgroundColor: '#FFFFFF22', alignItems: 'center', justifyContent: 'center' }]}><Feather name="grid" size={20} color={getTheme().ink.inverse} /></View>}
@@ -207,7 +209,7 @@ function InboxSeg({ me, navigation, setSeg }: { me: Me; navigation: any; setSeg:
   const fetchInbox = useCallback(async () => {
     const { data, error } = await supabase.rpc('studio_inbox', { p_filter: filter, p_limit: 120 });
     if (error) throw error;
-    return (data || []) as any[];
+    return requireReadRows<any>(data);
   }, [filter]);
   const { data, error: loadError, loading, reload: load } = useStudioResource(fetchInbox, 'Your business inbox could not be refreshed.');
   const items = data || [];
@@ -267,7 +269,7 @@ function InboxSeg({ me, navigation, setSeg }: { me: Me; navigation: any; setSeg:
         ))}
         <TouchableOpacity style={[s.filterChip, showDone && s.filterChipOn]} onPress={() => setShowDone(v => !v)}><Text style={[s.filterTxt, showDone && s.filterTxtOn]}>Done</Text></TouchableOpacity>
       </ScrollView>
-      {loading ? <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={getTheme().ink.primary} /></View>
+      {loading && !data ? <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={getTheme().ink.primary} /></View>
       : loadError && !data ? null : shown.length === 0 ? <View style={[s.center, { flex: 1 }]}><Feather name="inbox" size={34} color="#E5E5EA" /><Text style={s.emptyTitle}>Queue is clear</Text></View>
       : <FlatList data={shown} keyExtractor={i => i.kind + i.id} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: TAB_CLEAR }}
           renderItem={({ item: it }) => (
@@ -315,7 +317,7 @@ function PlannerSeg({ canPublish, meId }: { canPublish: boolean; meId: string | 
     return () => { mounted.current = false; ++editorVersion.current; };
   }, []);
 
-  const fetchPosts = useCallback(async () => { const { data, error } = await supabase.rpc('studio_list_posts', { p_status: null, p_limit: 100 }); if (error) throw error; return (data || []) as any[]; }, []);
+  const fetchPosts = useCallback(async () => { const { data, error } = await supabase.rpc('studio_list_posts', { p_status: null, p_limit: 100 }); if (error) throw error; return requireReadRows<any>(data); }, []);
   const { data: loadedRows, error: loadError, loading, reload: load } = useStudioResource(fetchPosts, 'Your planned content could not be refreshed.');
   const rows = loadedRows || [];
   const previewSource = useMemo(() => ({ rows: loadedRows || [], media }), [loadedRows, media]);
@@ -433,7 +435,7 @@ function PlannerSeg({ canPublish, meId }: { canPublish: boolean; meId: string | 
         <View style={{ flex: 1 }} />
         {canPublish ? <TouchableOpacity style={s.plusBtn} onPress={() => { reset(); setOpen(true); }}><Feather name="plus" size={18} color={getTheme().ink.inverse} /></TouchableOpacity> : null}
       </View>
-      {loading ? <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={getTheme().ink.primary} /></View>
+      {loading && !loadedRows ? <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={getTheme().ink.primary} /></View>
       : loadError && !loadedRows ? null : shown.length === 0 ? <View style={[s.center, { flex: 1, paddingHorizontal: 40 }]}><Feather name="calendar" size={34} color="#E5E5EA" /><Text style={s.emptyTitle}>{tab === 'upcoming' ? 'Nothing scheduled' : tab === 'drafts' ? 'No drafts' : 'Nothing published from here yet'}</Text><Text style={s.emptySub}>Scheduled posts go out on the minute, even with the app closed.</Text></View>
       : <FlatList ListHeaderComponent={mediaPreview.error ? <TouchableOpacity onPress={mediaPreview.retry}><Text style={{ color: '#A21B2D', padding: 12 }}>{mediaPreview.error}</Text></TouchableOpacity> : null} data={shown} keyExtractor={r => r.id} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: TAB_CLEAR }}
           renderItem={({ item: r }) => (
@@ -524,7 +526,7 @@ function InsightsSeg({ navigation }: { navigation: any }) {
   const fetchInsights = useCallback(async () => { const { data, error } = await supabase.rpc('studio_insights', { p_days: days }); if (error || !data) throw new Error('Insights unavailable'); return data as any; }, [days]);
   const { data: ins, error: loadError, loading, reload: load } = useStudioResource(fetchInsights, 'Business insights could not be refreshed.');
   if (!ins && loadError) return <StudioLoadError message={loadError} onRetry={load} busy={loading} />;
-  if (loading || !ins) return <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={getTheme().ink.primary} /></View>;
+  if (!ins) return <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={getTheme().ink.primary} /></View>;
   const cur = ins.current || {}, prev = ins.previous || {};
   const tiles: [string, number, number][] = [
     ['Impressions', cur.impressions, prev.impressions], ['Reach', cur.reach, prev.reach], ['Engagements', cur.engagements, prev.engagements],

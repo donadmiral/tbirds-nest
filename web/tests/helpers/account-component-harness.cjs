@@ -57,13 +57,13 @@ function accountHarness({ owner = 'account-a', factors = [] } = {}) {
     if (modules.has(file)) return modules.get(file).exports;
     const module = { exports: {} }; modules.set(file, module);
     const source = ts.transpileModule(fs.readFileSync(path.join(root, file), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText;
-    vm.runInNewContext(source, { module, exports: module.exports, Error, console, window: { prompt: () => prompt },
+    vm.runInNewContext(source, { module, exports: module.exports, Error, console, queueMicrotask, window: { prompt: () => prompt },
       setTimeout(fn) { const id = ++sequence; timers.set(id, fn); return id; }, clearTimeout(id) { timers.delete(id); },
       require(name) {
         const alias = name === './supabase/client' ? '@/lib/supabase/client' : name;
         if (alias in imports) return imports[alias];
         const target = name.startsWith('@/') ? name.slice(2) : name.startsWith('./') ? path.posix.join(path.posix.dirname(file), name) : null;
-        if (target) return load(target + '.ts');
+        if (target) return load(target + (fs.existsSync(path.join(root, target + '.ts')) ? '.ts' : '.tsx'));
         throw Error('Unexpected import ' + name);
       },
     });
@@ -89,6 +89,7 @@ function accountHarness({ owner = 'account-a', factors = [] } = {}) {
   };
   return {
     client, calls, hooks, load,
+    provide(name, value) { imports[name] = value; },
     mount(fn) { component = fn; return render(); }, render,
     async flush() { for (let i = 0; i < 8; i++) { await new Promise(setImmediate); render(); } },
     auth(next, event = 'SIGNED_IN') { owner = next; for (const fn of [...authListeners]) fn(event, next ? { user: { id: next } } : null); render(); },

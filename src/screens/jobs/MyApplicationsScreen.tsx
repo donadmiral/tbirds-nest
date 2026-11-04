@@ -1,7 +1,7 @@
 import { jobsBack } from '../../navigation/jobsNavigation';
 import { ListRowSkeleton } from '../../components/skeletons';
 import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, StatusBar, Alert } from 'react-native';
 import { SafeAreaView } from '../../components/SafeArea';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -10,6 +10,8 @@ import { useAuthStore } from '../../stores/authStore';
 import { jobsService, JobApplication, STATUS_META } from '../../services/jobsService';
 import JobListRow from '../../components/jobs/JobListRow';
 import { type ApplicantCursor, canWithdrawApplication, mergeApplicants } from '../../../shared/hiring';
+import { isReadAccessDenied } from '../../../shared/readContinuity';
+import { orderTimeout } from '../../../shared/orderRequest';
 
 function relTime(d?: string | null) {
   if (!d) return '';
@@ -34,7 +36,7 @@ export default function MyApplicationsScreen() {
   const pending = useRef(false);
   const retryAppend = useRef(false);
   const activeUser = useRef(userId);
-  activeUser.current = userId;
+  if (activeUser.current !== userId) { activeUser.current = userId; request.current++; }
   const withdrawalPending = useRef(false);
   const focused = useRef(false);
 
@@ -45,17 +47,19 @@ export default function MyApplicationsScreen() {
     setLoading(true); setLoadError(false);
     try {
       if (!userId) throw new Error('Sign in to see your applications.');
-      const page = await jobsService.getMyApplicationsPage(append ? cursor.current : null);
+      const page = await orderTimeout(jobsService.getMyApplicationsPage(append ? cursor.current : null), 15000, 'Applications could not be loaded.');
       if (token !== request.current || activeUser.current !== userId) return;
       cursor.current = page.cursor; setHasMore(page.has_more);
       setApps(previous => append ? mergeApplicants(previous, page.applications) : page.applications);
-    } catch { if (token === request.current) setLoadError(true); }
+    } catch (error) { if (token === request.current) { if (isReadAccessDenied(error)) { setApps([]); cursor.current = null; setHasMore(false); } setLoadError(true); } }
     finally { if (token === request.current) { pending.current = false; setLoading(false); } }
   }, [userId]);
 
+  useEffect(() => {
+    setApps([]); cursor.current = null; setHasMore(false); setWithdrawing(null);
+  }, [userId]);
   useFocusEffect(useCallback(() => {
     focused.current = true;
-    setApps([]); cursor.current = null; setHasMore(false); setWithdrawing(null);
     void load();
     return () => { focused.current = false; request.current++; pending.current = false; };
   }, [load]));

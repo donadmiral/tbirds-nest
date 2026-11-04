@@ -31,8 +31,9 @@ import PostMediaViewer from '../../components/PostMediaViewer';
 import ProductCarousel, { PostProduct } from '../../components/ProductCarousel';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../services/supabase';
-import { hydratePostMedia } from '../../services/contentMedia';
+import { hydratePostMedia, withoutPrivateMedia } from '../../services/contentMedia';
 import { orderTimeout } from '../../../shared/orderRequest';
+import { isReadAccessDenied } from '../../../shared/readContinuity';
 import { matchesUsername, usernameLookupPattern } from '../../utils/profileLookup';
 import { useAuthStore } from '../../stores/authStore';
 import * as Haptics from 'expo-haptics';
@@ -108,22 +109,36 @@ export default function PostScreen({ route, navigation }: any) {
   const load = useCallback(async () => {
     const epoch = ++loadEpoch.current;
     const current = () => epoch === loadEpoch.current && identityRef.current.postId === postId && identityRef.current.userId === userId;
+    const clearPost = () => {
+      setPost(null); setGalleryImages([]); setLinkPreview(null); setThreadAbove([]); setThreadBelow([]);
+      setPostCollabs([]); setCollabInvite(false); setLikedPost(false); setViewerIndex(null);
+    };
+    const discardPrivateDetails = () => {
+      if (!current()) return;
+      setGalleryImages(images => current() ? withoutPrivateMedia(images).filter(image => !!image.url) : images);
+      setLinkPreview(preview => current() && preview ? withoutPrivateMedia([preview])[0] : preview);
+    };
     setLoadError(null);
     try {
       const { data: vis, error: visibilityError } = await bounded(supabase.rpc('can_view_post', { p_post_id: postId }));
       if (!current()) return;
       if (visibilityError) throw visibilityError;
       if (vis !== true) {
-        setPost(null); setGalleryImages([]); setThreadAbove([]); setThreadBelow([]); setNotFound(true); return;
+        clearPost(); setNotFound(true); return;
       }
       const { data: raw, error } = await bounded(supabase.from('posts')
         .select('*, post_media(id, url, media_type, width, height, sort_order, edit, is_sensitive), post_products(id, title, subtitle, price, currency, image_url, listing_id, link_url, cta_label, sort_order)')
         .eq('id', postId).maybeSingle());
       if (error) throw error;
       if (!current()) return;
-      if (!raw) { setPost(null); setNotFound(true); return; }
+      if (!raw) { clearPost(); setNotFound(true); return; }
       const [[pd], { data: ad, error: authorError }] = await Promise.all([
-        hydratePostMedia([raw]),
+        hydratePostMedia([raw]).catch(error => {
+          // A failed media grant never extends an earlier private capability.
+          if (current()) setPost(previous => current() && previous ? withoutPrivateMedia([previous])[0] : previous);
+          discardPrivateDetails();
+          throw error;
+        }),
         bounded(supabase.from('profiles').select('id, full_name, username, avatar_url, degree_program').eq('id', raw.user_id).maybeSingle()),
       ]);
       if (authorError) throw authorError;
@@ -154,7 +169,7 @@ export default function PostScreen({ route, navigation }: any) {
           if (!pd.link_url) { if (current()) setLinkPreview(null); return; }
           const { data, error } = await bounded(supabase.from('link_previews').select('url, title, description, image_url, domain').eq('url', pd.link_url).maybeSingle());
           if (error) throw error;
-          const [safe] = await hydratePostMedia([{ post_id: postId, preview: data }]);
+          const [safe] = await hydratePostMedia([{ post_id: postId, preview: data }]).catch(error => { discardPrivateDetails(); throw error; });
           if (current()) setLinkPreview(safe.preview);
         })(),
         (async () => {
@@ -164,7 +179,7 @@ export default function PostScreen({ route, navigation }: any) {
           if (!article?.current_revision_id) { if (current()) setGalleryImages([]); return; }
           const { data: block, error: blockError } = await bounded(supabase.from('article_blocks').select('content').eq('revision_id', article.current_revision_id).eq('block_type', 'gallery').maybeSingle());
           if (blockError) throw blockError;
-          const [safe] = await hydratePostMedia([{ post_id: pd.id, blocks: block }]);
+          const [safe] = await hydratePostMedia([{ post_id: pd.id, blocks: block }]).catch(error => { discardPrivateDetails(); throw error; });
           const images = (safe.blocks?.content as any)?.images;
           if (current()) setGalleryImages(Array.isArray(images) ? images.filter((image: any) => typeof image?.url === 'string' && image.url) : []);
         })(),
@@ -195,10 +210,17 @@ export default function PostScreen({ route, navigation }: any) {
         })(),
       ]);
       if (current() && extras.some(result => result.status === 'rejected')) {
-        setGalleryImages([]); setLinkPreview(null); setLoadError('Some post details could not be loaded. Pull to refresh.');
+        if (extras.some(result => result.status === 'rejected' && isReadAccessDenied(result.reason))) {
+          setGalleryImages([]); setLinkPreview(null); setThreadAbove([]); setThreadBelow([]);
+          setPostCollabs([]); setCollabInvite(false); setLikedPost(false);
+        }
+        setLoadError('Some post details could not be refreshed. Tap to retry.');
       }
     } catch (error) {
-      if (current()) { setPost(null); setGalleryImages([]); setLinkPreview(null); setThreadAbove([]); setThreadBelow([]); setLoadError('The post could not be loaded. Please try again.'); }
+      if (current()) {
+        if (isReadAccessDenied(error)) clearPost();
+        setLoadError('The post could not be refreshed. Tap to retry.');
+      }
     } finally { if (current()) setLoading(false); }
   }, [postId, userId]);
 
@@ -283,7 +305,7 @@ export default function PostScreen({ route, navigation }: any) {
   const a = post?.author;
   const header = post ? (
     <View>
-      {loadError ? <Text accessibilityRole="alert" style={{ padding: 16, color: t.status.danger }}>{loadError}</Text> : null}
+      {loadError ? <TouchableOpacity accessibilityRole="button" onPress={() => { void load(); }}><Text accessibilityRole="alert" style={{ padding: 16, color: t.status.danger }}>{loadError}</Text></TouchableOpacity> : null}
       {threadAbove.map(renderThreadRow)}
       <View style={s.postBanner}>
         <TouchableOpacity

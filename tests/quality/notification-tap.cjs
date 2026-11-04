@@ -230,7 +230,7 @@ test('actual pinned call transport propagates errors while retaining the legacy 
     return query;
   } };
   const { callService } = load(fs.readFileSync(path.join(root, 'src/services/callService.ts'), 'utf8'), {
-    require(name) { assert.equal(name, './supabase'); return { supabase }; },
+    require(name) { if (name === '../../shared/readContinuity') return load(fs.readFileSync(path.join(root, 'shared/readContinuity.ts'), 'utf8')); assert.equal(name, './supabase'); return { supabase }; },
   });
   const options = { accessToken: 'original-account-token', signal: new AbortController().signal, throwOnError: true };
   await assert.rejects(callService.getCall(CALL, options), /database unavailable/);

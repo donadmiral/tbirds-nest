@@ -16,6 +16,8 @@ import { CATEGORIES } from '../../constants/categories';
 import { COMM_COLORS } from './ChannelsScreen';
 import PeoplePickerSheet from '../../components/PeoplePickerSheet';
 import CommentsSheet from '../../components/feed/CommentsSheet';
+import { createScreenReadGuard, isReadAccessDenied, requireReadRows } from '../../../shared/readContinuity';
+import { orderTimeout } from '../../../shared/orderRequest';
 
 const NAVY = '#0B1E3D';
 
@@ -75,6 +77,18 @@ export default function CommunityScreen() {
   // Comments open in the same sheet the feed uses, right here; pull down refreshes; counts move live.
   const [commentsFor, setCommentsFor] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const readScope = me?.id && communityId ? `${me.id}:${communityId}` : null;
+  const [reads] = useState(() => ({ info: createScreenReadGuard(readScope), posts: createScreenReadGuard(readScope), extras: createScreenReadGuard(readScope), refresh: createScreenReadGuard(readScope) }));
+  Object.values(reads).forEach(read => read.setScope(readScope));
+
+  useEffect(() => {
+    setInfo({ name: name0 || 'Community', cover_color: color0 || 'sky', icon_url: icon0 || null, member_count: mc0 || 0, my_role: null, is_member: false, has_pending: false, join_mode: 'open', rules: null, description: null, category: null });
+    setPosts([]); setAnnouncements([]); setSubs([]); setMembers([]); setRequests([]); setBans([]); setInvites([]);
+    setCommentsFor(null); setMembersOpen(false); setRequestsOpen(false); setSettingsOpen(false); setInviteOpen(false); setAnnOpen(false); setSubOpen(false); setBansOpen(false); setInvitesOpen(false);
+    setDraft(''); setAttach(null); setLoading(!!readScope); setRefreshing(false); setLoadError(null);
+    return () => { Object.values(reads).forEach(read => read.invalidate()); };
+  }, [readScope, reads]);
 
   const isMember = !!info.is_member;
   const myRole = info.my_role as string | null;
@@ -82,50 +96,94 @@ export default function CommunityScreen() {
   const band = COMM_COLORS[info.cover_color] || COMM_COLORS.sky;
 
   const loadInfo = useCallback(async () => {
-    const { data } = await supabase.rpc('get_community', { p_community: communityId });
-    const row = Array.isArray(data) ? data[0] : data;
-    if (row) {
+    if (!readScope) return;
+    const current = reads.info.begin(readScope);
+    if (!current()) return;
+    try {
+      const { data, error } = await orderTimeout(supabase.rpc('get_community', { p_community: communityId }), 15000, 'Community details could not be loaded.');
+      if (error) throw error;
+      if (!current()) return;
+      const row = Array.isArray(data) ? data[0] : data;
+      if (!row) throw Object.assign(new Error('This community is unavailable.'), { status: 403 });
+      if (!row.is_member) {
+        reads.posts.invalidate(); reads.extras.invalidate();
+        setPosts([]); setAnnouncements([]); setSubs([]); setCommentsFor(null);
+      }
       setInfo(row);
       setEName(row.name || ''); setEDesc(row.description || ''); setERules(row.rules || '');
       setEMode(row.join_mode || 'open'); setEColor(row.cover_color || 'sky'); setECat(row.category || null);
-    }
-  }, [communityId]);
+    } catch (error) {
+      if (current()) {
+        if (isReadAccessDenied(error)) {
+          reads.posts.invalidate(); reads.extras.invalidate();
+          setPosts([]); setAnnouncements([]); setSubs([]); setCommentsFor(null);
+          setInfo((previous: any) => ({ ...previous, is_member: false, my_role: null }));
+        }
+        setLoadError('Community details could not be refreshed. Tap to retry.');
+      }
+    } finally { if (current()) setLoading(false); }
+  }, [communityId, readScope, reads]);
 
   const loadPosts = useCallback(async (cursor?: string | null) => {
-    const { data, error } = await supabase.rpc('get_community_posts', { p_community: communityId, p_cursor: cursor ?? null, p_limit: 25 });
-    if (error) { setPosts([]); return; }
-    const rows = data || [];
-    if (cursor) {
-      setPosts(prev => {
-        const seen = new Set(prev.map((p: any) => p.post_id));
-        return [...prev, ...rows.filter((r: any) => !seen.has(r.post_id))];
-      });
-    } else setPosts(rows);
-  }, [communityId]);
+    if (!readScope) return;
+    const current = reads.posts.begin(readScope);
+    if (!current()) return;
+    try {
+      const { data, error } = await orderTimeout(supabase.rpc('get_community_posts', { p_community: communityId, p_cursor: cursor ?? null, p_limit: 25 }), 15000, 'Community posts could not be loaded.');
+      if (error) throw error;
+      if (!current()) return;
+      const rows = requireReadRows<any>(data);
+      if (cursor) {
+        setPosts(prev => {
+          if (!current()) return prev;
+          const seen = new Set(prev.map((p: any) => p.post_id));
+          return [...prev, ...rows.filter((r: any) => !seen.has(r.post_id))];
+        });
+      } else setPosts(rows);
+    } catch (error) {
+      if (current()) { if (isReadAccessDenied(error)) { setPosts([]); setCommentsFor(null); } setLoadError('Community posts could not be refreshed. Tap to retry.'); }
+    }
+  }, [communityId, readScope, reads]);
 
   useEffect(() => {
-    (async () => {
-      await loadInfo();
-      setLoading(false);
-    })();
+    void loadInfo();
   }, [loadInfo]);
 
   useEffect(() => { if (isMember) void loadPosts(null); }, [isMember, loadPosts]);
 
   const loadExtras = useCallback(async () => {
-    const [{ data: an }, { data: sb }] = await Promise.all([
-      supabase.rpc('get_community_announcements', { p_community: communityId, p_limit: 20 }),
-      supabase.rpc('get_sub_communities', { p_community: communityId, p_limit: 30 }),
-    ]);
-    setAnnouncements(an || []); setSubs(sb || []);
-  }, [communityId]);
+    if (!readScope) return;
+    const current = reads.extras.begin(readScope);
+    if (!current()) return;
+    const loadExtra = async (work: PromiseLike<{ data: unknown; error: unknown }>, commit: (rows: any[]) => void) => {
+      try {
+        const { data, error } = await work;
+        if (!current()) return;
+        if (error) throw error;
+        commit(requireReadRows<any>(data));
+      } catch (error) {
+        if (!current()) return;
+        if (isReadAccessDenied(error)) commit([]);
+        setLoadError('Some community details could not be refreshed. Tap to retry.');
+      }
+    };
+    try {
+      await Promise.all([
+        loadExtra(orderTimeout(supabase.rpc('get_community_announcements', { p_community: communityId, p_limit: 20 }), 15000, 'Community announcements could not be loaded.'), setAnnouncements),
+        loadExtra(orderTimeout(supabase.rpc('get_sub_communities', { p_community: communityId, p_limit: 30 }), 15000, 'Sub-communities could not be loaded.'), setSubs),
+      ]);
+    } catch { if (current()) setLoadError('Some community details could not be refreshed. Tap to retry.'); }
+  }, [communityId, readScope, reads]);
   useEffect(() => { if (isMember) void loadExtras(); }, [isMember, loadExtras]);
 
   const onRefresh = useCallback(async () => {
-    setRefreshing(true);
+    if (!readScope) { setRefreshing(false); return; }
+    const current = reads.refresh.begin(readScope);
+    if (!current()) return;
+    setRefreshing(true); setLoadError(null);
     try { await Promise.all([loadInfo(), isMember ? loadPosts(null) : Promise.resolve(), isMember ? loadExtras() : Promise.resolve()]); }
-    finally { setRefreshing(false); }
-  }, [loadInfo, loadPosts, loadExtras, isMember]);
+    finally { if (current()) setRefreshing(false); }
+  }, [loadInfo, loadPosts, loadExtras, isMember, reads, readScope]);
 
   useEffect(() => {
     if (!isMember) return;
@@ -550,6 +608,7 @@ export default function CommunityScreen() {
       </View>
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        {loadError ? <TouchableOpacity accessibilityRole="button" onPress={() => { void onRefresh(); }}><Text accessibilityRole="alert" style={{ padding: 16 }}>{loadError}</Text></TouchableOpacity> : null}
         {loading ? (
           <View style={s.center}><ActivityIndicator color={NAVY} /></View>
         ) : (

@@ -499,3 +499,36 @@ test('a selector-child mismatch rejects before any evidence request or provider 
  }),/Reviewed AutoFill selector correction bytes changed/);
  assert.equal(fetches,0);assert.equal(fs.existsSync(evidence),false);
 });
+
+// The next app-wide refresh release extends the last reviewed selector child.
+// It must execute connected acceptance for its own source, even when one patch
+// touches only native presentation. No additional receipt-reuse exception exists.
+test('later refresh and shared-preview releases require fresh connected acceptance',async t=>{
+ const m=await modulePromise;
+ for(const changedFiles of [
+  ['src/components/feed/SharedPostCard.tsx','src/components/stories/StoryStrip.tsx','src/screens/feed/FeedScreen.tsx'],
+  ['web/src/components/PostCard.tsx','shared/imageDisplayIdentity.ts'],
+ ]){
+  const r=selectorRepository(t,m);
+  for(const file of changedFiles)r.write(file,'new refresh release bytes\n');
+  const head=r.commit();
+  const scope=m.sourceApplicability(r.git,head,r.accepted,r.rule,r.feedRule,r.keyboardRule,r.autofillRule,r.budgetRule,r.selectorRule);
+  assert.equal(scope,null,'A later release cannot inherit the earlier connected receipt');
+  assert.equal(m.sourceEquivalent(r.git,head,r.accepted,r.rule,r.feedRule,r.keyboardRule,r.autofillRule,r.budgetRule,r.selectorRule),false);
+ }
+});
+test('a child of the published selector source does not fetch or emit historical evidence',async t=>{
+ const m=await modulePromise,r=repository(t);
+ r.write('src/components/stories/StoryStrip.tsx','new story presentation\n');
+ r.write('web/src/components/PostCard.tsx','new shared preview presentation\n');
+ const head=r.commit(),evidence=path.join(r.git(['rev-parse','--show-toplevel']),'unused-evidence');
+ let fetches=0;
+ const git=args=>args[0]==='show'&&args.at(-1)==='HEAD'
+  ?'145d16cfd5b084dc5567fab27ef4cbf0b56b3359':r.git(args);
+ const result=await m.reuseConnected({git,fetcher:async()=>{fetches++;throw Error('Historical evidence must not be fetched');},
+  env:{GITHUB_REPOSITORY:m.PINNED.repository,GITHUB_SHA:head,LIVE_CONNECTED_EVIDENCE:evidence},
+ });
+ assert.deepEqual(result,{reused:false});
+ assert.equal(fetches,0);
+ assert.equal(fs.existsSync(evidence),false);
+});

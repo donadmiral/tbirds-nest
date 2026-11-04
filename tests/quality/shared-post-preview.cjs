@@ -23,6 +23,9 @@ const load = (file, imports, globals) => execute(fs.readFileSync(path.join(root,
 const preview = load('shared/sharedPostPreview.ts');
 const content = load('shared/contentMedia.ts');
 const delivery = load('shared/mediaDelivery.ts');
+const webErrors = load('web/lib/errors.ts');
+const sharedImageIdentity = load('shared/imageDisplayIdentity.ts', { './contentMedia': content });
+const imageIdentity = load('src/lib/imageDisplayIdentity.ts', { '../../shared/imageDisplayIdentity': sharedImageIdentity });
 const safe = rows => content.replaceContentMedia(rows, base, new Map([
   ['post-media/owner/source.mp4', signed('source.mp4')],
   ['post-media/owner/cover.jpg', signed('cover.jpg')],
@@ -65,7 +68,11 @@ function hooks() {
   return {
     api: {
       useState(initial) { const i = cursor++; if (!(i in slots)) slots[i] = typeof initial === 'function' ? initial() : initial; return [slots[i], value => { slots[i] = typeof value === 'function' ? value(slots[i]) : value; }]; },
+      useRef(initial) { const i = cursor++; if (!(i in slots)) slots[i] = { current: initial }; return slots[i]; },
+      useMemo(fn, deps) { const i = cursor++; if (!slots[i] || deps.some((d,j) => !Object.is(d,slots[i].deps[j]))) slots[i] = { deps, value: fn() }; return slots[i].value; },
+      useSyncExternalStore(_subscribe, snapshot) { return snapshot(); },
       useEffect(fn, deps) { const i = cursor++; if (!slots[i] || deps.some((d,j) => !Object.is(d,slots[i].deps[j]))) effects.push(() => { slots[i]?.cleanup?.(); slots[i] = { deps, cleanup: fn() }; }); },
+      useLayoutEffect(fn, deps) { const i = cursor++; if (!slots[i] || deps.some((d,j) => !Object.is(d,slots[i].deps[j]))) effects.push(() => { slots[i]?.cleanup?.(); slots[i] = { deps, cleanup: fn() }; }); },
     },
     render(fn) { cursor = 0; return fn(); }, flush() { while (effects.length) effects.shift()(); },
     dispose() { for (const slot of slots) slot?.cleanup?.(); },
@@ -75,15 +82,67 @@ const jsx = (type, props, key) => ({ type, props, key });
 const walk = tree => !tree || typeof tree !== 'object' ? [] : Array.isArray(tree) ? tree.flatMap(walk) : [tree, ...walk(tree.props?.children)];
 function native() {
   const h = hooks();
+  let scope = 'viewer-a:1';
   const component = load('src/components/feed/SharedPostCard.tsx', {
     react: h.api, 'react/jsx-runtime': { jsx, jsxs: jsx },
     'react-native': { View: 'View', Text: 'Text', TouchableOpacity: 'Button', StyleSheet: { absoluteFill: {}, absoluteFillObject: {}, hairlineWidth: 1 } },
     'expo-image': { Image: 'Image' }, '@expo/vector-icons': { Feather: 'Icon' },
     '../../theme/useTheme': { themedSheet: fn => fn({ surface: { canvas: '#fff', raised: '#eee', sunken: '#eee', hairline: '#ddd' }, ink: { primary: '#123', muted: '#456' } }) },
     '../VerifiedBadge': {}, '../TierName': {}, '../../../shared/sharedPostPreview': preview, '../../../shared/mediaDelivery': delivery,
+    '../../lib/imageDisplayIdentity': imageIdentity,
+    '../../lib/navigationCache': { navigationScope: () => scope, subscribeNavigationScope() { return () => {}; } },
+    '../../services/supabase': { SUPABASE_URL: base },
   });
-  return { ...h, ...component };
+  return { ...h, ...component, changeScope(next) { scope = next; } };
 }
+
+test('image display identity ignores only a trusted grant token, never another source or transform', () => {
+  const identity = value => imageIdentity.imageDisplayIdentity(value, base);
+  const a = signed('cover.jpg'), b = a.replace('a'.repeat(64), 'b'.repeat(64));
+  assert.equal(identity(a), identity(b));
+  assert.notEqual(identity(a), identity(signed('second.jpg')));
+  assert.notEqual(identity(a), identity(`${b}&width=128`));
+  for (const url of [a.replace(base, 'https://other.example'), a.replace('/media-content/', '/other/'), `${a}#other`, `${base}/image.jpg?token=a`]) {
+    assert.equal(identity(url), url, 'Unrecognized sources keep their complete identity');
+  }
+});
+
+test('native thumbnail keeps its native surface during same-object grant renewal and ignores the superseded error', () => {
+  const n = native();
+  const media = { url: signed('cover.jpg'), media_type: 'image' };
+  const draw = (value = media) => walk(n.render(() => n.SharedPostThumbnail({ postId, media: value }))).find(item => item.type === 'Image');
+  const first = draw(), unchanged = draw({ ...media });
+  assert.equal(unchanged.key, first.key);
+  assert.equal(unchanged.props.source, first.props.source, 'A metadata render does not replace the native source object');
+  const renewedMedia = { ...media, url: media.url.replace('a'.repeat(64), 'b'.repeat(64)) };
+  const renewed = draw(renewedMedia);
+  assert.equal(renewed.key, first.key, 'The native image must not remount when only the capability changes');
+  assert.equal(renewed.props.recyclingKey, first.props.recyclingKey, 'Expo must not clear the displayed bitmap before the replacement loads');
+  assert.equal(renewed.props.source.uri, renewedMedia.url, 'The actual request still uses the renewed capability');
+  assert.equal(renewed.props.cachePolicy, 'none', 'Private pixels are never added to the global image cache');
+  first.props.onError();
+  assert.ok(draw(renewedMedia), 'A cancelled older request cannot replace the current preview with Photo');
+  renewed.props.onError();
+  assert.equal(draw(renewedMedia), undefined, 'A current denial or load failure still clears the preview');
+});
+
+test('native thumbnail clears revoked sources and resets its surface for another post, object, transform or account', () => {
+  const n = native();
+  const media = { url: signed('cover.jpg'), media_type: 'image' };
+  const draw = (value = media, id = postId) => walk(n.render(() => n.SharedPostThumbnail({ postId: id, media: value }))).find(item => item.type === 'Image');
+  const first = draw();
+  assert.notEqual(draw(media, otherId).key, first.key);
+  assert.notEqual(draw({ ...media, url: signed('second.jpg') }).key, first.key);
+  assert.notEqual(draw({ ...media, url: `${media.url}&width=128` }).key, first.key);
+  draw();
+  n.changeScope('viewer-b:2');
+  assert.equal(draw(), undefined, 'An account switch hides the old grant before parent data catches up');
+  n.changeScope('viewer-a:3');
+  assert.equal(draw(), undefined, 'An account round trip cannot revive the old grant');
+  const currentMedia = { ...media, url: media.url.replace('a'.repeat(64), 'c'.repeat(64)) };
+  assert.notEqual(draw(currentMedia).key, first.key);
+  assert.equal(draw({ ...media, url: '' }), undefined, 'An explicit removed capability never retains pixels');
+});
 
 test('both native card layouts hand the same source poster to the thumbnail, and text-only posts reserve no blank tile', () => {
   const n = native(); const post = { id: postId, content: 'Original caption', ...preview.sharedPostPreview(safe([row()])[0]) };
@@ -113,9 +172,20 @@ test('native source thumbnails show a labeled fallback on failure and cannot fla
   assert.equal(walk(noPoster).some(item => item.type === 'Image'), false); assert.match(noPoster.props.accessibilityLabel, /Video/);
 });
 
-test('web source thumbnails retain the signed poster and show useful failure states without starting a movie', () => {
+function webThumbnail() {
   const h = hooks(); const icons = Object.fromEntries(['FileText','Image','Layers','Music','Play','Video'].map(name => [name, name]));
-  const { SharedPostThumbnail } = load('web/components/SharedPostThumbnail.tsx', { react: h.api, 'react/jsx-runtime': { jsx, jsxs: jsx }, 'lucide-react': icons, '../../shared/sharedPostPreview': preview });
+  let scope = 'viewer-a:1';
+  const navigation = { subscribe() { return () => {}; }, getSnapshot: () => ({ scope }), getServerSnapshot: () => ({ scope: null }) };
+  const { SharedPostThumbnail } = load('web/components/SharedPostThumbnail.tsx', {
+    react: h.api, 'react/jsx-runtime': { jsx, jsxs: jsx }, 'lucide-react': icons,
+    '../../shared/sharedPostPreview': preview, '../../shared/imageDisplayIdentity': sharedImageIdentity,
+    '../../shared/mediaDelivery': delivery, '../lib/navigationCache': { getNavigationStore: () => navigation },
+  }, { process: { env: { NEXT_PUBLIC_SUPABASE_URL: base } } });
+  return { ...h, SharedPostThumbnail, render(fn) { const view = h.render(fn); h.flush(); return view; }, changeScope(value) { scope = value; } };
+}
+
+test('web source thumbnails retain the signed poster and show useful failure states without starting a movie', () => {
+  const h = webThumbnail(), { SharedPostThumbnail } = h;
   const props = { postId, ...preview.sharedPostPreview(safe([row()])[0]) };
   const first = h.render(() => SharedPostThumbnail(props)); const image = walk(first).find(item => item.type === 'img');
   assert.equal(image.props.src, signed('cover.jpg')); image.props.onError();
@@ -124,17 +194,67 @@ test('web source thumbnails retain the signed poster and show useful failure sta
   const next = h.render(() => SharedPostThumbnail({ ...props, postId: otherId })); assert.notEqual(walk(next).find(item => item.type === 'img').key, image.key);
 });
 
+test('web thumbnail keeps its DOM surface for token renewal and ignores stale errors without retaining revoked pixels', () => {
+  const h = webThumbnail(), { SharedPostThumbnail } = h;
+  const media = { media_type: 'image', url: signed('cover.jpg') };
+  const draw = (value = media, id = postId) => walk(h.render(() => SharedPostThumbnail({ postId: id, media: value }))).find(item => item.type === 'img');
+  const first = draw(), renewedMedia = { ...media, url: media.url.replace('a'.repeat(64), 'b'.repeat(64)) };
+  const renewed = draw(renewedMedia);
+  assert.equal(renewed.key, first.key, 'Renewing a capability does not remount the decoded image');
+  assert.equal(renewed.props.src, renewedMedia.url, 'The full current capability remains the actual source');
+  first.props.onError();
+  assert.ok(draw(renewedMedia));
+  renewed.props.onError();
+  assert.equal(draw(renewedMedia), undefined, 'A current denial clears any prior drawable');
+  const retried = draw(media);
+  assert.ok(retried, 'A different request can retry the same object');
+  assert.notEqual(draw({ ...media, url: signed('second.jpg') }).key, first.key);
+  assert.notEqual(draw(media, otherId).key, first.key);
+  draw();
+  h.changeScope('viewer-b:2'); assert.equal(draw(), undefined);
+  h.changeScope('viewer-a:3'); assert.equal(draw(), undefined, 'An account round trip cannot revive an old grant');
+  assert.notEqual(draw(renewedMedia).key, first.key);
+  assert.equal(draw({ ...media, url: '' }), undefined);
+  h.changeScope(null); assert.equal(draw(media), undefined);
+});
+
+test('web thumbnail ignores queued image errors after live account changes or unmount', () => {
+  const h = webThumbnail(), useState = h.api.useState;
+  let updates = 0;
+  h.api.useState = initial => {
+    const [value, setValue] = useState(initial);
+    return [value, next => { updates++; setValue(next); }];
+  };
+  const media = { media_type: 'image', url: signed('cover.jpg') };
+  const image = walk(h.render(() => h.SharedPostThumbnail({ postId, media }))).find(item => item.type === 'img');
+  h.changeScope('viewer-b:2');
+  image.props.onError();
+  assert.equal(updates, 0, 'A scope change rejects callbacks before React receives its store notification');
+  h.changeScope('viewer-a:1');
+  h.dispose();
+  image.props.onError();
+  assert.equal(updates, 0, 'Unmount clears the committed request before a queued error can update state');
+});
+
 function webSource({ gate, authorGate, denied = false, sourceMissing = false } = {}) {
-  const h = hooks(), calls = [], reads = []; let auth, unsubscribed = false, authors = 0;
+  const h = hooks(), calls = [], reads = [];
+  let unsubscribed = false, authors = 0, revision = 1, currentId, refresh, source, sourceError = null;
+  let session = { scope: 'viewer:1', initialized: true };
+  const navigation = {
+    getSnapshot: () => session, getServerSnapshot: () => ({ scope: null, initialized: false }),
+    subscribe() { return () => { unsubscribed = true; }; },
+  };
+  h.api.useSyncExternalStore = (subscribe, snapshot) => {
+    h.api.useEffect(() => subscribe(() => {}), [subscribe]); return snapshot();
+  };
   const client = {
-    auth: { onAuthStateChange(fn) { auth = fn; return { data: { subscription: { unsubscribe() { unsubscribed = true; } } } }; } },
     from(table) {
       let id;
       const query = {
         select() { return query; }, eq(_key,value) { id = value; return query; },
         maybeSingle() {
           reads.push({ table, id });
-          if (table === 'posts') return Promise.resolve({ data: sourceMissing ? null : row(id), error: null });
+          if (table === 'posts') return Promise.resolve({ data: source === undefined ? sourceMissing ? null : row(id) : source, error: sourceError });
           const pending = Array.isArray(authorGate) ? authorGate[authors++] : authorGate;
           const result = { data: { full_name: 'Source author', username: 'source' }, error: null };
           return pending ? pending.promise.then(value => value ?? result) : Promise.resolve(result);
@@ -147,11 +267,22 @@ function webSource({ gate, authorGate, denied = false, sourceMissing = false } =
     react: h.api, '../../shared/sharedPostPreview': preview,
     './contentMedia': { withoutPrivateMedia: strip, hydratePostMedia: async rows => {
       const pending = Array.isArray(gate) ? gate[calls.length] : gate;
-      calls.push(rows); if (pending) await pending.promise; if (denied) throw Error('Denied'); return safe(rows);
+      calls.push(rows); const result = pending ? await pending.promise : undefined;
+      if (denied) throw Error('Denied'); return result ?? safe(rows);
     } },
     './supabase/client': { createClient: () => client }, './withTimeout': { withTimeout: value => Promise.resolve(value) },
-  }, { setInterval: () => 1, clearInterval() {} });
-  return { ...h, calls, reads, view: id => h.render(() => useSharedPostPreview(id)), auth: () => auth(), get unsubscribed() { return unsubscribed; } };
+    './navigationCache': { getNavigationStore: () => navigation },
+    './errors': webErrors, '../../shared/imageDisplayIdentity': sharedImageIdentity,
+  }, { setInterval: fn => { refresh = fn; return 1; }, clearInterval() { refresh = null; }, process: { env: { NEXT_PUBLIC_SUPABASE_URL: base } } });
+  const view = id => { currentId = id; return h.render(() => useSharedPostPreview(id)); };
+  return {
+    ...h, calls, reads, view, refresh: () => refresh?.(),
+    setSource(value, error = null) { source = value; sourceError = error; },
+    auth(scope = `viewer:${++revision}`) { session = { ...session, scope }; view(currentId); h.flush(); },
+    initialize() { session = { ...session, initialized: true }; view(currentId); h.flush(); },
+    setUninitialized() { session = { scope: null, initialized: false }; },
+    get unsubscribed() { return unsubscribed; },
+  };
 }
 
 test('web quotes and chat shares show stripped source text and type before optional author or media work finishes', async () => {
@@ -181,6 +312,107 @@ test('granted web media appears while the author is pending and survives a later
     assert.equal(h.view(postId).author?.full_name ?? null, rejected ? null : 'Late author');
     h.dispose();
   }
+});
+
+test('web source revalidation keeps the granted thumbnail and author until replacements finish', async () => {
+  const mediaGate = deferred(), authorGate = deferred();
+  const h = webSource({ gate: [undefined, mediaGate], authorGate: [undefined, authorGate] });
+  h.view(postId); h.flush(); await tick();
+  const first = h.view(postId);
+  h.refresh(); await tick();
+  const pending = h.view(postId);
+  assert.equal(pending.media, first.media, 'Revalidation does not publish a temporary stripped thumbnail');
+  assert.equal(pending.author, first.author, 'Author enrichment does not temporarily replace the name with Member');
+  const renewed = safe([row()]).map(source => JSON.parse(JSON.stringify(source).replaceAll('a'.repeat(64), 'b'.repeat(64))));
+  mediaGate.resolve(renewed); await tick();
+  assert.equal(h.view(postId).media.thumbnail_url, signed('cover.jpg').replace('a'.repeat(64), 'b'.repeat(64)));
+  assert.equal(h.view(postId).author, first.author, 'Media completion does not clear the pending author');
+  authorGate.resolve({ data: { full_name: 'Updated author', username: 'updated' }, error: null }); await tick();
+  assert.equal(h.view(postId).author.full_name, 'Updated author');
+  assert.equal(h.calls.length, 2); h.dispose();
+});
+
+test('a transient post read keeps the ready preview while an explicit denial clears it', async () => {
+  for (const status of [503, 403]) {
+    const h = webSource(); h.view(postId); h.flush(); await tick();
+    const first = h.view(postId);
+    h.setSource(null, { status, message: 'Source read failed' }); h.refresh(); await tick();
+    assert.equal(h.view(postId), status === 503 ? first : null);
+    assert.equal(h.calls.length, 1, 'A failed source read never starts author or media enrichment'); h.dispose();
+  }
+});
+
+test('a transient author read keeps the ready label while an explicit denial clears it', async () => {
+  for (const status of [503, 403]) {
+    const authorGate = deferred(), h = webSource({ authorGate: [undefined, authorGate] });
+    h.view(postId); h.flush(); await tick(); const first = h.view(postId);
+    h.refresh(); await tick(); authorGate.resolve({ data: null, error: { status, message: 'Profile read failed' } }); await tick();
+    assert.equal(h.view(postId).author, status === 503 ? first.author : null);
+    assert.equal(h.view(postId).media.thumbnail_url, signed('cover.jpg')); h.dispose();
+  }
+});
+
+test('malformed metadata is retryable and never masquerades as a missing source or author', async () => {
+  const authorGate = deferred(), h = webSource({ authorGate: [undefined, authorGate] });
+  h.view(postId); h.flush(); await tick(); const first = h.view(postId);
+  h.setSource({ ...row(), id: otherId }); h.refresh(); await tick();
+  assert.equal(h.view(postId), first); assert.equal(h.calls.length, 1);
+  h.setSource(row()); h.refresh(); await tick();
+  authorGate.resolve({ data: { full_name: 123, username: [] }, error: null }); await tick();
+  assert.equal(h.view(postId).author, first.author);
+  h.setSource(null); h.refresh(); await tick(); assert.equal(h.view(postId), null); h.dispose();
+});
+
+test('web revalidation clears revoked media and author grants while keeping authorized source text', async () => {
+  for (const failure of ['reject', 'denied', 'missing']) {
+    const mediaGate = deferred(), authorGate = deferred();
+    const h = webSource({ gate: [undefined, mediaGate], authorGate: [undefined, authorGate] });
+    h.view(postId); h.flush(); await tick();
+    h.refresh(); await tick();
+    assert.ok(h.view(postId).media.thumbnail_url);
+    if (failure === 'reject') mediaGate.reject(Error('Grant unavailable'));
+    else mediaGate.resolve(failure === 'denied' ? strip([row()]) : []);
+    authorGate.resolve({ data: null, error: Error('Access denied') }); await tick();
+    const result = h.view(postId);
+    assert.equal(result.media.url, ''); assert.equal(result.media.thumbnail_url, null);
+    assert.equal(result.author, null); assert.equal(result.content, 'Original caption'); h.dispose();
+  }
+});
+
+test('web media or author changes clear incompatible retained preview state before enrichment', async () => {
+  for (const change of ['media', 'author']) {
+    const mediaGate = deferred(), authorGate = deferred();
+    const h = webSource({ gate: [undefined, mediaGate], authorGate: [undefined, authorGate] });
+    h.view(postId); h.flush(); await tick();
+    const changed = row();
+    if (change === 'media') changed.post_media[1].edit.coverUrl = canonical('changed.jpg');
+    else changed.user_id = 'different-author';
+    h.setSource(changed); h.refresh(); await tick();
+    assert.equal(h.view(postId).media.thumbnail_url, null);
+    assert.equal(h.view(postId).author?.id ?? null, change === 'author' ? null : 'author');
+    h.dispose(); mediaGate.resolve(); authorGate.resolve(); await tick();
+  }
+});
+
+test('same-session browser updates preserve a ready preview and source denial cannot revive it', async () => {
+  const h = webSource(); h.view(postId); h.flush(); await tick();
+  const first = h.view(postId);
+  h.auth('viewer:1'); await tick();
+  assert.equal(h.view(postId), first, 'The shared navigation scope does not reset on same-session token renewal');
+  assert.equal(h.calls.length, 1);
+  h.setSource(null); h.refresh(); await tick();
+  assert.equal(h.view(postId), null);
+  assert.equal(h.calls.length, 1, 'Denied sources do not start another media request');
+  h.dispose();
+});
+
+test('browser previews wait for the initial account scope before granting a private thumbnail', async () => {
+  const h = webSource(); h.setUninitialized();
+  assert.equal(h.view(postId), undefined); h.flush(); await tick();
+  assert.equal(h.reads.length, 0);
+  h.auth('viewer:2'); h.initialize(); await tick();
+  assert.equal(h.view(postId).media.thumbnail_url, signed('cover.jpg'));
+  h.dispose();
 });
 
 test('late web author and grant responses cannot enrich a different source post', async () => {

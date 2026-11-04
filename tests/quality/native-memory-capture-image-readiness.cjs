@@ -9,7 +9,7 @@ const root = path.resolve(__dirname, '../..');
 
 function componentHarness() {
   const contexts = new Map(), modules = new Map(), slots = [], effects = [];
-  let cursor = 0;
+  let cursor = 0, scope = 'viewer:1';
   const same = (left, right) => left && right && left.length === right.length && left.every((value, i) => Object.is(value, right[i]));
   const react = {
     createContext: value => ({ value }),
@@ -32,7 +32,9 @@ function componentHarness() {
       return slots[index].value;
     },
     useCallback: (callback, dependencies) => react.useMemo(() => callback, dependencies),
+    useSyncExternalStore: (_subscribe, snapshot) => snapshot(),
   };
+  react.useLayoutEffect = react.useEffect;
   const jsx = (type, props, key) => ({ type, props: props || {}, key });
   const native = { View: 'View', Image: 'NativeImage', Text: 'Text', TouchableOpacity: 'Button',
     StyleSheet: { create: value => value, absoluteFill: {} }, Animated: {}, Easing: {} };
@@ -40,15 +42,18 @@ function componentHarness() {
     if (modules.has(relative)) return modules.get(relative);
     const module = { exports: {} }; modules.set(relative, module.exports);
     const output = ts.transpileModule(fs.readFileSync(path.join(root, relative), 'utf8'), {
+      fileName: relative,
       compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
     }).outputText;
-    vm.runInNewContext(output, { module, exports: module.exports, require(name) {
+    vm.runInNewContext(output, { module, exports: module.exports, URL, require(name) {
       if (name === 'react') return react;
       if (name === 'react/jsx-runtime') return { jsx, jsxs: jsx, Fragment: 'Fragment' };
       if (name === 'react-native') return native;
       if (name === '@shopify/react-native-skia') return { Canvas: 'Canvas', Image: 'SkiaImage', ColorMatrix: 'ColorMatrix', Skia: {} };
       if (name === 'expo-image') return { Image: 'ExpoImage' };
       if (name === '@expo/vector-icons') return { Feather: 'Feather' };
+      if (name.endsWith('/navigationCache')) return { navigationScope: () => scope, subscribeNavigationScope: () => () => {} };
+      if (name.endsWith('/services/supabase')) return { SUPABASE_URL: 'https://qa.test' };
       if (name === '../TierName' || name === '../VerifiedBadge') return { __esModule: true, default: name };
       if (name === '../../utils/stickerStyles') return { stickerTextStyle() { throw Error('Photo stickers do not use text styles'); } };
       if (name.startsWith('.')) {
@@ -61,6 +66,7 @@ function componentHarness() {
   }
   const image = load('src/components/stories/StoryPixelImage.tsx');
   return { image, load, contexts,
+    scope(value) { scope = value; },
     render(props) { cursor = 0; const tree = image.default(props); effects.splice(0).forEach(effect => effect()); return tree; },
     dispose() { slots.forEach(slot => slot?.cleanup?.()); },
   };
@@ -81,7 +87,9 @@ test('actual capture photo disables the native fade while retaining readiness an
   assert.equal(reports.at(-1)[1], 'loading');
   image.props.onLoad(); assert.equal(reports.at(-1)[1], 'ready'); assert.equal(loaded.length, 1);
   image.props.onError(); assert.equal(reports.at(-1)[1], 'error'); assert.equal(errors.length, 1);
+  image.props.onLoad(); assert.equal(reports.at(-1)[1], 'error'); assert.equal(loaded.length, 1, 'A late success cannot revive a failed photo');
   h.dispose(); assert.equal(reports.at(-1)[1], 'removed');
+  image.props.onLoad(); image.props.onError(); assert.equal(reports.at(-1)[1], 'removed'); assert.equal(loaded.length, 1); assert.equal(errors.length, 1);
 });
 
 test('actual photo sticker uses the same nonfading capture path and keeps its independent color look', () => {
@@ -122,6 +130,24 @@ test('graded captures retain the existing Skia path and its readiness callbacks'
   assert.ok(graded); assert.equal(graded.props.look, look); assert.equal(walk(tree).some(node => node.type === 'NativeImage'), false);
   graded.props.onLoad(); assert.equal(reports.at(-1)[1], 'ready');
   graded.props.onError(); assert.equal(reports.at(-1)[1], 'error'); h.dispose();
+});
+
+test('private photo renewal preserves the mounted display but account changes, replaced objects and current errors remove it', () => {
+  const h = componentHarness(), uri = token => `https://qa.test/functions/v1/media-content/story-media/author/photo.jpg?token=${token.repeat(64)}`;
+  const findPhoto = tree => walk(tree).find(node => node.type === 'NativeImage');
+  const first = findPhoto(h.render({ uri: uri('a') }));
+  const renewed = findPhoto(h.render({ uri: uri('b') }));
+  assert.equal(renewed.key, first.key);
+  assert.equal(renewed.props.source.uri, uri('b'), 'The real request still uses the renewed grant');
+  first.props.onError(); assert.ok(findPhoto(h.render({ uri: uri('b') })), 'Late errors cannot hide the renewed photo');
+  renewed.props.onError(); assert.equal(findPhoto(h.render({ uri: uri('b') })), undefined);
+  const next = findPhoto(h.render({ uri: uri('c').replace('photo.jpg', 'new.jpg') }));
+  assert.notEqual(next.key, first.key);
+  let loaded = 0;
+  const ready = findPhoto(h.render({ uri: uri('c').replace('photo.jpg', 'new.jpg'), onLoad: () => loaded++ }));
+  h.scope('viewer:2'); ready.props.onLoad(); assert.equal(loaded, 0, 'Account changes fence callbacks before React renders');
+  assert.equal(findPhoto(h.render({ uri: uri('c').replace('photo.jpg', 'new.jpg') })), undefined);
+  h.dispose();
 });
 
 test('retained Android captures show a partial image fade while the sticker border stays opaque', () => {

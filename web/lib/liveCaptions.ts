@@ -19,7 +19,7 @@ export function parseCaptionJobs(input:unknown,duration:number):CaptionDraft[]{
  });
 }
 export const captionCommand=(client:LiveClient,clipId:string,action:string,payload:Record<string,unknown>={},requestId:string|null=null)=>liveRpc(client,'live_transcription_command',{p_clip_id:clipId,p_action:action,p_payload:payload,p_request_id:requestId});
-export async function captionStatus(client:LiveClient,clipId:string,duration:number){const data=await captionCommand(client,clipId,'status');return{enabled:data.enabled===true,items:parseCaptionJobs(data.items,duration)};}
+export async function captionStatus(client:LiveClient,clipId:string,duration:number){const data=await captionCommand(client,clipId,'status');if(typeof data.enabled!=='boolean'||!Array.isArray(data.items))throw Error('INVALID_SERVICE_RESPONSE');return{enabled:data.enabled,items:parseCaptionJobs(data.items,duration)};}
 export function captionError(error:unknown):string{
  const code=error instanceof Error?error.message:record(error)?String(error.message||''):'';
  if(/INTEGRATION_DISABLED/.test(code))return 'Automatic captions are not active yet. You can still add or import subtitles in the clip editor.';
