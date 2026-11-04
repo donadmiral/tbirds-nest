@@ -65,10 +65,8 @@ async function execute(action, acknowledgement, options = {}) {
     if (String(url).includes('/live-streaming/')) return Response.json(acknowledgement, { status: options.httpStatus || 200 });
     if (String(url).includes('/presence?')) return Response.json({ total_count: 1, data: [{ id: id(9), userId: identity }] });
     assert.equal(String(url), 'https://api.daily.co/v1/rooms/' + room);
-    return Response.json({
-      privacy: 'private', url: 'https://synthetic.daily.co/' + room,
-      config: { streaming_endpoints: provider.hlsEndpoints(config, context), max_participants: 12 },
-    });
+    return Response.json({ privacy: 'private', url: 'https://synthetic.daily.co/' + room,
+      config: { streaming_endpoints: provider.hlsEndpoints(config, context), max_participants: context.max_stage_members } });
   };
   const response = await createLiveHandler('control', { caller: () => caller, service, config, fetch: fetcher })(new Request('https://synthetic.invalid/control', {
     method: 'POST', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
@@ -111,6 +109,7 @@ test('legacy acknowledgements remain supported and conflicting responses remain 
 
 test('HTTP errors never become accepted commands even with a sent-shaped body', async () => {
   const result = await execute('start', { status: 'sent' }, { httpStatus: 400 });
+  assert.equal(result.requests.filter(url => url.endsWith('/live-streaming/start')).length, 1);
   assert.equal(result.status, 503);
   assert.equal(result.writes[0].p_accepted, false);
 });

@@ -2,6 +2,8 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const ts = require('typescript');
+const YAML = require('yaml');
+const crypto = require('node:crypto');
 const { createClient } = require('@supabase/supabase-js');
 const { createFixture, FixtureWebSocket, OWNER, PEER } = require('../native/backend-fixture.cjs');
 const { livePlaybackFixtureOverlay, liveFrameFixtureOverlay } = require('../../scripts/quality/native-ui-feed-video-overlay.cjs');
@@ -66,4 +68,62 @@ test('native Live overlays replace only the declared synthetic media boundary an
   assert.match(source, /immersive\.frames\.includes\(viewerLive\)/);
   assert.match(source, /immersive\.progress\.some/);
   assert.match(source, /rows\.length !== 1/);
+});
+
+test('native Clips entry reads only the existing non-recording viewer fixture and leaves all mutations unsupported', async () => {
+  const fixture = createFixture(() => {}, { immersiveLive: true });
+  const client = createClient('https://uaulhuelcfkjwojtymmw.supabase.co', 'native-ui-synthetic-no-provider-key', {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }, global: { fetch: fixture.fetch },
+  });
+  await client.auth.signInWithPassword({ email: 'qa.alex@example.invalid', password: 'FixtureOnly-2026!' });
+  const sessionId = '90000000-0000-4000-8000-000000000001';
+  const args = { p_session_id: sessionId, p_cursor: null, p_limit: 24, p_sort: 'newest' };
+  const library = await client.rpc('live_clip_library', args);
+  assert.equal(library.error, null); assert.deepEqual(library.data, { items: [], next_cursor: null });
+  const context = await client.rpc('live_clip_context', { p_session_id: sessionId });
+  assert.equal(context.error, null);
+  assert.equal(context.data.session_id, sessionId);
+  for (const key of ['can_clip', 'can_manage', 'recording_available', 'viewer_clipping']) assert.equal(context.data[key], false);
+  assert.equal(context.data.available_start_ms, 0); assert.equal(context.data.max_duration_ms, 600000);
+  assert.ok(Number.isSafeInteger(context.data.available_end_ms) && context.data.available_end_ms >= 0);
+  assert.deepEqual(context.data.settings, { viewer_clipping: false, review_required: true, watermark_required: true,
+    watermark: true, brand_text: 'Platinum Circles', copyright_policy: 'standard', can_manage: false, approved_user_ids: [] });
+  assert.deepEqual(fixture.receipt.unhandled, []);
+  assert.equal(fixture.receipt.requests.filter(row => row.path === '/rest/v1/rpc/live_clip_library').length, 1);
+  assert.equal(fixture.receipt.requests.filter(row => row.path === '/rest/v1/rpc/live_clip_context').length, 1);
+  for (const [rpc, payload] of [
+    ['live_clip_library', { ...args, p_session_id: '90000000-0000-4000-8000-000000000099' }],
+    ['live_clip_context', { p_session_id: '90000000-0000-4000-8000-000000000002' }],
+    ['live_clip_library', { ...args, p_admin: true }],
+    ['live_clip_command', { p_session_id: sessionId, p_action: 'create', p_payload: {} }],
+  ]) {
+    const response = await client.rpc(rpc, payload);
+    assert.equal(response.error?.code, 'NATIVE_UI_UNHANDLED'); assert.equal(response.status, 501);
+  }
+  assert.equal(fixture.receipt.unhandled.length, 4);
+  assert.equal(fixture.receipt.mutations.length, 0);
+  assert.equal(fixture.receipt.immersiveLive.providerAcceptance, false);
+  await client.auth.signOut();
+});
+
+test('the installed native Clips round trip requires a dismissed sheet and usable screen without changing earlier Live requirements', () => {
+  const flow = YAML.parseAllDocuments(fs.readFileSync('tests/native/flows/live-immersive.yaml', 'utf8'))[1].toJSON();
+  const start = flow.findIndex(command => command.tapOn === 'More live tools');
+  assert.ok(start >= 0, 'Exercise the actual tools entry');
+  const expected = [
+    { tapOn: 'More live tools' }, { tapOn: 'Clips' }, { tapOn: 'Open clips' },
+    { extendedWaitUntil: { visible: 'Clip library', timeout: 15000 } },
+    { assertNotVisible: 'Close live tools' },
+    { extendedWaitUntil: { visible: 'Your clips will appear here', timeout: 15000 } },
+    { assertNotVisible: 'Creator clip controls' },
+    { tapOn: 'Refresh' },
+    { extendedWaitUntil: { visible: 'Your clips will appear here', timeout: 15000 } },
+    { takeScreenshot: 'live-clips-library' }, { tapOn: '^Back$' },
+    { extendedWaitUntil: { visible: { id: 'native-live-player' }, timeout: 15000 } },
+    { assertVisible: { id: 'live-overlay-chat' } }, { assertNotVisible: 'Clip library' },
+  ];
+  assert.deepEqual(flow.slice(start, start + expected.length), expected);
+  const original = [...flow.slice(0, start), ...flow.slice(start + expected.length)];
+  assert.equal(crypto.createHash('sha256').update(JSON.stringify(original)).digest('hex'), 'e97d080f0b0f3e8d98126e4a891450939bb6429422ecbaa92d8cba92fd051b90',
+    'All original Live actions, assertions, deadlines and screenshots remain unchanged');
 });

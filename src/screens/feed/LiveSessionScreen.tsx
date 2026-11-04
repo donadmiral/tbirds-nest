@@ -25,6 +25,7 @@ export default function LiveSessionScreen({ route, navigation }: Props) {
   const [memberSearch, setMemberSearch] = useState(''), [people, setPeople] = useState<LiveObject[]>([]), [memberRole, setMemberRole] = useState('guest');
   const [report, setReport] = useState(''), [notice, setNotice] = useState('');
   const [toolsOpen, setToolsOpen] = useState(false), [viewerMuted, setViewerMuted] = useState(false);
+  const afterToolsClose = useRef<(() => void) | null>(null);
   const autoWatch = useRef('');
   const [stageParticipantCount,setStageParticipantCount]=useState(1),[stageHeight,setStageHeight]=useState(0);
   const [studioOpened,setStudioOpened]=useState(route.params?.openStudio===true);
@@ -39,7 +40,7 @@ export default function LiveSessionScreen({ route, navigation }: Props) {
     }); setError(''); } }
     catch (reason) { if (version === generation.current) { const message=reason instanceof Error?reason.message:'The stream could not load.';setError(message);if (/^Sign in again|^This stream is unavailable|^This stream link/.test(message)) {setDetail(null);if(playback.session?.id===id)playback.close();} } }
   }, [id, owner]);
-  useEffect(() => { removedMessages.current.clear();commandGeneration.current++;lock.current=false;request.current=null;setBusy(false);setDetail(null); setTab('Tools');setToolsOpen(false);autoWatch.current=''; setStudioOpened(route.params?.openStudio===true); setPreviewRequested(route.params?.previewCamera===true); setPeople([]); setNotice(''); void refresh(); return () => { commandGeneration.current++;generation.current++; searchVersion.current++; }; }, [refresh]);
+  useEffect(() => { removedMessages.current.clear();afterToolsClose.current=null;commandGeneration.current++;lock.current=false;request.current=null;setBusy(false);setDetail(null); setTab('Tools');setToolsOpen(false);autoWatch.current=''; setStudioOpened(route.params?.openStudio===true); setPreviewRequested(route.params?.previewCamera===true); setPeople([]); setNotice(''); void refresh(); return () => { afterToolsClose.current=null;commandGeneration.current++;generation.current++; searchVersion.current++; }; }, [refresh]);
   useFocusEffect(useCallback(() => {
     if (playback.session?.id === id) playback.expand();
     return () => { if (playback.session?.id === id) playback.minimize(); };
@@ -67,6 +68,11 @@ export default function LiveSessionScreen({ route, navigation }: Props) {
   const automaticGuestIds = Array.isArray(raw?.stage_guest_identities) ? raw.stage_guest_identities.filter((value):value is string=>isLiveUuid(value)).slice(0,12) : [];
   const guestTopic = liveText(raw?.guest_topic,120);
   const openTools = (name = 'Tools') => { setTab(name); setToolsOpen(true); };
+  const closeToolsThen = (action: () => void) => {
+    if (Platform.OS === 'ios') afterToolsClose.current = action;
+    setToolsOpen(false);
+    if (Platform.OS !== 'ios') action();
+  };
   const patchDetail = (value: LiveObject) => {
     if(Object.prototype.hasOwnProperty.call(value,'pinned_message'))pinRevision.current++;
     const removed=isLiveUuid(value.removed_message_id)?value.removed_message_id:null;
@@ -130,7 +136,7 @@ export default function LiveSessionScreen({ route, navigation }: Props) {
       {session?<View style={s.headerMeta}>{session.viewer_count!==null?<Text style={s.viewerCount}>{session.viewer_count.toLocaleString()} watching</Text>:null}{manages&&joinRequests.length?<TouchableOpacity accessibilityRole="button" accessibilityLabel={`${joinRequests.length} guest requests`} onPress={()=>openTools('Guests')} style={s.requestBadge}><Text style={s.white}>{joinRequests.length} guest requests</Text></TouchableOpacity>:null}{ownPlayer&&!studioVisible?overlayIcon(viewerMuted?'Unmute live':'Mute live',viewerMuted?'volume-x':'volume-2',()=>{try{playback.player.muted=!viewerMuted;setViewerMuted(!viewerMuted);}catch{setError('Playback sound could not change. Try again.');}}):null}{ownPlayer&&!studioVisible?overlayIcon('Minimize live','minimize-2',()=>{playback.minimize();navigation.goBack();}):null}</View>:null}
     </LinearGradient>
     {error&&session?<View style={[s.floatingError,{top:insets.top+108}]}><Text accessibilityRole="alert" style={s.white}>{error}</Text></View>:null}
-    <Modal visible={toolsOpen} transparent animationType="slide" onRequestClose={()=>setToolsOpen(false)}>
+    <Modal visible={toolsOpen} transparent animationType="slide" onRequestClose={()=>setToolsOpen(false)} onDismiss={()=>{const next=afterToolsClose.current;afterToolsClose.current=null;next?.();}}>
       <KeyboardAvoidingView style={s.modalBackdrop} behavior={Platform.OS==='ios'?'padding':undefined}>
         <TouchableOpacity accessibilityRole="button" accessibilityLabel="Close live tools" style={{flex:1}} onPress={()=>setToolsOpen(false)}/>
         <View style={[s.sheet,{backgroundColor:t.surface.raised,paddingBottom:Math.max(insets.bottom,16)}]}>
@@ -146,7 +152,7 @@ export default function LiveSessionScreen({ route, navigation }: Props) {
             {tab==='Chat settings'&&moderate?<View style={{gap:10}}>{button('Slow mode',()=>void send('chat_settings',{slow_mode_seconds:10}))}{button('Open chat',()=>void send('chat_settings',{chat_mode:'open',slow_mode_seconds:0}))}{button('Close chat',()=>void send('chat_settings',{chat_mode:'closed'}))}</View>:null}
             {session?<>
           {tab==='Polls & Q&A'?<LiveInteractions key={`${owner}:${id}`} id={id} topic={liveText(raw?.chat_topic,100)} live={['live','reconnecting'].includes(session.state)} replay={session.replay_available} onAccessChanged={()=>void refresh()} onTopic={value=>setDetail(previous=>previous?{...previous,raw:{...previous.raw,chat_topic:value}}:previous)} onSeek={position=>{void playback.open(session).then(()=>{try{playback.player.currentTime=position/1000;}catch{setError('Open the replay before jumping to a chapter.');}});}}/>:null}
-          {tab==='Clips'?<View style={{gap:12}}><Text style={{color:t.ink.primary,fontSize:20,fontWeight:'700'}}>Clips and highlights</Text><Text style={{color:t.ink.secondary}}>Create clips from this live recording, choose a cover and share finished exports.</Text>{button('Open clips',()=>navigation.navigate('LiveClips',{sessionId:id}),false)}</View>:null}
+          {tab==='Clips'?<View style={{gap:12}}><Text style={{color:t.ink.primary,fontSize:20,fontWeight:'700'}}>Clips and highlights</Text><Text style={{color:t.ink.secondary}}>Create clips from this live recording, choose a cover and share finished exports.</Text>{button('Open clips',()=>closeToolsThen(()=>navigation.navigate('LiveClips',{sessionId:id})),false)}</View>:null}
           {tab==='Guests'&&manages?<View style={{gap:12}}>
             <Text style={{color:t.ink.primary,fontSize:20,fontWeight:'700'}}>Invite guests</Text><Text style={{color:t.ink.secondary}}>Invite people to join your live. Each guest accepts before sharing their camera.</Text>
             <View style={s.row}><TextInput value={memberSearch} onChangeText={setMemberSearch} maxLength={100} placeholder="Search a name or username" placeholderTextColor={t.ink.muted} accessibilityLabel="Search team member" style={[s.input,{flex:1,color:t.ink.primary,backgroundColor:t.surface.sunken}]}/>{button('Search',()=>{const version=++searchVersion.current;void profileRead(supabase.rpc('search_people',{p_q:memberSearch.trim(),p_limit:10})).then(({data,error})=>{if(version!==searchVersion.current)return;if(error)throw error;setPeople(liveRows(data,10));}).catch(()=>setError('People could not load. Try again.'));},busy||memberSearch.trim().length<2)}</View>

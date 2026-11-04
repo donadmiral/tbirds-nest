@@ -23,18 +23,80 @@ export const ALLOWED = Object.freeze([
 ].sort());
 const hash = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 
-export function sourceEquivalent(git, source, base = PINNED.source) {
+// This second exception is one reviewed child of the original fixture correction.
+// Only these frozen native/fixture bytes may differ. The two verifier sources
+// are reviewed with the final commit, rather than attempting a self-referential hash.
+export const NATIVE_CORRECTION = Object.freeze({
+  parent: 'b2caf9720ab0cf67fe4a92a9bd58671111554af2',
+  parentTree: '8f40aee066660eff70d51fad0cd1cf36a0e55001',
+  files: Object.freeze([
+    ['src/screens/feed/LiveSessionScreen.tsx', '406466a26153d194f23599b4e34c97393895267b29e1bc2a1603e879e8c1d1d6'],
+    ['tests/live-immersive-native.test.cjs', 'e74dcfdf24d125a4784226e62bdc1daf26d7db329aaea95f7fcb78dc84ff6c20'],
+    ['tests/native/backend-fixture.cjs', '7c3de14dc42c16d81f2cc14dd9458c143ba46efaced88c27badad62f27a4576c'],
+    ['tests/native/flows/live-immersive.yaml', '2dc6b5838d3ac00a5627ce73599c9bce6cb04fd7f776e637009371c2fadc081e'],
+    ['tests/quality/native-live-immersive.cjs', '21fc70b101115dd4677923257db3bab8c7d14c2f6b8b77e722574ad25078f2cf'],
+    ['supabase/tests/live-command-ack.test.cjs', 'afbdd56b1196a53ca851d2aeed1c8f3d8efb5a3dbd7461ca51d4174bc06da5f2'],
+    ['.github/workflows/live-release-acceptance.yml', 'd130395ddaf55df8ae3667379bb56b79eb0f0ed48053b24dbfba3d8974bf0705'],
+  ].map(([file, sha256]) => Object.freeze({path: file, sha256, mode: '100644'}))),
+});
+export const VERIFIER_FILES = Object.freeze([
+  'tests/quality/live-connected-evidence-reuse.cjs',
+  'tools/reuse-live-connected-evidence.mjs',
+]);
+export const CONNECTED_PATHS = Object.freeze([
+  'web', 'admin-web', 'shared', 'supabase/functions', 'supabase/migrations',
+  'workers', 'infrastructure', 'scripts/quality', 'package.json', 'package-lock.json',
+  'eas.json', 'tools/build-live-qa.mjs',
+]);
+function changedPaths(git, base, target) {
+  return git(['diff', '--name-only', '--no-renames', base, target]).trim().split('\n').filter(Boolean).sort();
+}
+function normalFile(git, target, file, mode = '100644') {
+  const rows = git(['ls-tree', '-z', target, '--', file]).split('\0').filter(Boolean);
+  assert.equal(rows.length, 1, 'Reviewed file is missing');
+  const [entry, name] = rows[0].split('\t');
+  const [actualMode, type] = entry.split(' ');
+  assert.equal(name, file); assert.equal(type, 'blob');
+  assert.equal(actualMode, mode, 'Reviewed file mode changed');
+}
+function fixtureCorrection(git, base, target) {
+  assert.deepEqual(changedPaths(git, base, target), ALLOWED, 'Runtime or unrelated source changed. Connected evidence cannot be reused');
+  const status = git(['diff', '--name-status', '--no-renames', base, target]).trim().split('\n');
+  assert.ok(status.every(line => /^[AM]\t/.test(line)), 'Reuse cannot delete or rename files');
+  for (const file of ALLOWED) normalFile(git, target, file);
+}
+export function sourceApplicability(git, source, base = PINNED.source, nativeRule = NATIVE_CORRECTION) {
   assert.equal(git(['rev-parse', 'HEAD']).trim(), source, 'Checkout differs from release source');
   const parents = git(['show', '-s', '--format=%P', 'HEAD']).trim().split(/\s+/);
-  // Later normal releases run real connected acceptance. This exception is one child only.
-  if (parents[0] !== base) return false;
-  assert.deepEqual(parents, [base], 'Reuse must be a direct, single-parent fixture correction');
+  const native = parents.includes(nativeRule.parent);
+  // Other normal releases retain real connected acceptance. A mismatch inside
+  // either explicit exception throws, so it cannot fall through to provider work.
+  if (!native && !parents.includes(base)) return null;
+  assert.deepEqual(parents, [native ? nativeRule.parent : base], 'Reuse must be a reviewed single-parent correction');
   assert.equal(git(['status', '--porcelain=v1', '--untracked-files=no']).trim(), '', 'Tracked checkout or index differs from the verified source');
-  const changed = git(['diff', '--name-only', '--no-renames', base, 'HEAD']).trim().split('\n').filter(Boolean).sort();
-  assert.deepEqual(changed, ALLOWED, 'Runtime or unrelated source changed. Connected evidence cannot be reused');
-  const status = git(['diff', '--name-status', '--no-renames', base, 'HEAD']).trim().split('\n');
-  assert.ok(status.every(line => /^[AM]\t/.test(line)), 'Reuse cannot delete or rename files');
-  return true;
+  if (!native) {
+    fixtureCorrection(git, base, 'HEAD');
+    return {kind: 'fixture-correction', comparisonParent: base, connectedRuntimeEquivalent: true,
+      nativeRuntimeEquivalent: true, permittedChanges: ALLOWED, verifiedFiles: []};
+  }
+  assert.equal(git(['rev-parse', nativeRule.parent + '^{tree}']).trim(), nativeRule.parentTree, 'Reviewed parent tree changed');
+  assert.deepEqual(git(['show', '-s', '--format=%P', nativeRule.parent]).trim().split(/\s+/), [base], 'Reviewed parent ancestry changed');
+  fixtureCorrection(git, base, nativeRule.parent);
+  const allowed = [...nativeRule.files.map(file => file.path), ...VERIFIER_FILES].sort();
+  assert.deepEqual(changedPaths(git, nativeRule.parent, 'HEAD'), allowed, 'Native exception contains an unreviewed or missing change');
+  const status = git(['diff', '--name-status', '--no-renames', nativeRule.parent, 'HEAD']).trim().split('\n');
+  assert.ok(status.every(line => /^M\t/.test(line)), 'Native exception cannot add, delete, rename or change file type');
+  for (const file of allowed) normalFile(git, 'HEAD', file);
+  for (const file of nativeRule.files) {
+    normalFile(git, 'HEAD', file.path, file.mode);
+    assert.equal(hash(git(['show', 'HEAD:' + file.path])), file.sha256, 'Reviewed correction bytes changed: ' + file.path);
+  }
+  assert.equal(git(['diff', '--name-only', '--no-renames', base, 'HEAD', '--', ...CONNECTED_PATHS]).trim(), '', 'Connected runtime or preparation changed');
+  return {kind: 'native-clips-correction', comparisonParent: nativeRule.parent, comparisonParentTree: nativeRule.parentTree,
+    connectedRuntimeEquivalent: true, nativeRuntimeEquivalent: false, permittedChanges: allowed, verifiedFiles: nativeRule.files};
+}
+export function sourceEquivalent(git, source, base = PINNED.source, nativeRule = NATIVE_CORRECTION) {
+  return sourceApplicability(git, source, base, nativeRule) !== null;
 }
 
 export function verifyMetadata(run, job, artifact, pinned = PINNED) {
@@ -96,8 +158,8 @@ export async function fetchArchive(fetcher, prefix, headers, artifactId) {
 }
 export async function reuseConnected({env = process.env, fetcher = fetch, git = args => execFileSync('git', args, {encoding: 'utf8', timeout: 15000})} = {}) {
   assert.equal(env.GITHUB_REPOSITORY, PINNED.repository); assert.match(env.GITHUB_SHA || '', /^[a-f0-9]{40}$/);
-  const equivalent = sourceEquivalent(git, env.GITHUB_SHA);
-  if (!equivalent) return {reused: false};
+  const applicability = sourceApplicability(git, env.GITHUB_SHA);
+  if (!applicability) return {reused: false};
   assert.ok(PINNED.artifactId > 0 && /^[a-f0-9]{64}$/.test(PINNED.archiveSha256) && !/^0+$/.test(PINNED.archiveSha256), 'Reviewed artifact is not pinned');
   assert.ok(env.GITHUB_TOKEN, 'CI read token required for evidence verification');
   const prefix = `https://api.github.com/repos/${PINNED.repository}`;
@@ -116,8 +178,8 @@ export async function reuseConnected({env = process.env, fetcher = fetch, git = 
   const evidence = env.LIVE_CONNECTED_EVIDENCE || '/tmp/live-connected-evidence';
   fs.mkdirSync(evidence, {recursive: true});
   fs.writeFileSync(path.join(evidence, 'source-receipt.json'), original.receiptBytes);
-  const reuse = {reused: true, source: env.GITHUB_SHA, acceptedSource: PINNED.source, runtimeEquivalent: true,
-    permittedChanges: ALLOWED, priorRunId: PINNED.runId, priorJobId: PINNED.jobId, priorArtifactId: PINNED.artifactId,
+  const reuse = {reused: true, source: env.GITHUB_SHA, acceptedSource: PINNED.source, ...applicability,
+    priorRunId: PINNED.runId, priorJobId: PINNED.jobId, priorArtifactId: PINNED.artifactId,
     archiveSha256: PINNED.archiveSha256, originalReceiptSha256: original.receiptSha256, checks: receipt.checks.length, newProviderRun: false,
     evidenceUrl: `https://github.com/${PINNED.repository}/actions/runs/${PINNED.runId}/artifacts/${PINNED.artifactId}`};
   fs.writeFileSync(path.join(evidence, 'reuse-receipt.json'), JSON.stringify(reuse, null, 2) + '\n');
@@ -127,7 +189,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   reuseConnected().then(result => {
     assert.ok(process.env.GITHUB_OUTPUT, 'Workflow output path required');
     fs.appendFileSync(process.env.GITHUB_OUTPUT, `reused=${result.reused}\n`);
-    if (result.reused && process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `Reused verified connected acceptance from ${PINNED.source}. Runtime bytes are unchanged. ${result.evidenceUrl}\n`);
+    if (result.reused && process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `Reused verified connected acceptance from ${PINNED.source}. Connected runtime bytes are unchanged.${result.nativeRuntimeEquivalent ? '' : ' Native runtime changed and requires fresh native acceptance.'} ${result.evidenceUrl}\n`);
     console.log(JSON.stringify(result));
   }).catch(() => { console.error('Connected evidence verification failed. No reuse or new provider run is authorized.'); process.exitCode = 1; });
 }

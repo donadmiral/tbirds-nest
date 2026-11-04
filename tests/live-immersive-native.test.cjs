@@ -16,7 +16,7 @@ function compile(file, imports) {
 const directory=compile('shared/liveDirectory.ts',{});
 const nodes=value=>!value||typeof value!=='object'?[]:Array.isArray(value)?value.flatMap(nodes):[value,...nodes(value.props?.children)];
 const words=value=>typeof value==='string'?value:Array.isArray(value)?value.map(words).join(''):value?.props?words(value.props.children):'';
-function harness(role='viewer') {
+function harness(role='viewer', platform='ios') {
   let cursor=0,slots=[],effects=[];
   const same=(a,b)=>!!a&&!!b&&a.length===b.length&&a.every((v,i)=>Object.is(v,b[i]));
   const react={useState(initial){const i=cursor++;if(!(i in slots))slots[i]=typeof initial==='function'?initial():initial;return[slots[i],value=>slots[i]=typeof value==='function'?value(slots[i]):value];},useRef(initial){const i=cursor++;return slots[i]??={current:initial};},useCallback(fn,deps){const i=cursor++;if(!same(slots[i]?.deps,deps))slots[i]={deps,fn};return slots[i].fn;},useEffect(fn,deps){const i=cursor++;if(!same(slots[i]?.deps,deps)){const old=slots[i];slots[i]={deps};effects.push(()=>{old?.cleanup?.();slots[i].cleanup=fn();});}}};
@@ -24,7 +24,7 @@ function harness(role='viewer') {
   const commands=[],channels=[],alerts=[],navigations=[];let loadFailure=null;
   let current={session:directory.parseLiveSession({id:id(1),title:'Live together',state:'live',host:{id:id(2),full_name:'Host'},chat_mode:'open',viewer_count:17,audience:'public'}),raw:{role,capabilities:{view:true,chat:true},chat_topic:`live:${id(1)}:${id(3)}`,guest_topic:`live-guests:${id(1)}:${id(2)}`,stage:{limit:12,occupied:1,available:11},join_requests:[],own_join_request:null}};
   const playback={session:null,player:{},open:async()=>{},close(){},expand(){},minimize(){},retry:async()=>{},setPictureInPicture(){}};
-  const rn=new Proxy({StyleSheet:{create:x=>x,absoluteFill:{position:'absolute',top:0,left:0,right:0,bottom:0}},Platform:{OS:'ios'},Alert:{alert:(...args)=>alerts.push(args)}},{get:(obj,key)=>key in obj?obj[key]:key});
+  const rn=new Proxy({StyleSheet:{create:x=>x,absoluteFill:{position:'absolute',top:0,left:0,right:0,bottom:0}},Platform:{OS:platform},Alert:{alert:(...args)=>alerts.push(args)}},{get:(obj,key)=>key in obj?obj[key]:key});
   const component=compile('src/screens/feed/LiveSessionScreen.tsx',{
     react,'react/jsx-runtime':runtime,'react-native':rn,'@react-navigation/native':{useFocusEffect(){}},'expo-video':{VideoView:'VideoView'},'expo-linear-gradient':{LinearGradient:'LinearGradient'},'@expo/vector-icons':{Feather:'Feather'},
     '../../components/SafeArea':{SafeAreaView:'SafeAreaView',useSafeAreaInsets:()=>({top:54,bottom:34,left:0,right:0})},'../../theme/useTheme':{useTheme:()=>({t:{ink:{primary:'#111',secondary:'#666',muted:'#888'},surface:{raised:'#fff',sunken:'#eee'}}})},'../../stores/authStore':{useAuthStore:read=>read({profile:{id:id(2)}})},'../../contexts/LivePlaybackContext':{useLivePlayback:()=>playback},
@@ -100,4 +100,30 @@ test('a short multi-guest stage collapses comment history without shrinking or u
   assert.equal(next.props.immersive,true);assert.equal(next.props.children.props.compact,true);assert.equal(next.props.children.props.collapseHistory,true);
   app.by('testID','immersive-live-screen').props.onLayout({nativeEvent:{layout:{height:844,width:390}}});
   next=nodes(app.render()).find(node=>node.type==='LiveStudio');assert.equal(next.props.children.props.compact,true);assert.equal(next.props.children.props.collapseHistory,false);
+});
+
+test('iOS dismisses Live tools before navigating to clips and consumes that action once',async()=>{
+  const app=harness('viewer','ios');await app.start();
+  app.by('accessibilityLabel','More live tools').props.onPress();
+  app.button('Clips').props.onPress();
+  assert.equal(app.by('visible',true).type,'Modal');
+  app.button('Open clips').props.onPress();
+  const sheet=nodes(app.render()).find(node=>node.type==='Modal');
+  assert.equal(sheet.props.visible,false,'The current sheet must begin dismissal');
+  assert.equal(app.navigations.length,0,'Wait for native iOS dismissal before pushing a screen');
+  sheet.props.onDismiss();
+  assert.equal(JSON.stringify(app.navigations),JSON.stringify([['LiveClips',{sessionId:id(1)}]]));
+  sheet.props.onDismiss();
+  assert.equal(app.navigations.length,1,'A duplicate dismissal cannot navigate twice');
+});
+
+test('Android closes Live tools and opens clips without depending on an iOS dismissal event',async()=>{
+  const app=harness('viewer','android');await app.start();
+  app.by('accessibilityLabel','More live tools').props.onPress();
+  app.button('Clips').props.onPress();app.button('Open clips').props.onPress();
+  const sheet=nodes(app.render()).find(node=>node.type==='Modal');
+  assert.equal(sheet.props.visible,false);
+  assert.equal(JSON.stringify(app.navigations),JSON.stringify([['LiveClips',{sessionId:id(1)}]]));
+  sheet.props.onDismiss();
+  assert.equal(app.navigations.length,1);
 });

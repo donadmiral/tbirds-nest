@@ -54,6 +54,31 @@ name: Immersive Live story entry comments and guest requests
     visible: 'Alex Rivera: @qa_jordan Thanks for sharing this live.'
     timeout: 15000
 - takeScreenshot: live-immersive-reply
+# Exercise native sheet dismissal before pushing the real read-only Clip library.
+- tapOn: More live tools
+- tapOn: Clips
+- tapOn: Open clips
+- extendedWaitUntil:
+    visible: Clip library
+    timeout: 15000
+- assertNotVisible: Close live tools
+- extendedWaitUntil:
+    visible: Your clips will appear here
+    timeout: 15000
+- assertNotVisible: Creator clip controls
+- tapOn: Refresh
+- extendedWaitUntil:
+    visible: Your clips will appear here
+    timeout: 15000
+- takeScreenshot: live-clips-library
+- tapOn: '^Back$'
+- extendedWaitUntil:
+    visible:
+      id: native-live-player
+    timeout: 15000
+- assertVisible:
+    id: live-overlay-chat
+- assertNotVisible: Clip library
 - tapOn: Back to live streams
 - extendedWaitUntil:
     visible:

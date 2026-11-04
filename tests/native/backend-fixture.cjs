@@ -167,6 +167,21 @@ function createFixture(onChange = () => {}, { feedVideoSource, immersiveLive = f
     if (immersiveLive && name === 'live_messages' && liveIds.includes(args.p_session_id)) {
       return { items: liveMessages.filter(row => row.session_id === args.p_session_id), next_cursor: null };
     }
+    // Read-only Clip library entry for the existing non-recording viewer session.
+    // Match clip_library/clip_context SQL shapes without a renderer or mutation.
+    if (immersiveLive && owner === OWNER && plainArgs && args.p_session_id === liveIds[0]) {
+      if (name === 'live_clip_library' && Object.keys(args).sort().join(',') === 'p_cursor,p_limit,p_session_id,p_sort'
+        && args.p_cursor === null && args.p_limit === 24 && ['newest', 'top', 'shared'].includes(args.p_sort)) {
+        return { items: [], next_cursor: null };
+      }
+      if (name === 'live_clip_context' && Object.keys(args).join(',') === 'p_session_id') {
+        return { session_id: liveIds[0], can_clip: false, can_manage: false,
+          available_start_ms: 0, available_end_ms: Math.max(0, Date.now() - Date.parse(liveSessions[0].started_at) - 5000),
+          max_duration_ms: 600000, recording_available: false, viewer_clipping: false,
+          settings: { viewer_clipping: false, review_required: true, watermark_required: true, watermark: true,
+            brand_text: 'Platinum Circles', copyright_policy: 'standard', can_manage: false, approved_user_ids: [] } };
+      }
+    }
     if (immersiveLive && name === 'live_viewer_heartbeat' && liveIds.includes(args.p_session_id)) return { ok: true, viewer_count: 12 };
     if (immersiveLive && name === 'live_command' && liveIds.includes(args.p_session_id)) {
       const id = args.p_session_id, action = args.p_action, payload = args.p_payload || {};
