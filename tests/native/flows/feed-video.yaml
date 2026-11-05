@@ -29,10 +29,26 @@ name: First feed video survives scroll refresh and tab return
     visible: Native feed video playing
     timeout: 15000
 - takeScreenshot: feed-video-playing
-- scrollUntilVisible:
-    element: Feed scroll checkpoint.
-    direction: DOWN
-    centerElement: true
+# The final row can be fully visible at the iOS scroll boundary without being
+# centered. Stop there and prove that the original video no longer plays.
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - scrollUntilVisible:
+          element: Feed scroll checkpoint.
+          direction: DOWN
+          centerElement: true
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - scrollUntilVisible:
+          element: Feed scroll checkpoint.
+          direction: DOWN
+          visibilityPercentage: 100
+          timeout: 20000
+          centerElement: false
 - assertNotVisible: Native feed video playing
 # Return through the real list's scroll-to-top handler, then use the same
 # fully visible video position that established playback before scrolling.

@@ -110,6 +110,23 @@ test('platform video acquisition respects Android clipped bounds and the iPhone 
   assert.equal(gates.length, 4);
   for (const gate of gates) assert.equal(gate.extendedWaitUntil.timeout, 15000);
 
+  // e221 iPhone artifact 13388330985 found the final checkpoint fully visible
+  // at [0,595][402,646] after 16s. Centering repeatedly requested more scroll
+  // beyond the list boundary until the original 20s deadline expired.
+  const checkpointBounds = { top: 595, bottom: 646 };
+  const viewportBounds = { top: 184, bottom: 840 };
+  assert.ok(checkpointBounds.top >= viewportBounds.top && checkpointBounds.bottom <= viewportBounds.bottom);
+  const iosCommands = platformCommands(flow, 'iOS');
+  const checkpoint = iosCommands.findIndex(command => command.scrollUntilVisible?.element === 'Feed scroll checkpoint.');
+  assert.deepEqual(iosCommands[checkpoint], { scrollUntilVisible: {
+    element: 'Feed scroll checkpoint.', direction: 'DOWN', visibilityPercentage: 100, timeout: 20000, centerElement: false,
+  } });
+  assert.deepEqual(iosCommands[checkpoint + 1], { assertNotVisible: 'Native feed video playing' },
+    'Reaching the final row must still prove that the first video stopped');
+  assert.deepEqual(platformCommands(flow, 'Android').find(command => command.scrollUntilVisible?.element === 'Feed scroll checkpoint.'), {
+    scrollUntilVisible: { element: 'Feed scroll checkpoint.', direction: 'DOWN', centerElement: true },
+  }, 'Keep the passing Android checkpoint behavior unchanged');
+
   // Current-source iPhone artifact 13377228916, SHA256
   // be9ed79dced40bd3189b3b9691496bde53a808fbaebf11d55ab3c62c99824db0.
   // Maestro observed playback before centering. The real row was 523px tall,

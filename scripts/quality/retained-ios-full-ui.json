@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "kind": "retained-ios-full-ui",
+  "applicationSourceCommit": "9c0108364189b85f8f2f00264b25f31801aa4254",
+  "applicationSourceTree": "598eba815fd3c7138bae177568df7f4c30f46670",
+  "productSourceCommit": "e221ffc18f70c36d1b279835a40fa57fc9446358",
+  "producerRunId": 41964686880,
+  "artifactId": 13388330985,
+  "binarySha256": "677a6f785fa3c7ae7f8d682f3bc4276ff240f8cf689571b7c4528e91f9d3deb0",
+  "appArchiveSha256": "532ca4edfdf333f64131d69742780dded9a5969b68035dc60360e3ecdb6d8099",
+  "appArchiveBytes": 30639457,
+  "binaryManifestSha256": "5578c29437952d6e9428975c992d1715c0d7ee59d2c9ddf318d2117e95cb7e42",
+  "sourceReceiptSha256": "5a3eac940b0d89119805d31222c640d77f50bf8294fac132faef89b7976636c8",
+  "externalFiles": {
+    "tests/native/flows/feed-video.yaml": "c2329fe8d1cd6f84807bf1679a4a5f86b620278192701e5e57d2ec1c4ee1bcb8",
+    "tests/native/flows/memory-capture.yaml": "80eb83099b9be0fc89888143a7c49310263d1aa97bb1aa5d5a2419d42fb6855f"
+  },
+  "sourceTools": {
+    "scripts/quality/native-ui-audit-runner.py": "2723222bce412d33511129cf603caf3cb9b4100a1c348c497760697b179a6030",
+    "scripts/quality/native-ui-ios-compatibility.py": "428006d0c6c6b659eaa092b5db8cdc5244f59ff4f5220f4dd52f1ff7370ba8d2"
+  },
+  "rebuild": false,
+  "rebundle": false,
+  "resign": false,
+  "externalSources": {
+    "tests/native/flows/memory-capture.yaml": "tests/native/flows/retained-ios-memory-capture.yaml"
+  },
+  "externalRunnerSha256": "4972f31acaec2df7eb8ee3f7263d859c35de03f6cf4fb4aceee7a331e8ee3b23",
+  "externalHandoffSha256": "50e973418dc8a3f230d603b1f0c13a73dbbdf4eec4980f17b91122b06fc8e29f"
+}

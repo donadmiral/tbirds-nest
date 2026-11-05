@@ -1,0 +1,81 @@
+name: Verify retained iPhone full app without rebuilding
+on:
+  push:
+    branches: [codex/native-ios-retained-20261105]
+    paths:
+      - '.github/workflows/native-ios-retained.yml'
+      - 'scripts/quality/retained-ios-full-ui.*'
+      - 'scripts/quality/retained-ios-handoff.py'
+      - 'scripts/quality/run-retained-ios-full-ui.sh'
+      - 'scripts/quality/run-retained-ios-flows.sh'
+      - 'tests/native/flows/feed-video.yaml'
+      - 'tests/native/flows/retained-ios-memory-capture.yaml'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: retained-ios-full-ui-${{ github.ref }}
+  cancel-in-progress: false
+env:
+  CI: 'true'
+  EXPO_NO_TELEMETRY: '1'
+  EXPO_PUBLIC_APP_ENV: qa
+  EXPO_PUBLIC_SUPABASE_URL: https://uaulhuelcfkjwojtymmw.supabase.co
+  EXPO_PUBLIC_SUPABASE_ANON_KEY: native-ui-synthetic-no-provider-key
+  MAESTRO_CLI_NO_ANALYTICS: 'true'
+  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+  PLATINUM_NATIVE_IOS_TARGET: arm64-ios26.2
+  MAESTRO_DRIVER_STARTUP_TIMEOUT: '180000'
+  PYTHONDONTWRITEBYTECODE: '1'
+jobs:
+  retained-ios-full-ui:
+    runs-on: macos-26
+    timeout-minutes: 35
+    steps:
+      - name: Check out the exact retained application source and parents
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: 9c0108364189b85f8f2f00264b25f31801aa4254
+          fetch-depth: 2
+          path: application
+          persist-credentials: false
+      - name: Check out the external gesture consumer
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          path: consumer
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+      - name: Download only the exact retained producer artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: '13388330985'
+          run-id: 41964686880
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          path: application/retained-native-ui
+      - name: Verify source, signed app bytes and external gestures before device setup
+        working-directory: application
+        run: python3 ../consumer/scripts/quality/retained-ios-full-ui.py prepare
+      - name: Prepare Java and independent media decoding
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME_17_arm64" >> "$GITHUB_ENV"
+          echo "$JAVA_HOME_17_arm64/bin" >> "$GITHUB_PATH"
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then brew install ffmpeg; fi
+          ffmpeg -version
+      - name: Install the original checksum-pinned Maestro CLI
+        working-directory: application
+        run: bash scripts/quality/install-native-ui-tools.sh
+      - name: Run both required journeys and original full-app verifiers
+        working-directory: application
+        run: bash ../consumer/scripts/quality/run-retained-ios-full-ui.sh
+      - name: Retain fresh full-app evidence and provenance
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: retained-ios-full-app-ui
+          path: application/native-ui-logs/
+          if-no-files-found: warn
+          retention-days: 7
