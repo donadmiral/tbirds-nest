@@ -10,6 +10,7 @@ const migrations = [
   'supabase/migrations/20261102092828_indexed_feed_rank_frontier.sql',
   'supabase/migrations/20261102175247_feed_catalog_inline_visibility.sql',
   'supabase/migrations/20261102180219_feed_frontier_defer_partial_scoring.sql',
+  'supabase/migrations/20261105045938_deterministic_feed_author_ties.sql',
   'supabase/migrations/20261105044917_prepared_feed_snapshots.sql',
 ];
 const ACTORS = 16, POSTS = 25000, WORKERS = 8;
@@ -70,9 +71,16 @@ async function run() {
       values ${[...privatePosts].map(([post, actor]) => `('${post}','${actor}','Owner-only capacity sentinel','mentioned',now()-interval '2 minutes',999999)`).join(',')};`);
     for (const file of migrations) await admin.query(source(file));
     await admin.query('select configure_indexed_feed_v1(true);analyze;');
+    report.equalTimestampFixture = await admin.json(`select a.created_at=b.created_at from posts a cross join posts b where a.id='${id(1)}' and b.id='${id(2)}'`);
+    assert.equal(report.equalTimestampFixture, true, 'Keep the original tied fixture that exposed the slow fallback');
+    report.totalPosts = Number(await admin.query('select count(*) from posts'));
     report.database = await admin.json("select jsonb_build_object('version',version(),'local_socket',inet_server_addr() is null,'max_connections',current_setting('max_connections'),'shared_buffers',current_setting('shared_buffers'),'work_mem',current_setting('work_mem'),'database_bytes',pg_database_size(current_database()))");
     assert.equal(report.database.local_socket, true);
     for (let n = 0; n < WORKERS; n++) { const db = createSession(); workers.push(db); await db.query("set statement_timeout='3s';"); }
+    await workers[0].query(authenticate(actors[0]));
+    report.initialFrontier = await workers[0].json("select feed_ranking.select_page('for_you',null,null,20)");
+    assert.equal(report.initialFrontier.fallback, false, 'Equal timestamps must use the bounded frontier after the tie migration');
+    report.initialFrontier = { candidates: report.initialFrontier.candidates, days: report.initialFrontier.days, fallback: false };
     const cold = [];
     for (let i = 0; i < ACTORS; i++) {
       const at = performance.now(), result = await readFeed(workers[i % WORKERS], actors[i]);

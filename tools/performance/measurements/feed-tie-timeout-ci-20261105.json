@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "kind": "measured-failed-feed-baseline",
+  "passed": false,
+  "runId": 41970763818,
+  "jobId": 127058210193,
+  "sourceCommit": "c3698173f784b7d084f81d0ec8d0443e6a32dacc",
+  "artifactId": 13389671420,
+  "artifactSha256": "2b6f056245ba56ea50e7f0ad44bfbd1a0c70351ece496bc54855a7ed73a70c84",
+  "database": "PostgreSQL 17.11",
+  "containerCpuLimit": 2,
+  "containerMemoryGiB": 2,
+  "fixturePosts": 25000,
+  "phase": "first unprepared read before workload or snapshot preparation",
+  "statementDeadlineMs": 3000,
+  "observedError": "canceling statement due to statement timeout",
+  "errorContext": "feed_ranking.fallback called by prepared_feed.canonical",
+  "diagnosis": "Inherited fixture rows have equal timestamps. A separate SQL reproduction confirms select_page chooses reason legacy_tie; offsetting one inherited timestamp by one second removes that fallback.",
+  "unmeasured": ["steady prepared throughput", "60-second soak", "reconnects"],
+  "productionCapacityEstablished": false,
+  "resolutionStatus": "Retained as a failed baseline. Deterministic tie handling requires a separate implementation and native PostgreSQL measurement."
+}
