@@ -65,6 +65,18 @@ test('video previews use only a cover image and preserve the final frame without
   assert.equal(h.service.applyFeedStartupPreviews('a', [fresh])[0], fresh);
 });
 
+test('applying encrypted pixels fills only the matching reserved slot and keeps its frame', async () => {
+  const h = harness();
+  await h.service.saveFeedStartupPreviews('a', [row()], new Set(['p1']), () => true);
+  const edit = { aspectRatio: 1.5 }, reserved = { id: 'm1', url: '', media_type: 'image',
+    width: 1800, height: 1200, edit, _startupPlaceholder: true, _startupPreview: true };
+  const other = { ...reserved, id: 'other' };
+  const result = h.service.applyFeedStartupPreviews('a', [{ post_id: 'p1', media: [reserved, other] }])[0];
+  assert.equal(result.media[0].url, `data:image/jpeg;base64,${jpeg}`);
+  assert.equal(result.media[0].width, 1800); assert.equal(result.media[0].height, 1200); assert.equal(result.media[0].edit, edit);
+  assert.equal(result.media[1], other);
+});
+
 test('a session change or explicit clear during decode rejects old pixels and removes the temporary file', async () => {
   for (const change of ['scope', 'clear']) {
     const wait = gate(), h = harness(() => wait.promise);
@@ -114,4 +126,49 @@ test('feed restore shares disk work and waits for slow encrypted pixels without 
   assert.equal((await one).rows[0].hasPixels, true); await two;
   const late = service.feedSnapshots.read('a', 'forYou');
   service.feedSnapshots.setAccount('b'); assert.equal(await late, null);
+});
+
+test('encrypted previews arriving after launch fill reserved frames without changing geometry, content or order', async () => {
+  const { mergeLateFeedPreviews } = load('shared/feedSnapshot.ts');
+  const wait = gate(); let hydrated = false;
+  const preview = { id: 'm1', url: `data:image/jpeg;base64,${jpeg}`, media_type: 'image',
+    _startupPreview: true, width: 1200, height: 1600, edit: { aspectRatio: .75 } };
+  const reserved = { ...preview, url: '', _startupPlaceholder: true };
+  const snapshot = { rows: [{ post_id: 'p1', content: 'disk text', media: [reserved] }], savedAt: Date.now() };
+  const service = load('src/services/feedSnapshot.ts', {
+    '@react-native-async-storage/async-storage': { default: {} },
+    '../../shared/feedSnapshot': { FEED_SNAPSHOT_MAX_AGE: 86400000, createFeedSnapshotStore: () => ({
+      revision: () => 1, setAccount: () => {}, read: async () => snapshot, write: async () => {}, clear: async () => {},
+    }) },
+    './supabase': { supabase: {} }, '../stores/authStore': { useAuthStore: { getState: () => ({ profile: { id: 'a' } }) } },
+    './feedStartupPreviews': { feedStartupPreviews: { hydrate: async () => { await wait.promise; hydrated = true; } },
+      applyFeedStartupPreviews: (_owner, rows) => hydrated ? rows.map(row => ({ ...row, media: [preview] })) : rows,
+      clearFeedStartupPreviews: async () => {}, saveFeedStartupPreviews: async () => {},
+    },
+  });
+  const pending = service.feedSnapshots.read('a', 'forYou');
+  await Promise.resolve(); await Promise.resolve();
+  const warm = service.feedSnapshots.peek('a', 'forYou');
+  assert.equal(warm.rows[0].media[0].url, '');
+  const current = [{ id: 'unmatched', content: 'keep me', media: [] },
+    { id: 'p1', content: 'optimistic text', likes: 7, media: warm.rows[0].media }];
+  wait.resolve();
+  const late = (await pending).rows.map(row => ({ ...row, id: row.post_id }));
+  const next = mergeLateFeedPreviews(current, late);
+  assert.equal(next[0], current[0]);
+  assert.equal(next[1].id, 'p1'); assert.equal(next[1].content, 'optimistic text'); assert.equal(next[1].likes, 7);
+  assert.equal(next[1].media[0].url, preview.url); assert.equal(next[1].media[0].edit, reserved.edit);
+  assert.equal(frame.postAspectRatio(next[1].media[0].edit,next[1].media[0].width,next[1].media[0].height),
+    frame.postAspectRatio(reserved.edit,reserved.width,reserved.height));
+  assert.equal(current[1].media[0].url, '');
+});
+
+test('late preview merge never replaces mounted media or accepts fresh URLs from a stale snapshot', () => {
+  const { mergeLateFeedPreviews } = load('shared/feedSnapshot.ts');
+  const current = [{ id: 'fresh', content: 'network', media: [{ id: 'new', url: url('new'), width: 600, height: 400 }] },
+    { id: 'empty', media: [] }, { id: 'reserved', media: [{ id: 'held', url: '', width: 900, height: 1600 }] }];
+  const incoming = current.map(row => ({ id: row.id, media: [{ url: `data:image/jpeg;base64,${jpeg}`, _startupPreview: true }] }));
+  incoming[1].media = [{ url: url('expired') }];
+  incoming.push({ id: 'not-mounted', media: [{ url: `data:image/jpeg;base64,${jpeg}`, _startupPreview: true }] });
+  assert.equal(mergeLateFeedPreviews(current, incoming), current);
 });

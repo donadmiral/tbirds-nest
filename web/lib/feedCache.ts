@@ -32,9 +32,12 @@ export function getFeedCache() {
     if (store.revision() !== revision) return null;
     return { ...snapshot, rows: snapshot.rows.map(row => {
       const preview = previews.find(item => item.postId === row.post_id);
-      if (!preview || row.media?.length) return row;
+      if (!preview) return row;
+      if (row.media?.length) return { ...row, media: row.media.map((item: Record<string, unknown>) =>
+        item._startupPlaceholder && item.id === preview.mediaId ? { ...item, url: preview.uri,
+          _startupPlaceholder: false, _startupPreview: true, _previewObject: preview.object } : item) };
       return { ...row, media: [{ id: preview.mediaId, url: preview.uri, width: preview.width, height: preview.height,
-        media_type: 'image', sort_order: 0, edit: null, _startupPreview: true, _previewObject: preview.object }] };
+        media_type: 'image', sort_order: 0, edit: null, _startupPreview: true, _startupMediaType: preview.mediaType, _previewObject: preview.object }] };
     }) };
   };
   store.clear = async (...args) => { await Promise.all([clear(...args), getFeedPreviewStore()?.clear()]); };

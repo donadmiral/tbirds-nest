@@ -38,6 +38,19 @@ test('snapshot is bounded and duplicates do not consume extra slots', () => {
   assert.equal(new Set(saved.map(r => r.post_id)).size, 20);
 });
 
+test('eligible signed media keeps only reserved geometry and identity across disk reads', async () => {
+  const source = { ...row('reserved'), media: [{ id: 'm1', url: 'https://example.supabase.co/storage/v1/object/sign/post-media/private.jpg?token=secret',
+    media_type: 'video', width: 1080, height: 1920, sort_order: 0,
+    edit: { aspect: 'original', aspectRatio: .5625, coverUrl: 'https://private.invalid/cover?token=secret', captions: [{ text: 'private' }] } }] };
+  const storage = memory(), store = createFeedSnapshotStore(storage);
+  store.setAccount('a'); await store.write('a', 'forYou', [source], new Set(['reserved']));
+  const raw = [...storage.values.values()][0];
+  assert.ok(!raw.includes('secret')); assert.ok(!raw.includes('private')); assert.ok(!raw.includes('post-media'));
+  const media = (await store.read('a', 'forYou')).rows[0].media[0];
+  assert.deepEqual(plain(media), { id: 'm1', url: '', media_type: 'image', width: 1080, height: 1920,
+    sort_order: 0, edit: { aspect: 'original', aspectRatio: .5625 }, _startupPlaceholder: true, _startupPreview: true, _startupMediaType: 'video' });
+});
+
 test('saved snapshots expire and cannot be read by another owner or mode', async () => {
   let now = 1000;
   const storage = memory(); const store = createFeedSnapshotStore(storage, () => now);

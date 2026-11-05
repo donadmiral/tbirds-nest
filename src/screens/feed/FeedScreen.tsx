@@ -104,7 +104,7 @@ import { feedSnapshots, savePublicFeedSnapshot, reconcileFeedVisibility } from '
 import { feedStartupPreviews } from '../../services/feedStartupPreviews';
 import { createFeedLive, feedLiveWindow } from '../../../shared/feedLive';
 import { feedSnapshotFresh, mergeNativeFeedLive } from '../../../shared/feedLiveMerge';
-import { mergeFeedRefresh, feedPrefetchUrls } from '../../../shared/feedSnapshot';
+import { mergeFeedRefresh, mergeLateFeedPreviews, feedPrefetchUrls } from '../../../shared/feedSnapshot';
 import { useSettingsStore } from '../../stores/settingsStore';
 import PostInsightsSheet from '../../components/PostInsightsSheet';
 import VerifiedBadge from '../../components/VerifiedBadge';
@@ -160,7 +160,7 @@ function mapFeedRow(r: any): Post {
     quoted_post_id: r.quoted_post_id ?? null,
     thread_parent_id: r.thread_parent_id ?? null,
     media: Array.isArray(r.media)
-      ? r.media.filter((item: any) => typeof item?.url === 'string' && item.url.length > 0).sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+      ? r.media.filter((item: any) => typeof item?.url === 'string' && (item.url.length > 0 || item._startupPlaceholder === true)).sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
       : [],
   };
   return { ...base, score: scorePost(base) };
@@ -1207,8 +1207,18 @@ export default function FeedScreen({ navigation }: any) {
     const initialRequest = feedRequestRef.current + 1;
     void feedSnapshots.read(userId, feedModeRef.current).then(snapshot => {
       if (!alive || !snapshot || scope !== feedScopeRef.current || feedRequestRef.current !== initialRequest
-        || resolvedFeedRequestRef.current === initialRequest || useAuthStore.getState().profile?.id !== userId || postsRef.current.length) return;
+        || resolvedFeedRequestRef.current === initialRequest || useAuthStore.getState().profile?.id !== userId
+        || useAuthStore.getState().session?.user.id !== userId) return;
       const restored = snapshot.rows.map(mapFeedRow).filter(post => !isMutedRef.current(post));
+      if (postsRef.current.length) {
+        if (!restoredSnapshotRef.current) return;
+        // SecureStore can finish after the short splash budget. Backfill its
+        // pixels into the same launch rows without replacing live content,
+        // changing ordering, resetting the cursor, or moving the scroll offset.
+        const next = mergeLateFeedPreviews(postsRef.current, restored);
+        if (next !== postsRef.current) { postsRef.current = next; setPosts(next); }
+        return;
+      }
       const pm: ProfileMap = {}; const likes: Record<string, boolean> = {}, marks: Record<string, boolean> = {}, reposts: Record<string, boolean> = {};
       snapshot.rows.forEach(row => {
         pm[row.author_id] = { id: row.author_id, full_name: row.author_name, username: row.author_username,
@@ -2403,6 +2413,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
     return (
       <PostCarousel
         media={mediaItems}
+        postId={post.id}
         containerWidth={SCREEN_W}
         isActive={isActive}
         onMediaPress={onMediaPress}

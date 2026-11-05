@@ -49,6 +49,7 @@ export type CarouselMedia = {
   sort_order: number;
   width?: number | null;
   height?: number | null;
+  _startupPlaceholder?: boolean;
   edit?: PostFrameRecipe & { rotation?: number; flipX?: boolean; speed?: number|null; soundtrack?: SoundtrackSelection|null; scale?: number; translateNX?: number; translateNY?: number; fit?: 'cover' | 'contain'; filterId?: string | null; filterAmt?: number; adjust?: any; coverUrl?: string | null; muted?: boolean; trimStart?: number | null; trimEnd?: number | null } | null;
 };
 
@@ -73,7 +74,7 @@ const HEIGHT_RATIO = 5 / 4; // 1.25
 // Feed sound rule: autoplay muted; once the user unmutes, new videos inherit sound this session
 let sessionMuted = true;
 
-function CarouselImage({ uri, width, height, edit, fullFrame, postId, mediaId }: { uri: string; width: number; height: number; edit?: CarouselMedia['edit']; fullFrame?: boolean; postId?: string | null; mediaId?: string }) {
+function CarouselImage({ uri, width, height, edit, fullFrame, postId, mediaId, startupPlaceholder }: { uri: string; width: number; height: number; edit?: CarouselMedia['edit']; fullFrame?: boolean; postId?: string | null; mediaId?: string; startupPlaceholder?: boolean }) {
   const scope = useSyncExternalStore(subscribeNavigationScope, navigationScope, navigationScope);
   const cached = useFeedStartupPreview(postId, mediaId);
   const grant = useRef({ uri, scope });
@@ -88,7 +89,7 @@ function CarouselImage({ uri, width, height, edit, fullFrame, postId, mediaId }:
   const [failedRequest, setFailedRequest] = useState<string | null>(null);
   const failedRequestRef = useRef<string | null>(null);
   const showImage = allowed && !!uri && failedRequest !== request && (!uri.startsWith('data:image/') || cached?.uri === uri);
-  const matchingPreview = allowed && cached && (uri === cached.uri || contentObject(uri, SUPABASE_URL)?.key === cached.objectKey) ? cached : null;
+  const matchingPreview = allowed && cached && ((!uri && startupPlaceholder) || uri === cached.uri || contentObject(uri, SUPABASE_URL)?.key === cached.objectKey) ? cached : null;
   const previewUri = matchingPreview && loadedIdentity !== identity ? matchingPreview.uri : null;
   const previewSource = useMemo(() => previewUri ? { uri: previewUri } : null, [previewUri]);
   const sourceIsPreview = !!matchingPreview && uri === matchingPreview.uri;
@@ -126,7 +127,7 @@ function CarouselImage({ uri, width, height, edit, fullFrame, postId, mediaId }:
       {edit?.adjust ? <AdjustLayer adjust={edit.adjust} /> : null}
       {!previewSource && (!showImage || loadedIdentity !== identity) && (
         <View style={st.loadingOverlay}>
-          <>{!showImage ? <Text style={{ color: '#6B7280' }}>Image could not load</Text> : <ActivityIndicator color="#C7C7CC" size="small" />}</>
+          <>{!showImage && !startupPlaceholder ? <Text style={{ color: '#6B7280' }}>Image could not load</Text> : <ActivityIndicator color="#C7C7CC" size="small" />}</>
         </View>
       )}
     </View>
@@ -444,6 +445,7 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
             uri={item.url}
             postId={postId}
             mediaId={item.id}
+            startupPlaceholder={item._startupPlaceholder}
             width={containerWidth}
             height={slideHeight}
             fullFrame={fullFrame}

@@ -32,13 +32,27 @@ export function publicSnapshotRows(rows: Row[], eligible: Set<string>): Row[] {
     if (!row || typeof row.post_id !== 'string' || typeof row.author_id !== 'string'
       || restricted(row) || !eligible.has(row.post_id) || seen.has(row.post_id) || seen.size >= FEED_SNAPSHOT_LIMIT) return [];
     seen.add(row.post_id);
-    const media = (Array.isArray(row.media) ? row.media : []).slice(0, 10).flatMap((item: Row) => {
+    const media = (Array.isArray(row.media) ? row.media : []).slice(0, 10).flatMap((item: Row): Row[] => {
       const url = publicUrl(item?.url);
-      if (!url || restricted(item) || !['image', 'video'].includes(item.media_type)) return [];
+      if (!item || restricted(item) || !['image', 'video'].includes(item.media_type)) return [];
+      const aspect = ['original', 'square', 'portrait', 'landscape'].includes(item.edit?.aspect) ? item.edit.aspect : undefined;
+      const aspectRatio = typeof item.edit?.aspectRatio === 'number' && Number.isFinite(item.edit.aspectRatio)
+        && item.edit.aspectRatio >= .25 && item.edit.aspectRatio <= 4 ? item.edit.aspectRatio : undefined;
+      const edit = { ...(aspect ? { aspect } : {}), ...(aspectRatio ? { aspectRatio } : {}) };
+      if (!url) {
+        const id = text(item.id, 80);
+        if (!id) return [];
+        // Reserve the original frame without persisting an object path or a
+        // playback capability. Video covers use an image-only placeholder.
+        return [{ id, url: '', media_type: 'image', width: count(item.width) || null,
+          height: count(item.height) || null, sort_order: count(item.sort_order), edit,
+          _startupPlaceholder: true, _startupPreview: true,
+          _startupMediaType: item._startupMediaType === 'video' || item.media_type === 'video' ? 'video' : 'image' }];
+      }
       return [{ id: text(item.id, 80) ?? url, url, media_type: item.media_type,
         width: count(item.width) || null, height: count(item.height) || null,
         sort_order: count(item.sort_order), is_sensitive: item.is_sensitive === true,
-        edit: publicUrl(item.edit?.coverUrl) ? { coverUrl: publicUrl(item.edit.coverUrl) } : null }];
+        edit: { ...edit, ...(publicUrl(item.edit?.coverUrl) ? { coverUrl: publicUrl(item.edit.coverUrl) } : {}) } }];
     });
     return [{ post_id: row.post_id, author_id: row.author_id,
       content: text(row.content ?? row.body, 12_000) ?? '', created_at: text(row.created_at, 40),
@@ -118,6 +132,29 @@ export function mergeFeedRefresh<T extends { id: string }>(current: T[], incomin
   const next = new Map(unique.map(row => [row.id, row]));
   const present = new Set(current.map(row => row.id));
   return { rows: current.map(row => next.get(row.id) ?? row), pending: unique.filter(row => !present.has(row.id)) };
+}
+
+/** A slow encrypted read may finish after text-only launch rows are on screen.
+ * Fill only same-ID reserved media slots. Keep row order, content, optimistic state,
+ * and any existing media/geometry exactly as rendered. The caller fences this
+ * merge to its still-pending initial request and restored account scope. */
+export function mergeLateFeedPreviews<T extends { id: string; media?: { id?: string; url?: string; _startupPreview?: boolean; _startupPlaceholder?: boolean }[] }>(current: T[], restored: T[]): T[] {
+  const byId = new Map(restored.map(row => [row.id, row]));
+  let changed = false;
+  const next = current.map(row => {
+    if (!row.media?.length) return row;
+    const incoming = new Map(byId.get(row.id)?.media?.map(item => [item.id, item]));
+    let rowChanged = false;
+    const media = row.media.map(item => {
+      const source = incoming.get(item.id);
+      if (!item.id || item.url || !item._startupPlaceholder || source?._startupPreview !== true
+        || typeof source.url !== 'string' || !source.url.startsWith('data:image/jpeg;base64,')) return item;
+      rowChanged = changed = true;
+      return { ...item, url: source.url, _startupPreview: true };
+    });
+    return rowChanged ? { ...row, media } : row;
+  });
+  return changed ? next : current;
 }
 
 /** Public cache prefetch only. Private media warms in its mounted, no-store image view. */

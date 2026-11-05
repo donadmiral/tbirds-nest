@@ -1,6 +1,6 @@
 name: Foundation iPhone QA delivery
 
-# Change this workflow in the final reviewed commit to request one delivery.
+# Delivery revision: reserved media frames and late encrypted preview restoration.
 # A source-only push runs the shared quality gates without starting another EAS build.
 # workflow_run cannot bootstrap a new workflow living only on this release branch.
 on:
@@ -14,7 +14,7 @@ permissions:
 
 concurrency:
   group: foundation-iphone-qa
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   qa-build:

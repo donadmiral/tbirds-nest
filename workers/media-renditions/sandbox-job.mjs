@@ -11,7 +11,7 @@ export async function runSandboxJob({env=process.env,report=value=>console.log(J
  const config=workerConfig(env),root=env.TMPDIR||os.tmpdir();await mkdir(root,{recursive:true});
  const finishMetrics=await startHostMetrics(root),controller=new AbortController(),stop=()=>controller.abort();
  process.once('SIGTERM',stop);process.once('SIGINT',stop);let event={state:'unavailable'},exitCode=1;
- try{exitCode=await runJob(createWorker(backend(config),{...config,tempRoot:root}),{signal:controller.signal,report:value=>{event=value;}});return exitCode;}
+ try{exitCode=await runJob(createWorker(backend(config),{...config,tempRoot:root}),{signal:controller.signal,deadlineMs:config.deadlineMs,report:value=>{event=value;}});return exitCode;}
  finally{
   process.removeListener('SIGTERM',stop);process.removeListener('SIGINT',stop);
   const result={...event,event:'media_sandbox_job',metrics:await finishMetrics()};

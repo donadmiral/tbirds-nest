@@ -8,7 +8,7 @@ set local lock_timeout='3s';
 set local statement_timeout='30s';
 do $migration$
 declare
- f pg_proc%rowtype;signature text;expected text;definition text;
+ f pg_proc%rowtype;signature text;expected text[];definition text;
  old_order constant text:='row_number() over (partition by b.user_id order by b.raw_score desc)';
  new_order constant text:='row_number() over (partition by b.user_id order by b.raw_score desc, b.id desc)';
  old_guard constant text:='   -- The legacy query has no tie breaker inside its author window. Keep that
@@ -19,10 +19,14 @@ begin
    'feed_ranking.fallback(text,double precision,uuid,integer)',
    'feed_ranking.score(uuid[],text)'
  ] loop
-   expected:=case when signature like 'feed_ranking.fallback(%' then '0d22cdf3ff7a6c9fdbb76ac87e7c5947'
-     else 'a5fe7a2ac910bb3b3786d9cca978e704' end;
+   -- The second baseline is the identical installed QA/production definition,
+   -- with only the existing 20261029074217 home marketplace exclusion added.
+   -- Keep that environment-specific predicate intact. Unknown bodies fail closed.
+   expected:=case when signature like 'feed_ranking.fallback(%'
+     then array['0d22cdf3ff7a6c9fdbb76ac87e7c5947','bc277d8c14638c03e75bfc0f06d1eab0']
+     else array['a5fe7a2ac910bb3b3786d9cca978e704','8f8bf0dc8d2085bda193c3bc13ed9609'] end;
    select * into f from pg_proc where oid=to_regprocedure(signature);
-   if f.oid is null or md5(f.prosrc)<>expected or f.prosecdef or f.provolatile<>'s'
+   if f.oid is null or not(md5(f.prosrc)=any(expected)) or f.prosecdef or f.provolatile<>'s'
      or f.prolang<>(select oid from pg_language where lanname='sql')
      or f.proconfig is distinct from array['search_path=public']::text[]
      or not has_function_privilege('authenticated',f.oid,'execute')

@@ -47,7 +47,16 @@ export function applyFeedStartupPreviews<T extends { post_id?: string; media?: a
   const byPost = new Map(previews.map(preview => [preview.postId, preview]));
   return rows.map(row => {
     const preview = byPost.get(row.post_id || '');
-    if (!preview || row.media?.length) return row;
+    if (!preview) return row;
+    if (row.media?.length) {
+      let changed = false;
+      const media = row.media.map(item => {
+        if (!item._startupPlaceholder || item.url || item.id !== preview.mediaId) return item;
+        changed = true;
+        return { ...item, url: preview.uri, _startupPreview: true };
+      });
+      return changed ? { ...row, media } : row;
+    }
     return { ...row, media: [{ id: preview.mediaId, url: preview.uri, media_type: 'image',
       width: preview.width, height: preview.height, sort_order: 0, edit: { aspectRatio: preview.aspectRatio },
       _startupPreview: true, _startupMediaType: preview.kind }] };

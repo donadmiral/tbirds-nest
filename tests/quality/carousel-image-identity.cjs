@@ -213,3 +213,17 @@ test('the parent image component keeps its media identity across preview-to-capa
   const full = h.carousel([{ ...media, url: signed() }]).find(node => node.type === h.__CarouselImage);
   assert.equal(preview.key, full.key); assert.equal(full.props.mediaId, 'media-a');
 });
+
+test('a reserved empty frame paints a late same-ID preview without changing layout or showing an error', () => {
+  const h = harness(), props = { uri: '', startupPlaceholder: true, width: 320, height: 568 };
+  const initial = h.image(props);
+  assert.equal(image(initial), undefined); assert.equal(loading(initial), true);
+  assert.equal(initial.some(node => node.type === 'Text' && node.props.children === 'Image could not load'), false);
+  const frame = initial.find(node => node.type === 'View').props.style;
+  h.preview({ uri: 'data:image/jpeg;base64,/9j/abcd', postId: 'post-a', mediaId: 'media-a', objectKey: 'post-media/owner/photo.jpg', kind: 'image' });
+  const painted = h.image(props);
+  assert.deepEqual(painted.find(node => node.type === 'View').props.style, frame);
+  assert.equal(image(painted).props.cachePolicy, 'none'); assert.equal(loading(painted), false);
+  assert.equal(image(h.image({ ...props, mediaId: 'other' })), undefined);
+  h.preview(null); assert.equal(image(h.image(props)), undefined);
+});

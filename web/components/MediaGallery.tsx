@@ -32,7 +32,7 @@ function publicImageLoader({ src, width }: { src: string; width: number }) {
   return displayImageUrl(src, Math.min(width, 1440))!;
 }
 
-type MediaItem = { id: string; url: string; media_type: string | null; width?: number | null; height?: number | null; alt_text?: string | null; is_sensitive?: boolean | null; edit?: PostMediaEditRecipe | null; _startupPreview?: boolean; _previewObject?: string };
+type MediaItem = { id: string; url: string; media_type: string | null; width?: number | null; height?: number | null; alt_text?: string | null; is_sensitive?: boolean | null; edit?: PostMediaEditRecipe | null; _startupPreview?: boolean; _startupMediaType?: string; _previewObject?: string };
 
 // post_media.edit recipes come from a small authorized side query when older feed rows omit them.
 // Legacy media carries a placeholder id; only real media ids are ever sent to the media tables.
@@ -375,7 +375,8 @@ function PostMediaGallery({ media, postId, viewsCount, post, fullFrame = false, 
   const declaredFrame = !!(frameEdit?.aspectRatio || frameEdit?.aspect);
   const chosenRatio = postAspectRatio(frameEdit,declared?.w,declared?.h);
   const chosenWidth = Math.min(availW,maxH*chosenRatio);
-  const dims = declaredFrame && availW ? {w:chosenWidth,h:Math.max(1,Math.round(chosenWidth/chosenRatio))} : item.media_type === "video" && availW
+  const videoFrame = item.media_type === 'video' || (item._startupPreview && item._startupMediaType === 'video');
+  const dims = declaredFrame && availW ? {w:chosenWidth,h:Math.max(1,Math.round(chosenWidth/chosenRatio))} : videoFrame && availW
     ? { w: availW, h: Math.max(1,Math.round(Math.min(declared ? availW * (declared.h / declared.w) : availW * 1.25, availW * 1.25))) }
     : declaredImage;
   const contentRatio = postAspectRatio(editOf(item), known?.w, known?.h);

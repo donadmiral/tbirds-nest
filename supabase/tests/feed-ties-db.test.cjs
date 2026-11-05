@@ -11,6 +11,7 @@ const oldGuard = `   -- The legacy query has no tie breaker inside its author wi
    -- exact plan for equal raw scores rather than introducing a new tie policy.
    if has_tie then return jsonb_build_object('fallback',true,'candidates',cardinality(candidates),'reason','legacy_tie');end if;`;
 const newGuard = '   -- Equal author scores now use the same UUID-desc order in both paths.';
+const migrationBody = tieMigration.slice(tieMigration.indexOf('do $migration$'), tieMigration.indexOf('notify pgrst'));
 let db, real, original, initialProof;
 const exec = statement => real ? db.query(statement) : db.exec(statement);
 async function rows(statement) {
@@ -137,14 +138,42 @@ test('privacy changes immediately alter both indexed winners and diversity posit
   assert.deepEqual(await rows("select * from get_feed('for_you',null,null,20)"), []);
 });
 
+test('the exact hosted baselines retain their marketplace exclusion and deterministic ties', async () => {
+  await exec('reset role;');
+  // These are the only differences observed in BOTH hosted function bodies.
+  // Reconstructing their exact MD5s prevents this fixture drifting into an
+  // approximation of the deployment that the additional allowlist accepts.
+  const marketClause = `p.community_id is null
+    and not exists (select 1 from public.post_products home_market_product
+      where home_market_product.post_id=p.id and (home_market_product.listing_id is not null
+        or home_market_product.link_url ~* '^/market/[0-9a-f-]+([?#]|$)'))`;
+  for (const row of original) await exec(row.proname === 'select_page' ? row.definition
+    : row.definition.replace('p.community_id is null', marketClause));
+  assert.deepEqual(await rows(`select proname,md5(prosrc) hash from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+    where n.nspname='feed_ranking' and proname in('fallback','score') order by proname`), [
+    { proname: 'fallback', hash: 'bc277d8c14638c03e75bfc0f06d1eab0' },
+    { proname: 'score', hash: '8f8bf0dc8d2085bda193c3bc13ed9609' },
+  ]);
+  const hostedBefore = await definitions();
+  await exec(migrationBody);
+  const hostedAfter = await definitions();
+  for (let i = 0; i < hostedBefore.length; i++) assert.equal(hostedAfter[i].prosrc,
+    hostedBefore[i].prosrc.replace(oldOrder, newOrder).replace(oldGuard, newGuard));
+  await exec('set role authenticated;');
+  assert.deepEqual((await rows("select feed_ranking.select_page('for_you',null,null,20) result"))[0].result.ids, [P2, P1]);
+  await exec(`reset role;insert into post_products(id,post_id,link_url) values('${id(80001)}','${P2}','/market/${id(90001)}?from=feed');set role authenticated;`);
+  const actual = await rows("select * from get_feed('for_you',null,null,20)");
+  assert.deepEqual(actual.map(post => post.post_id), [P1]);
+  assert.deepEqual(actual, await rows("select * from feed_ranking.fallback('for_you',null,null,20)"));
+});
+
 test('an unknown frontier definition aborts the migration and rolls back both earlier function replacements', async () => {
   await exec('reset role;');
   for (const row of original) await exec(row.definition);
   const frontier = original.find(row => row.proname === 'select_page');
   await exec(frontier.definition.replace(frontier.prosrc, frontier.prosrc + '\n-- Unreviewed change\n'));
-  const attempt = tieMigration.slice(tieMigration.indexOf('do $migration$'), tieMigration.indexOf('notify pgrst'));
   await exec(`do $test$ begin
-    begin execute $attempt$${attempt}$attempt$;
+    begin execute $attempt$${migrationBody}$attempt$;
       raise exception 'Unexpected migration success';
     exception when others then
       if sqlerrm <> 'FEED_AUTHOR_TIE_FRONTIER_REQUIRES_REVIEW' then raise;end if;

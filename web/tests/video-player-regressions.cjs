@@ -643,3 +643,16 @@ test('an offline preview reserves original geometry and never opens a false full
   image.props.onClick({ preventDefault() {}, stopPropagation() {} }); screen.render();
   assert.equal(screen.find(node => node.props?.role === 'dialog'), undefined); screen.unmount();
 });
+
+test('dimension-only video placeholders reserve the eventual video frame without creating a player', () => {
+  for (const [width, height] of [[1080,1920], [1920,1080]]) for (const edit of [null, { aspectRatio: 0.8 }]) {
+    const placeholder = { id: 'one', url: '', media_type: 'image', width, height, edit, _startupPreview: true, _startupMediaType: 'video' };
+    const screen = scenario().mount({ postId: 'post', media: [placeholder] }, 'gallery'); screen.render();
+    const box = () => screen.find(node => node.props?.className === 'flex items-center justify-center');
+    const reserved = box().props.style.height;
+    assert.equal(screen.find(node => node.type === 'NestedVideoPlayer'), undefined);
+    assert.equal(screen.find(node => node.type === 'img' && node.props.src === ''), undefined);
+    screen.update({ media: [{ id: 'one', url: 'video.mp4', media_type: 'video', width, height, edit }] });
+    assert.equal(box().props.style.height, reserved); assert.ok(screen.find(node => node.type === 'NestedVideoPlayer')); screen.unmount();
+  }
+});
