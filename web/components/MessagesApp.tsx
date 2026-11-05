@@ -266,17 +266,34 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     return () => { vv.removeEventListener('resize', apply); cancelAnimationFrame(raf); body.style.position = prev.position; body.style.top = prev.top; body.style.width = prev.width; body.style.overflow = prev.overflow; body.style.overscrollBehavior = prev.overscroll; window.scrollTo(0, y); el.style.height = ''; el.style.top = ''; };
   }, [compact, activeId]);
   useEffect(() => {
-    const el = listRef.current; if (!el) return;
-    const onScroll = () => { debugCounts.current.scroll++; threadPosition.current = { conversationId: activeId, top: el.scrollTop }; pinnedRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80; restoreVisibleThread(); if (pinnedRef.current) void markReadRef.current(); };
+    const el = listRef.current; if (!el || !activeId) return;
+    const account = accountGeneration.current;
+    let live = true;
+    const current = () => live && listRef.current === el && activeRef.current?.id === activeId && accountGeneration.current === account;
+    const onScroll = () => { if (!current()) return; debugCounts.current.scroll++; threadPosition.current = { conversationId: activeId, top: el.scrollTop }; pinnedRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80; restoreVisibleThread(); if (pinnedRef.current) void markReadRef.current(); };
     el.addEventListener('scroll', onScroll, { passive: true });
     let settle: ReturnType<typeof setTimeout> | null = null;
-    const settleThenScroll = () => { if (settle) clearTimeout(settle); settle = setTimeout(() => { settle = null; if (pinnedRef.current) requestAnimationFrame(scrollToEnd); }, 80); };
+    let frame: number | null = null;
+    const settleThenScroll = () => {
+      if (!current()) return;
+      if (settle !== null) clearTimeout(settle);
+      if (frame !== null) { cancelAnimationFrame(frame); frame = null; }
+      settle = setTimeout(() => {
+        settle = null;
+        if (!current() || !pinnedRef.current) return;
+        frame = requestAnimationFrame(() => {
+          frame = null;
+          // A scroll or conversation change can happen after the settle timer.
+          if (current() && pinnedRef.current) el.scrollTop = el.scrollHeight;
+        });
+      }, 80);
+    };
     const ro = new ResizeObserver(() => { debugCounts.current.ro++; settleThenScroll(); });
     ro.observe(el); Array.from(el.children).forEach((ch) => ro.observe(ch));
-    const mo = new MutationObserver(() => { debugCounts.current.mo++; Array.from(el.children).forEach((ch) => ro.observe(ch)); settleThenScroll(); });
+    const mo = new MutationObserver(() => { if (!current()) return; debugCounts.current.mo++; Array.from(el.children).forEach((ch) => ro.observe(ch)); settleThenScroll(); });
     mo.observe(el, { childList: true });
-    return () => { el.removeEventListener('scroll', onScroll); ro.disconnect(); mo.disconnect(); if (settle) clearTimeout(settle); };
-  }, [active?.id, activeId]);
+    return () => { live = false; el.removeEventListener('scroll', onScroll); ro.disconnect(); mo.disconnect(); if (settle !== null) clearTimeout(settle); if (frame !== null) cancelAnimationFrame(frame); };
+  }, [activeId, accountVersion]);
   const activeRef = useRef<Conv | null>(active);
   const typingSentAt = useRef(0);
   const typingIdle = useRef<ReturnType<typeof setTimeout> | null>(null);
