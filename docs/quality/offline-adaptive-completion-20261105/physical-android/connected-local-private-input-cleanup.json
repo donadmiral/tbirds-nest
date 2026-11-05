@@ -1,0 +1,49 @@
+{
+  "recordedAt": "2026-11-05T19:52:02.893973+00:00",
+  "fixtureRunId": "554e817b-78b8-4e64-9a94-b2aa80fdca4d",
+  "projectId": "uaulhuelcfkjwojtymmw",
+  "publicEvidenceFilesComparedToActualCredentialValues": 79,
+  "credentialValuesCompared": 8,
+  "publicEvidenceCredentialMatchCount": 0,
+  "targets": [
+    {
+      "path": "/tmp/physical-cache-canary-20261105/setup.sql",
+      "sha256": "7b06f9f7a46d68055711cb6d8b02c6b84c75d7804e31b69cd8522cc2544f56c5",
+      "bytes": 3559
+    },
+    {
+      "path": "/tmp/physical-cache-canary-20261105/connected-canary.json",
+      "sha256": "83b4ce8fc441e8be62c844f0cc6aa59c0c7366a006675e57beed4d134e947c44",
+      "bytes": 1232
+    },
+    {
+      "path": "/tmp/physical-cache-canary-20261105/state.json",
+      "sha256": "622c5c80c840039c57fd9fe852fb4c9802eec145cf6a1780549f09971b984b32",
+      "bytes": 4326
+    },
+    {
+      "path": "/tmp/physical-connected-radio-repack/verified-package/connected-canary.json",
+      "sha256": "1cd05617169ada5e5ae58b658bac273a54b8df73f844e796728924ddcc71b651",
+      "bytes": 1513
+    },
+    {
+      "path": "/tmp/physical-android-c8052ba/build/appium-python-connected-private.zip",
+      "sha256": "b4904ba0930b02713258c926b2bbed9901eb8deda6d2703e96b26a94cd3b9c44",
+      "bytes": 1658481
+    },
+    {
+      "path": "/tmp/physical-android-1aa2b52/build/appium-python-connected-private.zip",
+      "sha256": "4694ce03c26dd0a04cc60299686c475e504fc58c1385ce42ca9ba65c34f03d43",
+      "bytes": 1660641
+    },
+    {
+      "path": "/tmp/physical-connected-radio-repack/appium-python-connected-private.zip",
+      "sha256": "a89c12317f57c83c37bd09aface62ba11b1e4c124b95b3adae433b5843869ed1",
+      "bytes": 1660714
+    }
+  ],
+  "removed": true,
+  "scope": "Exact local synthetic credential inputs and three bound private test ZIPs. Raw service run history is preserved privately and excluded from publication.",
+  "allSevenAbsent": true,
+  "removedCount": 7
+}

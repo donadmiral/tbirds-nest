@@ -1,0 +1,23 @@
+{
+  "phase": "delete-exact-post",
+  "projectId": "uaulhuelcfkjwojtymmw",
+  "fixtureRunId": "554e817b-78b8-4e64-9a94-b2aa80fdca4d",
+  "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+  "authorId": "78d81bd0-3381-499a-a8f3-f8264e36973c",
+  "readOnly": false,
+  "authenticatedAuthorPath": true,
+  "serviceRoleUsed": false,
+  "postDeleteAttempted": true,
+  "postDeleteOutcome": "exact-row-acknowledged-and-id-absent-for-author",
+  "postDeleted": true,
+  "authStatus": 200,
+  "identityMarkerVerified": true,
+  "postReadStatus": 200,
+  "exactPostVerified": true,
+  "independentDatabaseReadbackRequired": true,
+  "deleteStatus": 200,
+  "deletedRowCount": 1,
+  "afterReadStatus": 200,
+  "passed": true,
+  "recordedAt": "2026-11-05T19:35:36.667Z"
+}

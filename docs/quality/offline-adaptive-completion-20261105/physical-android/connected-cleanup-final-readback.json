@@ -1,0 +1,27 @@
+{
+  "projectId": "uaulhuelcfkjwojtymmw",
+  "fixtureRunId": "554e817b-78b8-4e64-9a94-b2aa80fdca4d",
+  "recordedAt": "2026-11-05T19:49:30.502Z",
+  "readOnly": true,
+  "statementTimeoutSeconds": 5,
+  "lockTimeoutSeconds": 2,
+  "passed": true,
+  "remaining": {
+    "posts": 0,
+    "users": 0,
+    "follows": 0,
+    "profiles": 0,
+    "sessions": 0,
+    "identities": 0,
+    "attachments": 0,
+    "notifications": 0,
+    "refreshTokens": 0,
+    "sourceObjects": 0,
+    "allFixtureObjects": 0,
+    "activeAdaptiveJobs": 0,
+    "activeOriginalJobs": 0,
+    "pendingAdaptiveCleanup": 0,
+    "pendingOriginalCleanup": 0
+  },
+  "scope": "Exact two marked synthetic identities, post, attachment rows, follows, notifications, sessions, refresh tokens, source and derivative objects, active media jobs and pending cleanup."
+}

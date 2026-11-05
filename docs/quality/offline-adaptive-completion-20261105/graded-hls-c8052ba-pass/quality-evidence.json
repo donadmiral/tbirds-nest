@@ -1,0 +1,576 @@
+{
+  "runId": 42076396204,
+  "commit": "c8052ba7bb10f367a5e26337e94f3b080a48d7ce",
+  "jobs": [
+    {
+      "id": 127417604708,
+      "name": "Link preview Edge TLS",
+      "status": "completed",
+      "conclusion": "success",
+      "exactCommitInCheckoutLog": true,
+      "testInvocationBatches": []
+    },
+    {
+      "id": 127417605104,
+      "name": "Live workers, finite launcher and infrastructure",
+      "status": "completed",
+      "conclusion": "success",
+      "exactCommitInCheckoutLog": true,
+      "testInvocationBatches": [
+        {
+          "tests": 35,
+          "pass": 35,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 25,
+          "pass": 25,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 35,
+          "pass": 35,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 32,
+          "pass": 32,
+          "fail": 0,
+          "skipped": 0
+        }
+      ]
+    },
+    {
+      "id": 127417605132,
+      "name": "Phone app",
+      "status": "completed",
+      "conclusion": "success",
+      "exactCommitInCheckoutLog": true,
+      "testInvocationBatches": [
+        {
+          "tests": 3472,
+          "pass": 3471,
+          "fail": 0,
+          "skipped": 1
+        },
+        {
+          "tests": 58,
+          "pass": 58,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 760,
+          "pass": 705,
+          "fail": 0,
+          "skipped": 55
+        },
+        {
+          "tests": 16,
+          "pass": 16,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 34,
+          "pass": 34,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 36,
+          "pass": 36,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 11,
+          "pass": 11,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 17,
+          "pass": 17,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 21,
+          "pass": 21,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 21,
+          "pass": 21,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 18,
+          "pass": 18,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 18,
+          "pass": 18,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 20,
+          "pass": 20,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 20,
+          "pass": 20,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 16,
+          "pass": 16,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 16,
+          "pass": 16,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 41,
+          "pass": 41,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 41,
+          "pass": 41,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 11,
+          "pass": 11,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 27,
+          "pass": 27,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 27,
+          "pass": 27,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 33,
+          "pass": 32,
+          "fail": 0,
+          "skipped": 1
+        },
+        {
+          "tests": 33,
+          "pass": 33,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 16,
+          "pass": 16,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 15,
+          "pass": 15,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 31,
+          "pass": 31,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 31,
+          "pass": 31,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 31,
+          "pass": 31,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 19,
+          "pass": 19,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 22,
+          "pass": 22,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 6,
+          "pass": 6,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 6,
+          "pass": 6,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 12,
+          "pass": 12,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 12,
+          "pass": 12,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 12,
+          "pass": 12,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 21,
+          "pass": 21,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 11,
+          "pass": 11,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 11,
+          "pass": 11,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 16,
+          "pass": 16,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 17,
+          "pass": 17,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 36,
+          "pass": 35,
+          "fail": 0,
+          "skipped": 1
+        },
+        {
+          "tests": 36,
+          "pass": 36,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 36,
+          "pass": 36,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 17,
+          "pass": 16,
+          "fail": 0,
+          "skipped": 1
+        },
+        {
+          "tests": 33,
+          "pass": 33,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 6,
+          "pass": 6,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 6,
+          "pass": 6,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 16,
+          "pass": 16,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 18,
+          "pass": 18,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 9,
+          "pass": 9,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 6,
+          "pass": 6,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 3,
+          "pass": 3,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 8,
+          "pass": 8,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 13,
+          "pass": 13,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 15,
+          "pass": 15,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 12,
+          "pass": 12,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 4,
+          "pass": 4,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 1,
+          "pass": 1,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 1,
+          "pass": 1,
+          "fail": 0,
+          "skipped": 0
+        }
+      ]
+    },
+    {
+      "id": 127417605189,
+      "name": "Isolated PostgreSQL 17 concurrency contracts",
+      "status": "completed",
+      "conclusion": "success",
+      "exactCommitInCheckoutLog": true,
+      "testInvocationBatches": [
+        {
+          "tests": 7,
+          "pass": 7,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 4,
+          "pass": 4,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 3,
+          "pass": 3,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 9,
+          "pass": 9,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 8,
+          "pass": 8,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 7,
+          "pass": 7,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 17,
+          "pass": 17,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 7,
+          "pass": 7,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 13,
+          "pass": 13,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 7,
+          "pass": 7,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 9,
+          "pass": 9,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 6,
+          "pass": 6,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 22,
+          "pass": 22,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 18,
+          "pass": 18,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 13,
+          "pass": 13,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 6,
+          "pass": 6,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 7,
+          "pass": 7,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 3,
+          "pass": 3,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 5,
+          "pass": 5,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 19,
+          "pass": 19,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 16,
+          "pass": 16,
+          "fail": 0,
+          "skipped": 0
+        }
+      ]
+    },
+    {
+      "id": 127417605285,
+      "name": "Web app",
+      "status": "completed",
+      "conclusion": "success",
+      "exactCommitInCheckoutLog": true,
+      "testInvocationBatches": [
+        {
+          "tests": 1050,
+          "pass": 1050,
+          "fail": 0,
+          "skipped": 0
+        }
+      ]
+    },
+    {
+      "id": 127417605336,
+      "name": "Operations app",
+      "status": "completed",
+      "conclusion": "success",
+      "exactCommitInCheckoutLog": true,
+      "testInvocationBatches": [
+        {
+          "tests": 343,
+          "pass": 343,
+          "fail": 0,
+          "skipped": 0
+        }
+      ]
+    }
+  ],
+  "scope": "Successful recorded job outcomes and per-invocation test summaries. Batch counts may overlap suites and are not a unique-test count."
+}

@@ -1,0 +1,256 @@
+{
+  "commit": "1aa2b521231fd24bf6f7e6d9aae6f4e11f6de8b3",
+  "runId": 42089357028,
+  "jobId": 127463006642,
+  "workflowConclusion": "success",
+  "artifactId": 13443918229,
+  "archiveSha256": "605c675bad9ca7ea60f7ebc43d6daa1670116785d8dc873ad4ea1ccffbf19bcf",
+  "archiveBytes": 430215,
+  "sourceFilesVerified": [
+    {
+      "path": "modules/boomerang/ios/StoryHLSGradeSurface.swift",
+      "sha256": "cb4788a654323a2bc2c5ced934923a31ab50fbeb4bf3dd40d6bf0c075e142d35"
+    },
+    {
+      "path": "modules/boomerang/ios/StoryVideoComposition.swift",
+      "sha256": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07"
+    },
+    {
+      "path": "modules/boomerang/ios/StoryVideoView.swift",
+      "sha256": "de00cb001aab799a4c98a3389f92a98375ccc86443b97e5c3ef823afe3451e3a"
+    },
+    {
+      "path": "scripts/quality/StoryPlaybackExpoAdapter.swift",
+      "sha256": "5a0c723c78b8fa7ba981ff23df294485dde5cbf5b05806621b8ad89b3ef63886"
+    },
+    {
+      "path": "scripts/quality/StoryHLSGradeHarness.swift",
+      "sha256": "8e197a8758efac8681cdb22cdef0f30f201e19adc4be1bebf60a9b8cc0441314"
+    },
+    {
+      "path": "scripts/quality/story-hls-grade-runtime.py",
+      "sha256": "14d53fd3c062dceb4bea10317865b80bea26bc0dfc551cfc55f96fb0bd5e0719"
+    },
+    {
+      "path": "scripts/quality/test-ios-story-hls-grade.sh",
+      "sha256": "4bbe1fbc3394301812ecf2bcaa6687cc91c324a8796e6ca6c169cea0d38941b0"
+    }
+  ],
+  "evidenceFilesVerified": 35,
+  "passedCases": 8,
+  "completedCases": 8,
+  "pixelChecks": {
+    "foreground-green": {
+      "passed": true,
+      "sampleCount": 3400,
+      "expected": "green",
+      "topLeftMarkerMeanRGB": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "inactive-resume-red": {
+      "passed": true,
+      "sampleCount": 3400,
+      "expected": "red",
+      "topLeftMarkerMeanRGB": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "paused-blue": {
+      "passed": true,
+      "sampleCount": 3400,
+      "expected": "blue",
+      "topLeftMarkerMeanRGB": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "paused-red": {
+      "passed": true,
+      "sampleCount": 3400,
+      "expected": "red",
+      "topLeftMarkerMeanRGB": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "reset-green": {
+      "passed": true,
+      "sampleCount": 3400,
+      "expected": "green",
+      "topLeftMarkerMeanRGB": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "trim-green": {
+      "passed": true,
+      "sampleCount": 3400,
+      "expected": "green",
+      "topLeftMarkerMeanRGB": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "wrapper-blue": {
+      "passed": true,
+      "sampleCount": 3400,
+      "expected": "blue",
+      "topLeftMarkerMeanRGB": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "wrapper-green": {
+      "passed": true,
+      "sampleCount": 3400,
+      "expected": "green",
+      "topLeftMarkerMeanRGB": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "wrapper-red": {
+      "passed": true,
+      "sampleCount": 3400,
+      "expected": "red",
+      "topLeftMarkerMeanRGB": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  },
+  "actualOSBackground": true,
+  "resumedSameProcess": true,
+  "manifestGETs": 19,
+  "segmentGETs": 149,
+  "assertions": [
+    {
+      "evidence": {
+        "firstFrameTimes": [
+          1.5
+        ],
+        "pixelScreenshots": [
+          "trim-green",
+          "paused-blue",
+          "paused-red"
+        ],
+        "realHLS": true,
+        "singlePlayerOutput": true
+      },
+      "name": "HLS trim gate and paused grade update display verified pixels",
+      "passed": true,
+      "runtimeSeconds": 11.318493083333323
+    },
+    {
+      "evidence": {
+        "outputCounts": [
+          1,
+          0,
+          1
+        ],
+        "pixelScreenshots": [
+          "wrapper-green",
+          "wrapper-blue",
+          "wrapper-red"
+        ],
+        "samePlayerItem": true,
+        "videoComposition": false
+      },
+      "name": "production StoryVideoView switches graded and neutral HLS without duplicate outputs",
+      "passed": true,
+      "runtimeSeconds": 9.490792125000013
+    },
+    {
+      "evidence": {
+        "attachedOutputs": 1,
+        "commandPendingAtReset": [
+          true,
+          false,
+          true,
+          false,
+          false,
+          false
+        ],
+        "firstFrameTimes": [
+          1.5
+        ],
+        "resetCycles": 6
+      },
+      "name": "surface reset and seek discard obsolete pending graded frames",
+      "passed": true,
+      "runtimeSeconds": 5.766412583333334
+    },
+    {
+      "evidence": {
+        "inactiveDisplayLink": false,
+        "pausedDisplayLink": false,
+        "pausedTimeDelta": 0
+      },
+      "name": "paused and inactive HLS surfaces stop scheduling work",
+      "passed": true,
+      "runtimeSeconds": 3.96957708333332
+    },
+    {
+      "evidence": {
+        "actualOSBackground": true,
+        "backgroundDisplayLink": false,
+        "hostInvokedActiveEntryPoint": true,
+        "samePlayerItem": true
+      },
+      "name": "actual OS background and foreground preserve graded HLS ownership",
+      "passed": true,
+      "runtimeSeconds": 19.048934125000017
+    },
+    {
+      "evidence": {
+        "attachedOutputs": 0,
+        "cancelledSurfaces": 12,
+        "retainedSurfaces": 0
+      },
+      "name": "stopped HLS surfaces detach outputs and cancel late callbacks",
+      "passed": true,
+      "runtimeSeconds": 1.4875906250000526
+    },
+    {
+      "evidence": {
+        "attachedOutputs": 0,
+        "failureCallbacks": 1,
+        "failureSeconds": 3.204145166666706,
+        "rewinds": 4,
+        "samePlayerRenderingSink": true
+      },
+      "name": "frozen HLS output fails within five seconds despite repeated backward seeks",
+      "passed": true,
+      "runtimeSeconds": 3.642184208333333
+    },
+    {
+      "evidence": {
+        "attachedOutputs": 0,
+        "failureCallbacks": 1,
+        "firstFrames": 0
+      },
+      "name": "invalid grade fails once and releases its HLS output",
+      "passed": true,
+      "runtimeSeconds": 0.19238999999998896
+    }
+  ],
+  "runtime": {
+    "architecture": "arm64",
+    "simulatorRuntime": "com.apple.CoreSimulator.SimRuntime.iOS-26-2",
+    "swiftLanguageMode": "5",
+    "optimization": "-O"
+  },
+  "scope": "Real simulator UIKit/AVFoundation HLS/Metal rendering and compositor pixels, not physical-device verification"
+}

@@ -1,0 +1,117 @@
+{
+  "cases" : [
+    {
+      "evidence" : {
+        "firstFrameTimes" : [
+          1.5
+        ],
+        "pixelScreenshots" : [
+          "trim-green",
+          "paused-blue",
+          "paused-red"
+        ],
+        "realHLS" : true,
+        "singlePlayerOutput" : true
+      },
+      "name" : "HLS trim gate and paused grade update display verified pixels",
+      "passed" : true,
+      "runtimeSeconds" : 29.804850375000001
+    },
+    {
+      "evidence" : {
+        "outputCounts" : [
+          1,
+          0,
+          1
+        ],
+        "pixelScreenshots" : [
+          "wrapper-green",
+          "wrapper-blue",
+          "wrapper-red"
+        ],
+        "samePlayerItem" : true,
+        "videoComposition" : false
+      },
+      "name" : "production StoryVideoView switches graded and neutral HLS without duplicate outputs",
+      "passed" : true,
+      "runtimeSeconds" : 20.190335541666684
+    },
+    {
+      "evidence" : {
+        "attachedOutputs" : 1,
+        "commandPendingAtReset" : [
+          false,
+          true,
+          false,
+          false,
+          true,
+          true
+        ],
+        "firstFrameTimes" : [
+          1.5
+        ],
+        "resetCycles" : 6
+      },
+      "name" : "surface reset and seek discard obsolete pending graded frames",
+      "passed" : true,
+      "runtimeSeconds" : 7.0876436666666791
+    },
+    {
+      "evidence" : {
+        "inactiveDisplayLink" : false,
+        "pausedDisplayLink" : false,
+        "pausedTimeDelta" : 0
+      },
+      "name" : "paused and inactive HLS surfaces stop scheduling work",
+      "passed" : true,
+      "runtimeSeconds" : 6.4244214166666893
+    },
+    {
+      "evidence" : {
+        "actualOSBackground" : true,
+        "backgroundDisplayLink" : false,
+        "hostInvokedActiveEntryPoint" : true,
+        "samePlayerItem" : true
+      },
+      "name" : "actual OS background and foreground preserve graded HLS ownership",
+      "passed" : true,
+      "runtimeSeconds" : 36.838402708333319
+    },
+    {
+      "evidence" : {
+        "attachedOutputs" : 0,
+        "cancelledSurfaces" : 12,
+        "retainedSurfaces" : 0
+      },
+      "name" : "stopped HLS surfaces detach outputs and cancel late callbacks",
+      "passed" : true,
+      "runtimeSeconds" : 2.326925208333364
+    },
+    {
+      "evidence" : {
+        "attachedOutputs" : 0,
+        "failureCallbacks" : 1,
+        "failureSeconds" : 3.2328756250000197,
+        "rewinds" : 4,
+        "samePlayerRenderingSink" : true
+      },
+      "name" : "frozen HLS output fails within five seconds despite repeated backward seeks",
+      "passed" : true,
+      "runtimeSeconds" : 3.6594117083333231
+    },
+    {
+      "evidence" : {
+        "attachedOutputs" : 0,
+        "failureCallbacks" : 1,
+        "firstFrames" : 0
+      },
+      "name" : "invalid grade fails once and releases its HLS output",
+      "passed" : true,
+      "runtimeSeconds" : 0.28111629166664898
+    }
+  ],
+  "passed" : true,
+  "schemaVersion" : 1,
+  "scope" : "Production StoryHLSGradeSurface and StoryVideoPixels with real AVPlayer HLS, Metal and compositor screenshots; no React Native bridge or physical-device claim",
+  "stage" : "completed"
+}

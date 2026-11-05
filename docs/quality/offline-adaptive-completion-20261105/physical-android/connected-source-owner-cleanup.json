@@ -1,0 +1,20 @@
+{
+  "projectId": "uaulhuelcfkjwojtymmw",
+  "fixtureRunId": "554e817b-78b8-4e64-9a94-b2aa80fdca4d",
+  "exactSourcePathsVerified": true,
+  "expectedObjectCount": 2,
+  "ordinaryAuthenticatedAuthor": true,
+  "deleteAttempted": true,
+  "outcome": "HTTP_200_WITHOUT_EXACT_TWO_SOURCE_ACKNOWLEDGEMENT",
+  "independentReadbackRequired": true,
+  "httpStatus": 200,
+  "exactAcknowledgementsVerified": false,
+  "independentReadback": {
+    "sourceObjects": 2,
+    "allFixtureObjects": 6,
+    "posts": 0,
+    "attachments": 0
+  },
+  "sourceRemovalConfirmed": false,
+  "boundedFallbackHelperRequired": true
+}

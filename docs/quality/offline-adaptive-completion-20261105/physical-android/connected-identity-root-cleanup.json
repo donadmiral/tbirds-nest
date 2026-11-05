@@ -1,0 +1,32 @@
+{
+  "projectId": "uaulhuelcfkjwojtymmw",
+  "fixtureRunId": "554e817b-78b8-4e64-9a94-b2aa80fdca4d",
+  "sqlSha256": "ef5d6dbe9973e9bd71d55102accb07a7266bf6ca4d9b62cf153682794d50bef7",
+  "priorCallAbortedAfterSeconds": 251,
+  "priorCallReturnedSqlResult": false,
+  "independentReconciliationAtUTC": "2026-11-05T19:45:51Z",
+  "priorDeletionTransactionsActive": 0,
+  "priorFixtureUsers": 2,
+  "priorFixtureSessions": 12,
+  "priorFixtureIdentities": 2,
+  "priorMediaObjects": 0,
+  "priorPendingMediaCleanup": 0,
+  "owner": "root",
+  "retryCount": 1,
+  "outcome": "committed-and-independently-verified",
+  "submittedAtUTC": "2026-11-05T19:47:10.848Z",
+  "verifiedAtUTC": "2026-11-05T19:49:16.105Z",
+  "mutationReturnedRemainingUsers": 0,
+  "independentAbsence": {
+    "post": 0,
+    "users": 0,
+    "follows": 0,
+    "profiles": 0,
+    "sessions": 0,
+    "identities": 0,
+    "notifications": 0,
+    "refreshTokens": 0
+  },
+  "cleanupComplete": true,
+  "approvalRejectionObserved": false
+}

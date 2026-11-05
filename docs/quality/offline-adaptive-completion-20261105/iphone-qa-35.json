@@ -1,0 +1,12 @@
+{
+  "status": "FINISHED",
+  "source": "160f22b72d5ddf5eacde5bfa3ab962ccfb591116",
+  "qualityRunId": 42058073430,
+  "buildId": "a48d34e2-d6e9-456f-aef0-f947cfc16e1e",
+  "installPage": "https://expo.dev/accounts/donadmiral/projects/platinum-circles/builds/a48d34e2-d6e9-456f-aef0-f947cfc16e1e",
+  "buildNumber": "35",
+  "workflowRun": 42058073482,
+  "job": 127352361893,
+  "physicalDeviceVerification": false,
+  "nativeCryptoSourceVerified": "f3bf2deafb834c0a033127ea3f1658af85f9b671"
+}

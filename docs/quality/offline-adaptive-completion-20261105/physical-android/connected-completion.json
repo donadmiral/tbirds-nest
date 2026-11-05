@@ -1,0 +1,40 @@
+{
+  "recordedAt": "2026-11-05T19:52:51.188664+00:00",
+  "sourceCommit": "1aa2b521231fd24bf6f7e6d9aae6f4e11f6de8b3",
+  "apkSha256": "33074f84155b178973eec8515be8505cb6253df035619684257fed5035b1cbcb",
+  "reviewedHarnessCommit": "b94272cef396b2e3078fae28b4e38c5a5366f23a",
+  "backendVersionFixCommit": "757114eb528373378f3cac19bc77fb2bd3efcaaa",
+  "deviceFarmRunId": "5e9ac2ed-7dac-47db-b033-4cbee2c273af",
+  "device": "Google Pixel 8a, Android 14, ARM64 physical device",
+  "functionalStagesPassed": 7,
+  "functionalStageCount": 7,
+  "actualOriginalImageAndVideoHashesVerified": true,
+  "ciphertextUnchangedAcrossColdProcess": true,
+  "actualAirplaneWifiAndSubscriptionDataOffVerified": true,
+  "noSuccessfulHostedRequestDuringOfflineStage": true,
+  "coldVideoNativeProgressSeconds": [
+    0.42500001192092896,
+    0.671999990940094
+  ],
+  "coldImageOnDisplayElapsedMs": 5769,
+  "previousRunColdImageOnDisplayElapsedMs": 5711,
+  "recordedRefreshVisualAcceptance": {
+    "ordinaryVisibleFrames": 209,
+    "ordinaryTotalFrames": 209,
+    "restoredNetworkVisibleFrames": 193,
+    "restoredNetworkTotalFrames": 193,
+    "totalVisibleFrames": 402,
+    "blankOrAmbiguousFramesInsideWindows": 0,
+    "criteriaChanged": false,
+    "visualReceiptSha256": "2e25c6774417366de43ce9da361fcc2df4f4fbc30c3e4ba021b83d10920f8dda"
+  },
+  "cleanupComplete": true,
+  "cleanupReceiptFile": "connected-cleanup-status.json",
+  "limitations": [
+    "One public image/video carousel on one physical Android phone using the actual QA backend.",
+    "The disposable debuggable QA build does not establish release startup percentiles or all-screen performance.",
+    "The observed 5769 ms cold image display is not an instant-startup claim.",
+    "No blank frame was captured within the two complete refresh windows. A 40 ms encoded interval does not prove absence of an unrecorded sub-frame flash.",
+    "This run does not establish private chat HLS playback on a physical Expo client or physical iPhone acceptance."
+  ]
+}

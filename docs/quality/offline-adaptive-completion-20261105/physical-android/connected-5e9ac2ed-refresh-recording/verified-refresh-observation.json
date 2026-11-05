@@ -1,0 +1,155 @@
+{
+  "deviceFarmRun": "5e9ac2ed-7dac-47db-b033-4cbee2c273af",
+  "appSourceCommit": "1aa2b521231fd24bf6f7e6d9aae6f4e11f6de8b3",
+  "harnessSourceCommit": "b94272cef396b2e3078fae28b4e38c5a5366f23a",
+  "apkSha256": "33074f84155b178973eec8515be8505cb6253df035619684257fed5035b1cbcb",
+  "testPackageSha256": "4694ce03c26dd0a04cc60299686c475e504fc58c1385ce42ca9ba65c34f03d43",
+  "videoSha256": "90ee4c7489cb4cef98e4bf4687e65b8dfbd12c17309b9561e77f08e25060ba15",
+  "functionalStagesPassed": 7,
+  "recordedRefreshVisualAcceptancePassed": true,
+  "measuredResult": "The known public image remains visible in every decoded recording sample across both action-bounded refresh windows.",
+  "criteriaUnchanged": {
+    "rgbTolerance": 60,
+    "minimumMatchScore": 0.82,
+    "minimumSampleCoverage": 0.85,
+    "minimumPerColorClassMatch": 0.66,
+    "maximumVerticalMotionSearchPixels": 400
+  },
+  "nativeHierarchy": {
+    "nativeImageBoundsOnlineAndRestored": [
+      0,
+      1077,
+      1080,
+      1888
+    ],
+    "nativeImageBoundsOffline": [
+      0,
+      1212,
+      1080,
+      2023
+    ],
+    "imageResourceId": "native-feed-image-79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+    "onlineHierarchySha256": "fe714b17e61ac3bf643b667c6292067e7910992e3b123d36c0e06f24a42c64cb",
+    "restoredHierarchySha256": "401cebd028333ccf2cf3b3ba59cff44bd5eab41d376a9bdcdb7fc6dc034dc546"
+  },
+  "recordingGeometry": {
+    "encoded": [
+      800,
+      800
+    ],
+    "phoneViewport": [
+      220,
+      0,
+      360,
+      800
+    ],
+    "referenceImageBox": [
+      220,
+      359,
+      360,
+      270
+    ],
+    "referencePTS": 70.0,
+    "nativePTSIntervalMs": 40
+  },
+  "refreshWindows": [
+    {
+      "name": "online-refresh",
+      "firstPTSInclusive": 69.0,
+      "lastPTSInclusive": 77.32,
+      "decodedFrames": 209,
+      "pictureVisibleFrames": 209,
+      "blankFrames": 0,
+      "ambiguousFrames": 0,
+      "exactDuplicateViewportFrames": 96,
+      "nearDuplicateViewportFrames": 198,
+      "longestExactDuplicateSampleSpanMs": 960,
+      "actionUTC": "2026-11-05T19:20:50.135Z",
+      "boundaryReason": "Starts with the image after the return carousel gesture and before refresh. Continues through completed refresh until the last feed frame immediately before the requested Messages navigation."
+    },
+    {
+      "name": "restored-network-refresh",
+      "firstPTSInclusive": 138.0,
+      "lastPTSInclusive": 145.68,
+      "decodedFrames": 193,
+      "pictureVisibleFrames": 193,
+      "blankFrames": 0,
+      "ambiguousFrames": 0,
+      "exactDuplicateViewportFrames": 54,
+      "nearDuplicateViewportFrames": 167,
+      "longestExactDuplicateSampleSpanMs": 320,
+      "actionUTC": "2026-11-05T19:21:59.156Z",
+      "boundaryReason": "Starts with the image before the refresh after radio restoration. Includes successful feed, signing and history-read responses, and continues to the last full feed frame immediately before final app/session teardown."
+    }
+  ],
+  "totalRefreshFrames": 402,
+  "boundaryReview": {
+    "allBroadWindowUnresolvedFramesManuallyReviewed": true,
+    "unresolvedFramesReviewed": 101,
+    "broadOnlineFirstPTSInclusive": 69.0,
+    "broadOnlineLastPTSInclusive": 79.96,
+    "broadOnlineFrames": 275,
+    "broadRestoredFirstPTSInclusive": 138.0,
+    "broadRestoredLastPTSInclusive": 147.52,
+    "broadRestoredFrames": 239,
+    "exclusions": [
+      {
+        "firstPTSInclusive": 77.36,
+        "lastPTSInclusive": 79.52,
+        "frames": 55,
+        "classification": "Requested Messages navigation. Every sample shows the Messages screen, first skeleton then the empty-state screen.",
+        "messagesSelectorUTC": "2026-11-05T19:20:56.739Z",
+        "feedSelectorUTC": "2026-11-05T19:20:59.997Z",
+        "nextFeedImagePTS": 79.56,
+        "postNavigationVisibleSamplesThroughBroadWindowEnd": 11
+      },
+      {
+        "firstPTSInclusive": 145.72,
+        "lastPTSInclusive": 147.52,
+        "frames": 46,
+        "classification": "Final app/session teardown. First sample shows the pictured app shrinking over Android launcher, followed by launcher wallpaper. No gray media frame remains in the feed.",
+        "appiumDeleteSessionUTC": "2026-11-05T19:22:06.239Z",
+        "partialMatchFrames": 1,
+        "signatureNotResolvedFrames": 45
+      }
+    ]
+  },
+  "observerCorroboration": {
+    "coldProcess": "mw3xltwn-ex4rhcwo",
+    "reconnectedAtProcessMs": 29668,
+    "canaryImageDisplayEvents": [
+      {
+        "type": "image-displayed",
+        "at": 1793906495024,
+        "elapsedMs": 5769,
+        "sourceClass": "decrypted-local"
+      }
+    ],
+    "canaryImageRedisplayAfterReconnect": false,
+    "imageCacheOpenAfterReconnect": false,
+    "observerSha256": "541761107c56fe58da73ef479f4ba5af51b840e692c0da849f21854e5be19b28"
+  },
+  "timeAlignment": "Recording PTS is exact within this video. Host action timestamps, observer wall time and status-clock samples establish sequence only and are not synchronized to milliseconds.",
+  "privacy": "Only synthetic public-image crops and safe aggregate receipts are retained for publication. Raw login video, Appium logs and temporary boundary review contacts are excluded.",
+  "artifacts": {
+    "aggregateSha256": "dd2df72484dc4c1cdc7917f1d48fc00ef920dcd0594a2854f0fb1184a3ae9dea",
+    "broadAggregateSha256": "e66e3385fe4d2be8e9f501b44aca8211ce88561ab89fc388fc4377f0c61c4f1f",
+    "publicCrops": [
+      {
+        "file": "online-refresh-first-69.000.png",
+        "sha256": "0d35400315d0ca1e8ebd18befba48e80a826c428f2b79ca193de08d41e34bf6c"
+      },
+      {
+        "file": "restored-network-refresh-first-138.000.png",
+        "sha256": "fd60076107f94517564c206bb23b5845ce9a27874781d061bdb387b6a0a62626"
+      }
+    ]
+  },
+  "limitations": [
+    "One observed Android Pixel8a run does not establish a fleet or percentile claim.",
+    "A 40ms encoded frame interval does not establish physical capture cadence.",
+    "Repeated decoded samples can represent a stable UI or reused capture frames.",
+    "No blank or ambiguous sample was observed in either bounded refresh window. This does not prove absence of an unrecorded sub-frame flash.",
+    "The source and harness assertions are unchanged except for the published app correction."
+  ]
+}

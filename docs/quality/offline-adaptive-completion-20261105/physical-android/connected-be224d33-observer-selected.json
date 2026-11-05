@@ -1,0 +1,545 @@
+{
+  "version": 1,
+  "process": "mw3ve7g8-cuu4l2h3",
+  "startedAt": 1793902774328,
+  "connectedBackend": true,
+  "events": [
+    {
+      "type": "network-state",
+      "at": 1793902774580,
+      "elapsedMs": 252,
+      "isConnected": true,
+      "isInternetReachable": true
+    },
+    {
+      "type": "http-result",
+      "at": 1793902775096,
+      "elapsedMs": 388,
+      "path": "/auth/v1/health",
+      "status": 401
+    },
+    {
+      "type": "http-result",
+      "at": 1793902779538,
+      "elapsedMs": 574,
+      "path": "/auth/v1/token",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902780011,
+      "elapsedMs": 90,
+      "path": "/rest/v1/rpc/get_catchup_feed",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902780082,
+      "elapsedMs": 119,
+      "path": "/rest/v1/rpc/get_my_actors",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902780235,
+      "elapsedMs": 243,
+      "path": "/rest/v1/rpc/get_context_unread",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902780239,
+      "elapsedMs": 258,
+      "path": "/rest/v1/rpc/get_active_promos",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902780308,
+      "elapsedMs": 315,
+      "path": "/rest/v1/rpc/get_profile",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902780384,
+      "elapsedMs": 390,
+      "path": "/rest/v1/rpc/get_paged_reader_capabilities",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902780450,
+      "elapsedMs": 483,
+      "path": "/rest/v1/rpc/get_feed",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902780724,
+      "elapsedMs": 234,
+      "path": "/auth/v1/user",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902780725,
+      "elapsedMs": 233,
+      "path": "/rest/v1/rpc/get_unread_counts",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902780725,
+      "elapsedMs": 253,
+      "path": "/rest/v1/rpc/get_post_engagement_counts_v1",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902781609,
+      "elapsedMs": 309,
+      "path": "/auth/v1/health",
+      "status": 401
+    },
+    {
+      "type": "http-result",
+      "at": 1793902781635,
+      "elapsedMs": 266,
+      "path": "/rest/v1/rpc/home_marketplace_recommendations",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902781657,
+      "elapsedMs": 289,
+      "path": "/rest/v1/rpc/get_feed_live_capability",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902782128,
+      "elapsedMs": 758,
+      "path": "/rest/v1/rpc/get_feed",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902782362,
+      "elapsedMs": 163,
+      "path": "/auth/v1/user",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902782414,
+      "elapsedMs": 251,
+      "path": "/rest/v1/rpc/get_post_engagement_counts_v1",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902782441,
+      "elapsedMs": 1694,
+      "path": "/functions/v1/content-media-sign",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902782836,
+      "elapsedMs": 438,
+      "path": "/functions/v1/content-media-sign",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902783081,
+      "elapsedMs": 81,
+      "path": "/rest/v1/rpc/get_feed_rows_by_ids_v1",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902783780,
+      "elapsedMs": 645,
+      "path": "/rest/v1/rpc/get_feed_visibility",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902783781,
+      "elapsedMs": 640,
+      "path": "/rest/v1/rpc/get_recent_likers",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902783943,
+      "elapsedMs": 148,
+      "path": "/rest/v1/rpc/get_catchup_feed",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902784011,
+      "elapsedMs": 83,
+      "path": "/rest/v1/rpc/get_trending_topics",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902784095,
+      "elapsedMs": 163,
+      "path": "/auth/v1/user",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902784251,
+      "elapsedMs": 123,
+      "path": "/rest/v1/rpc/get_poll",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902784398,
+      "elapsedMs": 239,
+      "path": "/rest/v1/rpc/live_directory",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902784398,
+      "elapsedMs": 231,
+      "path": "/rest/v1/rpc/live_directory",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902784518,
+      "elapsedMs": 345,
+      "path": "/rest/v1/rpc/get_trending_stories",
+      "status": 200
+    },
+    {
+      "type": "image-displayed",
+      "at": 1793902784771,
+      "elapsedMs": 10443,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+      "sourceClass": "remote"
+    },
+    {
+      "type": "http-result",
+      "at": 1793902784802,
+      "elapsedMs": 133,
+      "path": "/auth/v1/user",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902785152,
+      "elapsedMs": 343,
+      "path": "/functions/v1/content-media-sign",
+      "status": 200
+    },
+    {
+      "type": "cache-sealed",
+      "at": 1793902785340,
+      "elapsedMs": 11012,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+      "kind": "image",
+      "sourceVersion": "cdb229b3-357e-4f16-bb9c-15c71eee44fe",
+      "cipherFile": "eb69ad2a36115e8efb2c216f7a74526ae331a978c514545fa6baf9d35b4a7cc4.bin",
+      "bytes": 1564,
+      "sourceClass": "remote"
+    },
+    {
+      "type": "cache-opened",
+      "at": 1793902785473,
+      "elapsedMs": 11145,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+      "kind": "image",
+      "sourceVersion": "cdb229b3-357e-4f16-bb9c-15c71eee44fe",
+      "cipherFile": "eb69ad2a36115e8efb2c216f7a74526ae331a978c514545fa6baf9d35b4a7cc4.bin",
+      "plainFile": "eb69ad2a36115e8efb2c216f7a74526ae331a978c514545fa6baf9d35b4a7cc4.png",
+      "bytes": 1564,
+      "sourceClass": "decrypted-local"
+    },
+    {
+      "type": "cache-sealed",
+      "at": 1793902786100,
+      "elapsedMs": 11772,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+      "kind": "video",
+      "sourceVersion": "1acc0815-974c-4a7c-992f-cb99d46ada96",
+      "cipherFile": "67dcef81cc1524d96af17c17cbfab7f69cf3e10e1dfde4be259f29ee3493689d.bin",
+      "bytes": 74058,
+      "sourceClass": "remote"
+    },
+    {
+      "type": "image-displayed",
+      "at": 1793902786123,
+      "elapsedMs": 11795,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+      "sourceClass": "decrypted-local"
+    },
+    {
+      "type": "cache-opened",
+      "at": 1793902791129,
+      "elapsedMs": 16801,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+      "kind": "video",
+      "sourceVersion": "1acc0815-974c-4a7c-992f-cb99d46ada96",
+      "cipherFile": "67dcef81cc1524d96af17c17cbfab7f69cf3e10e1dfde4be259f29ee3493689d.bin",
+      "plainFile": "67dcef81cc1524d96af17c17cbfab7f69cf3e10e1dfde4be259f29ee3493689d.mp4",
+      "bytes": 74058,
+      "sourceClass": "decrypted-local"
+    },
+    {
+      "type": "video-progress",
+      "at": 1793902793375,
+      "elapsedMs": 19047,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+      "currentTime": 0.2070000022649765,
+      "playing": true,
+      "firstFrame": true,
+      "sourceClass": "remote"
+    },
+    {
+      "type": "video-progress",
+      "at": 1793902793668,
+      "elapsedMs": 19340,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+      "currentTime": 0.46799999475479126,
+      "playing": true,
+      "firstFrame": true,
+      "sourceClass": "remote"
+    },
+    {
+      "type": "http-result",
+      "at": 1793902813852,
+      "elapsedMs": 73,
+      "path": "/rest/v1/rpc/home_marketplace_recommendations",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902813986,
+      "elapsedMs": 207,
+      "path": "/rest/v1/rpc/live_directory",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902813987,
+      "elapsedMs": 202,
+      "path": "/rest/v1/rpc/live_directory",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902814237,
+      "elapsedMs": 462,
+      "path": "/rest/v1/rpc/get_feed",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902814684,
+      "elapsedMs": 255,
+      "path": "/rest/v1/rpc/get_post_engagement_counts_v1",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902815013,
+      "elapsedMs": 566,
+      "path": "/auth/v1/user",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902815841,
+      "elapsedMs": 626,
+      "path": "/functions/v1/content-media-sign",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902816265,
+      "elapsedMs": 68,
+      "path": "/rest/v1/rpc/get_feed_visibility",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902816338,
+      "elapsedMs": 120,
+      "path": "/rest/v1/rpc/get_recent_likers",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902816649,
+      "elapsedMs": 193,
+      "path": "/auth/v1/user",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902817178,
+      "elapsedMs": 514,
+      "path": "/functions/v1/content-media-sign",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902820091,
+      "elapsedMs": 72,
+      "path": "/rest/v1/rpc/get_catchup_feed",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902820163,
+      "elapsedMs": 139,
+      "path": "/rest/v1/rpc/get_context_unread",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902820164,
+      "elapsedMs": 127,
+      "path": "/rest/v1/rpc/record_video_view",
+      "status": 204
+    },
+    {
+      "type": "http-result",
+      "at": 1793902820260,
+      "elapsedMs": 217,
+      "path": "/rest/v1/rpc/get_unread_counts",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902821717,
+      "elapsedMs": 131,
+      "path": "/rest/v1/rpc/get_catchup_feed",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902821873,
+      "elapsedMs": 266,
+      "path": "/rest/v1/rpc/get_catchup_feed",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902821874,
+      "elapsedMs": 268,
+      "path": "/rest/v1/rpc/home_marketplace_recommendations",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902821875,
+      "elapsedMs": 270,
+      "path": "/rest/v1/rpc/get_feed_live_capability",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902821876,
+      "elapsedMs": 267,
+      "path": "/rest/v1/rpc/live_directory",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902821878,
+      "elapsedMs": 267,
+      "path": "/rest/v1/rpc/live_directory",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902822021,
+      "elapsedMs": 433,
+      "path": "/rest/v1/rpc/get_feed",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902822104,
+      "elapsedMs": 89,
+      "path": "/rest/v1/rpc/get_trending_stories",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902822126,
+      "elapsedMs": 79,
+      "path": "/rest/v1/rpc/get_feed_visibility",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902822278,
+      "elapsedMs": 246,
+      "path": "/rest/v1/rpc/get_post_engagement_counts_v1",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902822885,
+      "elapsedMs": 104,
+      "path": "/auth/v1/user",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902823675,
+      "elapsedMs": 777,
+      "path": "/functions/v1/content-media-sign",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902824107,
+      "elapsedMs": 77,
+      "path": "/rest/v1/rpc/get_feed_visibility",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902824175,
+      "elapsedMs": 130,
+      "path": "/rest/v1/rpc/get_recent_likers",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902824310,
+      "elapsedMs": 116,
+      "path": "/auth/v1/user",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793902824801,
+      "elapsedMs": 484,
+      "path": "/functions/v1/content-media-sign",
+      "status": 200
+    }
+  ],
+  "retentionScope": "Only this exact synthetic public post, network-state, generic RPC/auth/signing status observations. No credentials, capability URLs or other post media events."
+}

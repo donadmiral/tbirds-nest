@@ -1,0 +1,164 @@
+{
+  "source": "757114eb528373378f3cac19bc77fb2bd3efcaaa",
+  "clientSource": "c8052ba7bb10f367a5e26337e94f3b080a48d7ce",
+  "applicationCodeChanged": false,
+  "issue": {
+    "physicalRun": "f760d34a-d0f9-40a7-8670-418d7b484ee2",
+    "checksPassedBeforeFailure": 3,
+    "onlineImageLostLocalSource": true,
+    "coldOfflineNotReached": true,
+    "recordedBlankFrames": 2,
+    "recordingFrameIntervalMs": 40,
+    "picturedNeighborBracketMs": 120,
+    "exactPhysicalDisplayDurationClaimed": false,
+    "sourceProvenFailurePath": "Optional HLS metadata absence stripped immutable original versions from fresh authorized media and persisted snapshots. The device response body was not logged, so timeout occurrence in that request is inferred, not directly observed."
+  },
+  "change": {
+    "migration": "20261105180908_content_media_ticket_versions_v2.sql",
+    "migrationSha256": "4890bceefb59a05922f4703b8a8230f0bef5cd1376afc370d78a11b93bf9fdd6",
+    "rpc": "issue_content_media_delivery_v2",
+    "authority": "Unchanged existing issuer followed by indexed exact ticket lookup bound to current user/session, object location and expiry",
+    "originalVersionAlwaysFromIssuedTicket": true,
+    "optionalHlsDeadlineMs": 500,
+    "optionalHlsBatchLimit": 128,
+    "mismatchedHintsRejected": true,
+    "existingIssuerModified": false
+  },
+  "localTests": {
+    "edgeAndReadiness": 15,
+    "ticketDatabase": 24,
+    "publishedClips": 7,
+    "total": 46,
+    "failed": 0
+  },
+  "nativePostgres": {
+    "runId": 42082229154,
+    "jobId": 127437987438,
+    "version": "17.11",
+    "ticketCasesPassed": 24,
+    "failed": 0,
+    "sourceExact": true,
+    "conclusion": "success"
+  },
+  "qa": {
+    "edgeVersion": 8,
+    "edgeStatus": "ACTIVE",
+    "bundleSha256": "995f183a8131fd9bf4edcb9915489bb0d0d31c21b14a9663208b410907845ec2",
+    "postflight": {
+      "v2_md5": "1de05d86224686fa70ea5e304029c7d3",
+      "v2_anon": false,
+      "issuer_md5": "91224e38c787caf74fb01a5accd35657",
+      "v2_service": false,
+      "session_md5": "a18a1b69b831bc49438656210c2d36b9",
+      "v2_authenticated": true,
+      "authenticated_ticket_table_access": false
+    }
+  },
+  "production": {
+    "deployed": true,
+    "preflight": {
+      "v2_exists": false,
+      "issuer_md5": "91224e38c787caf74fb01a5accd35657",
+      "issuer_anon": false,
+      "session_md5": "a18a1b69b831bc49438656210c2d36b9",
+      "issuer_service": false,
+      "issuer_authenticated": true
+    },
+    "edgeVersion": 12,
+    "edgeStatus": "ACTIVE",
+    "bundleSha256": "995f183a8131fd9bf4edcb9915489bb0d0d31c21b14a9663208b410907845ec2",
+    "sourceFilesCompared": 7,
+    "sourceFilesExact": true,
+    "manualAuthenticationPreserved": true,
+    "migrationApplied": true,
+    "postflight": {
+      "v2_md5": "1de05d86224686fa70ea5e304029c7d3",
+      "v2_anon": false,
+      "issuer_md5": "91224e38c787caf74fb01a5accd35657",
+      "v2_service": false,
+      "session_md5": "a18a1b69b831bc49438656210c2d36b9",
+      "v2_authenticated": true,
+      "authenticated_ticket_table_access": false,
+      "fingerprintMethod": "md5(pg_proc.prosrc)"
+    },
+    "authenticationProbes": [
+      {
+        "case": "no-authorization",
+        "status": 401,
+        "cacheControl": "no-store"
+      },
+      {
+        "case": "malformed-authorization",
+        "status": 401,
+        "cacheControl": "no-store"
+      }
+    ],
+    "rollback": "Restore the saved previous content-media-sign v11 source. The additive v2 RPC may remain unused. No original issuer, session helper or storage policy changed.",
+    "verifyJwt": false,
+    "priorVerifyJwt": false,
+    "verifyJwtChanged": false
+  },
+  "physicalRepeat": {
+    "status": "refresh-continuity-passed-radio-readback-failed-before-offline",
+    "clientSource": "c8052ba7bb10f367a5e26337e94f3b080a48d7ce",
+    "assertionsChanged": false,
+    "runId": "be224d33-56a7-4671-a613-a3639f4cdfe7",
+    "sameApk": true,
+    "sameTestPackage": true,
+    "sameDevice": true,
+    "timeoutMinutes": 10,
+    "hostedPreflightPassed": true,
+    "passedChecks": 4,
+    "requiredChecks": 7,
+    "coldOfflineReached": false,
+    "networkRestored": true,
+    "recordedFrames": 188,
+    "recordedVisibleImageFrames": 188,
+    "recordedBlankFrames": 0,
+    "recordingFrameIntervalMs": 40,
+    "recordingReceipt": "physical-android/connected-be224d33-refresh-recording/verified-refresh-observation.json",
+    "radioFailure": "Android multi-SIM data uses its subscription-specific setting, while the legacy singleton remained enabled."
+  },
+  "quality": {
+    "runId": 42082229154,
+    "source": "757114eb528373378f3cac19bc77fb2bd3efcaaa",
+    "jobs": 6,
+    "passed": 6,
+    "failed": 0,
+    "conclusion": "success"
+  },
+  "physicalFinalRepeat": {
+    "status": "passed",
+    "harnessCommit": "b94272cef396b2e3078fae28b4e38c5a5366f23a",
+    "clientSource": "c8052ba7bb10f367a5e26337e94f3b080a48d7ce",
+    "sameApk": true,
+    "sameDevice": true,
+    "sameDeviceSpec": true,
+    "timeoutMinutes": 10,
+    "explicitAssertionsUnchanged": 27,
+    "requiredStagesUnchanged": 7,
+    "networkReadbackTestsPassed": 5,
+    "settingWritesAdded": false,
+    "bindingValidatedBeforeDataToggle": true,
+    "runId": "48248a1b-826a-49b0-86be-c643078135da",
+    "privateTestPackageSha256": "a89c12317f57c83c37bd09aface62ba11b1e4c124b95b3adae433b5843869ed1",
+    "passedChecks": 7,
+    "requiredChecks": 7,
+    "coldOfflineReached": true,
+    "networkRestored": true,
+    "originalByteHashesMatched": true,
+    "retainedCiphertextHashesMatched": true,
+    "successfulHostedRequestsWhileOffline": 0,
+    "coldImageDisplayFromObserverStartMs": 5711,
+    "instantStartupAccepted": false,
+    "fixtureCleanupComplete": false,
+    "receipt": "physical-android/connected-48248a1b-receipt.json",
+    "visualContinuityAccepted": false,
+    "remainingVisualIssue": "One recorded gray frame at PTS147.48 during restored-network refresh. Functional seven-stage pass does not establish continuous rendering.",
+    "coldTimingIncludesPermissionPrompt": true,
+    "unobstructedStartupBenchmark": false,
+    "snapshotScope": "Historical c805 original-byte functional pass with a separately confirmed reconnect visual failure. The corrected 1aa2 candidate and later run are recorded in native-feed-history-continuity.json."
+  },
+  "updatedAt": "2026-11-05T18:49:00.642737+00:00",
+  "currentNativeCorrectionReceipt": "native-feed-history-continuity.json"
+}

@@ -1,0 +1,88 @@
+{
+  "runId": "8b8d5850-2b76-4e96-9d41-2e77bc74edce",
+  "projectId": "uaulhuelcfkjwojtymmw",
+  "recordedAt": "2026-11-05 18:00:39 UTC",
+  "complete": true,
+  "messageDeletion": {
+    "deleted_fixture_messages": 2
+  },
+  "normalStorageDeletion": {
+    "status": 200,
+    "removed": 0,
+    "expected": 2,
+    "independentAbsenceReadbackRequired": true
+  },
+  "exactHelperRequests": [
+    {
+      "case": "no-auth",
+      "status": 401,
+      "result": {
+        "error": "AUTH"
+      }
+    },
+    {
+      "case": "wrong-user",
+      "status": 403,
+      "result": {
+        "error": "FIXTURE_ONLY"
+      }
+    },
+    {
+      "case": "exact-fixture",
+      "status": 200,
+      "result": {
+        "removed": 2,
+        "expected": 2,
+        "independentAbsenceReadbackRequired": true
+      }
+    }
+  ],
+  "mediaAbsenceBeforeAccountDeletion": {
+    "messages": 0,
+    "activeJobs": 0,
+    "sourceObjects": 0,
+    "pendingCleanup": 0,
+    "derivativeObjects": 0
+  },
+  "conversationDeletion": {
+    "deleted_fixture_conversations": 1
+  },
+  "accountDeletion": {
+    "deleted_fixture_users": 2
+  },
+  "finalAbsence": {
+    "users": 0,
+    "messages": 0,
+    "profiles": 0,
+    "sessions": 0,
+    "identities": 0,
+    "conversations": 0,
+    "pendingCleanup": 0,
+    "storageObjects": 0
+  },
+  "helper": {
+    "name": "qa-hls-cleanup-8b8d5850",
+    "originalSourceSha256": "c421d0ad1faa48fed2d542070bc643eaeb8983e89221fc0b73752cfc3396c03c",
+    "archivedSource": "supabase/ops/qa/private-hls-canary-cleanup-8b8d5850.ts",
+    "fixedExpiry": "2026-11-05T18:19:24.778052+00:00",
+    "retired": true,
+    "retiredVersion": 2,
+    "retiredBundleSha256": "ce02c17d245b447107276dee294f13750060ba7ac3ca3aef56801cdf7ad03d9b",
+    "verifyJwt": true,
+    "retiredSourceReadbackExact": true
+  },
+  "credentialCleanup": {
+    "removed": [
+      "state.json",
+      "key.txt",
+      "setup.sql"
+    ],
+    "absenceVerified": true
+  },
+  "earlierStalledCall": {
+    "approvalRejection": false,
+    "returnedResult": false,
+    "abortedAfterSeconds": 742.5,
+    "matchingOtherActiveSqlBeforeRootCleanup": 0
+  }
+}

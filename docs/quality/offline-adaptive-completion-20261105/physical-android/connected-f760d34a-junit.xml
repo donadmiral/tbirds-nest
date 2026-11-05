@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="130.891" timestamp="2026-11-05T17:59:35.175423+00:00" hostname="ip-10-1-152-4.us-west-2.compute.internal"><testcase classname="tests.test_connected" name="test_connected_original_cache" time="130.684"><failure message="AssertionError: Visible element unavailable: Native feed image displayed decrypted-local 79f74b5e-5ccb-474b-8a80-ac83eef88b1d">tests/test_connected.py:25: in request
+    with urllib.request.urlopen(req, timeout=40) as response:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/var/devicefarm/runtime/python_3_12/lib/python3.12/urllib/request.py:215: in urlopen
+    return opener.open(url, data, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/var/devicefarm/runtime/python_3_12/lib/python3.12/urllib/request.py:521: in open
+    response = meth(req, response)
+               ^^^^^^^^^^^^^^^^^^^
+/var/devicefarm/runtime/python_3_12/lib/python3.12/urllib/request.py:630: in http_response
+    response = self.parent.error(
+/var/devicefarm/runtime/python_3_12/lib/python3.12/urllib/request.py:559: in error
+    return self._call_chain(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+/var/devicefarm/runtime/python_3_12/lib/python3.12/urllib/request.py:492: in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+/var/devicefarm/runtime/python_3_12/lib/python3.12/urllib/request.py:639: in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+E   urllib.error.HTTPError: HTTP Error 404: Not Found
+
+The above exception was the direct cause of the following exception:
+tests/test_connected.py:67: in wait
+    value = check()
+            ^^^^^^^
+tests/test_connected.py:77: in locate
+    found = command('POST', '/element', {'using': using, 'value': value})['element-6066-11e4-a52e-4f735466cecf']
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_connected.py:61: in command
+    return request(method, prefix + path, body)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_connected.py:28: in request
+    raise RuntimeError(error.read().decode()[:1200]) from error
+E   RuntimeError: {"value":{"error":"no such element","message":"An element could not be located on the page using the given search parameters.","stacktrace":"NoSuchElementError: An element could not be located on the page using the given search parameters.\n    at AndroidUiautomator2Driver.findElOrEls (/var/devicefarm/runtime/appium_2_x/node_modules/appium-uiautomator2-driver/node_modules/appium-android-driver/lib/commands/find.ts:86:11)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at AndroidUiautomator2Driver.findElOrElsWithProcessing (/var/devicefarm/runtime/appium_2_x/node_modules/appium-uiautomator2-driver/node_modules/@appium/base-driver/lib/basedriver/commands/find.ts:60:12)\n    at AndroidUiautomator2Driver.findElement (/var/devicefarm/runtime/appium_2_x/node_modules/appium-uiautomator2-driver/node_modules/@appium/base-driver/lib/basedriver/commands/find.ts:75:12)"}}
+
+The above exception was the direct cause of the following exception:
+tests/test_connected.py:243: in test_connected_original_cache
+    displayed('image', local=True)
+tests/test_connected.py:115: in displayed
+    return element('accessibility id', label + 'decrypted-local' + tail, seconds)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_connected.py:79: in element
+    return wait(locate, seconds, 'Visible element unavailable: ' + value)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_connected.py:73: in wait
+    raise AssertionError(message) from last
+E   AssertionError: Visible element unavailable: Native feed image displayed decrypted-local 79f74b5e-5ccb-474b-8a80-ac83eef88b1d</failure></testcase></testsuite></testsuites>

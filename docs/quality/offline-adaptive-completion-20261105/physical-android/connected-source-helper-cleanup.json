@@ -1,0 +1,38 @@
+{
+  "projectId": "uaulhuelcfkjwojtymmw",
+  "fixtureRunId": "554e817b-78b8-4e64-9a94-b2aa80fdca4d",
+  "functionName": "qa-physical-cache-cleanup-20261105",
+  "activeSourceSha256": "c09dd43a8876199177868e9af56fce1477e4cd1a4014dd1abbd4a0a747c98147",
+  "expiresAt": "2026-11-05T20:10:00Z",
+  "requests": [
+    {
+      "case": "no-auth",
+      "status": 401,
+      "result": {
+        "message": "Missing authorization header",
+        "code": "UNAUTHORIZED_NO_AUTH_HEADER"
+      }
+    },
+    {
+      "case": "wrong-user",
+      "status": 403,
+      "result": {
+        "error": "FIXTURE_ONLY"
+      }
+    },
+    {
+      "case": "exact-fixture",
+      "status": 200,
+      "result": {
+        "removed": 2,
+        "exactAllowedObjects": 2,
+        "independentAbsenceReadbackRequired": true
+      }
+    }
+  ],
+  "ownerMutationAttempted": true,
+  "independentReadbackRequired": true,
+  "ownerMutationOutcome": "exact-two-source-acknowledgement",
+  "passed": true,
+  "recordedAt": "2026-11-05T19:39:26.438Z"
+}

@@ -1,0 +1,445 @@
+{
+  "source": "015dcb5d6a8e9b941cba66816d14a28a5315d587",
+  "migrationFile": "supabase/migrations/20261105153608_published_live_clip_renditions.sql",
+  "migrationSha256": "ab4fada016dfc3e775c0075fb0871117e4db695b6bcf425561d2420a5d06292d",
+  "workerBundleSha256": "168a03111c194934a281e0ea0d6883601d0511c474b71fb65bfcd40dee61110b",
+  "realPostgresGate": {
+    "run": 42058073430,
+    "job": 127351834345,
+    "result": "success"
+  },
+  "projects": [
+    {
+      "project": "uaulhuelcfkjwojtymmw",
+      "migration": {
+        "success": true
+      },
+      "functions": [
+        {
+          "name": "media-broker",
+          "version": 4,
+          "status": "ACTIVE",
+          "verifyJwt": false,
+          "bundleSha256": "1f72b4bdf036323a843f9939e336e260d13f7ce95fd27ae24474c66ce508f2b0"
+        },
+        {
+          "name": "content-media-sign",
+          "version": 7,
+          "status": "ACTIVE",
+          "verifyJwt": false,
+          "bundleSha256": "eb37e3c7376d0169a8fd806d05d35d37c8da6bf115d7ffc67bd393241b738a45"
+        },
+        {
+          "name": "media-content",
+          "version": 8,
+          "status": "ACTIVE",
+          "verifyJwt": false,
+          "bundleSha256": "b6bc5ba0292c57bf19c0dba85e9b1fd070bc9b8e9c9c5215466bd0d8bcde6a45"
+        }
+      ],
+      "schema": [
+        {
+          "section": "functions",
+          "data": [
+            {
+              "anon": false,
+              "hash": "cdd2e9e21d427a0759b4ae2bdb3c3e31",
+              "name": "source_matches",
+              "schema": "media_renditions",
+              "service": false,
+              "settings": [
+                "search_path=\"\""
+              ],
+              "authenticated": false
+            },
+            {
+              "anon": false,
+              "hash": "9db5e6b90f3d2e1af9d1bfc404887b83",
+              "name": "source_snapshot",
+              "schema": "media_renditions",
+              "service": false,
+              "settings": [
+                "search_path=\"\""
+              ],
+              "authenticated": false
+            },
+            {
+              "anon": false,
+              "hash": "0385b30494e720926cc494cd72a60e15",
+              "name": "refresh_clip",
+              "schema": "media_renditions",
+              "service": false,
+              "settings": [
+                "search_path=\"\""
+              ],
+              "authenticated": false
+            },
+            {
+              "anon": false,
+              "hash": "9ed00a3de23bde35a404672e1ff66445",
+              "name": "clip_publication_changed",
+              "schema": "media_renditions",
+              "service": false,
+              "settings": [
+                "search_path=\"\""
+              ],
+              "authenticated": false
+            },
+            {
+              "anon": false,
+              "hash": "9d101ae03e8be5afb1ac777bab8a043f",
+              "name": "clip_revision_changed",
+              "schema": "media_renditions",
+              "service": false,
+              "settings": [
+                "search_path=\"\""
+              ],
+              "authenticated": false
+            },
+            {
+              "anon": false,
+              "hash": "ada6fa4fe7b2bbcb409b93bbae9ecb6e",
+              "name": "media_playback_readiness_v2",
+              "schema": "public",
+              "service": true,
+              "settings": [
+                "search_path=\"\""
+              ],
+              "authenticated": false
+            }
+          ]
+        },
+        {
+          "section": "triggers",
+          "data": [
+            {
+              "name": "adaptive_clip_revision_changed",
+              "deferred": true
+            },
+            {
+              "name": "adaptive_clip_publication_changed",
+              "deferred": true
+            }
+          ]
+        },
+        {
+          "section": "migration",
+          "data": [
+            {
+              "name": "published_live_clip_renditions",
+              "version": "20261105154556"
+            }
+          ]
+        },
+        {
+          "section": "jobs",
+          "data": {
+            "ready": 11,
+            "cancelled": 3
+          }
+        }
+      ],
+      "readiness": [
+        {
+          "granted": 9,
+          "versioned": 9,
+          "hls_ready": 5,
+          "database_ms": "48.56"
+        }
+      ],
+      "publishedLiveClipCountAtPreflight": 0
+    },
+    {
+      "project": "prlkikhckbifseosbukl",
+      "migration": {
+        "success": true
+      },
+      "functions": [
+        {
+          "name": "media-broker",
+          "version": 10,
+          "status": "ACTIVE",
+          "verifyJwt": false,
+          "bundleSha256": "1f72b4bdf036323a843f9939e336e260d13f7ce95fd27ae24474c66ce508f2b0"
+        },
+        {
+          "name": "content-media-sign",
+          "version": 11,
+          "status": "ACTIVE",
+          "verifyJwt": false,
+          "bundleSha256": "eb37e3c7376d0169a8fd806d05d35d37c8da6bf115d7ffc67bd393241b738a45"
+        },
+        {
+          "name": "media-content",
+          "version": 9,
+          "status": "ACTIVE",
+          "verifyJwt": false,
+          "bundleSha256": "b6bc5ba0292c57bf19c0dba85e9b1fd070bc9b8e9c9c5215466bd0d8bcde6a45"
+        }
+      ],
+      "schema": [
+        {
+          "section": "functions",
+          "data": [
+            {
+              "anon": false,
+              "hash": "cdd2e9e21d427a0759b4ae2bdb3c3e31",
+              "name": "source_matches",
+              "schema": "media_renditions",
+              "service": false,
+              "settings": [
+                "search_path=\"\""
+              ],
+              "authenticated": false
+            },
+            {
+              "anon": false,
+              "hash": "9db5e6b90f3d2e1af9d1bfc404887b83",
+              "name": "source_snapshot",
+              "schema": "media_renditions",
+              "service": false,
+              "settings": [
+                "search_path=\"\""
+              ],
+              "authenticated": false
+            },
+            {
+              "anon": false,
+              "hash": "0385b30494e720926cc494cd72a60e15",
+              "name": "refresh_clip",
+              "schema": "media_renditions",
+              "service": false,
+              "settings": [
+                "search_path=\"\""
+              ],
+              "authenticated": false
+            },
+            {
+              "anon": false,
+              "hash": "9ed00a3de23bde35a404672e1ff66445",
+              "name": "clip_publication_changed",
+              "schema": "media_renditions",
+              "service": false,
+              "settings": [
+                "search_path=\"\""
+              ],
+              "authenticated": false
+            },
+            {
+              "anon": false,
+              "hash": "9d101ae03e8be5afb1ac777bab8a043f",
+              "name": "clip_revision_changed",
+              "schema": "media_renditions",
+              "service": false,
+              "settings": [
+                "search_path=\"\""
+              ],
+              "authenticated": false
+            },
+            {
+              "anon": false,
+              "hash": "ada6fa4fe7b2bbcb409b93bbae9ecb6e",
+              "name": "media_playback_readiness_v2",
+              "schema": "public",
+              "service": true,
+              "settings": [
+                "search_path=\"\""
+              ],
+              "authenticated": false
+            }
+          ]
+        },
+        {
+          "section": "triggers",
+          "data": [
+            {
+              "name": "adaptive_clip_revision_changed",
+              "deferred": true
+            },
+            {
+              "name": "adaptive_clip_publication_changed",
+              "deferred": true
+            }
+          ]
+        },
+        {
+          "section": "migration",
+          "data": [
+            {
+              "name": "published_live_clip_renditions",
+              "version": "20261105154613"
+            }
+          ]
+        },
+        {
+          "section": "jobs",
+          "data": {
+            "ready": 8
+          }
+        }
+      ],
+      "readiness": [
+        {
+          "granted": 12,
+          "versioned": 12,
+          "hls_ready": 6,
+          "database_ms": "98.15"
+        }
+      ],
+      "publishedLiveClipCountAtPreflight": 0
+    }
+  ],
+  "deployments": {
+    "qaEncoder": {
+      "id": "dpl_FpSmSzxjpEDwRLKN31pUFBF48oqq",
+      "name": "platinum-media-renditions",
+      "url": "platinum-media-renditions-2nvt0av2u-intobank.vercel.app",
+      "type": "LAMBDAS",
+      "state": "READY",
+      "createdAt": 1793893228654,
+      "creator": {
+        "uid": "YlpzEddOAMYPMRsVminHFY1p",
+        "username": "donpanshemusa13-1171"
+      },
+      "project": {
+        "id": "prj_KRrC0YmQek14PrWGk9AZeP7hRNgE",
+        "name": "platinum-media-renditions",
+        "framework": "container"
+      },
+      "meta": {
+        "githubCommitRef": "015dcb5d6a8e9b941cba66816d14a28a5315d587",
+        "githubCommitSha": "015dcb5d6a8e9b941cba66816d14a28a5315d587",
+        "githubCommitMessage": "Extend authorized HLS, harden iOS cache paths and build physical-device QA",
+        "githubRepo": "tbirds-nest",
+        "githubOrg": "donadmiral"
+      },
+      "alias": [],
+      "target": null,
+      "regions": [
+        "sfo1"
+      ],
+      "buildingAt": 1793893440981,
+      "ready": 1793893495615,
+      "readyState": "READY",
+      "aliasError": null
+    },
+    "qaGateway": {
+      "id": "dpl_ACETkCKsM2Kjg3xWWK5CHGC7Qpet",
+      "name": "platinum-media-gateway",
+      "url": "platinum-media-gateway-bqg4i2pbs-intobank.vercel.app",
+      "type": "LAMBDAS",
+      "state": "READY",
+      "createdAt": 1793893235691,
+      "creator": {
+        "uid": "YlpzEddOAMYPMRsVminHFY1p",
+        "username": "donpanshemusa13-1171"
+      },
+      "project": {
+        "id": "prj_qkdOpM6WY7XSpxZFTklDPmNas0Nu",
+        "name": "platinum-media-gateway",
+        "framework": null
+      },
+      "meta": {
+        "githubCommitRef": "015dcb5d6a8e9b941cba66816d14a28a5315d587",
+        "githubCommitSha": "015dcb5d6a8e9b941cba66816d14a28a5315d587",
+        "githubCommitMessage": "Extend authorized HLS, harden iOS cache paths and build physical-device QA",
+        "githubRepo": "tbirds-nest",
+        "githubOrg": "donadmiral"
+      },
+      "alias": [],
+      "target": null,
+      "regions": [
+        "sfo1"
+      ],
+      "buildingAt": 1793893496651,
+      "ready": 1793893503769,
+      "readyState": "READY",
+      "aliasError": null
+    },
+    "productionEncoder": {
+      "id": "dpl_2dqMAZQZrUq6xuvbQSoqQ4MyBGSE",
+      "name": "platinum-media-renditions",
+      "url": "platinum-media-renditions-7t1q6c2a4-intobank.vercel.app",
+      "type": "LAMBDAS",
+      "state": "READY",
+      "createdAt": 1793893231103,
+      "creator": {
+        "uid": "YlpzEddOAMYPMRsVminHFY1p",
+        "username": "donpanshemusa13-1171"
+      },
+      "project": {
+        "id": "prj_KRrC0YmQek14PrWGk9AZeP7hRNgE",
+        "name": "platinum-media-renditions",
+        "framework": "container"
+      },
+      "meta": {
+        "githubCommitRef": "015dcb5d6a8e9b941cba66816d14a28a5315d587",
+        "githubCommitSha": "015dcb5d6a8e9b941cba66816d14a28a5315d587",
+        "githubCommitMessage": "Extend authorized HLS, harden iOS cache paths and build physical-device QA",
+        "githubRepo": "tbirds-nest",
+        "githubOrg": "donadmiral"
+      },
+      "alias": [
+        "platinum-media-renditions.vercel.app",
+        "platinum-media-renditions-intobank.vercel.app",
+        "platinum-media-renditions-git-015dcb5d6a8e9b941-f30325-intobank.vercel.app"
+      ],
+      "target": "production",
+      "regions": [
+        "sfo1"
+      ],
+      "buildingAt": 1793893265492,
+      "ready": 1793893318527,
+      "readyState": "READY",
+      "aliasError": null
+    },
+    "productionGateway": {
+      "id": "dpl_H3oTQGL2hRYTf6YVn3Fm3JZYyubv",
+      "name": "platinum-media-gateway",
+      "url": "platinum-media-gateway-fr64jisil-intobank.vercel.app",
+      "type": "LAMBDAS",
+      "state": "READY",
+      "createdAt": 1793893241446,
+      "creator": {
+        "uid": "YlpzEddOAMYPMRsVminHFY1p",
+        "username": "donpanshemusa13-1171"
+      },
+      "project": {
+        "id": "prj_qkdOpM6WY7XSpxZFTklDPmNas0Nu",
+        "name": "platinum-media-gateway",
+        "framework": null
+      },
+      "meta": {
+        "githubCommitRef": "015dcb5d6a8e9b941cba66816d14a28a5315d587",
+        "githubCommitSha": "015dcb5d6a8e9b941cba66816d14a28a5315d587",
+        "githubCommitMessage": "Extend authorized HLS, harden iOS cache paths and build physical-device QA",
+        "githubRepo": "tbirds-nest",
+        "githubOrg": "donadmiral"
+      },
+      "alias": [
+        "platinum-media-gateway.vercel.app",
+        "platinum-media-gateway-intobank.vercel.app",
+        "platinum-media-gateway-git-015dcb5d6a8e9b941cba-f9e309-intobank.vercel.app"
+      ],
+      "target": "production",
+      "regions": [
+        "sfo1"
+      ],
+      "buildingAt": 1793893319535,
+      "ready": 1793893326459,
+      "readyState": "READY",
+      "aliasError": null
+    }
+  },
+  "privateViewOnceChatHls": false,
+  "gradedNativeHls": false,
+  "snapshotScope": "Historical observations at the recorded source. Pending and flag states below describe that checkpoint, not the final deployment.",
+  "currentEvidence": {
+    "release": "release.md",
+    "progress": "deployment-progress.json",
+    "hostedPrivateMedia": "private-media-production-rollout.json",
+    "contentVersionCorrection": "content-version-continuity-fix.json",
+    "gradedIos": "graded-hls-c8052ba-pass/verified-evidence.json",
+    "nativePrivateHlsProductionEnabled": false
+  }
+}

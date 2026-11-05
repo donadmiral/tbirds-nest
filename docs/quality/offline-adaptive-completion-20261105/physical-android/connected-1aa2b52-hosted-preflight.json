@@ -1,0 +1,42 @@
+{
+  "runId": "554e817b-78b8-4e64-9a94-b2aa80fdca4d",
+  "projectId": "uaulhuelcfkjwojtymmw",
+  "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+  "caption": "Connected cache QA 554e817b",
+  "accounts": {
+    "author": {
+      "id": "78d81bd0-3381-499a-a8f3-f8264e36973c"
+    },
+    "viewer": {
+      "id": "1a368661-a2f6-49cb-9b82-e374c64d5382"
+    }
+  },
+  "firstRankedFeedPost": true,
+  "snapshotEligible": true,
+  "media": [
+    {
+      "kind": "image",
+      "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+      "sourceVersion": "cdb229b3-357e-4f16-bb9c-15c71eee44fe",
+      "bytes": 1564,
+      "sha256": "bf9c4f48284934c45eed10cb0ae05bafec9f87cea89fafbfd739313b265f55ba",
+      "elapsedMs": 996
+    },
+    {
+      "kind": "video",
+      "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+      "sourceVersion": "1acc0815-974c-4a7c-992f-cb99d46ada96",
+      "bytes": 74058,
+      "sha256": "d333c5aa0febc777f19efefb40f91c90d0bab00fca268fa2fa5dcdd3a997787e",
+      "elapsedMs": 7129
+    }
+  ],
+  "physicalPhone": false,
+  "recordedAt": "2026-11-05T19:16:31Z",
+  "sourceCommit": "1aa2b521231fd24bf6f7e6d9aae6f4e11f6de8b3",
+  "workflowRun": 42089356884,
+  "backendFixCommit": "757114eb528373378f3cac19bc77fb2bd3efcaaa",
+  "contentMediaSignVersion": 8,
+  "priorFixtureReused": true,
+  "normalUserPreflightPassedBeforePackaging": true
+}

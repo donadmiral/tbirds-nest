@@ -1,0 +1,220 @@
+{
+  "source": "c8052ba7bb10f367a5e26337e94f3b080a48d7ce",
+  "updatedAt": "2026-11-05T19:53:41.189790+00:00",
+  "functionalChecks": [
+    {
+      "id": "quality",
+      "status": "passed",
+      "runId": 42089356958,
+      "jobs": 6,
+      "source": "1aa2b521231fd24bf6f7e6d9aae6f4e11f6de8b3"
+    },
+    {
+      "id": "native-compilation",
+      "status": "passed",
+      "receipt": "native-compile-d5f5203-pass.json",
+      "sourceHashesMatchCandidate": true
+    },
+    {
+      "id": "native-crypto",
+      "status": "passed",
+      "receipt": "native-crypto-runtime-pass.json"
+    },
+    {
+      "id": "browser-continuity-originals",
+      "status": "passed",
+      "runId": 42073141417
+    },
+    {
+      "id": "private-browser",
+      "status": "passed",
+      "runId": 42073141305,
+      "cases": 6
+    },
+    {
+      "id": "hosted-private-originals-and-hls",
+      "status": "passed",
+      "receipt": "private-hls-original-hosted-canary.json",
+      "cases": 20,
+      "fixtureCleanupComplete": true
+    },
+    {
+      "id": "graded-ios-hls",
+      "status": "passed",
+      "runId": 42089357028,
+      "cases": 8,
+      "pixelChecks": 9,
+      "source": "1aa2b521231fd24bf6f7e6d9aae6f4e11f6de8b3"
+    },
+    {
+      "id": "physical-offline-originals",
+      "status": "passed",
+      "device": "Pixel 8a / Android 14 / ARM64",
+      "requiredChecks": 7,
+      "coldOfflineReached": true,
+      "initialFailedRunId": "f760d34a-d0f9-40a7-8670-418d7b484ee2",
+      "runId": "5e9ac2ed-7dac-47db-b033-4cbee2c273af",
+      "precedingRunId": "be224d33-56a7-4671-a613-a3639f4cdfe7",
+      "originalAssertionsPreserved": true,
+      "passedChecks": 7,
+      "offlineColdProofComplete": true,
+      "networkRestored": true,
+      "cleanupComplete": true,
+      "coldImageDisplayFromObserverStartMs": 5769,
+      "instantStartupAccepted": false,
+      "precedingFailure": "legacy-mobile-data-setting-readback",
+      "precedingPassedChecks": [
+        "displayed-real-image",
+        "playing-real-video",
+        "refresh-retained-local-image",
+        "navigation-retained-decoded-originals"
+      ],
+      "coldTimingIncludesPermissionPrompt": null,
+      "unobstructedStartupBenchmark": false,
+      "precedingFunctionalAcceptance": {
+        "runId": "48248a1b-826a-49b0-86be-c643078135da",
+        "source": "c8052ba7bb10f367a5e26337e94f3b080a48d7ce",
+        "passedChecks": 7,
+        "visualContinuityPassed": false,
+        "coldOfflineReached": true,
+        "offlineColdProofComplete": true,
+        "networkRestored": true,
+        "coldImageDisplayFromObserverStartMs": 5711,
+        "coldTimingIncludesPermissionPrompt": true,
+        "unobstructedStartupBenchmark": false,
+        "normalRefreshRecordingPassed": true,
+        "restoredNetworkRefreshRecordingPassed": false
+      },
+      "candidateSource": "1aa2b521231fd24bf6f7e6d9aae6f4e11f6de8b3",
+      "previousFunctionalReceipt": "physical-android/connected-48248a1b-receipt.json",
+      "receipt": "physical-android/connected-5e9ac2ed-receipt.json",
+      "manifest": "physical-android/connected-5e9ac2ed-manifest.json",
+      "visualContinuityPassed": true,
+      "visualReceipt": "physical-android/connected-5e9ac2ed-refresh-recording/verified-refresh-observation.json",
+      "completionReceipt": "physical-android/connected-completion.json"
+    }
+  ],
+  "functionalCounts": {
+    "passed": 8,
+    "pending": 0,
+    "total": 8,
+    "nativeCandidateSource": "1aa2b521231fd24bf6f7e6d9aae6f4e11f6de8b3"
+  },
+  "web": {
+    "status": "live",
+    "url": "https://platinumcircles.app",
+    "deploymentId": "dpl_HjBaDeRXtD6FxHZXSw2Lax3KqZnS"
+  },
+  "iphone": {
+    "status": "FINISHED",
+    "source": "1aa2b521231fd24bf6f7e6d9aae6f4e11f6de8b3",
+    "qualityRunId": 42089356958,
+    "gradedHLSRunId": 42089357028,
+    "buildId": "6395bd07-4a3d-4eac-92ff-f8766dc79c35",
+    "installPage": "https://expo.dev/accounts/donadmiral/projects/platinum-circles/builds/6395bd07-4a3d-4eac-92ff-f8766dc79c35",
+    "buildNumber": "38",
+    "workflowRunId": 42089356900,
+    "workflowJobId": 127463006716,
+    "workflowConclusion": "success",
+    "finalReceiptAtUTC": "2026-11-05T19:19:03.2380487Z",
+    "workflowURL": "https://github.com/donadmiral/tbirds-nest/actions/runs/42089356900",
+    "exactCommitInCheckoutLog": true,
+    "gatesReadFromFinalReceipt": true
+  },
+  "privateMediaProduction": {
+    "backend": "active",
+    "webClient": "enabled",
+    "backfillReady": 1,
+    "nativeClient": "disabled-pending-private-player-runtime-proof"
+  },
+  "capacity": {
+    "status": "blocked",
+    "failure": "prepared_head_not_fresh",
+    "receipt": "../../../tools/performance/measurements/capacity-operating-proposal-20261105.json",
+    "fiveMillionDauAccepted": false
+  },
+  "backendSource": "757114eb528373378f3cac19bc77fb2bd3efcaaa",
+  "harnessSource": "b94272cef396b2e3078fae28b4e38c5a5366f23a",
+  "backendQuality": {
+    "runId": 42082229154,
+    "passedJobs": 6,
+    "totalJobs": 6
+  },
+  "contentVersionContinuity": {
+    "production": "active",
+    "edgeVersion": 12,
+    "qaEdgeVersion": 8,
+    "recordedRefreshImageFrames": 188,
+    "recordedRefreshBlankFrames": 0,
+    "receipt": "content-version-continuity-fix.json",
+    "recordingRunId": "be224d33-56a7-4671-a613-a3639f4cdfe7",
+    "recordingSource": "c8052ba7bb10f367a5e26337e94f3b080a48d7ce",
+    "recordingScope": "Historical normal-refresh observation after server correction. Current corrected native recording is visualContinuity."
+  },
+  "releaseState": "delivered-with-recorded-limitations",
+  "visualContinuity": {
+    "status": "passed",
+    "source": "1aa2b521231fd24bf6f7e6d9aae6f4e11f6de8b3",
+    "runId": "5e9ac2ed-7dac-47db-b033-4cbee2c273af",
+    "normalRefreshVisibleFrames": 209,
+    "normalRefreshObservedFrames": 209,
+    "restoredRefreshVisibleFrames": 193,
+    "restoredRefreshObservedFrames": 193,
+    "blankFrames": 0,
+    "ambiguousFrames": 0,
+    "criteriaUnchanged": true,
+    "broadWindowBoundaryReviewRetained": true,
+    "exactPhysicalDurationClaimed": false,
+    "receipt": "physical-android/connected-5e9ac2ed-refresh-recording/verified-refresh-observation.json"
+  },
+  "sourceRole": "live-web-and-historical-physical-native-source",
+  "nativeCandidateSource": "1aa2b521231fd24bf6f7e6d9aae6f4e11f6de8b3",
+  "nativeCandidateVerification": {
+    "localChecks": 74,
+    "localFailures": 0,
+    "qualityRunId": 42089356958,
+    "gradedIosRunId": 42089357028,
+    "iphoneDeliveryRunId": 42089356900,
+    "physicalBuildRunId": 42089356884,
+    "physicalRunId": "5e9ac2ed-7dac-47db-b033-4cbee2c273af",
+    "reconnectRecordingAccepted": true,
+    "qualityStatus": "passed",
+    "gradedIosStatus": "passed",
+    "iphoneStatus": "FINISHED",
+    "iphoneBuildId": "6395bd07-4a3d-4eac-92ff-f8766dc79c35",
+    "iphoneBuildNumber": "38",
+    "androidBuildStatus": "passed",
+    "physicalFunctionalStatus": "passed",
+    "normalRefreshRecordingAccepted": true,
+    "visualReceipt": "physical-android/connected-5e9ac2ed-refresh-recording/verified-refresh-observation.json",
+    "cleanupComplete": true,
+    "completionReceipt": "physical-android/connected-completion.json"
+  },
+  "historicalVisualContinuity": {
+    "normalRefresh": "passed",
+    "normalRefreshVisibleFrames": 116,
+    "normalRefreshObservedFrames": 116,
+    "restoredNetworkRefresh": "failed",
+    "restoredRefreshVisibleFrames": 145,
+    "restoredRefreshObservedFrames": 146,
+    "blankEncodedFramePTS": 147.48,
+    "encodedIntervalMs": 40,
+    "neighborBracketMs": 80,
+    "exactPhysicalDurationClaimed": false,
+    "cause": "First online history activation switches list key and row structure after cached offline startup, remounting the media view.",
+    "applicationFix": "published-in-1aa2b521",
+    "recordingSource": "c8052ba7bb10f367a5e26337e94f3b080a48d7ce",
+    "recordingRunId": "48248a1b-826a-49b0-86be-c643078135da",
+    "scope": "Before-correction recording. Current-candidate acceptance is in nativeCandidateVerification."
+  },
+  "cleanup": {
+    "status": "complete",
+    "receipt": "physical-android/connected-cleanup-status.json",
+    "independentAbsenceReceipt": "physical-android/connected-cleanup-final-readback.json",
+    "allTrackedFixtureCountsZero": true,
+    "trackedFixtureCounts": 15,
+    "temporaryEndpointRetired": true,
+    "privateTestUploadsRemoved": 3,
+    "localPrivateInputsRemoved": 7
+  }
+}

@@ -1,0 +1,1 @@
+<testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="132.976"><testcase classname="tests.test_connected" name="test_connected_original_cache" time="132.934" /></testsuite></testsuites>

@@ -1,0 +1,43 @@
+{
+  "runId": "554e817b-78b8-4e64-9a94-b2aa80fdca4d",
+  "projectId": "uaulhuelcfkjwojtymmw",
+  "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+  "caption": "Connected cache QA 554e817b",
+  "accounts": {
+    "author": {
+      "id": "78d81bd0-3381-499a-a8f3-f8264e36973c"
+    },
+    "viewer": {
+      "id": "1a368661-a2f6-49cb-9b82-e374c64d5382"
+    }
+  },
+  "firstRankedFeedPost": true,
+  "snapshotEligible": true,
+  "media": [
+    {
+      "kind": "image",
+      "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+      "sourceVersion": "cdb229b3-357e-4f16-bb9c-15c71eee44fe",
+      "bytes": 1564,
+      "sha256": "bf9c4f48284934c45eed10cb0ae05bafec9f87cea89fafbfd739313b265f55ba",
+      "elapsedMs": 1157
+    },
+    {
+      "kind": "video",
+      "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+      "sourceVersion": "1acc0815-974c-4a7c-992f-cb99d46ada96",
+      "bytes": 74058,
+      "sha256": "d333c5aa0febc777f19efefb40f91c90d0bab00fca268fa2fa5dcdd3a997787e",
+      "elapsedMs": 5210
+    }
+  ],
+  "physicalPhone": false,
+  "checkedAt": "2026-11-05T18:18:06Z",
+  "appCommit": "c8052ba7bb10f367a5e26337e94f3b080a48d7ce",
+  "backendFixCommitPrefix": "757114eb",
+  "contentMediaSignVersion": 8,
+  "contentMediaSignBundleSha256": "995f183a8131fd9bf4edcb9915489bb0d0d31c21b14a9663208b410907845ec2",
+  "privateTestPackageSha256": "b4904ba0930b02713258c926b2bbed9901eb8deda6d2703e96b26a94cd3b9c44",
+  "boundPackageMatchesCurrentCanary": true,
+  "backendFixCommit": "757114eb528373378f3cac19bc77fb2bd3efcaaa"
+}

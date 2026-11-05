@@ -1,0 +1,29 @@
+{
+  "runId": "be224d33-56a7-4671-a613-a3639f4cdfe7",
+  "sourceCommit": "c8052ba7bb10f367a5e26337e94f3b080a48d7ce",
+  "backendFixCommit": "757114eb528373378f3cac19bc77fb2bd3efcaaa",
+  "passedDeviceChecks": 4,
+  "warmDecryptedOriginalHashProof": true,
+  "offlineColdProofComplete": false,
+  "failure": "Physical network disable readback failed at legacy global mobile_data predicate, before process restart.",
+  "shortCircuitReadbackCounts": {
+    "airplane_mode_on": 15,
+    "wifi_on": 15,
+    "mobile_data": 15
+  },
+  "inference": "All 15 loops queried the third mobile_data predicate. The preceding airplane_mode_on=1 and wifi_on=0 comparisons therefore passed each time.",
+  "nativeEvidence": [
+    "11-05 18:20:46.061  2221  2221 I PhoneGlobals: handleAirplaneModeChange: isAirplaneNewlyOn=true",
+    "11-05 18:20:46.140  1565  1688 I WifiService: setWifiEnabled package=com.android.shell uid=2000 enable=false isPrivileged=true",
+    "11-05 18:20:46.309  2206  2206 V OemRil  : RILC_REQ_SET_MOBILE_DATA_STATE 00 00 00 00 00 00 00 00  [SUB1]",
+    "11-05 18:20:46.310  2206  2206 V OemRilBinderManager: [OemRilBinderManager_9]> RILC_REQ_SET_MOBILE_DATA_STATE 00 00 00 00 00 00 00 00  [SUB1]"
+  ],
+  "beforeNetwork": {
+    "airplane_mode_on": "0",
+    "wifi_on": "1",
+    "mobile_data": "1"
+  },
+  "networkRestoredAccordingToLegacyHarness": true,
+  "limitation": "Legacy mobile_data key may not represent current per-subscription preference on a dual-SIM device. This failed run does not prove cold offline display or exact subscription-level restoration.",
+  "recordingSha256": "78f72a2cb9d50871e7c0035fa989e7130c3f4083c27880c975e08a153e6d4955"
+}

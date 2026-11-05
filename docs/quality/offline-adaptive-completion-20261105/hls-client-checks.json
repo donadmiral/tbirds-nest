@@ -74,5 +74,14 @@
     "typescript": "passed",
     "browserFixtureCompilation": "passed",
     "browserRuntime": "pending CI"
+  },
+  "snapshotScope": "Historical observations at the recorded source. Pending and flag states below describe that checkpoint, not the final deployment.",
+  "currentEvidence": {
+    "release": "release.md",
+    "progress": "deployment-progress.json",
+    "hostedPrivateMedia": "private-media-production-rollout.json",
+    "contentVersionCorrection": "content-version-continuity-fix.json",
+    "gradedIos": "graded-hls-c8052ba-pass/verified-evidence.json",
+    "nativePrivateHlsProductionEnabled": false
   }
 }

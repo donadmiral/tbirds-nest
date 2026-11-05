@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 1,
+  "appSourceCommit": "c8052ba7bb10f367a5e26337e94f3b080a48d7ce",
+  "harnessSourceCommit": "b94272cef396b2e3078fae28b4e38c5a5366f23a",
+  "backendFixCommit": "757114eb528373378f3cac19bc77fb2bd3efcaaa",
+  "contentMediaSignVersion": 8,
+  "contentMediaSignBundleSha256": "995f183a8131fd9bf4edcb9915489bb0d0d31c21b14a9663208b410907845ec2",
+  "apkSha256": "f2a3f0d1797690bdc5d776695e6d8cbc646d873d361a6a34f0aedb28349a15ac",
+  "testPackageSha256": "a89c12317f57c83c37bd09aface62ba11b1e4c124b95b3adae433b5843869ed1",
+  "testHarnessSha256": "4cdedb8c2dec2fabcc97f39d1ce092be10a5655d143399e07ed2d7a7e922783a",
+  "networkReadbackHelperSha256": "971392cd00f04e996243fd68e71de25e5b9db781ac403f33d8a0e30ddec18e6c",
+  "testSpecSha256": "2cba1c853f634e824601d9e133fa0fa19db25627068f0f7d6332b05c7097c79e",
+  "parameters": {
+    "projectArn": "arn:aws:devicefarm:us-west-2:481552727043:project:fdaa717f-3d4f-42f7-870e-c0739d4edc6c",
+    "appArn": "arn:aws:devicefarm:us-west-2:481552727043:upload:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/5c46ea0b-521b-4c63-af4e-78d7bd302836",
+    "name": "Platinum c8052ba connected cold b94272c",
+    "deviceSelectionConfiguration": {
+      "filters": [
+        {
+          "attribute": "ARN",
+          "operator": "EQUALS",
+          "values": [
+            "arn:aws:devicefarm:us-west-2::device:49DF63F491EE48C1B5B3944104705D62"
+          ]
+        }
+      ],
+      "maxDevices": 1
+    },
+    "test": {
+      "type": "APPIUM_PYTHON",
+      "testPackageArn": "arn:aws:devicefarm:us-west-2:481552727043:upload:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/19c08351-bdb4-4e42-8a4e-9d94b44c2884",
+      "testSpecArn": "arn:aws:devicefarm:us-west-2:481552727043:upload:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/91dc3d2a-1247-44a0-ab1f-b338f8cf983d"
+    },
+    "configuration": {
+      "billingMethod": "METERED",
+      "radios": {
+        "wifi": true,
+        "bluetooth": false,
+        "nfc": true,
+        "gps": true
+      }
+    },
+    "executionConfiguration": {
+      "jobTimeoutMinutes": 10,
+      "skipAppResign": true,
+      "videoCapture": true,
+      "accountsCleanup": true,
+      "appPackagesCleanup": true
+    }
+  },
+  "run": {
+    "arn": "arn:aws:devicefarm:us-west-2:481552727043:run:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/48248a1b-826a-49b0-86be-c643078135da",
+    "name": "Platinum c8052ba connected cold b94272c",
+    "type": "APPIUM_PYTHON",
+    "platform": "ANDROID_APP",
+    "created": "2026-11-05T18:34:52.432000+00:00",
+    "status": "COMPLETED",
+    "result": "PASSED",
+    "started": "2026-11-05T18:34:52.432000+00:00",
+    "stopped": "2026-11-05T18:39:17.411000+00:00",
+    "counters": {
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "warned": 0,
+      "errored": 0,
+      "stopped": 0,
+      "skipped": 0
+    },
+    "totalJobs": 1,
+    "completedJobs": 1,
+    "billingMethod": "METERED",
+    "deviceMinutes": {
+      "total": 3.02,
+      "metered": 2.68,
+      "unmetered": 0
+    },
+    "appUpload": "arn:aws:devicefarm:us-west-2:481552727043:upload:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/5c46ea0b-521b-4c63-af4e-78d7bd302836",
+    "jobTimeoutMinutes": 10,
+    "radios": {
+      "wifi": true,
+      "bluetooth": false,
+      "nfc": true,
+      "gps": true
+    },
+    "skipAppResign": true,
+    "testSpecArn": "arn:aws:devicefarm:us-west-2:481552727043:upload:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/91dc3d2a-1247-44a0-ab1f-b338f8cf983d",
+    "deviceSelectionResult": {
+      "filters": [
+        {
+          "attribute": "ARN",
+          "operator": "EQUALS",
+          "values": [
+            "arn:aws:devicefarm:us-west-2::device:49DF63F491EE48C1B5B3944104705D62"
+          ]
+        }
+      ],
+      "matchedDevicesCount": 1,
+      "maxDevices": 1
+    },
+    "insightsTypes": [
+      "TEST_REPORT"
+    ],
+    "insights": {
+      "status": "COMPLETED",
+      "jobReport": {
+        "message": "Results: 1 Executed | 1 passed, Median job duration: 181.36 seconds, Average job duration: 181.36 seconds.",
+        "metrics": {
+          "jobsTotal": 1,
+          "jobsPassed": 1,
+          "jobsFailed": 0,
+          "jobsSkipped": 0,
+          "jobsErrored": 0,
+          "jobsStopped": 0,
+          "jobsPassedPercentage": 100,
+          "totalJobExecutionDurationSeconds": 181.36,
+          "averageJobExecutionDurationSeconds": 181.36,
+          "medianJobExecutionDurationSeconds": 181.36
+        }
+      }
+    }
+  },
+  "requiredDeviceChecks": 7,
+  "originalMediaAssertionsChanged": false,
+  "fixtureChanged": false,
+  "physicalColdOfflineProof": true,
+  "cleanupComplete": false,
+  "priorFailedRuns": [
+    "f760d34a-d0f9-40a7-8670-418d7b484ee2",
+    "be224d33-56a7-4671-a613-a3639f4cdfe7"
+  ],
+  "status": "COMPLETED",
+  "result": "PASSED",
+  "passedDeviceChecks": 7,
+  "functionalAcceptancePassed": true,
+  "visualRefreshAcceptancePassed": false,
+  "visualFailure": "One gray media frame in restored-network refresh at recording PTS 147.48, with pictured neighbors at 147.44 and 147.52.",
+  "coldImageOnDisplayElapsedMs": 5711,
+  "cleanupState": "NOT_STARTED_FIXTURE_INTACT_HELD_FOR_CORRECTED_BUILD",
+  "runtimeReceiptSha256": "4d12a989c5dd32a5405d6d07609213aeb711b2094274e255f8860d0361fd5286",
+  "downloads": [
+    {
+      "file": "customer-artifacts.zip",
+      "bytes": 1956118,
+      "sha256": "5ba2b83e0677f9b656cc381652e7c3c9b13d216a4eb4776ba603579ec268ac41"
+    },
+    {
+      "file": "test-spec-output.txt",
+      "bytes": 3925,
+      "sha256": "06bf883e9998b69df66a48e86a1a4cbd3b65f1b3b109f21cc8c0c49dc86e76a2"
+    },
+    {
+      "file": "video.mp4",
+      "bytes": 7636112,
+      "sha256": "bbcf1db554673e534d60d8c0413567de94ed5e33688cbe8ff7079dea4a416ddd"
+    }
+  ]
+}

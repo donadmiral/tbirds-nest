@@ -36,5 +36,14 @@
     "database_ms": "73.54"
   },
   "scope": "Readiness and immutable source-version metadata, not media download timing. Existing authenticated sessions and content used inside rollback transactions. No lasting tickets or content writes.",
-  "fallback": "A metadata request over 500ms returns the original authorized delivery without HLS hints. Production cold function read exceeded this budget; repeat read completed within it."
+  "fallback": "A metadata request over 500ms returns the original authorized delivery without HLS hints. Production cold function read exceeded this budget; repeat read completed within it.",
+  "snapshotScope": "Historical observations at the recorded source. Pending and flag states below describe that checkpoint, not the final deployment.",
+  "currentEvidence": {
+    "release": "release.md",
+    "progress": "deployment-progress.json",
+    "hostedPrivateMedia": "private-media-production-rollout.json",
+    "contentVersionCorrection": "content-version-continuity-fix.json",
+    "gradedIos": "graded-hls-c8052ba-pass/verified-evidence.json",
+    "nativePrivateHlsProductionEnabled": false
+  }
 }

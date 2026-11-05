@@ -1,0 +1,128 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "online-image-displayed",
+      "elapsedSeconds": 16.327,
+      "passed": true
+    },
+    {
+      "name": "online-video-playing",
+      "elapsedSeconds": 31.796,
+      "passed": true
+    },
+    {
+      "name": "refresh-retains-displayed-image",
+      "elapsedSeconds": 49.554,
+      "passed": true
+    },
+    {
+      "name": "navigation-retains-decoded-originals",
+      "elapsedSeconds": 72.135,
+      "passed": true
+    },
+    {
+      "name": "offline-cold-image-decrypted-and-displayed",
+      "elapsedSeconds": 97.207,
+      "passed": true
+    },
+    {
+      "name": "offline-cold-video-decrypted-and-playing",
+      "elapsedSeconds": 105.003,
+      "passed": true
+    },
+    {
+      "name": "restored-network-refresh-retains-image",
+      "elapsedSeconds": 123.511,
+      "passed": true
+    }
+  ],
+  "proofs": {
+    "networkBinding": {
+      "multiSimConfig": "dsds",
+      "defaultDataSubscriptionId": "1",
+      "mobileDataSettingKey": "mobile_data1"
+    },
+    "networkBefore": {
+      "airplane_mode_on": "0",
+      "wifi_on": "1",
+      "mobile_data": "1"
+    },
+    "warmFiles": [
+      {
+        "kind": "image",
+        "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+        "sourceVersion": "cdb229b3-357e-4f16-bb9c-15c71eee44fe",
+        "plainSha256": "bf9c4f48284934c45eed10cb0ae05bafec9f87cea89fafbfd739313b265f55ba",
+        "sealedSha256": "20c1678536af2dbbf09c93893b775727b11cbb87b723922eff11f9414ddc0224",
+        "plainBytes": 1564,
+        "sealedBytes": 1592
+      },
+      {
+        "kind": "video",
+        "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+        "sourceVersion": "1acc0815-974c-4a7c-992f-cb99d46ada96",
+        "plainSha256": "d333c5aa0febc777f19efefb40f91c90d0bab00fca268fa2fa5dcdd3a997787e",
+        "sealedSha256": "9484fd0289c5eeb26b3490945ef7d7414b03602bbfedc02f1d703651c63aa8ec",
+        "plainBytes": 74058,
+        "sealedBytes": 74086
+      }
+    ],
+    "offlineSettings": {
+      "airplane_mode_on": "1",
+      "wifi_on": "0",
+      "mobile_data": "0"
+    },
+    "offlineEndSettings": {
+      "airplane_mode_on": "1",
+      "wifi_on": "0",
+      "mobile_data": "0"
+    },
+    "coldVideoProgress": [
+      {
+        "nativeSeconds": 0.2460000067949295,
+        "elapsedMs": 10597
+      },
+      {
+        "nativeSeconds": 0.4959999918937683,
+        "elapsedMs": 10847
+      }
+    ],
+    "coldImageOnDisplayElapsedMs": 5711,
+    "coldFiles": [
+      {
+        "kind": "image",
+        "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+        "sourceVersion": "cdb229b3-357e-4f16-bb9c-15c71eee44fe",
+        "plainSha256": "bf9c4f48284934c45eed10cb0ae05bafec9f87cea89fafbfd739313b265f55ba",
+        "sealedSha256": "20c1678536af2dbbf09c93893b775727b11cbb87b723922eff11f9414ddc0224",
+        "plainBytes": 1564,
+        "sealedBytes": 1592
+      },
+      {
+        "kind": "video",
+        "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+        "sourceVersion": "1acc0815-974c-4a7c-992f-cb99d46ada96",
+        "plainSha256": "d333c5aa0febc777f19efefb40f91c90d0bab00fca268fa2fa5dcdd3a997787e",
+        "sealedSha256": "9484fd0289c5eeb26b3490945ef7d7414b03602bbfedc02f1d703651c63aa8ec",
+        "plainBytes": 74058,
+        "sealedBytes": 74086
+      }
+    ]
+  },
+  "physicalDevice": true,
+  "deviceName": "44151JEKB02536",
+  "deviceOS": "14",
+  "abi": "arm64-v8a",
+  "qemu": "",
+  "apkSha256": "f2a3f0d1797690bdc5d776695e6d8cbc646d873d361a6a34f0aedb28349a15ac",
+  "sourceCommit": "c8052ba7bb10f367a5e26337e94f3b080a48d7ce",
+  "runId": "554e817b-78b8-4e64-9a94-b2aa80fdca4d",
+  "harnessSha256": "4cdedb8c2dec2fabcc97f39d1ce092be10a5655d143399e07ed2d7a7e922783a",
+  "fixtureBackend": false,
+  "networkReadbackHelperSha256": "971392cd00f04e996243fd68e71de25e5b9db781ac403f33d8a0e30ddec18e6c",
+  "connectedQaProject": "uaulhuelcfkjwojtymmw",
+  "offlineOriginalMediaAcceptance": true,
+  "networkRestored": true,
+  "scope": "One public image/video carousel, actual QA auth/capabilities, native encryption, refresh and offline cold decoded media."
+}

@@ -1,0 +1,41 @@
+{
+  "sourceCommit": "e584d06ad9e8b158fdaf2eee322a15afa37f6f9b",
+  "passed": true,
+  "scope": "Focused local Node regression checks. Platform runtime, physical devices, hosted private delivery and capacity remain separate gates.",
+  "groups": [
+    {
+      "name": "media-rendition-worker",
+      "counts": {
+        "tests": 58,
+        "pass": 58,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "testLogSha256": "320570d0426e366b6e145a6bc25b4f53f4b543035247f306b40ae167434f3d24",
+      "sourceHashes": {
+        "workers/media-renditions/worker.mjs": "7e0c5123372ef59b8228108360a247c29247bbba4ee9b178801cdc57758fb3ef",
+        "workers/media-renditions/config.mjs": "784d069c161aa67e62dbbc54736aab4983471d09495f03a743d9b6ba05c2a188",
+        "workers/media-renditions/test/worker.test.mjs": "0bccfdd90264dfafbf2771854fc1cc9e29a95c77b0aead7df7c3c6943eb0faf7"
+      }
+    },
+    {
+      "name": "startup-and-original-media",
+      "counts": {
+        "tests": 50,
+        "pass": 50,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "testLogSha256": "72de207ae1c141a75b2080e635e1d1dd1023d0eb1f72408abfb67d9c39528c98",
+      "sourceHashes": {
+        "tests/quality/offline-original-media.cjs": "40c319043ab81b3129ac84e7f500a3fe467d3c0eeba33b3a221f64e3f839152d",
+        "tests/quality/feed-startup-previews.cjs": "7867adedfa19378de76e15879516669403409e57b608e21e0201a501d5687104",
+        "tests/quality/startup-content-snapshots.cjs": "857212243253b85fa211a0e88774d7a3cf6f223b0ecc94422398ff5df7a10940",
+        "web/tests/offline-media-cache.cjs": "f3c0f5b217777903873a660ebb0aac7108881a29a27b6fb3e2fd866c73b6d962",
+        "web/tests/offline-media-hook.cjs": "ec2e7b7d03b208fd5e5416ea938ab10cddf87cb7191d945378208adb06ce31fd"
+      }
+    }
+  ]
+}

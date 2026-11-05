@@ -1,0 +1,90 @@
+{
+  "runId": "be224d33-56a7-4671-a613-a3639f4cdfe7",
+  "sourceCommit": "c8052ba7bb10f367a5e26337e94f3b080a48d7ce",
+  "backendFixCommitPrefix": "757114eb",
+  "contentMediaSignVersion": 8,
+  "contentMediaSignBundleSha256": "995f183a8131fd9bf4edcb9915489bb0d0d31c21b14a9663208b410907845ec2",
+  "videoSha256": "78f72a2cb9d50871e7c0035fa989e7130c3f4083c27880c975e08a153e6d4955",
+  "sourceSha256": "bf9c4f48284934c45eed10cb0ae05bafec9f87cea89fafbfd739313b265f55ba",
+  "analyzerSha256": "d6a985b119f5ac02c62a4149a367f84282273a60e1c67f599e8962194ea18f0c",
+  "nativeImageBounds": [
+    0,
+    1077,
+    1080,
+    1888
+  ],
+  "recordedViewport": [
+    220,
+    0,
+    360,
+    800
+  ],
+  "recordedImageRegion": [
+    220,
+    359,
+    360,
+    270
+  ],
+  "referencePTS": 63.0,
+  "windowPTS": [
+    63.0,
+    70.48
+  ],
+  "decodedFrames": 188,
+  "visibleCanaryFrames": 188,
+  "blankMediaFrames": 0,
+  "ambiguousOrUnresolvedFrames": 0,
+  "frameIntervalMs": 40,
+  "exactDuplicateViewportFrames": 80,
+  "nearDuplicateViewportFrames": 175,
+  "colorTolerance": 60,
+  "algorithmChangedSinceFailedRun": false,
+  "appiumRefreshActionUTC": "2026-11-05T18:20:14.162Z",
+  "completedFeedRequestUTC": "2026-11-05T18:20:14.237Z",
+  "completedMediaSigningUTC": "2026-11-05T18:20:15.841Z",
+  "observerImageTransitions": [
+    {
+      "elapsedMs": 10443,
+      "sourceClass": "remote"
+    },
+    {
+      "elapsedMs": 11795,
+      "sourceClass": "decrypted-local"
+    }
+  ],
+  "postRefreshAndNavigationLocalImageRetained": true,
+  "passedDeviceChecks": 4,
+  "requiredDeviceChecks": 7,
+  "coldOfflineStageReached": false,
+  "coldStageBlocker": "Strict physical radio-state readback failed before cold launch",
+  "frames": [
+    {
+      "pts": 63.0,
+      "file": "refresh-visible-63.00.png",
+      "sha256": "80b2784e9d6c287339cc9063dc9f958424980b6085ff5b26f2f5c5869111b95e"
+    },
+    {
+      "pts": 64.48,
+      "file": "refresh-visible-64.48.png",
+      "sha256": "32581f5a1ff0f69f9d7be2c9b7f5fd4f3fe7262444156d133f48426acb7df36f"
+    },
+    {
+      "pts": 66.0,
+      "file": "refresh-visible-66.00.png",
+      "sha256": "8ac380602a4397e59b3b9498d9496d8232dc730f1dffbb867b6aeba7aba2bc2d"
+    },
+    {
+      "pts": 70.48,
+      "file": "refresh-visible-70.48.png",
+      "sha256": "e08e2bb35ef3a880a78891fdbe8c20bd4036ed3b2159536a127006b1929588fa"
+    }
+  ],
+  "alignment": "The selected window follows the carousel return to the image and spans the actual refresh before Messages navigation. Wall-clock alignment is coarse, not a millisecond synchronization of host, phone and recording clocks.",
+  "limitations": [
+    "No image loss appeared in these 188 decoded recording samples. This is not a guarantee about frames the recording did not capture.",
+    "Repeated encoded viewports may indicate a stable UI or capture reuse.",
+    "One physical Pixel 8a run, not a fleet measure or a latency percentile.",
+    "The restored-network refresh was not reached, so it is not measured.",
+    "Only public synthetic-media crops retained. Raw login video and Appium logs are excluded."
+  ]
+}

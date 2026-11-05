@@ -1,0 +1,36 @@
+{
+  "recordedAt": "2026-11-05T19:51:38.261Z",
+  "projectArn": "arn:aws:devicefarm:us-west-2:481552727043:project:fdaa717f-3d4f-42f7-870e-c0739d4edc6c",
+  "passed": true,
+  "checks": [
+    {
+      "arn": "arn:aws:devicefarm:us-west-2:481552727043:upload:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/9c717f1c-c7cf-48bf-85b3-d333c941361b",
+      "name": "pc-connected-c8052ba-b4904ba-private-tests.zip",
+      "deleteAcknowledged": true,
+      "readbackCode": "NotFoundException",
+      "absent": true
+    },
+    {
+      "arn": "arn:aws:devicefarm:us-west-2:481552727043:upload:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/19c08351-bdb4-4e42-8a4e-9d94b44c2884",
+      "name": "pc-connected-b94272c-a89c123-private-tests.zip",
+      "deleteAcknowledged": true,
+      "readbackCode": "NotFoundException",
+      "absent": true
+    },
+    {
+      "arn": "arn:aws:devicefarm:us-west-2:481552727043:upload:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/a8105692-34e1-403c-affc-0313d4bcc6dc",
+      "name": "pc-connected-1aa2b52-4694ce0-private-tests.zip",
+      "deleteAcknowledged": true,
+      "readbackCode": "NotFoundException",
+      "absent": true
+    }
+  ],
+  "allAbsent": true,
+  "runHistoryDeleted": false,
+  "appUploadsDeleted": false,
+  "readbackAggregationIssue": {
+    "scriptError": "NameError: name 'ClientError' is not defined",
+    "apiResultsVerifiedIndividually": true,
+    "additionalReadWasUnnecessary": true
+  }
+}

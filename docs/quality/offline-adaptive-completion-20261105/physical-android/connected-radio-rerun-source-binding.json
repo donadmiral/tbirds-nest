@@ -1,0 +1,20 @@
+{
+  "appSourceCommit": "c8052ba7bb10f367a5e26337e94f3b080a48d7ce",
+  "backendFixCommit": "757114eb528373378f3cac19bc77fb2bd3efcaaa",
+  "harnessSourceCommit": "b94272cef396b2e3078fae28b4e38c5a5366f23a",
+  "apkSha256": "f2a3f0d1797690bdc5d776695e6d8cbc646d873d361a6a34f0aedb28349a15ac",
+  "testPackageSha256": "a89c12317f57c83c37bd09aface62ba11b1e4c124b95b3adae433b5843869ed1",
+  "testPackageBytes": 1660714,
+  "testSpecSha256": "2cba1c853f634e824601d9e133fa0fa19db25627068f0f7d6332b05c7097c79e",
+  "sourceFiles": {
+    "tests/test_connected.py": "4cdedb8c2dec2fabcc97f39d1ce092be10a5655d143399e07ed2d7a7e922783a",
+    "restore-network.py": "41d20146b95a80120ef4d1bc5b4aad341bdc9e28cbfbdd7f59b3a7ab2059de53",
+    "network_settings.py": "971392cd00f04e996243fd68e71de25e5b9db781ac403f33d8a0e30ddec18e6c",
+    "tests/test_network_settings.py": "9fffb2fa2348e2749c6a4eb790e3a83399ae3aca54063ec7f066e5c9d9ddb8ae"
+  },
+  "requiredDeviceChecks": 7,
+  "sameApk": true,
+  "sameTestSpec": true,
+  "fixtureChanged": false,
+  "radioCorrection": "Read the actual Android per-subscription data preference and verify exact restoration."
+}

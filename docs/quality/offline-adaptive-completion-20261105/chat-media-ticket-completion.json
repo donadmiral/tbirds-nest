@@ -1,6 +1,6 @@
 {
   "recordedAt": "2026-11-05T17:34:06.423225+00:00",
-  "scope": "Ordinary chat and group-avatar no-store prerequisite. Completes existing QA contracts on the inspected production baseline. No live writes.",
+  "scope": "Ordinary chat and group-avatar no-store prerequisite. Completed the inspected production contracts while preserving existing authority and readiness. Historical read-only preflight is retained below.",
   "migration": "supabase/migrations/20261105172326_chat_media_ticket_delivery_completion.sql",
   "sourceSha256": {
     "supabase/migrations/20261105172326_chat_media_ticket_delivery_completion.sql": "6d1411bfead01270e1978cb6634d8419efae14ac923225024af445ae0cad43fb",
@@ -11,7 +11,7 @@
     "command": "PC_TEST_PGLITE=1 node --test supabase/tests/media-content-tickets-db.test.cjs",
     "passed": 19,
     "failed": 0,
-    "scope": "10 existing content-ticket cases plus 9 forward-chat cases. Full deployed media baseline, PGlite. Native PostgreSQL 17 CI remains required."
+    "scope": "10 existing content-ticket cases plus 9 forward-chat cases on PGlite. The separate nativePostgres receipt confirms all 19 on PostgreSQL 17."
   },
   "productionPreflight": {
     "readOnly": true,
@@ -59,8 +59,47 @@
     "Verify ordinary messages, group avatars, limited original/HLS same grant, expiry and close",
     "Activate client flags only after reviewed receipts"
   ],
-  "nativePostgres": "pending publication and CI",
-  "hostedOriginalByteProxy": "not yet verified against this new source",
-  "productionDeployed": false,
-  "peerReview": "Capacity agent reviewed bounded work and predicate preservation. The volatile expiry cutoff was replaced with a per-RPC constant before publication."
+  "nativePostgres": {
+    "passed": true,
+    "version": "PostgreSQL 17",
+    "transport": "disposable local Unix socket",
+    "commit": "c8052ba7bb10f367a5e26337e94f3b080a48d7ce",
+    "runId": 42076396204,
+    "jobId": 127417605189,
+    "tests": 19,
+    "failed": 0,
+    "verifiedAt": "2026-11-05T17:38:46.241356+00:00",
+    "sourceMatchedRecordedCheckout": true,
+    "scope": "Historical 19-case suite at c8052ba. Later ticket/version coverage is the 24-case PostgreSQL 17.11 suite at 757114e.",
+    "laterEvidence": {
+      "receipt": "content-version-continuity-fix.json",
+      "runId": 42082229154,
+      "jobId": 127437987438,
+      "passed": 24,
+      "failed": 0
+    }
+  },
+  "hostedOriginalByteProxy": {
+    "passed": true,
+    "cases": 20,
+    "receipt": "private-hls-original-hosted-canary.json"
+  },
+  "productionDeployed": true,
+  "peerReview": "Capacity agent reviewed bounded work and predicate preservation. The volatile expiry cutoff was replaced with a per-RPC constant before publication.",
+  "productionPostflight": {
+    "receipt": "private-media-production-rollout.json",
+    "verification": {
+      "issuer": "0ebaedeaded2112da609f33e07f91fa4",
+      "resolver": "5d323413e971c44e049a29057662fd5d",
+      "legacy_rls": true,
+      "content_ready": true,
+      "chat_issuer_anon": false,
+      "legacy_reader_anon": false,
+      "private_hls_enabled": true,
+      "chat_issuer_authenticated": true,
+      "legacy_reader_authenticated": true,
+      "legacy_service_table_access": false,
+      "legacy_authenticated_table_access": false
+    }
+  }
 }

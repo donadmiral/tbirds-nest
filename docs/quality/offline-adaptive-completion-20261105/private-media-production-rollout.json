@@ -1,0 +1,173 @@
+{
+  "source": "c8052ba7bb10f367a5e26337e94f3b080a48d7ce",
+  "projectId": "prlkikhckbifseosbukl",
+  "recordedAt": "2026-11-05 17:55:20 UTC",
+  "status": "production-web-and-protected-backend-active",
+  "migrations": [
+    {
+      "file": "20261105155600_private_chat_adaptive_delivery.sql",
+      "installed": true
+    },
+    {
+      "file": "20261105171030_legacy_limited_delivery_completion.sql",
+      "installed": true
+    },
+    {
+      "file": "20261105172326_chat_media_ticket_delivery_completion.sql",
+      "installed": true
+    }
+  ],
+  "verification": {
+    "issuer": "0ebaedeaded2112da609f33e07f91fa4",
+    "resolver": "5d323413e971c44e049a29057662fd5d",
+    "legacy_rls": true,
+    "content_ready": true,
+    "chat_issuer_anon": false,
+    "legacy_reader_anon": false,
+    "private_hls_enabled": true,
+    "chat_issuer_authenticated": true,
+    "legacy_reader_authenticated": true,
+    "legacy_service_table_access": false,
+    "legacy_authenticated_table_access": false
+  },
+  "edges": [
+    {
+      "name": "limited-media-file",
+      "id": "20b00d1a-d0e5-4f6e-bfa8-8e034e87835d",
+      "version": 1,
+      "status": "ACTIVE",
+      "bundleSha256": "8065aab3ad4442d1ad765bbacb377427d531e310576320bff51ab67a9242d363",
+      "gatewayJwtVerification": false,
+      "handlerAuthentication": "Supabase Auth getUser and live authorized SQL session/object checks"
+    },
+    {
+      "name": "chat-media-sign",
+      "id": "0389acc4-5b14-483d-9571-81d82ffffdee",
+      "version": 23,
+      "status": "ACTIVE",
+      "bundleSha256": "8b08c3f572d85869b26936b1b462282e828bca14b0268519c6d434bb9089b38f",
+      "gatewayJwtVerification": false,
+      "handlerAuthentication": "Supabase Auth getUser and live authorized SQL session/object checks"
+    }
+  ],
+  "denialProbe": {
+    "passed": true,
+    "checks": [
+      {
+        "function": "limited-media-file",
+        "authentication": "absent",
+        "status": 401,
+        "cacheControl": "private, no-store, max-age=0"
+      },
+      {
+        "function": "limited-media-file",
+        "authentication": "malformed",
+        "status": 401,
+        "cacheControl": "private, no-store, max-age=0"
+      },
+      {
+        "function": "private-hls",
+        "authentication": "absent",
+        "status": 401,
+        "cacheControl": "private, no-store, max-age=0"
+      },
+      {
+        "function": "private-hls",
+        "authentication": "malformed",
+        "status": 401,
+        "cacheControl": "private, no-store, max-age=0"
+      },
+      {
+        "function": "chat-media-sign",
+        "authentication": "absent",
+        "status": 401,
+        "cacheControl": "no-store"
+      },
+      {
+        "function": "chat-media-sign",
+        "authentication": "malformed",
+        "status": 401,
+        "cacheControl": "no-store"
+      }
+    ]
+  },
+  "encoder": {
+    "deploymentId": "dpl_2VSupQAiio36EteAYXkTvvZQrsb2",
+    "source": "75078e4ab762c45a9acba0239bdc5a8b5bdcd173",
+    "target": "production",
+    "state": "READY"
+  },
+  "web": {
+    "deploymentId": "dpl_HjBaDeRXtD6FxHZXSw2Lax3KqZnS",
+    "target": "production",
+    "source": "c8052ba7bb10f367a5e26337e94f3b080a48d7ce",
+    "state": "READY",
+    "aliases": [
+      "platinumcircles.app",
+      "www.platinumcircles.app"
+    ],
+    "liveHttpProbe": {
+      "path": "/login",
+      "status": 200,
+      "exactDeploymentMarker": true
+    }
+  },
+  "privateHlsEnabled": true,
+  "privateNativeRuntimeAccepted": false,
+  "privateNativeProductionFlagEnabled": false,
+  "capacityAccepted": false,
+  "activation": {
+    "enabled": true,
+    "rowsActivated": 1,
+    "unchangedContentSourceFingerprint": "de33cfb520b49f2a0491a1bb29061f3b"
+  },
+  "backfill": {
+    "dryRun": [
+      {
+        "hasMore": true,
+        "scanned": 50,
+        "eligible": 1,
+        "nextAfterId": "782c9622-2dc2-4bbc-a731-051caae40d26"
+      },
+      {
+        "hasMore": false,
+        "scanned": 46,
+        "eligible": 0,
+        "nextAfterId": "fc337dd4-6e7d-42ac-b73d-71ddf0d48fda"
+      }
+    ],
+    "applied": [
+      {
+        "hasMore": true,
+        "scanned": 50,
+        "eligible": 1,
+        "nextAfterId": "782c9622-2dc2-4bbc-a731-051caae40d26"
+      },
+      {
+        "hasMore": false,
+        "scanned": 46,
+        "eligible": 0,
+        "nextAfterId": "fc337dd4-6e7d-42ac-b73d-71ddf0d48fda"
+      }
+    ],
+    "postflight": {
+      "chat_jobs": {
+        "ready": 1
+      },
+      "current_chat_grants": 0,
+      "private_hls_enabled": true,
+      "original_view_grants": 0
+    },
+    "workerResourcesIncreased": false,
+    "complete": true,
+    "allEligibleSourcesPrepared": true
+  },
+  "contentVersionContinuity": {
+    "source": "757114eb528373378f3cac19bc77fb2bd3efcaaa",
+    "migration": "20261105180908_content_media_ticket_versions_v2.sql",
+    "edge": "content-media-sign",
+    "edgeVersion": 12,
+    "status": "ACTIVE",
+    "receipt": "content-version-continuity-fix.json"
+  }
+}

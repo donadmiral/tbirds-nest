@@ -1,0 +1,211 @@
+{
+  "sourceCommit": "c8052ba7bb10f367a5e26337e94f3b080a48d7ce",
+  "workflowRun": 42076396130,
+  "artifactSha256": "53ace0e637292eb00bf43921e208291ebc9f95582329ffbeb520d2717fce2cf6",
+  "apkSha256": "f2a3f0d1797690bdc5d776695e6d8cbc646d873d361a6a34f0aedb28349a15ac",
+  "apkBytes": 75579829,
+  "abi": "arm64-v8a",
+  "javascriptBundled": true,
+  "disposableDebuggableQa": true,
+  "connectedQaBackend": true,
+  "syntheticBackend": false,
+  "testPackageSha256": "b4904ba0930b02713258c926b2bbed9901eb8deda6d2703e96b26a94cd3b9c44",
+  "unboundTestPackageSha256": "f3c045ceeb8a166905afc980ec26157361fb33e3b2a82beca7b462d58f777167",
+  "harnessSha256": "fc2addb4be595cb5c07cb1010b552b032d518b30bf875688dd2641b743b78a01",
+  "testSpecSha256": "2cba1c853f634e824601d9e133fa0fa19db25627068f0f7d6332b05c7097c79e",
+  "sourceFilesVerified": 805,
+  "sourceBindingsPassed": true,
+  "canaryRunId": "554e817b-78b8-4e64-9a94-b2aa80fdca4d",
+  "physicalDeviceAcceptance": false,
+  "artifactId": 13439483284,
+  "verifiedAt": "2026-11-05T17:57:57.645411+00:00",
+  "run": {
+    "arn": "arn:aws:devicefarm:us-west-2:481552727043:run:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/f760d34a-d0f9-40a7-8670-418d7b484ee2",
+    "name": "Platinum c8052ba connected offline b4904ba",
+    "type": "APPIUM_PYTHON",
+    "platform": "ANDROID_APP",
+    "created": "2026-11-05T17:58:56.136000+00:00",
+    "status": "COMPLETED",
+    "result": "FAILED",
+    "started": "2026-11-05T17:58:56.136000+00:00",
+    "stopped": "2026-11-05T18:03:04.587000+00:00",
+    "counters": {
+      "total": 3,
+      "passed": 2,
+      "failed": 1,
+      "warned": 0,
+      "errored": 0,
+      "stopped": 0,
+      "skipped": 0
+    },
+    "totalJobs": 1,
+    "completedJobs": 1,
+    "billingMethod": "METERED",
+    "deviceMinutes": {
+      "total": 2.88,
+      "metered": 2.56,
+      "unmetered": 0
+    },
+    "appUpload": "arn:aws:devicefarm:us-west-2:481552727043:upload:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/5c46ea0b-521b-4c63-af4e-78d7bd302836",
+    "jobTimeoutMinutes": 10,
+    "radios": {
+      "wifi": true,
+      "bluetooth": false,
+      "nfc": true,
+      "gps": true
+    },
+    "skipAppResign": true,
+    "testSpecArn": "arn:aws:devicefarm:us-west-2:481552727043:upload:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/91dc3d2a-1247-44a0-ab1f-b338f8cf983d",
+    "deviceSelectionResult": {
+      "filters": [
+        {
+          "attribute": "ARN",
+          "operator": "EQUALS",
+          "values": [
+            "arn:aws:devicefarm:us-west-2::device:49DF63F491EE48C1B5B3944104705D62"
+          ]
+        }
+      ],
+      "matchedDevicesCount": 1,
+      "maxDevices": 1
+    },
+    "insightsTypes": [
+      "TEST_REPORT"
+    ],
+    "insights": {
+      "status": "COMPLETED",
+      "jobReport": {
+        "message": "Results: 1 Executed | 1 failed, Median job duration: 172.73 seconds, Average job duration: 172.73 seconds.",
+        "metrics": {
+          "jobsTotal": 1,
+          "jobsPassed": 0,
+          "jobsFailed": 1,
+          "jobsSkipped": 0,
+          "jobsErrored": 0,
+          "jobsStopped": 0,
+          "jobsPassedPercentage": 0,
+          "totalJobExecutionDurationSeconds": 172.73,
+          "averageJobExecutionDurationSeconds": 172.73,
+          "medianJobExecutionDurationSeconds": 172.73
+        }
+      }
+    }
+  },
+  "uploads": {
+    "app": {
+      "arn": "arn:aws:devicefarm:us-west-2:481552727043:upload:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/5c46ea0b-521b-4c63-af4e-78d7bd302836",
+      "name": "pc-connected-c8052ba-f2a3f0d.apk",
+      "created": "2026-11-05T17:57:23.502000+00:00",
+      "type": "ANDROID_APP",
+      "status": "SUCCEEDED",
+      "metadata": "{\"device_admin\":false,\"activity_name\":\"app.platinumcircles.mobile.qa.MainActivity\",\"version_name\":\"1.1.0\",\"screens\":[\"small\",\"normal\",\"large\",\"xlarge\"],\"error_type\":null,\"package_name\":\"app.platinumcircles.mobile.qa\",\"version_code\":\"1\",\"sdk_version\":\"24\",\"native_code\":[\"arm64-v8a\"],\"target_sdk_version\":\"36\"}",
+      "contentType": "application/vnd.android.package-archive",
+      "category": "PRIVATE"
+    },
+    "tests": {
+      "arn": "arn:aws:devicefarm:us-west-2:481552727043:upload:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/9c717f1c-c7cf-48bf-85b3-d333c941361b",
+      "name": "pc-connected-c8052ba-b4904ba-private-tests.zip",
+      "created": "2026-11-05T17:57:24.179000+00:00",
+      "type": "APPIUM_PYTHON_TEST_PACKAGE",
+      "status": "SUCCEEDED",
+      "metadata": "{\"valid\":true}",
+      "contentType": "application/zip",
+      "category": "PRIVATE"
+    },
+    "spec": {
+      "arn": "arn:aws:devicefarm:us-west-2:481552727043:upload:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/91dc3d2a-1247-44a0-ab1f-b338f8cf983d",
+      "name": "pc-connected-adf48a3-test-spec.yml",
+      "created": "2026-11-05T17:18:35.866000+00:00",
+      "type": "APPIUM_PYTHON_TEST_SPEC",
+      "status": "SUCCEEDED",
+      "metadata": "{\"valid\":true,\"androidTestHost\":\"amazon_linux_2023\",\"androidAmazonLinux2HostFlag\":false}",
+      "contentType": "application/x-yaml",
+      "category": "PRIVATE"
+    }
+  },
+  "fixtureBackend": false,
+  "offlineOriginalMediaAcceptance": false,
+  "allPagesAcceptance": false,
+  "physicalIphoneAcceptance": false,
+  "nativePrivateHlsAcceptance": false,
+  "cleanupComplete": false,
+  "scope": "One real QA public carousel. Normal auth and first-party immutable originals. Physical native encryption, refresh, navigation and offline cold decoded image and video.",
+  "remoteArtifacts": [
+    {
+      "arn": "arn:aws:devicefarm:us-west-2:481552727043:artifact:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/f760d34a-d0f9-40a7-8670-418d7b484ee2/00000/00000/00000/00000",
+      "name": "Logcat",
+      "type": "DEVICE_LOG",
+      "extension": "logcat"
+    },
+    {
+      "arn": "arn:aws:devicefarm:us-west-2:481552727043:artifact:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/f760d34a-d0f9-40a7-8670-418d7b484ee2/00000/00001/00000/00000",
+      "name": "Test spec output",
+      "type": "TESTSPEC_OUTPUT",
+      "extension": "txt"
+    },
+    {
+      "arn": "arn:aws:devicefarm:us-west-2:481552727043:artifact:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/f760d34a-d0f9-40a7-8670-418d7b484ee2/00000/00001/00000/00001",
+      "name": "Test spec timestamped output",
+      "type": "RAW_FILE",
+      "extension": "txt"
+    },
+    {
+      "arn": "arn:aws:devicefarm:us-west-2:481552727043:artifact:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/f760d34a-d0f9-40a7-8670-418d7b484ee2/00000/00001/00000/00002",
+      "name": "Test spec shell script",
+      "type": "RAW_FILE",
+      "extension": "sh"
+    },
+    {
+      "arn": "arn:aws:devicefarm:us-west-2:481552727043:artifact:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/f760d34a-d0f9-40a7-8670-418d7b484ee2/00000/00001/00000/00003",
+      "name": "Test spec file",
+      "type": "RAW_FILE",
+      "extension": "yml"
+    },
+    {
+      "arn": "arn:aws:devicefarm:us-west-2:481552727043:artifact:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/f760d34a-d0f9-40a7-8670-418d7b484ee2/00000/00001/00000/00004",
+      "name": "Customer Artifacts",
+      "type": "CUSTOMER_ARTIFACT",
+      "extension": "zip"
+    },
+    {
+      "arn": "arn:aws:devicefarm:us-west-2:481552727043:artifact:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/f760d34a-d0f9-40a7-8670-418d7b484ee2/00000/00001/00000/00005",
+      "name": "Customer Artifacts Log",
+      "type": "CUSTOMER_ARTIFACT_LOG",
+      "extension": "txt"
+    },
+    {
+      "arn": "arn:aws:devicefarm:us-west-2:481552727043:artifact:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/f760d34a-d0f9-40a7-8670-418d7b484ee2/00000/00001/00000/00006",
+      "name": "Video",
+      "type": "VIDEO",
+      "extension": "mp4"
+    },
+    {
+      "arn": "arn:aws:devicefarm:us-west-2:481552727043:artifact:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/f760d34a-d0f9-40a7-8670-418d7b484ee2/00000/00001/00000/00007",
+      "name": "Logcat",
+      "type": "DEVICE_LOG",
+      "extension": "logcat"
+    },
+    {
+      "arn": "arn:aws:devicefarm:us-west-2:481552727043:artifact:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/f760d34a-d0f9-40a7-8670-418d7b484ee2/00000/00001/00000/00012",
+      "name": "TCP dump log",
+      "type": "RAW_FILE",
+      "extension": "txt"
+    },
+    {
+      "arn": "arn:aws:devicefarm:us-west-2:481552727043:artifact:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/f760d34a-d0f9-40a7-8670-418d7b484ee2/00000/00002/00000/00003",
+      "name": "Logcat",
+      "type": "DEVICE_LOG",
+      "extension": "logcat"
+    },
+    {
+      "arn": "arn:aws:devicefarm:us-west-2:481552727043:artifact:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/f760d34a-d0f9-40a7-8670-418d7b484ee2/00000/00002/00000/00005",
+      "name": "TCP dump log",
+      "type": "RAW_FILE",
+      "extension": "txt"
+    }
+  ],
+  "allSevenChecksPassed": false,
+  "completedChecks": 3,
+  "failureEvidence": "connected-f760d34a-diagnostic.json",
+  "assertionsChanged": false
+}

@@ -1,0 +1,63 @@
+{
+  "source": "7f804a32ce66c8f7f817409f15f56ae913256f86",
+  "result": "Both native application compile jobs passed. Simulator and emulator runtime jobs passed.",
+  "physicalDeviceAcceptance": false,
+  "releaseIPAProduced": false,
+  "platforms": {
+    "android": {
+      "workflowRunId": 42061116238,
+      "jobId": 127363052538,
+      "artifactId": 13432179179,
+      "artifactSha256": "7325f7a0666dcb544b3e2ac6b8577e0783885c0b90167d1d4e6794bba6a70904",
+      "receiptFile": "android-compile-7f804a3-receipt.json",
+      "nativeSourceMatchesReviewedCheckout": {
+        "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt": true,
+        "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": true,
+        "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": true,
+        "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt": true,
+        "modules/boomerang/android/src/main/java/expo/modules/boomerang/ReactVideoComposition.kt": true,
+        "modules/boomerang/android/src/main/java/expo/modules/boomerang/ReactVideoEffects.kt": true
+      },
+      "physicalDeviceAcceptance": false,
+      "runtimeJobs": [
+        {
+          "jobId": 127363052583,
+          "name": "Story and memory encoders on Android emulator",
+          "conclusion": "success"
+        }
+      ]
+    },
+    "ios": {
+      "workflowRunId": 42061116224,
+      "jobId": 127363785841,
+      "artifactId": 13431014908,
+      "artifactSha256": "4768af0c6b37844efe282b17f3b00bf01667a3a2555e1a6f5a322997ca6ecf74",
+      "receiptFile": "ios-compile-7f804a3-receipt.json",
+      "nativeSourceMatchesReviewedCheckout": {
+        "modules/boomerang/ios/BoomerangModule.swift": true,
+        "modules/boomerang/ios/StoryVideoView.swift": true,
+        "modules/boomerang/ios/StoryHLSGradeSurface.swift": true,
+        "modules/boomerang/ios/StoryVideoComposition.swift": true,
+        "modules/boomerang/ios/ReactVideoComposition.swift": true
+      },
+      "physicalDeviceAcceptance": false,
+      "runtimeJobs": [
+        {
+          "jobId": 127363785042,
+          "name": "React video composition on iOS simulator",
+          "conclusion": "success"
+        },
+        {
+          "jobId": 127363785645,
+          "name": "Story audio export on iOS simulator",
+          "conclusion": "success"
+        },
+        {
+          "jobId": 127363785799,
+          "name": "Memory movie export on iOS simulator",
+          "conclusion": "success"
+        }
+      ]
+    }
+  }
+}

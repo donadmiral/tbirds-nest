@@ -1,14 +1,22 @@
 {
-  "recordedAt": "2026-11-05T16:02:27.632687+00:00",
+  "recordedAt": "2026-11-05T16:07:09.274706+00:00",
   "baseCommit": "5e5eb8a4b692cc082fe9edd3fbdf5db026a61c87",
-  "status": "local_pass_hosted_and_real_pg_pending",
+  "status": "historical_local_and_real_pg_pass",
   "tests": {
     "edgeAndWorker": 14,
     "database": 12,
     "total": 26,
     "failed": 0,
     "databaseEngine": "PGlite 0.5.10, actual migration chain",
-    "realPostgres17": "CI gate added, not executed in this receipt",
+    "realPostgres17": {
+      "version": "17.11",
+      "commit": "7f804a32ce66c8f7f817409f15f56ae913256f86",
+      "runId": 42061116446,
+      "jobId": 127362779647,
+      "conclusion": "success",
+      "privateHlsCases": 12,
+      "tcpListener": false
+    },
     "physicalPlayer": "not executed"
   },
   "command": "node --test tests/private-hls.test.cjs supabase/tests/private-hls-db.test.cjs",
@@ -37,5 +45,19 @@
     "supabase/tests/private-hls-db.test.cjs": "304d2a65c613cfe9ea1691e8d79dc11722d087003f8bf8c498cc2b100228068e",
     "supabase/tests/private-hls-deployed-contracts-20261105.sql": "9b2d0833b12fb5983c30436d39e9c04dc07f142bd8c2b865ce2d0f7ae9493a83",
     "tests/private-hls.test.cjs": "e0d630aea5692fd777f7d8042577e55dbb0ef74eb567ec5adf516fab1bac09ce"
+  },
+  "edgeTypecheck": {
+    "commit": "7f804a32ce66c8f7f817409f15f56ae913256f86",
+    "jobId": 127362779974,
+    "conclusion": "success"
+  },
+  "laterEvidence": {
+    "privateHlsPostgresCases": 18,
+    "ordinaryChatPostgresCases": 19,
+    "browserCases": 6,
+    "hostedCases": 20,
+    "hostedReceipt": "private-hls-original-hosted-canary.json",
+    "physicalPrivatePlayer": "not executed",
+    "productionNativePrivateHls": false
   }
 }

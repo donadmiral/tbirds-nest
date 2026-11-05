@@ -1,0 +1,148 @@
+{
+  "status": "verified-and-delivered-for-qa",
+  "applicationBefore": "c8052ba7bb10f367a5e26337e94f3b080a48d7ce",
+  "backendSource": "757114eb528373378f3cac19bc77fb2bd3efcaaa",
+  "evidenceRun": "48248a1b-826a-49b0-86be-c643078135da",
+  "functionalStagesPassed": 7,
+  "visualFailure": {
+    "normalRefresh": {
+      "visibleFrames": 116,
+      "observedFrames": 116
+    },
+    "restoredNetworkRefresh": {
+      "visibleFrames": 145,
+      "observedFrames": 146,
+      "blankPTS": 147.48,
+      "encodedIntervalMs": 40,
+      "picturedNeighborBracketMs": 80
+    },
+    "physicalDisplayIntervalClaimed": false,
+    "receipt": "physical-android/connected-48248a1b-refresh-recording/verified-refresh-observation.json"
+  },
+  "cause": {
+    "component": "FeedScreen",
+    "transition": "Cached per-post list to measured history pages on the first successful online history-reader probe",
+    "listKeyChanged": true,
+    "rowKeysAndParentsChanged": true,
+    "imageCacheReopenedAtTransition": false,
+    "remoteImageFallbackObserved": false,
+    "historyReaderSuccessEpochMs": 1793903864091,
+    "sameLocalImageDisplayEpochMs": 1793903864648
+  },
+  "correction": {
+    "sameSixPostPageStructureFromStartup": true,
+    "sameListKeyAndRenderItem": true,
+    "retainSameScopeMeasurementsAndNodes": true,
+    "measureVisibilityBeforeBackendReadiness": true,
+    "backendReadinessAndAuthorizationUnchanged": true,
+    "historyPaginationBudgetsUnchanged": true
+  },
+  "physicalAfterFix": {
+    "status": "passed",
+    "runId": "5e9ac2ed-7dac-47db-b033-4cbee2c273af",
+    "privateTestPackageSha256": "4694ce03c26dd0a04cc60299686c475e504fc58c1385ce42ca9ba65c34f03d43",
+    "sameHarnessAndSpec": true,
+    "samePixel8aSelection": true,
+    "sameFixture": true,
+    "capMinutes": 10,
+    "functionalStagesPassed": 7,
+    "receipt": "physical-android/connected-5e9ac2ed-receipt.json",
+    "manifest": "physical-android/connected-5e9ac2ed-manifest.json",
+    "visualAcceptance": {
+      "status": "passed",
+      "source": "1aa2b521231fd24bf6f7e6d9aae6f4e11f6de8b3",
+      "runId": "5e9ac2ed-7dac-47db-b033-4cbee2c273af",
+      "normalRefreshVisibleFrames": 209,
+      "normalRefreshObservedFrames": 209,
+      "restoredRefreshVisibleFrames": 193,
+      "restoredRefreshObservedFrames": 193,
+      "blankFrames": 0,
+      "ambiguousFrames": 0,
+      "criteriaUnchanged": true,
+      "broadWindowBoundaryReviewRetained": true,
+      "exactPhysicalDurationClaimed": false,
+      "receipt": "physical-android/connected-5e9ac2ed-refresh-recording/verified-refresh-observation.json"
+    },
+    "cleanupComplete": true,
+    "completionReceipt": "physical-android/connected-completion.json"
+  },
+  "applicationAfter": "1aa2b521231fd24bf6f7e6d9aae6f4e11f6de8b3",
+  "localVerification": {
+    "receipt": "feed-history-continuity-local.json",
+    "passed": 74,
+    "failed": 0,
+    "skipped": 0,
+    "typescriptPassed": true,
+    "independentReactReconciliationPassed": 5
+  },
+  "workflows": {
+    "quality": 42089356958,
+    "gradedIos": 42089357028,
+    "iphoneDelivery": 42089356900,
+    "physicalAndroidBuild": 42089356884
+  },
+  "gradedIos": {
+    "status": "passed",
+    "source": "1aa2b521231fd24bf6f7e6d9aae6f4e11f6de8b3",
+    "runId": 42089357028,
+    "artifactId": 13443918229,
+    "runtimeCases": 8,
+    "pixelChecks": 9,
+    "receipt": "graded-hls-1aa2b52-pass/verified-evidence.json",
+    "physicalIphoneProof": false
+  },
+  "quality": {
+    "status": "passed",
+    "runId": 42089356958,
+    "completedAtUTC": "2026-11-05T19:11:26Z",
+    "passedJobs": 6,
+    "totalJobs": 6,
+    "receipt": "feed-history-continuity-ci-1aa2b52.json"
+  },
+  "androidBuild": {
+    "runId": 42089356884,
+    "status": "passed",
+    "artifactId": 13445965478,
+    "archiveSha256": "06f6f24a737e7d48e02e3288897b3081fcf23c87de22a2d76f8071328ddcaee3",
+    "appSource": "1aa2b521231fd24bf6f7e6d9aae6f4e11f6de8b3",
+    "packageVerification": "passed",
+    "sourceHashesVerified": 808,
+    "apkSha256": "33074f84155b178973eec8515be8505cb6253df035619684257fed5035b1cbcb",
+    "receipt": "physical-android/connected-build-1aa2b52-receipt.json",
+    "sourceBinding": "physical-android/connected-1aa2b52-source-binding.json"
+  },
+  "iphone": {
+    "status": "FINISHED",
+    "source": "1aa2b521231fd24bf6f7e6d9aae6f4e11f6de8b3",
+    "qualityRunId": 42089356958,
+    "gradedHLSRunId": 42089357028,
+    "buildId": "6395bd07-4a3d-4eac-92ff-f8766dc79c35",
+    "installPage": "https://expo.dev/accounts/donadmiral/projects/platinum-circles/builds/6395bd07-4a3d-4eac-92ff-f8766dc79c35",
+    "buildNumber": "38",
+    "workflowRunId": 42089356900,
+    "workflowJobId": 127463006716,
+    "workflowConclusion": "success",
+    "finalReceiptAtUTC": "2026-11-05T19:19:03.2380487Z",
+    "workflowURL": "https://github.com/donadmiral/tbirds-nest/actions/runs/42089356900",
+    "exactCommitInCheckoutLog": true,
+    "gatesReadFromFinalReceipt": true
+  },
+  "acceptanceRequirements": {
+    "sameSevenFunctionalStages": true,
+    "actualNativeRebuild": true,
+    "reviewNormalAndRestoredRefreshRecordings": true,
+    "noBlankOrAmbiguousObservedMediaFrames": true,
+    "fixtureCleanupRequired": true
+  },
+  "acceptanceCompleted": true,
+  "cleanup": {
+    "status": "complete",
+    "receipt": "physical-android/connected-cleanup-status.json",
+    "independentAbsenceReceipt": "physical-android/connected-cleanup-final-readback.json",
+    "allTrackedFixtureCountsZero": true,
+    "trackedFixtureCounts": 15,
+    "temporaryEndpointRetired": true,
+    "privateTestUploadsRemoved": 3,
+    "localPrivateInputsRemoved": 7
+  }
+}

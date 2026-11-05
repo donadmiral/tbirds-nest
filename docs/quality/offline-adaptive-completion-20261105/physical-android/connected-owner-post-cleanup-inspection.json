@@ -1,0 +1,43 @@
+{
+  "phase": "inspect",
+  "projectId": "uaulhuelcfkjwojtymmw",
+  "fixtureRunId": "554e817b-78b8-4e64-9a94-b2aa80fdca4d",
+  "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+  "authorId": "78d81bd0-3381-499a-a8f3-f8264e36973c",
+  "readOnly": true,
+  "authenticatedAuthorPath": true,
+  "serviceRoleUsed": false,
+  "postDeleteAttempted": false,
+  "postDeleted": false,
+  "authStatus": 200,
+  "identityMarkerVerified": true,
+  "postReadStatus": 200,
+  "exactPostVerified": true,
+  "passed": true,
+  "recordedAt": "2026-11-05T19:03:38.095Z",
+  "appPath": "supabase.from(posts).delete().eq(id, postId)",
+  "additionalCleanupGuards": [
+    "normal author /auth/v1/user identity and qa_physical_cache_canary marker",
+    "exact fixed post ID, owner ID and caption filters",
+    "exactly one returned deleted row",
+    "authenticated absence readback",
+    "independent database readback before advancing cleanup"
+  ],
+  "currentTablePolicies": {
+    "authenticatedDeletePrivilege": true,
+    "ownerDeletePolicies": [
+      "posts_del",
+      "posts_delete_own"
+    ],
+    "restrictiveAllPolicy": "business_session_required"
+  },
+  "writesHeldForCorrectedNativeProof": true,
+  "inspectionScriptSha256": "001653c98de6cfe07e29ca124647611fd834aa7829d49b9f097ac75d8490f421",
+  "reviewedCleanupScriptSha256": "069369b5ea13bf1640ff0fae238e71b238beb15350600c676430f99b75ffe3b5",
+  "reviewedTightening": [
+    "returned ID, owner and caption must all match",
+    "after-read uses ID alone",
+    "independent database readback required from the moment DELETE is attempted",
+    "unknown mutation outcome explicitly retained after a timeout"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "deviceFarmRun": "48248a1b-826a-49b0-86be-c643078135da",
+  "canaryRunMarker": "554e817b-78b8-4e64-9a94-b2aa80fdca4d",
+  "receiptSha256": "4d12a989c5dd32a5405d6d07609213aeb711b2094274e255f8860d0361fd5286",
+  "checks": {
+    "sevenDistinctPassingChecks": true,
+    "appSourceMatchesBuildAndSourceBinding": true,
+    "apkHashMatchesBuildAndSourceBinding": true,
+    "harnessHashMatchesPublishedBinding": true,
+    "networkHelperHashMatchesPublishedBinding": true,
+    "warmColdExactFileProofsMatch": true,
+    "allOriginalsEncryptedByteExpansion": true,
+    "offlineSettingsExact": true,
+    "actualSubscriptionBindingRecorded": true,
+    "networkRestored": true,
+    "actualVideoAdvances": true,
+    "realQaConnectedNoFixture": true,
+    "noSuccessfulHostedResultInOfflineObserver": true,
+    "twoColdLocalVideoEvents": true
+  },
+  "allSourceAndFunctionalChecksVerified": true,
+  "functionalPassDoesNotResolveRecordedRefreshBlank": true,
+  "videoContinuityReceipt": "/tmp/physical-recording-review/48248a1b/refresh/verified-refresh-observation.json",
+  "coldImageOnDisplayFromJsObserverStartMs": 5711,
+  "coldVideoNativeSeconds": [
+    0.2460000067949295,
+    0.4959999918937683
+  ],
+  "sourceBindingSha256": "78ebbda98a7f0a4dc5fe471788a27af6e7710584d67d3b7775ac3245cc677580"
+}

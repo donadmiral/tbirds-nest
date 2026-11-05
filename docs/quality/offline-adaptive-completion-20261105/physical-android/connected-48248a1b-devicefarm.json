@@ -1,0 +1,152 @@
+{
+  "run": {
+    "run": {
+      "arn": "arn:aws:devicefarm:us-west-2:481552727043:run:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/48248a1b-826a-49b0-86be-c643078135da",
+      "name": "Platinum c8052ba connected cold b94272c",
+      "type": "APPIUM_PYTHON",
+      "platform": "ANDROID_APP",
+      "created": "2026-11-05T18:34:52.432000+00:00",
+      "status": "COMPLETED",
+      "result": "PASSED",
+      "started": "2026-11-05T18:34:52.432000+00:00",
+      "stopped": "2026-11-05T18:39:17.411000+00:00",
+      "counters": {
+        "total": 3,
+        "passed": 3,
+        "failed": 0,
+        "warned": 0,
+        "errored": 0,
+        "stopped": 0,
+        "skipped": 0
+      },
+      "totalJobs": 1,
+      "completedJobs": 1,
+      "billingMethod": "METERED",
+      "deviceMinutes": {
+        "total": 3.02,
+        "metered": 2.68,
+        "unmetered": 0
+      },
+      "appUpload": "arn:aws:devicefarm:us-west-2:481552727043:upload:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/5c46ea0b-521b-4c63-af4e-78d7bd302836",
+      "jobTimeoutMinutes": 10,
+      "radios": {
+        "wifi": true,
+        "bluetooth": false,
+        "nfc": true,
+        "gps": true
+      },
+      "skipAppResign": true,
+      "testSpecArn": "arn:aws:devicefarm:us-west-2:481552727043:upload:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/91dc3d2a-1247-44a0-ab1f-b338f8cf983d",
+      "deviceSelectionResult": {
+        "filters": [
+          {
+            "attribute": "ARN",
+            "operator": "EQUALS",
+            "values": [
+              "arn:aws:devicefarm:us-west-2::device:49DF63F491EE48C1B5B3944104705D62"
+            ]
+          }
+        ],
+        "matchedDevicesCount": 1,
+        "maxDevices": 1
+      },
+      "insightsTypes": [
+        "TEST_REPORT"
+      ],
+      "insights": {
+        "status": "COMPLETED",
+        "jobReport": {
+          "message": "Results: 1 Executed | 1 passed, Median job duration: 181.36 seconds, Average job duration: 181.36 seconds.",
+          "metrics": {
+            "jobsTotal": 1,
+            "jobsPassed": 1,
+            "jobsFailed": 0,
+            "jobsSkipped": 0,
+            "jobsErrored": 0,
+            "jobsStopped": 0,
+            "jobsPassedPercentage": 100,
+            "totalJobExecutionDurationSeconds": 181.36,
+            "averageJobExecutionDurationSeconds": 181.36,
+            "medianJobExecutionDurationSeconds": 181.36
+          }
+        }
+      }
+    }
+  },
+  "artifacts": {
+    "artifacts": [
+      {
+        "arn": "arn:aws:devicefarm:us-west-2:481552727043:artifact:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/48248a1b-826a-49b0-86be-c643078135da/00000/00000/00000/00000",
+        "name": "Logcat",
+        "type": "DEVICE_LOG",
+        "extension": "logcat"
+      },
+      {
+        "arn": "arn:aws:devicefarm:us-west-2:481552727043:artifact:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/48248a1b-826a-49b0-86be-c643078135da/00000/00001/00000/00000",
+        "name": "Test spec timestamped output",
+        "type": "RAW_FILE",
+        "extension": "txt"
+      },
+      {
+        "arn": "arn:aws:devicefarm:us-west-2:481552727043:artifact:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/48248a1b-826a-49b0-86be-c643078135da/00000/00001/00000/00001",
+        "name": "Test spec output",
+        "type": "TESTSPEC_OUTPUT",
+        "extension": "txt"
+      },
+      {
+        "arn": "arn:aws:devicefarm:us-west-2:481552727043:artifact:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/48248a1b-826a-49b0-86be-c643078135da/00000/00001/00000/00002",
+        "name": "Test spec shell script",
+        "type": "RAW_FILE",
+        "extension": "sh"
+      },
+      {
+        "arn": "arn:aws:devicefarm:us-west-2:481552727043:artifact:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/48248a1b-826a-49b0-86be-c643078135da/00000/00001/00000/00003",
+        "name": "Test spec file",
+        "type": "RAW_FILE",
+        "extension": "yml"
+      },
+      {
+        "arn": "arn:aws:devicefarm:us-west-2:481552727043:artifact:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/48248a1b-826a-49b0-86be-c643078135da/00000/00001/00000/00004",
+        "name": "Customer Artifacts",
+        "type": "CUSTOMER_ARTIFACT",
+        "extension": "zip"
+      },
+      {
+        "arn": "arn:aws:devicefarm:us-west-2:481552727043:artifact:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/48248a1b-826a-49b0-86be-c643078135da/00000/00001/00000/00005",
+        "name": "Customer Artifacts Log",
+        "type": "CUSTOMER_ARTIFACT_LOG",
+        "extension": "txt"
+      },
+      {
+        "arn": "arn:aws:devicefarm:us-west-2:481552727043:artifact:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/48248a1b-826a-49b0-86be-c643078135da/00000/00001/00000/00006",
+        "name": "Video",
+        "type": "VIDEO",
+        "extension": "mp4"
+      },
+      {
+        "arn": "arn:aws:devicefarm:us-west-2:481552727043:artifact:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/48248a1b-826a-49b0-86be-c643078135da/00000/00001/00000/00007",
+        "name": "Logcat",
+        "type": "DEVICE_LOG",
+        "extension": "logcat"
+      },
+      {
+        "arn": "arn:aws:devicefarm:us-west-2:481552727043:artifact:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/48248a1b-826a-49b0-86be-c643078135da/00000/00001/00000/00012",
+        "name": "TCP dump log",
+        "type": "RAW_FILE",
+        "extension": "txt"
+      },
+      {
+        "arn": "arn:aws:devicefarm:us-west-2:481552727043:artifact:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/48248a1b-826a-49b0-86be-c643078135da/00000/00002/00000/00001",
+        "name": "Logcat",
+        "type": "DEVICE_LOG",
+        "extension": "logcat"
+      },
+      {
+        "arn": "arn:aws:devicefarm:us-west-2:481552727043:artifact:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/48248a1b-826a-49b0-86be-c643078135da/00000/00002/00000/00005",
+        "name": "TCP dump log",
+        "type": "RAW_FILE",
+        "extension": "txt"
+      }
+    ]
+  }
+}

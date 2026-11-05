@@ -25,7 +25,30 @@
     "testFile": "supabase/tests/private-hls-db.test.cjs",
     "passed": 18,
     "failed": 0,
-    "realPostgres17": "pending existing type-quality CI job after publication",
-    "hostedMutationPerformed": false
+    "realPostgres17": "Passed all 18 cases in the preserved nativePostgres receipt.",
+    "hostedMutationPerformed": false,
+    "hostedMutationScope": "Historical local validation phase only. Completed production installation is recorded separately under productionPostflight."
+  },
+  "nativePostgres": {
+    "passed": true,
+    "version": "PostgreSQL 17",
+    "transport": "disposable local Unix socket",
+    "commit": "75078e4ab762c45a9acba0239bdc5a8b5bdcd173",
+    "runId": 42074151405,
+    "jobId": 127409722339,
+    "tests": 18,
+    "failed": 0,
+    "testSourceSha256": "449ef6f2c402bd701fd69419be9b31b82d80e09365d0ed6dabb20067f1a0a77e",
+    "sourceMatchesCurrentCheckout": true,
+    "verifiedAt": "2026-11-05T17:38:35.657699+00:00"
+  },
+  "productionPostflight": {
+    "installed": true,
+    "receipt": "private-media-production-rollout.json",
+    "legacyRls": true,
+    "authenticatedTableAccess": false,
+    "serviceRoleTableAccess": false,
+    "authenticatedReader": true,
+    "anonymousReader": false
   }
 }
