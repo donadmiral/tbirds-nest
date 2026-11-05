@@ -62,7 +62,7 @@ test('clip discovery rejects direct Storage grants, unbound names and malformed 
 test('signing creates clip HLS only for an exact issued video ticket and ready response', async () => {
   const api = loader()('supabase/functions/content-media-sign/adaptive.ts');
   for (const [file, expected] of [['horizontal.mp4', true], ['vertical.mp4', true], ['thumbnail.jpg', false], ['captions.vtt', false], ['original.mp4', false]]) {
-    const ticket = { bucket_id: 'live-clips', object_path: prefix + file, token, expires_at: new Date(expiresAt()).toISOString() };
+    const ticket = { bucket_id: 'live-clips', object_path: prefix + file, token, expires_at: new Date(expiresAt()).toISOString(), object_version: 'clip-v1' };
     const result = await api.contentPlaybackReadiness(base, [ticket], async items => {
       assert.equal(items[0].path, ticket.object_path);
       return { origin: 'https://media.fixture.test', items: [{ token, version: 'clip-v1', hls: true }, { token: 'b'.repeat(64), version: 'other', hls: true }] };

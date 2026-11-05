@@ -13,6 +13,7 @@ async function as(role,name,sql,args=[]){await db.exec('savepoint req');try{
  }catch(error){await db.exec('rollback to savepoint req;release savepoint req');throw new Error(error.message);}}
 const command=(session,clip,action,payload)=>as('authenticated','host','select public.live_clip_command($1,$2,$3,$4,$5)',[session,clip,action,JSON.stringify(payload),randomUUID()]);
 const issue=(kind,id)=>as('authenticated','viewer',"select coalesce(jsonb_agg(t),'[]'::jsonb) from public.issue_content_media_delivery($1,null)t",[JSON.stringify([{kind,id}])]);
+const issueVersioned=(kind,id)=>as('authenticated','viewer',"select coalesce(jsonb_agg(t),'[]'::jsonb) from public.issue_content_media_delivery_v2($1,null)t",[JSON.stringify([{kind,id}])]);
 const redeem=t=>as('service_role',null,'select public.resolve_media_delivery($1,$2,$3)',[t.token,t.bucket_id,t.object_path]);
 async function ready(){
  const {session_id:s}=await as('authenticated','host','select public.live_command($1,null,$2,$3)',['create',JSON.stringify({title:'Delivery fixture',topic:'news',recording_enabled:true}),randomUUID()]);
@@ -29,7 +30,7 @@ before(async()=>{
  await loadDeployedMediaBaseline(db);await db.exec('alter table auth.users add column if not exists is_anonymous boolean default false;');
  for(const name of ['20261102163428_production_content_media_tickets','20261103000609_live_portable_control_plane','20261103002857_live_clips_and_distribution','20261103002832_live_clip_content_delivery',
  '20261102071532_durable_media_processing_v1','20261102090521_adaptive_media_renditions_v2','20261102100428_media_broker_scoped_credentials_v2',
- '20261105044918_adaptive_media_admission_backfill_v2','20261105152331_adaptive_media_batch_readiness','20261105153608_published_live_clip_renditions']){
+ '20261105044918_adaptive_media_admission_backfill_v2','20261105152331_adaptive_media_batch_readiness','20261105153608_published_live_clip_renditions','20261105180908_content_media_ticket_versions_v2']){
   try{await db.exec(await source(`supabase/migrations/${name}.sql`));}catch(error){throw new Error(name+': '+error.message);}
  }
  await db.exec("update media_delivery.prerequisite_settings set enabled=true;update live_streams.clip_runtime set project_origin='https://abcdefghijklmnopqrst.supabase.co',enabled=true;");
@@ -53,6 +54,16 @@ test('published clips issue private content tickets and copyright revokes existi
  for(const t of tickets)assert.ok(await redeem(t));
  await command(s,c,'copyright',{status:'blocked',reason:'Synthetic rights test'});
  for(const t of tickets)assert.equal(await redeem(t),null);
+});
+test('versioned issuance preserves published-clip authority and returns exact issued source versions',async()=>{
+ const {s,c}=await ready(),p=await command(s,c,'publish',{destination:'feed',format:'horizontal'});
+ const tickets=await issueVersioned('post',p.post_id);assert.ok(tickets.length);assert.ok(tickets.every(t=>t.bucket_id==='live-clips'));
+ for(const t of tickets){
+  assert.equal(t.object_version,await value("select object_version from media_delivery.tickets where token_digest=extensions.digest($1,'sha256')",[t.token]));
+  assert.equal((await redeem(t)).version,t.object_version);
+ }
+ await command(s,c,'copyright',{status:'blocked',reason:'Synthetic versioned delivery rights test'});
+ assert.equal((await issueVersioned('post',p.post_id)).length,0);for(const t of tickets)assert.equal(await redeem(t),null);
 });
 test('post audience changes and forged reuse in another post cannot authorize clip bytes',async()=>{
  const {s,c}=await ready(),p=await command(s,c,'publish',{destination:'feed',format:'horizontal'}),tickets=await issue('post',p.post_id);

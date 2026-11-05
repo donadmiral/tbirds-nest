@@ -9,6 +9,7 @@ else {
   const root = path.resolve(__dirname, '../..');
   const migration = fs.readFileSync(path.join(root, 'supabase/migrations/20261102163428_production_content_media_tickets.sql'), 'utf8');
   const chatMigration = fs.readFileSync(path.join(root, 'supabase/migrations/20261105172326_chat_media_ticket_delivery_completion.sql'), 'utf8');
+  const versionMigration = fs.readFileSync(path.join(root, 'supabase/migrations/20261105180908_content_media_ticket_versions_v2.sql'), 'utf8');
   const chatForward = chatMigration.replace(/^begin;$/m, '').replace(/^commit;$/m, '');
   const preflight = migration.match(/do \$preflight\$[\s\S]*?\$preflight\$;/)[0];
   const preservation = fs.readFileSync(path.join(root, 'supabase/ops/production-content-media-tickets-20261102/preservation.sql'), 'utf8');
@@ -17,7 +18,7 @@ else {
   const sessions = { owner: id(101), viewer: id(102), stranger: id(103) };
   const literal = value => "'" + String(value).replaceAll("'", "''") + "'";
   const json = value => literal(JSON.stringify(value)) + '::jsonb';
-  let db, initialState, installedState, chatBefore, chatAfter, guardResults = [];
+  let db, initialState, installedState, chatBefore, chatAfter, versionBefore, versionAfter, guardResults = [];
   const query = sql => db.query(sql);
   const value = async sql => { const text = await query(sql); return text ? JSON.parse(text) : null; };
   const attempt = command => value(`select public.fixture_ticket_try(${literal(command)})`);
@@ -36,6 +37,7 @@ else {
   async function issue(name, entity, options) {
     return as(name, `select coalesce(jsonb_agg(t),'[]'::jsonb) from public.issue_content_media_delivery(${json([{ kind: 'post', id: entity }])},null) t`, options);
   }
+  const issueV2 = (name, entity, options) => as(name, `select coalesce(jsonb_agg(t),'[]'::jsonb) from public.issue_content_media_delivery_v2(${json([{ kind: 'post', id: entity }])},null) t`, options);
   async function redeem(ticket) {
     return as(null, `select public.resolve_media_delivery(${literal(ticket.token)},${literal(ticket.bucket_id)},${literal(ticket.object_path)})`, { role: 'service_role' });
   }
@@ -70,6 +72,12 @@ else {
     'settings',(select to_jsonb(s) from media_delivery.prerequisite_settings s),
     'buckets',(select jsonb_agg(to_jsonb(b) order by id) from storage.buckets b),
     'storage_policies',(select jsonb_agg(to_jsonb(p) order by oid) from pg_policy p where polrelid='storage.objects'::regclass))`;
+  const preservedVersionState = `select jsonb_build_object(
+    'functions',(select md5(string_agg(pg_get_functiondef(p.oid)||coalesce(p.proacl::text,''),E'\\n' order by p.oid)) from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+      where n.nspname in('public','auth','media_delivery','live_streams') and p.prokind='f' and p.proname<>'issue_content_media_delivery_v2'),
+    'settings',(select to_jsonb(s) from media_delivery.prerequisite_settings s),
+    'buckets',(select jsonb_agg(to_jsonb(b) order by id) from storage.buckets b),
+    'policies',(select jsonb_agg(to_jsonb(p) order by oid) from pg_policy p))`;
 
   before(async () => {
     if (process.env.PC_TEST_PSQL) {
@@ -110,6 +118,9 @@ else {
     chatBefore = await value(preservedChatState);
     await query(chatMigration);
     chatAfter = await value(preservedChatState);
+    versionBefore = await value(preservedVersionState);
+    await query(versionMigration);
+    versionAfter = await value(preservedVersionState);
   });
   beforeEach(() => query("begin;reset role;set request.jwt.claim.role='service_role';set request.jwt.claims='{\"role\":\"service_role\"}';set request.jwt.claim.sub=''"));
   afterEach(() => query('rollback'));
@@ -125,6 +136,67 @@ else {
     assert.equal(await value('select to_jsonb(count(*)) from media_delivery.tickets'), 0);
   });
   test('installation guards reject existing delivery, business authority, canonical ACL drift and missing Auth revocation fields', () => assert.equal(guardResults.length, 4));
+  test('versioned issuance is additive, authenticated-only and leaves every existing function, policy and flag unchanged', async () => {
+    assert.deepEqual(versionAfter, versionBefore);
+    for (const role of ['anon', 'authenticated', 'service_role']) {
+      assert.equal(await value(`select to_jsonb(has_function_privilege('${role}','public.issue_content_media_delivery_v2(jsonb,jsonb)','execute'))`), role === 'authenticated');
+      assert.equal((await as('viewer', 'select to_jsonb(count(*)) from media_delivery.tickets', { role })).ok, false);
+    }
+    const entity = await post(await object());
+    const response = await issueV2('viewer', entity);
+    assert.equal(response.ok, false); assert.equal(response.error, 'MEDIA_CONTENT_DELIVERY_NOT_READY');
+    assert.equal(await value('select to_jsonb(count(*)) from media_delivery.tickets'), 0);
+  });
+  test('versioned issuance sees its own inserted ticket and returns the exact replacement version on the next request', async () => {
+    await enable(); const media = await object(), entity = await post(media);
+    const first = await issueV2('viewer', entity); assert.equal(first.ok, true, first.error); assert.equal(first.value.length, 1);
+    const ticket = first.value[0]; assert.equal(ticket.object_version, media.version);
+    assert.deepEqual(Object.keys(ticket).sort(), ['bucket_id', 'expires_at', 'object_path', 'object_version', 'token']);
+    const stored = await value(`select jsonb_build_object('user_id',user_id,'session_id',session_id,'version',object_version,'bucket',bucket_id,'path',object_path,'expires_at',expires_at) from media_delivery.tickets where token_digest=extensions.digest(${literal(ticket.token)},'sha256')`);
+    assert.deepEqual(stored, { user_id: users.viewer, session_id: sessions.viewer, version: ticket.object_version, bucket: ticket.bucket_id, path: ticket.object_path, expires_at: ticket.expires_at });
+    await query(`update storage.objects set version='replacement-v2' where id='${media.id}'`);
+    assert.equal((await redeem(ticket)).value, null);
+    const second = await issueV2('viewer', entity); assert.equal(second.ok, true, second.error); assert.equal(second.value.length, 1);
+    assert.equal(second.value[0].object_version, 'replacement-v2'); assert.notEqual(second.value[0].token, ticket.token);
+    assert.equal((await redeem(second.value[0])).value.version, 'replacement-v2');
+    const legacy = await issued('viewer', entity); assert.equal(legacy.object_version, undefined, 'The existing RPC shape remains unchanged');
+  });
+  test('versioned issuance retains role, live session, audience, block and object-owner authorization', async () => {
+    await enable(); const media = await object(), entity = await post(media, 'followers');
+    assert.deepEqual((await issueV2('viewer', entity)).value, []);
+    await query(`insert into public.follows(follower_id,following_id) values('${users.viewer}','${users.owner}')`);
+    assert.equal((await issueV2('viewer', entity)).value.length, 1);
+    for (const role of ['anon', 'service_role']) assert.equal((await issueV2('viewer', entity, { role })).code, '42501');
+    for (const claims of [{ is_anonymous: true }, { session_id: null }, { session_id: id(9999) }, { session_id: sessions.owner }]) {
+      const response = await issueV2('viewer', entity, { claims }); assert.equal(response.code, '42501'); assert.equal(response.error, 'MEDIA_SESSION_REQUIRED');
+    }
+    await query(`update auth.sessions set not_after=clock_timestamp()-interval '1 second' where id='${sessions.viewer}'`);
+    assert.equal((await issueV2('viewer', entity)).error, 'MEDIA_SESSION_REQUIRED');
+    await query(`update auth.sessions set not_after=null where id='${sessions.viewer}';insert into public.blocked_users(blocker_id,blocked_id) values('${users.owner}','${users.viewer}')`);
+    assert.deepEqual((await issueV2('viewer', entity)).value, []);
+    await query(`delete from public.blocked_users;update storage.objects set owner='${users.stranger}',owner_id='${users.stranger}' where id='${media.id}'`);
+    assert.deepEqual((await issueV2('viewer', entity)).value, []);
+  });
+  test('versioned issuance delegates input caps and upload ownership without adding private-chat capabilities', async () => {
+    await enable(); const media = await object(), entity = await post(media);
+    for (const [references, uploads] of [[null, null], [[{ kind: 'post', id: entity }], [media.url]], [Array.from({ length: 101 }, () => ({ kind: 'post', id: entity })), null]]) {
+      assert.equal((await as('viewer', `select coalesce(jsonb_agg(t),'[]'::jsonb) from public.issue_content_media_delivery_v2(${references === null ? 'null' : json(references)},${uploads === null ? 'null' : json(uploads)}) t`)).ok, false);
+    }
+    const upload = (name, url) => as(name, `select coalesce(jsonb_agg(t),'[]'::jsonb) from public.issue_content_media_delivery_v2(null,${json([url])}) t`);
+    assert.deepEqual((await upload('viewer', media.url)).value, []);
+    const owned = await upload('owner', media.url); assert.equal(owned.ok, true, owned.error); assert.equal(owned.value[0].object_version, media.version);
+    const privateMedia = await object(2, users.owner, 'chat-media');
+    const excluded = await upload('owner', privateMedia.url); assert.ok(!excluded.ok || excluded.value.length === 0);
+  });
+  test('versioned issuance refuses a ticket for another user or session even if a faulty issuer returns it', async () => {
+    await enable(); const entity = await post(await object()), ticket = await issued('owner', entity);
+    await query(`create or replace function public.issue_content_media_delivery(p_references jsonb default null,p_uploads jsonb default null)
+      returns table(bucket_id text,object_path text,token text,expires_at timestamptz) language sql security definer set search_path='' as $body$
+      select ${literal(ticket.bucket_id)}::text,${literal(ticket.object_path)}::text,${literal(ticket.token)}::text,${literal(ticket.expires_at)}::timestamptz $body$`);
+    const foreign = await issueV2('viewer', entity); assert.equal(foreign.ok, false); assert.equal(foreign.error, 'CONTENT_DELIVERY_TICKET_VERSION_UNAVAILABLE');
+    await query(`update media_delivery.tickets set user_id='${users.viewer}' where token_digest=extensions.digest(${literal(ticket.token)},'sha256')`);
+    const wrongSession = await issueV2('viewer', entity); assert.equal(wrongSession.ok, false); assert.equal(wrongSession.error, 'CONTENT_DELIVERY_TICKET_VERSION_UNAVAILABLE');
+  });
   test('issuer is authenticated-only; resolver service-only; every private table/helper is unavailable to client and service roles', async () => {
     for (const role of ['anon', 'authenticated', 'service_role']) {
       assert.equal(await value(`select to_jsonb(has_function_privilege('${role}','public.issue_content_media_delivery(jsonb,jsonb)','execute'))`), role === 'authenticated');
