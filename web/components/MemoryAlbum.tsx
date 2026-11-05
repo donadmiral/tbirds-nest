@@ -10,6 +10,7 @@ import { ArrowLeft, BookOpen, ChevronLeft, ChevronRight, Grid3x3, Pencil, Plus, 
 import { createClient } from "@/lib/supabase/client";
 import { getNavigationStore } from '@/lib/navigationCache';
 import { memoryPageMediaKey } from '@/lib/memoryReadiness';
+import { attachAdaptiveVideo } from '@/lib/adaptiveVideo';
 import { watchStoryVideoFrame } from '@/lib/storyMediaReadiness';
 import { contentMediaUrls } from '../../shared/contentMedia';
 import { notifyMemoryBookShelfChanged } from "@/lib/memoryBookEvents";
@@ -70,6 +71,7 @@ function MemoryVideo({ src, poster, page, ownerId, active, onRetry, onEnd, onPro
   const [ready,setReady]=useState(false);
   const ref=useRef<HTMLVideoElement|null>(null),resumeAfterTurn=useRef(false),started=useRef(false),currentActive=useRef(active);
   useLayoutEffect(()=>{currentActive.current=active;},[active]);
+  const adaptive=useRef<ReturnType<typeof attachAdaptiveVideo>|null>(null);
   const playbackWindow=useRef(recipe);
   const completion=useRef({onEnd,onProgress,done:false});useLayoutEffect(()=>{completion.current.onEnd=onEnd;completion.current.onProgress=onProgress;},[onEnd,onProgress]);
   const finish=(video:HTMLVideoElement)=>{if(!completion.current.onEnd)return false;video.pause();if(!completion.current.done){completion.current.done=true;completion.current.onProgress?.(1);completion.current.onEnd();}return true;};
@@ -81,9 +83,9 @@ function MemoryVideo({ src, poster, page, ownerId, active, onRetry, onEnd, onPro
   useEffect(()=>{
     const video=ref.current;if(!video)return;
     let live=true;
-    if(video.getAttribute('src')!==src){video.src=src;video.load();}
-    const cancel=watchStoryVideoFrame(video,{source:src,start:()=>memoryStoryRecipe(page.media_transform,video.duration).start,current:()=>live&&ref.current===video,ready:()=>setReady(true)});
-    return()=>{live=false;cancel();video.pause();video.removeAttribute('src');video.load();};
+    const attachment=attachAdaptiveVideo(video,src,{shouldPlay:()=>currentActive.current&&!document.hidden&&document.documentElement.dataset.platinumCallActive!=='true'});adaptive.current=attachment;
+    const cancel=watchStoryVideoFrame(video,{source:src,matchesSource:attachment.sourceIsCurrent,start:()=>memoryStoryRecipe(page.media_transform,video.duration).start,current:()=>live&&ref.current===video,ready:()=>setReady(true)});
+    return()=>{live=false;cancel();attachment.dispose();adaptive.current=null;video.pause();video.removeAttribute('src');video.load();};
   },[src,transformKey]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(()=>{
     if(!active||ready||failed)return;
@@ -112,7 +114,7 @@ function MemoryVideo({ src, poster, page, ownerId, active, onRetry, onEnd, onPro
           // eslint-disable-next-line @next/next/no-img-element
           <img src={poster} alt="" aria-hidden className="absolute inset-0 h-full w-full object-contain" style={style}/>
         )}
-        <video ref={ref} src={src} preload="auto" controls playsInline loop={!onEnd} muted={muted||recipe.volume===0} data-memory-video={page.id} data-memory-frame-ready={ready} onError={()=>setFailed(true)} onLoadedMetadata={event=>{configure(event.currentTarget,true);setClock(recipe.start);}} onPlay={event=>{if(!active||document.hidden||document.documentElement.dataset.platinumCallActive==='true')event.currentTarget.pause();else configure(event.currentTarget);}} onTimeUpdate={event=>{const video=event.currentTarget;if(!active)return;const window=playbackWindow.current;if(window.end!=null)completion.current.onProgress?.(Math.max(0,Math.min(1,(video.currentTime-window.start)/(window.end-window.start))));if(window.end!=null&&video.currentTime>=window.end-.025&&finish(video))return;const seek=memoryStorySeek(video.currentTime,window);if(seek!=null)video.currentTime=seek;setClock(seek??video.currentTime);}} onEnded={event=>{if(active)finish(event.currentTarget);}} onSeeking={event=>{if(active)configure(event.currentTarget);}} style={{...style,opacity:ready?1:0}} className="h-full w-full object-contain" />
+        <video ref={ref} preload="auto" controls playsInline loop={!onEnd} muted={muted||recipe.volume===0} data-memory-video={page.id} data-memory-frame-ready={ready} onError={()=>{if(!adaptive.current?.recover())setFailed(true);}} onLoadedMetadata={event=>{configure(event.currentTarget,true);setClock(recipe.start);}} onPlay={event=>{if(!active||document.hidden||document.documentElement.dataset.platinumCallActive==='true')event.currentTarget.pause();else configure(event.currentTarget);}} onTimeUpdate={event=>{const video=event.currentTarget;if(!active)return;const window=playbackWindow.current;if(window.end!=null)completion.current.onProgress?.(Math.max(0,Math.min(1,(video.currentTime-window.start)/(window.end-window.start))));if(window.end!=null&&video.currentTime>=window.end-.025&&finish(video))return;const seek=memoryStorySeek(video.currentTime,window);if(seek!=null)video.currentTime=seek;setClock(seek??video.currentTime);}} onEnded={event=>{if(active)finish(event.currentTarget);}} onSeeking={event=>{if(active)configure(event.currentTarget);}} style={{...style,opacity:ready?1:0}} className="h-full w-full object-contain" />
       </>}</MemoryStoryFrame>
       <div className="pointer-events-none absolute right-2 top-2 z-10 flex items-center gap-2">
         <button type="button" disabled={recipe.volume===0} onClick={() => setMuted((v) => !v)} aria-label={recipe.volume===0?"Original video sound is off":muted ? "Unmute original video sound" : "Mute original video sound"} className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur hover:bg-white/30">

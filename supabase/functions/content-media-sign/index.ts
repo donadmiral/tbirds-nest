@@ -1,5 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.112.3';
 import { createContentMediaHandler } from './handler.ts';
+import { contentPlaybackReadiness } from './adaptive.ts';
+import { serviceRoleFetch } from '../_shared/serviceRoleFetch.ts';
 import { mediaDeliveryUrl } from '../../../shared/mediaDelivery.ts';
 
 const base = Deno.env.get('SUPABASE_URL')!;
@@ -31,8 +33,17 @@ Deno.serve(createContentMediaHandler({
   async deliver(request, references, uploads) {
     const { data, error } = await userClient(request).rpc('issue_content_media_delivery', { p_references: references, p_uploads: uploads });
     if (error || !Array.isArray(data)) return null;
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const service = createClient(base, serviceKey, { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: serviceRoleFetch(fetch, serviceKey) } });
+    const playback = await contentPlaybackReadiness(base, data, async items => {
+      const result = await service.rpc('media_playback_readiness_v2', { p_items: items }).abortSignal(AbortSignal.timeout(500));
+      return result.error ? null : result.data;
+    });
     return {
-      urls: data.map(row => ({ key: `${row.bucket_id}/${row.object_path}`, url: mediaDeliveryUrl(base, row.bucket_id, row.object_path, row.token) })),
+      urls: data.map(row => {
+        const url = mediaDeliveryUrl(base, row.bucket_id, row.object_path, row.token);
+        return { key: `${row.bucket_id}/${row.object_path}`, url, ...(playback.get(url) ?? {}) };
+      }),
       expiresAt: Math.min(Date.now() + 300000, ...data.map(row => Date.parse(row.expires_at))),
     };
   },

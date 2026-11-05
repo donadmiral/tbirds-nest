@@ -55,6 +55,7 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
     if (name === '@/lib/adaptiveVideo') return moduleFor(compile('lib/adaptiveVideo.ts'));
     if (name.includes('shared/adaptiveMedia')) return sharedModule('adaptiveMedia.ts');
     if (name === '@/lib/navigationCache') return { getNavigationStore: () => navigationStore };
+    if (name === '@/lib/useOfflineMedia') return { useOfflineMedia: (_id, media) => media };
     if (name === '@/lib/useFeedPreview') return { useFeedPreview: () => preview };
     if (name.includes('shared/soundtrack')) return soundtrackHelpers;
     if (name.includes('shared/discover')) return discoverHelpers;

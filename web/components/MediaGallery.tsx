@@ -23,6 +23,7 @@ import { usePostInteractions } from "@/lib/usePostInteractions";
 import { COMMENT_COUNT_UPDATED, refreshCommentCount, reconcileLiveCommentCount, type CommentCountUpdate } from "@/lib/commentCounts";
 import { getNavigationStore } from "@/lib/navigationCache";
 import { useFeedPreview } from '@/lib/useFeedPreview';
+import { useOfflineMedia } from '@/lib/useOfflineMedia';
 
 import {PostSoundtrack} from "./PostSoundtrack";
 import {readSoundtrack} from "../../shared/soundtrack";
@@ -357,9 +358,12 @@ function PostMediaGallery({ media, postId, viewsCount, post, fullFrame = false, 
     if (dimensions(w, h)) setTrueDims((r) => (r[id] && r[id].w === w && r[id].h === h ? r : { ...r, [id]: { w, h } }));
   }, []);
 
-  const item = media[Math.min(idx, media.length - 1)];
-  const preview = useFeedPreview(postId, item);
+  const sourceItem = media[Math.min(idx, media.length - 1)];
+  const item = useOfflineMedia(postId, sourceItem) ?? sourceItem;
+  const preview = useFeedPreview(postId, sourceItem);
   const [previewHidden, setPreviewHidden] = useState<string | null>(null);
+  const sourceViewerItem = lightbox === null ? null : media[lightbox];
+  const viewerItem = useOfflineMedia(postId, sourceViewerItem) ?? sourceViewerItem;
   if (media.length === 0) return null;
   const previewUri = previewHidden === item.url ? null : preview?.uri;
   const declared = dimensions(item.width, item.height);
@@ -387,7 +391,6 @@ function PostMediaGallery({ media, postId, viewsCount, post, fullFrame = false, 
   const fittedDims = fitted(known?.w ?? frameKnown.w, known?.h ?? frameKnown.h, contentDims?.w ?? availW, contentDims?.h ?? maxH, editOf(item)?.rotation ?? 0);
   const altOf = (m: MediaItem, i: number) => m.alt_text || "Post media " + (i + 1);
   const showPanel = !!post && !immersive;
-  const viewerItem = lightbox === null ? null : media[lightbox];
   const viewerKnown = viewerItem ? trueDims[viewerItem.id] ?? dimensions(viewerItem.width, viewerItem.height) : null;
   const viewerImage = viewerItem?.media_type !== 'video'
     ? fitted(viewerKnown?.w, viewerKnown?.h, viewerSize.w, viewerSize.h, viewerItem ? editOf(viewerItem)?.rotation ?? 0 : 0, 1) : null;

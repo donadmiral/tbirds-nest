@@ -81,6 +81,9 @@ jobs:
       - name: Verify encrypted preview restart, raster capture and privacy cleanup
         if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
         run: node web/tests/browser/feed-preview-persistence.cjs
+      - name: Verify full-resolution offline originals across browser restart
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
+        run: node web/tests/browser/offline-media-persistence.cjs
       - name: Exercise actual admin components
         # Run independent gates after an earlier test fails, but only after successful setup.
         # Ordinary step failures still fail the job; cancellation stops further gates.

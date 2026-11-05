@@ -1,3 +1,4 @@
+import { offlineFeedMedia, saveOfflineFeedMedia } from './offlineFeedMedia';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createFeedSnapshotStore, FEED_SNAPSHOT_MAX_AGE, type FeedSnapshot } from '../../shared/feedSnapshot';
 import { supabase } from './supabase';
@@ -9,9 +10,13 @@ let readRevision = 0;
 const reads = new Map<string, { revision: number; promise: Promise<FeedSnapshot | null>; savedAt?: number; value?: FeedSnapshot }>();
 const invalidateReads = () => { readRevision++; reads.clear(); };
 const withPreviews = (account: string, snapshot: FeedSnapshot | null) => snapshot
-  ? { ...snapshot, rows: applyFeedStartupPreviews(account, snapshot.rows) } : null;
+  ? { ...snapshot, rows: applyFeedStartupPreviews(account, snapshot.rows).map(row => ({ ...row, media: row.media?.map((item: any) => {
+    const cached = offlineFeedMedia.peek(row.post_id, item.id);
+    return cached?.kind === 'video' && cached.sourceVersion === item._sourceVersion && item._startupPlaceholder ? { ...item, media_type: 'video', url: cached.uri, _startupPreview: false } : item;
+  }) })) } : null;
 const afterPreviewHydration = async (account: string, work: Promise<FeedSnapshot | null>, revision: number) => {
   const [snapshot] = await Promise.all([work, feedStartupPreviews.hydrate(account)]);
+  if (snapshot && readRevision === revision) await offlineFeedMedia.warm(snapshot.rows);
   return readRevision === revision ? withPreviews(account, snapshot) : null;
 };
 export const feedSnapshots = {
@@ -55,7 +60,7 @@ const owns = (account: string) => useAuthStore.getState().profile?.id === accoun
 /** Reconcile all current IDs in batches, at most two requests in flight. */
 export async function reconcileFeedVisibility(account: string, ids: string[], isCurrent: () => boolean, signal?: AbortSignal): Promise<Set<string> | null> {
   const unique = [...new Set(ids)];
-  const visible = new Set<string>();
+  const visible = new Set<string>(), offlineEligible = new Set<string>();
   for (let index = 0; index < unique.length; index += 200) {
     if (!isCurrent() || !owns(account) || signal?.aborted) return null;
     const batches = [unique.slice(index, index + 100), unique.slice(index + 100, index + 200)].filter(batch => batch.length);
@@ -64,8 +69,9 @@ export async function reconcileFeedVisibility(account: string, ids: string[], is
     }));
     if (!isCurrent() || !owns(account) || signal?.aborted) return null;
     if (results.some(result => result.error)) throw new Error('Could not refresh post visibility. Please try again.');
-    results.forEach(result => (result.data ?? []).forEach((row: any) => visible.add(row.post_id)));
+    results.forEach(result => (result.data ?? []).forEach((row: any) => { visible.add(row.post_id); if (row.snapshot_eligible === true) offlineEligible.add(row.post_id); }));
   }
+  await offlineFeedMedia.reconcile(unique, offlineEligible);
   if (unique.some(id => !visible.has(id))) await feedSnapshots.clear(account);
   return visible;
 }
@@ -81,6 +87,7 @@ export async function savePublicFeedSnapshot(account: string, mode: string, rows
     if (!isCurrent() || !owns(account) || result.error) return;
     const eligible = new Set<string>((result.data ?? []).filter((row: any) => row.snapshot_eligible === true).map((row: any) => row.post_id));
     await feedSnapshots.write(account, mode, candidates, eligible, revision);
+    void saveOfflineFeedMedia(account, candidates, eligible, () => isCurrent() && owns(account));
     if (mode === 'forYou') void saveFeedStartupPreviews(account, candidates, eligible,
       () => isCurrent() && owns(account) && feedSnapshots.revision() === revision);
   } catch { /* A cache failure must not fail a live feed. */ }

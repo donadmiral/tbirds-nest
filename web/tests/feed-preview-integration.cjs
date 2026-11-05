@@ -8,7 +8,7 @@ function setup(write = async () => {}, media = []) {
   let revision = 1, previewWrites = 0, previewClears = 0;
   const base = { revision: () => revision, setAccount() {}, write, read: async () => ({ rows: [{ post_id: 'post', media }] }), clear: async () => { revision++; } };
   const previews = { write: async () => { previewWrites++; }, clear: async () => { previewClears++; } };
-  const imports = { '../../shared/feedSnapshot': { createFeedSnapshotStore: () => base }, './supabase/client': { createClient: () => ({ auth: { onAuthStateChange() {} } }) },
+  const imports = { './offlineMedia': { getOfflineMediaStore: () => null }, '../../shared/feedSnapshot': { createFeedSnapshotStore: () => base }, './supabase/client': { createClient: () => ({ auth: { onAuthStateChange() {} } }) },
     './feedPreviews': { getFeedPreviewStore: () => previews, loadFeedPreviews: async () => [{ postId: 'post', mediaId: 'media', object: 'post-media/photo', uri: 'data:image/jpeg;base64,AA==', width: 1200, height: 900 }] } };
   const module = { exports: {} };
   vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../lib/feedCache.ts'), 'utf8'), { fileName: 'feedCache.ts', compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText,

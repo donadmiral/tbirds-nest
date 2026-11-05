@@ -40,6 +40,8 @@ import { Feather } from '@expo/vector-icons';
 import { navigationScope, subscribeNavigationScope } from '../lib/navigationCache';
 import { SUPABASE_URL } from '../services/supabase';
 import { contentObject } from '../../shared/contentMedia';
+import { useOfflineFeedMedia } from '../hooks/useOfflineFeedMedia';
+import { selectOfflinePlayback, type OfflinePlaybackSelection } from '../lib/offlinePlaybackSelection';
 import { useFeedStartupPreview } from '../hooks/useFeedStartupPreview';
 
 export type CarouselMedia = {
@@ -49,7 +51,9 @@ export type CarouselMedia = {
   sort_order: number;
   width?: number | null;
   height?: number | null;
+  _sourceVersion?: string;
   _startupPlaceholder?: boolean;
+  _startupMediaType?: 'image' | 'video';
   edit?: PostFrameRecipe & { rotation?: number; flipX?: boolean; speed?: number|null; soundtrack?: SoundtrackSelection|null; scale?: number; translateNX?: number; translateNY?: number; fit?: 'cover' | 'contain'; filterId?: string | null; filterAmt?: number; adjust?: any; coverUrl?: string | null; muted?: boolean; trimStart?: number | null; trimEnd?: number | null } | null;
 };
 
@@ -74,25 +78,27 @@ const HEIGHT_RATIO = 5 / 4; // 1.25
 // Feed sound rule: autoplay muted; once the user unmutes, new videos inherit sound this session
 let sessionMuted = true;
 
-function CarouselImage({ uri, width, height, edit, fullFrame, postId, mediaId, startupPlaceholder }: { uri: string; width: number; height: number; edit?: CarouselMedia['edit']; fullFrame?: boolean; postId?: string | null; mediaId?: string; startupPlaceholder?: boolean }) {
+function CarouselImage({ uri, width, height, edit, fullFrame, postId, mediaId, sourceVersion, startupPlaceholder, isActive = true }: { uri: string; width: number; height: number; edit?: CarouselMedia['edit']; fullFrame?: boolean; postId?: string | null; mediaId?: string; sourceVersion?: string; startupPlaceholder?: boolean; isActive?: boolean }) {
   const scope = useSyncExternalStore(subscribeNavigationScope, navigationScope, navigationScope);
   const cached = useFeedStartupPreview(postId, mediaId);
+  const offline = useOfflineFeedMedia(postId, mediaId, uri, sourceVersion, isActive);
+  const displayUri = offline?.kind === 'image' ? offline.uri : uri;
   const grant = useRef({ uri, scope });
   if (grant.current.uri !== uri) grant.current = { uri, scope };
-  const cachePolicy = privateImageCachePolicy(uri);
+  const cachePolicy = offline ? 'none' : privateImageCachePolicy(uri);
   const allowed = cachePolicy !== 'none' || (!!scope && grant.current.scope === scope);
-  const identity = JSON.stringify([scope, postId ?? null, imageDisplayIdentity(uri, SUPABASE_URL)]);
-  const request = JSON.stringify([scope, postId ?? null, uri]);
+  const identity = JSON.stringify([scope, postId ?? null, imageDisplayIdentity(displayUri, SUPABASE_URL)]);
+  const request = JSON.stringify([scope, postId ?? null, displayUri]);
   const activeRequest = useRef(request); activeRequest.current = request;
-  const source = useMemo(() => ({ uri }), [uri]);
+  const source = useMemo(() => ({ uri: displayUri }), [displayUri]);
   const [loadedIdentity, setLoadedIdentity] = useState<string | null>(null);
   const [failedRequest, setFailedRequest] = useState<string | null>(null);
   const failedRequestRef = useRef<string | null>(null);
-  const showImage = allowed && !!uri && failedRequest !== request && (!uri.startsWith('data:image/') || cached?.uri === uri);
+  const showImage = allowed && !!displayUri && failedRequest !== request && (!displayUri.startsWith('data:image/') || cached?.uri === displayUri) && (!uri.includes('/pc-offline-v1/') || !!offline);
   const matchingPreview = allowed && cached && ((!uri && startupPlaceholder) || uri === cached.uri || contentObject(uri, SUPABASE_URL)?.key === cached.objectKey) ? cached : null;
   const previewUri = matchingPreview && loadedIdentity !== identity ? matchingPreview.uri : null;
   const previewSource = useMemo(() => previewUri ? { uri: previewUri } : null, [previewUri]);
-  const sourceIsPreview = !!matchingPreview && uri === matchingPreview.uri;
+  const sourceIsPreview = !offline && !!matchingPreview && uri === matchingPreview.uri;
   const fit = edit?.fit === 'contain' || (fullFrame && !edit?.aspect && !edit?.aspectRatio) ? 'contain' : 'cover';
   const hasXform = !!(edit?.scale && edit.scale !== 1) || !!edit?.translateNX || !!edit?.translateNY || !!edit?.rotation || !!edit?.flipX;
   const xform = hasXform ? [{ translateX: (edit?.translateNX || 0) * width }, { translateY: (edit?.translateNY || 0) * height }, { scale: edit?.scale || 1 },{rotate: `${edit?.rotation || 0}deg`},{scaleX:edit?.flipX?-1:1}] : undefined;
@@ -136,9 +142,9 @@ function CarouselImage({ uri, width, height, edit, fullFrame, postId, mediaId, s
 }
 
 function CarouselVideo({
-  uri, width, height, isVisible, isScreenActive, onTapOverride, onExpand, poster, edit, postId, mediaId, soundtrack, fullFrame,
+  uri: originalUri, width, height, isVisible, isScreenActive, onTapOverride, onExpand, poster, edit, postId, mediaId, sourceVersion, soundtrack, fullFrame,
 }: {
-  soundtrack?: SoundtrackSelection|null; uri: string; width: number; height: number; poster?: string | null; edit?: CarouselMedia['edit']; postId?: string | null; mediaId?: string; holdView?: boolean;
+  soundtrack?: SoundtrackSelection|null; uri: string; width: number; height: number; poster?: string | null; edit?: CarouselMedia['edit']; postId?: string | null; mediaId?: string; sourceVersion?: string; holdView?: boolean;
   isVisible: boolean; isScreenActive: boolean;
   onTapOverride?: (at?: number) => void;
   onExpand?: (at?: number) => void;
@@ -149,6 +155,13 @@ function CarouselVideo({
   // One engine for the app: this surface owns it while it is on screen and in front.
   const screenFocused = useIsFocused();
   const cached = useFeedStartupPreview(postId, mediaId);
+  const offline = useOfflineFeedMedia(postId, mediaId, originalUri, sourceVersion, isVisible && isScreenActive && screenFocused);
+  const selection = useRef<OfflinePlaybackSelection | null>(null);
+  const previous = selection.current, engine = useVideoEngine.getState();
+  const remote = originalUri.includes('/pc-offline-v1/') || originalUri.startsWith('data:image/') ? '' : originalUri;
+  selection.current = selectOfflinePlayback(previous, JSON.stringify([postId, mediaId, sourceVersion || originalUri]), remote,
+    offline?.kind === 'video' ? offline.uri : null, !!previous && engine.uri === previous.uri && engine.failed);
+  const uri = selection.current.uri;
   const previewPoster = cached?.kind === 'video' && (!poster || contentObject(poster, SUPABASE_URL)?.key === cached.objectKey) ? cached.uri : null;
   const voicePlayback = postPlaybackSettings(edit);
   const { player, ownerId, owns, sourceReady, failed, canHold, version, retry } = useSharedVideo({ uri, visible: isVisible, screenActive: isScreenActive && screenFocused, postId: postId ?? null, rate: voicePlayback.rate, preservesPitch: voicePlayback.preservesPitch, muted: sessionMuted || !!(edit as any)?.muted, startAt: edit?.trimStart ?? 0 });
@@ -414,14 +427,15 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
   }).current;
 
   const renderItem = useCallback(({ item, index }: { item: CarouselMedia; index: number }) => {
-    if (item.media_type === 'video') {
+    if (item.media_type === 'video' || item._startupMediaType === 'video') {
       return (
         <View>
           <CarouselVideo
-            key={`${item.id}:${item.url}`}
+            key={`${item.id}:${item._sourceVersion || item.url}`}
             uri={item.url}
             postId={postId ?? null}
             mediaId={item.id}
+            sourceVersion={item._sourceVersion}
             holdView={!!holdView}
             poster={(item as any).edit?.coverUrl || null}
             edit={item.edit}
@@ -445,7 +459,9 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
             uri={item.url}
             postId={postId}
             mediaId={item.id}
+            sourceVersion={item._sourceVersion}
             startupPlaceholder={item._startupPlaceholder}
+            isActive={isActive && index === activeIndex}
             width={containerWidth}
             height={slideHeight}
             fullFrame={fullFrame}
@@ -478,13 +494,14 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
     return (
       <View style={[st.carouselWrap, flush && { marginTop: 0, width: containerWidth }]}>
         <View style={{ width: containerWidth, height: slideHeight, overflow: 'hidden' }}>
-          {item.media_type === 'video' ? (
+          {item.media_type === 'video' || item._startupMediaType === 'video' ? (
             <View>
               <CarouselVideo
-                key={`${item.id}:${item.url}`}
+                key={`${item.id}:${item._sourceVersion || item.url}`}
                 uri={item.url}
                 postId={postId ?? null}
                 mediaId={item.id}
+            sourceVersion={item._sourceVersion}
                 holdView={!!holdView}
                 poster={(item as any).edit?.coverUrl || null}
                 edit={item.edit}
@@ -504,8 +521,10 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
                 <CarouselImage
                   key={`${postId ?? ''}:${item.id}`}
                   uri={item.url}
+                  isActive={isActive}
                   postId={postId}
                   mediaId={item.id}
+            sourceVersion={item._sourceVersion}
                   width={containerWidth}
                   height={slideHeight}
                   fullFrame={fullFrame}
@@ -530,7 +549,7 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
           ref={listRef}
           key={containerWidth}
           data={media}
-          keyExtractor={(item) => `${item.id || item.sort_order}:${item.media_type === 'image' ? 'image' : item.url}`}
+          keyExtractor={(item) => `${item.id || item.sort_order}:${item.media_type === 'image' ? 'image' : item._sourceVersion || item.url}`}
           renderItem={renderItem}
           horizontal
           pagingEnabled

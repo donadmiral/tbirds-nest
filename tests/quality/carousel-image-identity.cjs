@@ -31,7 +31,7 @@ const same = (a, b) => a && b && a.length === b.length && a.every((value, index)
 // Run the actual components with deterministic hooks. Native drawable reuse is
 // represented by the real Expo key/recyclingKey contract, not a fake image load.
 function harness() {
-  const slots = []; let cursor = 0, scope = 'viewer-a:1', preview = null;
+  const slots = []; let cursor = 0, scope = 'viewer-a:1', preview = null, offline = null;
   const react = {
     useState(initial) {
       const i = cursor++;
@@ -57,6 +57,8 @@ function harness() {
     '../services/supabase': { SUPABASE_URL: base },
     '../lib/imageDisplayIdentity': identities, '../../shared/mediaDelivery': delivery,
     '../../shared/contentMedia': content,
+    '../lib/offlinePlaybackSelection': load('src/lib/offlinePlaybackSelection.ts'),
+    '../hooks/useOfflineFeedMedia': { useOfflineFeedMedia: () => offline },
     '../hooks/useFeedStartupPreview': { useFeedStartupPreview: (post, media) => preview?.postId === post && preview?.mediaId === media ? preview : null },
     '../lib/videoEngine': {}, '../stores/settingsStore': {}, '../../shared/postVoiceEffects': {},
     '../../shared/postMediaEditing': { postAspectRatio: () => 4 / 5 },
@@ -72,6 +74,7 @@ function harness() {
     carousel(media, props = {}) { return walk(render(() => component.default({ media, containerWidth: 320, postId: 'post-a', ...props }))); },
     changeScope(next) { scope = next; },
     preview(next) { preview = next; },
+    offline(next) { offline = next; },
   };
 }
 const image = nodes => nodes.find(node => node.type === 'Image');
@@ -226,4 +229,32 @@ test('a reserved empty frame paints a late same-ID preview without changing layo
   assert.equal(image(painted).props.cachePolicy, 'none'); assert.equal(loading(painted), false);
   assert.equal(image(h.image({ ...props, mediaId: 'other' })), undefined);
   h.preview(null); assert.equal(image(h.image(props)), undefined);
+});
+
+
+test('full original remains a no-cache image drawable and disappears when its offline lease is removed', () => {
+  const h = harness(), uri = 'file:///cache/pc-offline-v1/active/original.jpg';
+  h.offline({ kind: 'image', uri, sourceVersion: 'v1' });
+  const nodes = h.image({ uri: '', startupPlaceholder: true, sourceVersion: 'v1' });
+  assert.equal(image(nodes).props.source.uri, uri);
+  assert.equal(image(nodes).props.cachePolicy, 'none');
+  h.offline(null);
+  assert.equal(image(h.image({ uri, sourceVersion: 'v1' })), undefined);
+});
+
+test('an unopened offline video after the initial warm rows still mounts the video consumer', () => {
+  const h = harness();
+  const nodes = h.carousel([{ id: 'later-video', url: '', media_type: 'image', _startupMediaType: 'video',
+    _startupPlaceholder: true, _sourceVersion: 'v1', width: 720, height: 1280 }]);
+  assert.ok(nodes.some(node => node.type === h.__CarouselVideo && node.props.mediaId === 'later-video' && node.props.sourceVersion === 'v1'));
+});
+
+
+test('same immutable offline video keeps its component key when fresh signed metadata replaces startup data', () => {
+  const h = harness(), media = { id: 'video-1', media_type: 'video', _sourceVersion: 'version-1', width: 720, height: 1280 };
+  const before = h.carousel([{ ...media, url: 'file:///cache/pc-offline-v1/active/video.mp4' }]).find(node => node.type === h.__CarouselVideo);
+  const after = h.carousel([{ ...media, url: signed('video.mp4') }]).find(node => node.type === h.__CarouselVideo);
+  assert.equal(before.key, after.key);
+  const changed = h.carousel([{ ...media, _sourceVersion: 'version-2', url: signed('video.mp4') }]).find(node => node.type === h.__CarouselVideo);
+  assert.notEqual(after.key, changed.key);
 });

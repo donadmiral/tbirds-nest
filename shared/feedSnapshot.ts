@@ -39,6 +39,7 @@ export function publicSnapshotRows(rows: Row[], eligible: Set<string>): Row[] {
       const aspectRatio = typeof item.edit?.aspectRatio === 'number' && Number.isFinite(item.edit.aspectRatio)
         && item.edit.aspectRatio >= .25 && item.edit.aspectRatio <= 4 ? item.edit.aspectRatio : undefined;
       const rotation = typeof item.edit?.rotation === 'number' && Number.isFinite(item.edit.rotation) ? item.edit.rotation : undefined;
+      const sourceVersion = typeof item._sourceVersion === 'string' && /^[a-zA-Z0-9_-]{1,128}$/.test(item._sourceVersion) ? item._sourceVersion : undefined;
       const edit = { ...(aspect ? { aspect } : {}), ...(aspectRatio ? { aspectRatio } : {}),
         ...(rotation !== undefined ? { rotation } : {}) };
       if (!url) {
@@ -46,12 +47,12 @@ export function publicSnapshotRows(rows: Row[], eligible: Set<string>): Row[] {
         if (!id) return [];
         // Reserve the original frame without persisting an object path or a
         // playback capability. Video covers use an image-only placeholder.
-        return [{ id, url: '', media_type: 'image', width: count(item.width) || null,
+        return [{ id, url: '', _sourceVersion: sourceVersion, media_type: 'image', width: count(item.width) || null,
           height: count(item.height) || null, sort_order: count(item.sort_order), edit,
           _startupPlaceholder: true, _startupPreview: true,
           _startupMediaType: item._startupMediaType === 'video' || item.media_type === 'video' ? 'video' : 'image' }];
       }
-      return [{ id: text(item.id, 80) ?? url, url, media_type: item.media_type,
+      return [{ id: text(item.id, 80) ?? url, url, _sourceVersion: sourceVersion, media_type: item.media_type,
         width: count(item.width) || null, height: count(item.height) || null,
         sort_order: count(item.sort_order), is_sensitive: item.is_sensitive === true,
         edit: { ...edit, ...(publicUrl(item.edit?.coverUrl) ? { coverUrl: publicUrl(item.edit.coverUrl) } : {}) } }];

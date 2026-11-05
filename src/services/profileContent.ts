@@ -1,3 +1,4 @@
+import { acceptAdaptiveMedia } from '../../shared/adaptiveMedia';
 import { CONTENT_UUID, hydrateContentMedia } from '../../shared/contentMedia';
 import { navigationScope, subscribeNavigationScope } from '../lib/navigationCache';
 import { useAuthStore } from '../stores/authStore';
@@ -74,7 +75,7 @@ export async function profileContentRead<T>(ownerId: string, scope: string | nul
               check(); return result;
             },
           },
-        }, SUPABASE_URL, rows, 'post');
+        }, SUPABASE_URL, rows, 'post', controller.signal, acceptAdaptiveMedia);
         check(); return signed;
       },
     };

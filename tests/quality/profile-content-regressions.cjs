@@ -54,6 +54,7 @@ function own(hydrate, failures, held = {}, timeoutMs = 15000) {
   const listeners=new Set();
   const navigation={navigationScope:()=>navScope,subscribeNavigationScope:fn=>{listeners.add(fn);return()=>listeners.delete(fn);}};
   const service=compile(read('src/services/profileContent.ts'),{setTimeout:(fn,ms)=>setTimeout(fn,Math.min(ms,timeoutMs)),require(name){
+    if(name==='../../shared/adaptiveMedia')return{acceptAdaptiveMedia(){}};
     if(name==='../../shared/contentMedia')return hydrate ? {...media,hydrateContentMedia:(_client,_base,rows)=>hydrate(rows)} : media;
     if(name.endsWith('/navigationCache'))return navigation;
     if(name.endsWith('/authStore'))return{useAuthStore:{getState:()=>({session:authOwner?{user:{id:authOwner},access_token:authOwner+'-token'}:null})}};

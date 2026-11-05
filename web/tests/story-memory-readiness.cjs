@@ -90,3 +90,14 @@ test('browsers without frame callbacks still wait for decoded data and the compl
   h.node.currentTime = .4; h.node.seeking = true; h.emit('canplay'); assert.equal(h.ready, 0);
   h.node.seeking = false; h.emit('seeked'); assert.equal(h.ready, 1); h.dispose();
 });
+
+test('adaptive source ownership permits decoded HLS frames and rejects retired attachments', () => {
+  let owns = true, ready = 0;
+  const handlers = new Map();
+  const node = { isConnected: true, currentSrc: 'blob:https://viewer.invalid/hls-session', ownerDocument: { baseURI: 'https://viewer.invalid/' }, readyState: 2, currentTime: 1, seeking: false,
+    addEventListener: (name, fn) => handlers.set(name, fn), removeEventListener: name => handlers.delete(name) };
+  const dispose = watchStoryVideoFrame(node, { source: '/original.mp4', matchesSource: () => owns, start: () => 0, current: () => true, ready: () => ready++ });
+  assert.equal(ready, 1); dispose(); ready = 0; owns = false;
+  const retired = watchStoryVideoFrame(node, { source: '/original.mp4', matchesSource: () => owns, start: () => 0, current: () => true, ready: () => ready++ });
+  handlers.get('loadeddata')(); assert.equal(ready, 0); retired();
+});

@@ -1,0 +1,1 @@
+{"platforms":["ios","android"],"ios":{"modules":["SecureMediaModule"]},"android":{"modules":["expo.modules.securemedia.SecureMediaModule"]}}

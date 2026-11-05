@@ -1,4 +1,4 @@
-import { CONTENT_UUID, contentObject, isContentCapability, isMediaDeliveryCapability, type ContentReference } from '../../../shared/contentMedia.ts';
+import { CONTENT_UUID, contentObject, isContentCapability, isMediaDeliveryCapability, type ContentReference, type ContentPlaybackGrant } from '../../../shared/contentMedia.ts';
 
 type Dependencies = {
   base: string;
@@ -6,7 +6,7 @@ type Dependencies = {
   manifest(request: Request, references: ContentReference[]): Promise<Array<{ media_url: string }> | null>;
   uploads?(request: Request, urls: string[]): Promise<Array<{ media_url: string }> | null>;
   sign(bucket: string, paths: string[], ttl: number): Promise<Array<{ path: string; signedUrl: string }> | null>;
-  deliver?(request: Request, references: ContentReference[] | null, uploads: string[] | null): Promise<{ urls: Array<{ key: string; url: string }>; expiresAt: number } | null>;
+  deliver?(request: Request, references: ContentReference[] | null, uploads: string[] | null): Promise<{ urls: Array<{ key: string; url: string; sourceVersion?: string; playback?: Omit<ContentPlaybackGrant, 'source'> }>; expiresAt: number } | null>;
 };
 const TTL = 300;
 export function createContentMediaHandler(deps: Dependencies) {

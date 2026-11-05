@@ -2,6 +2,8 @@
 export const CONTENT_BUCKETS = ['post-media', 'story-media', 'media', 'music-audio', 'live-clips'] as const;
 export type ContentKind = 'post' | 'story' | 'sound' | 'story_draft' | 'memory_album' | 'highlight' | 'channel_message';
 export type ContentReference = { kind: ContentKind; id: string };
+export type ContentPlaybackGrant = { source: string; hlsUrl: string; sourceVersion: string; expiresAt: number };
+export type ContentPlaybackReceiver = (grants: ContentPlaybackGrant[]) => void;
 export const CONTENT_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function contentObject(value: string, base: string): { bucket: string; path: string; key: string } | null {
@@ -167,26 +169,26 @@ export type ContentMediaClient = {
   functions: { invoke(name: string, options: { body: Record<string, unknown>; headers?: Record<string, string>; signal?: AbortSignal }): Promise<{ data: unknown; error: unknown }> };
 };
 
-export async function hydrateContentMedia<T>(client: ContentMediaClient, base: string, rows: T[], kind: ContentKind, signal?: AbortSignal): Promise<T[]> {
+export async function hydrateContentMedia<T>(client: ContentMediaClient, base: string, rows: T[], kind: ContentKind, signal?: AbortSignal, onPlayback?: ContentPlaybackReceiver): Promise<T[]> {
   assertMediaActive(signal);
   if (!rows.length || !hasContentMedia(rows, base)) return rows;
   const refs = contentReferences(rows, kind);
   const batches = [];
   for (let i = 0; i < refs.length; i += 50) batches.push({ references: refs.slice(i, i + 50), delivery: 'no-store' });
-  return hydrateMediaBatches(client, base, rows, batches, signal);
+  return hydrateMediaBatches(client, base, rows, batches, signal, onPlayback);
 }
 
 /** Unpublished uploads are previewed only for the verified storage owner. */
-export async function hydrateOwnerUploadMedia<T>(client: ContentMediaClient, base: string, rows: T[], signal?: AbortSignal): Promise<T[]> {
+export async function hydrateOwnerUploadMedia<T>(client: ContentMediaClient, base: string, rows: T[], signal?: AbortSignal, onPlayback?: ContentPlaybackReceiver): Promise<T[]> {
   assertMediaActive(signal);
   const urls = [...new Set(contentMediaUrls(canonicalContentMedia(rows, base), base))];
   if (!urls.length) return rows;
   const batches = [];
   for (let i = 0; i < urls.length; i += 40) batches.push({ uploads: urls.slice(i, i + 40), delivery: 'no-store' });
-  return hydrateMediaBatches(client, base, rows, batches, signal);
+  return hydrateMediaBatches(client, base, rows, batches, signal, onPlayback);
 }
 
-async function hydrateMediaBatches<T>(client: ContentMediaClient, base: string, rows: T[], batches: Record<string, unknown>[], signal?: AbortSignal): Promise<T[]> {
+async function hydrateMediaBatches<T>(client: ContentMediaClient, base: string, rows: T[], batches: Record<string, unknown>[], signal?: AbortSignal, onPlayback?: ContentPlaybackReceiver): Promise<T[]> {
   const { data: initial, error: initialError } = await authPhase(() => client.auth.getSession(), signal);
   const viewerId = initial.session?.user.id, token = initial.session?.access_token;
   if (initialError || !viewerId || !token) throw new Error('Sign in again to view this media.');
@@ -208,6 +210,8 @@ async function hydrateMediaBatches<T>(client: ContentMediaClient, base: string, 
     if (authError || !auth.user) throw new Error('Sign in again to view this media.');
     if (auth.user.id !== viewerId) throw new Error('Your account changed. Reload this content.');
     const capabilities = new Map<string, string>();
+    const playback = new Map<string, ContentPlaybackGrant>();
+    const versions = new Map<string, string>();
     let expiry = Infinity;
     let nextBatch = 0;
     let failed = false;
@@ -223,12 +227,17 @@ async function hydrateMediaBatches<T>(client: ContentMediaClient, base: string, 
       }), signal);
       assertCurrent();
       if (error || !data || typeof data !== 'object') throw new Error('Media could not be loaded. Please try again.');
-      const result = data as { urls?: Array<{ key: string; url: string }>; expiresAt?: number };
+      const result = data as { urls?: Array<{ key: string; url: string; sourceVersion?: string; playback?: Omit<ContentPlaybackGrant, 'source'> }>; expiresAt?: number };
       if (!Array.isArray(result.urls) || typeof result.expiresAt !== 'number' || result.expiresAt <= Date.now()) throw new Error('Media access expired. Please try again.');
       expiry = Math.min(expiry, result.expiresAt);
       for (const item of result.urls) {
         const object = typeof item.url === 'string' ? contentObject(item.url, base) : null;
-        if (object && object.key === item.key && isContentCapability(item.url, base)) capabilities.set(item.key, item.url);
+        if (object && object.key === item.key && isContentCapability(item.url, base)) {
+          capabilities.set(item.key, item.url);
+          if (typeof item.sourceVersion === 'string' && item.sourceVersion.length > 0 && item.sourceVersion.length <= 128) versions.set(item.key, item.sourceVersion);
+          else versions.delete(item.key);
+          if (item.playback && item.playback.sourceVersion === item.sourceVersion && playback.size < 128) playback.set(item.key, { ...item.playback, source: item.url, expiresAt: Math.min(item.playback.expiresAt, result.expiresAt) });
+        }
       }
      }
     };
@@ -244,9 +253,26 @@ async function hydrateMediaBatches<T>(client: ContentMediaClient, base: string, 
     assertCurrent();
     if (sessionError || session.session?.user.id !== viewerId) throw new Error('Your account changed. Reload this content.');
     if (expiry <= Date.now()) throw new Error('Media access expired. Please try again.');
+    // Only publish readiness after the same final account checks as the URLs.
+    // It stays process-local and is never serialized into cached row metadata.
+    onPlayback?.([...playback.values()].filter(grant => capabilities.get(contentObject(grant.source, base)?.key ?? '') === grant.source));
     return rows.map(row => {
-      const safe = replaceContentMedia(row, base, capabilities);
-      return safe && typeof safe === 'object' ? { ...safe, _mediaExpiresAt: Number.isFinite(expiry) ? expiry : null } : safe;
+      const safe = attachContentVersions(replaceContentMedia(row, base, capabilities), base, versions);
+      const keys = new Set(contentMediaUrls(safe, base).map(url => contentObject(url, base)!.key));
+      const rowVersions = Object.fromEntries([...keys].flatMap(key => versions.has(key) ? [[key, versions.get(key)!]] : []));
+      return safe && typeof safe === 'object' ? { ...safe, _mediaExpiresAt: Number.isFinite(expiry) ? expiry : null, _mediaVersions: rowVersions } : safe;
     });
   } finally { watcher?.data.subscription.unsubscribe(); }
+}
+
+/** Version metadata is scoped to this exact accepted capability set. */
+function attachContentVersions<T>(value: T, base: string, versions: ReadonlyMap<string, string>, depth = 0): T {
+  if (!value || typeof value !== 'object' || depth > 20) return value;
+  if (Array.isArray(value)) return value.map(child => attachContentVersions(child, base, versions, depth + 1)) as T;
+  const object = value as Record<string, unknown>;
+  const output = Object.fromEntries(Object.entries(object).filter(([key]) => key !== '_sourceVersion' && key !== '_mediaVersions').map(([key, child]) => [key, attachContentVersions(child, base, versions, depth + 1)]));
+  const url = typeof object.url === 'string' ? object.url : typeof object.media_url === 'string' ? object.media_url : null;
+  const key = url ? contentObject(url, base)?.key : null;
+  if (key && versions.has(key)) output._sourceVersion = versions.get(key);
+  return output as T;
 }

@@ -298,7 +298,7 @@ test('background cancellation stops retained access batches and fences a late vi
 test('metadata refresh preserves current exact media grants and same-account session changes reauthorize', async () => {
   const content = load('../shared/contentMedia.ts');
   const reuse = load('../shared/feedMediaReuse.ts', { './contentMedia': content });
-  const adapter = load('lib/contentMedia.ts', { '../../shared/contentMedia': content, '../../shared/feedMediaReuse': reuse, './supabase/client': { createClient() {} } });
+  const adapter = load('lib/contentMedia.ts', { '../../shared/contentMedia': content, '../../shared/adaptiveMedia': load('../shared/adaptiveMedia.ts'), '../../shared/feedMediaReuse': reuse, './supabase/client': { createClient() {} } });
   const original = 'https://example.supabase.co/storage/v1/object/public/post-media/author/clip.mp4';
   const capability = 'https://example.supabase.co/functions/v1/media-content/post-media/author/clip.mp4?token=' + 'a'.repeat(64);
   const old = { ...row('first'), media: [{ id: 'clip', url: capability, media_type: 'video' }], _mediaExpiresAt: Date.now() + 180000 };
@@ -326,7 +326,7 @@ test('metadata refresh preserves current exact media grants and same-account ses
 test('authorized refresh applies changed media sources and edit recipes instead of retaining obsolete identity', async () => {
   const content = load('../shared/contentMedia.ts');
   const reuse = load('../shared/feedMediaReuse.ts', { './contentMedia': content });
-  const adapter = load('lib/contentMedia.ts', { '../../shared/contentMedia': content, '../../shared/feedMediaReuse': reuse, './supabase/client': { createClient() {} } });
+  const adapter = load('lib/contentMedia.ts', { '../../shared/contentMedia': content, '../../shared/adaptiveMedia': load('../shared/adaptiveMedia.ts'), '../../shared/feedMediaReuse': reuse, './supabase/client': { createClient() {} } });
   const { renewFeedMedia } = load('../shared/feedMedia.ts');
   const canonical = name => 'https://example.supabase.co/storage/v1/object/public/post-media/author/' + name;
   const capability = (name, token) => 'https://example.supabase.co/functions/v1/media-content/post-media/author/' + name + '?token=' + token.repeat(64);

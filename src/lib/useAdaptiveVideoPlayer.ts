@@ -3,14 +3,15 @@ import { useVideoPlayer, type VideoPlayer } from 'expo-video';
 import { knownAdaptiveMedia, resolveAdaptiveMedia } from '../../shared/adaptiveMedia';
 
 /** Selects a warm source once. Cold discovery never replaces loaded pixels. */
-export function useAdaptiveVideoPlayer(uri: string, setup?: (player: VideoPlayer) => void): VideoPlayer {
+export function useAdaptiveVideoPlayer(uri: string | null, setup?: (player: VideoPlayer) => void): VideoPlayer {
   const source = useMemo(() => {
+    if (!uri) return null;
     const ready = process.env.EXPO_PUBLIC_ADAPTIVE_MEDIA === 'true' ? knownAdaptiveMedia(uri) : null;
     return ready ? { uri: ready.hlsUrl, contentType: 'hls' as const, useCaching: false } : { uri, useCaching: false };
   }, [uri]);
   const player = useVideoPlayer(source, setup);
   useEffect(() => {
-    if (process.env.EXPO_PUBLIC_ADAPTIVE_MEDIA !== 'true') return;
+    if (!uri || !source || process.env.EXPO_PUBLIC_ADAPTIVE_MEDIA !== 'true') return;
     let alive = true, adaptive = source.uri !== uri, restoring = false;
     const recover = () => {
       if (!alive || !adaptive || restoring) return;

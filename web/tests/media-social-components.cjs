@@ -103,6 +103,7 @@ function scenario() {
     if (id === '@/lib/supabase/client') return { createClient: () => client };
     if (id === '@/lib/navigationCache' || id === './navigationCache') return { getNavigationStore: () => ({ getSnapshot: () => ({ owner: 'qa', scope: 'qa:1', revision: 1 }) }) };
     if (id === '@/lib/pollCheck') return { usePollFlag: () => false };
+    if (id === '@/lib/useOfflineMedia') return { useOfflineMedia: (_id, media) => media };
     if (id === '@/lib/useFeedPreview') return { useFeedPreview: () => null };
     if (id === '@/lib/postMetadata') return { readPostCollaborators: async () => [], readPostMediaEdits: async () => ({}), readPostMediaTags: async () => [], subscribePostMetadataSession: () => () => {} };
     if (id === '@/lib/mediaPrefs') return { dataSaverEnabled: () => false };

@@ -1,6 +1,7 @@
 import { createFeedSnapshotStore } from '../../shared/feedSnapshot';
 import { createClient } from './supabase/client';
 import { getFeedPreviewStore, loadFeedPreviews } from './feedPreviews';
+import { getOfflineMediaStore } from './offlineMedia';
 
 let browserStore: ReturnType<typeof createFeedSnapshotStore> | null = null;
 /** No request-specific cache instance is ever retained on the server. */
@@ -18,6 +19,8 @@ export function getFeedCache() {
     const revision = args[4] ?? store.revision();
     await write(...args);
     if (store.revision() !== revision) return;
+    const originals = getOfflineMediaStore();
+    if (originals) void originals.write(args[0], args[2] as Parameters<typeof originals.write>[1], args[3]).catch(() => {});
     // Raster work is optional and never holds the network/feed refresh open.
     const previews = getFeedPreviewStore();
     if (previews) void loadFeedPreviews(args[0]).then(() => {
@@ -40,7 +43,7 @@ export function getFeedCache() {
         media_type: 'image', sort_order: 0, edit: null, _startupPreview: true, _startupMediaType: preview.mediaType, _previewObject: preview.object }] };
     }) };
   };
-  store.clear = async (...args) => { await Promise.all([clear(...args), getFeedPreviewStore()?.clear()]); };
+  store.clear = async (...args) => { await Promise.all([clear(...args), getFeedPreviewStore()?.clear(), getOfflineMediaStore()?.clear()]); };
   // Remains active when Home is unmounted so signing out on any route purges it.
   createClient().auth.onAuthStateChange((_event, session) => { store.setAccount(session?.user.id ?? null); });
   return store;

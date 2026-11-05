@@ -82,6 +82,8 @@ function harness(extraProps = {}) {
     '../../shared/mediaDelivery': { privateImageCachePolicy: () => 'none' },
     '../lib/imageDisplayIdentity': { imageDisplayIdentity: uri => uri },
     '../hooks/useFeedStartupPreview': { useFeedStartupPreview: () => null },
+    '../lib/offlinePlaybackSelection': { selectOfflinePlayback: (_previous, identity, remote, local) => ({ identity, uri: local || remote }) },
+    '../hooks/useOfflineFeedMedia': { useOfflineFeedMedia: () => null },
     '../../shared/contentMedia': {},
     '../lib/navigationCache': {}, '../services/supabase': {},
     '../../shared/postVoiceEffects': { postPlaybackSettings: () => ({ rate: 1, preservesPitch: true }) },

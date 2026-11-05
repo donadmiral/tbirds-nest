@@ -1,8 +1,35 @@
 /** Capabilities are ephemeral and stay in this small process-local readiness cache. */
 type Ready = { source: string; hlsUrl: string; sourceVersion: string; expiresAt: number };
 const ready = new Map<string, { value: Ready | null; until: number }>();
-const pending = new Map<string, { task: Promise<Ready | null>; controller: AbortController }>();
+const pending = new Map<string, { task: Promise<Ready | null>; controller: AbortController; id: object }>();
 let generation = 0;
+
+/** Seeded by the authorized signing response before the first player mounts. */
+export function acceptAdaptiveMedia(grants: Array<{ source: string; hlsUrl: string; sourceVersion: string; expiresAt: number }>): void {
+  for (const grant of grants.slice(0, 128)) {
+    const value = validateAdaptiveMedia(grant.source, { ...grant, ready: true });
+    if (!value) continue;
+    pending.get(grant.source)?.controller.abort();
+    pending.delete(grant.source);
+    ready.delete(grant.source);
+    ready.set(grant.source, { value, until: Math.min(value.expiresAt - 5000, Date.now() + 60000) });
+  }
+  while (ready.size > 128) ready.delete(ready.keys().next().value!);
+}
+
+function validateAdaptiveMedia(source: string, data: any): Ready | null {
+  try {
+    if (!adaptiveProbeUrl(source)) return null;
+    const original = new URL(source), u = new URL(data.hlsUrl);
+    return data.ready === true && u.protocol === 'https:' && !u.username && !u.password && !u.hash
+      && /^\/playback\/(post-media|story-media)\//.test(u.pathname)
+      && decodeURIComponent(u.pathname) === decodeURIComponent(original.pathname.replace('/functions/v1/media-content/', '/playback/')) + '/master.m3u8'
+      && [...u.searchParams.keys()].every(key => key === 'token') && u.searchParams.getAll('token').length === 1 && u.searchParams.get('token') === original.searchParams.get('token')
+      && typeof data.sourceVersion === 'string' && data.sourceVersion.length > 0 && data.sourceVersion.length <= 128
+      && Number.isFinite(data.expiresAt) && data.expiresAt > Date.now() + 10000
+      ? { source, hlsUrl: u.href, sourceVersion: data.sourceVersion, expiresAt: data.expiresAt } : null;
+  } catch { return null; }
+}
 export function adaptiveProbeUrl(source: string): string | null {
   try {
     const u = new URL(source);
@@ -24,7 +51,7 @@ export async function resolveAdaptiveMedia(source: string, fetcher: typeof fetch
   const current = pending.get(source); if (current) return current.task;
   // Scrolling through many cards cannot queue unlimited readiness requests.
   if (pending.size >= 4) return null;
-  const startedGeneration = generation, controller = new AbortController();
+  const startedGeneration = generation, controller = new AbortController(), requestId = {};
   const task = (async () => {
     const timer = setTimeout(() => controller.abort(), 1500);
     let value: Ready | null = null;
@@ -45,19 +72,15 @@ export async function resolveAdaptiveMedia(source: string, fetcher: typeof fetch
         if (!Number.isInteger(declared) || declared < 1 || declared > 4096) throw new Error('Missing readiness length');
         text = await response.text(); if (text.length > 4096) throw new Error('Readiness budget');
       }
-      const data = JSON.parse(text), u = new URL(data.hlsUrl);
-      if (data.ready === true && u.protocol === 'https:' && !u.username && !u.password && /^\/playback\/(post-media|story-media)\//.test(u.pathname)
-        && decodeURIComponent(u.pathname) === decodeURIComponent(new URL(source).pathname.replace('/functions/v1/media-content/', '/playback/')) + '/master.m3u8'
-        && u.searchParams.getAll('token').length === 1 && u.searchParams.get('token') === new URL(source).searchParams.get('token')
-        && typeof data.sourceVersion === 'string' && data.sourceVersion.length > 0 && data.sourceVersion.length <= 128
-        && Number.isFinite(data.expiresAt) && data.expiresAt > Date.now() + 10000) value = { source, hlsUrl: u.href, sourceVersion: data.sourceVersion, expiresAt: data.expiresAt };
+      value = validateAdaptiveMedia(source, JSON.parse(text));
     } catch { /* Processing and gateway availability must not delay original playback. */ }
     finally { clearTimeout(timer); }
     if (startedGeneration !== generation) return null;
+    if (pending.get(source)?.id !== requestId) return knownAdaptiveMedia(source);
     ready.delete(source); ready.set(source, { value, until: value ? Math.min(value.expiresAt - 5000, Date.now() + 60000) : Date.now() + 30000 });
     while (ready.size > 128) ready.delete(ready.keys().next().value!);
     return value;
   })();
-  pending.set(source, { task, controller });
+  pending.set(source, { task, controller, id: requestId });
   try { return await task; } finally { if (pending.get(source)?.task === task) pending.delete(source); }
 }

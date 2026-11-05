@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),test=require('node:test'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),ts=require('typescript');
 const root=path.resolve(__dirname,'../..');
-function modules(overrides={}) { const cache=new Map(); const load=file=>{file=path.resolve(root,file);if(cache.has(file))return cache.get(file);const m={exports:{}};cache.set(file,m.exports); const requireLocal=name=>{if(name in overrides)return overrides[name];if(name.startsWith('.')){const base=path.resolve(path.dirname(file),name);return load([base+'.ts',base+'.tsx'].find(fs.existsSync));}throw Error('Unmocked '+name);};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText,{module:m,exports:m.exports,require:requireLocal,AbortController,console});cache.set(file,m.exports);return m.exports;};return load;}
+function modules(overrides={}) { const cache=new Map(); const load=file=>{file=path.resolve(root,file);if(cache.has(file))return cache.get(file);const m={exports:{}};cache.set(file,m.exports); const requireLocal=name=>{if(name in overrides)return overrides[name];if(name.startsWith('.')){const base=path.resolve(path.dirname(file),name);return load([base+'.ts',base+'.tsx'].find(fs.existsSync));}throw Error('Unmocked '+name);};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText,{module:m,exports:m.exports,require:requireLocal,AbortController,console,process:{env:{}}});cache.set(file,m.exports);return m.exports;};return load;}
 const lib=modules()('shared/storyVideoComposition.ts');
 const base=()=>lib.storyVideoRecipe({duration:12,width:390,height:844,transform:{fit:'contain',trimStart:2,trimEnd:10,speed:2,mix:{orig:35}}});
 test('video recipe bounds output dimensions without changing canvas aspect, keeps edit duration and original mix',()=>{const r=base();assert.equal(r.width%2,0);assert.equal(r.height%2,0);assert.ok(r.width<=1080&&r.height<=1920);assert.ok(Math.abs(r.width/r.height-390/844)<.002);assert.equal((r.trimEnd-r.trimStart)/r.speed,4);assert.equal(r.volume,.35);});
@@ -64,14 +64,15 @@ test('Android keeps Expo video even when its native audio encoder is available',
   for (const os of ['android', 'ios']) {
     let views = 0;
     const expoPlayer = () => 'expo-player';
-    const load = modules({ 'react': { useContext: () => null }, 'react/jsx-runtime': { jsx: (type, props) => ({ type, props }) },
+    const load = modules({ 'react': { useContext: () => null, useMemo: fn => fn(), useEffect: () => {} }, 'react/jsx-runtime': { jsx: (type, props) => ({ type, props }) },
       'react-native': { Platform: { OS: os }, StyleSheet: { create: value => value } },
       'expo-modules-core': { requireOptionalNativeModule: () => capable({ storyAudioExportVersion: 1, composeStory() {} }), requireNativeViewManager: () => { views++; return 'NativeStoryVideo'; } },
       'expo-video': { useVideoPlayer: expoPlayer, VideoView: 'ExpoVideo' }, '../../src/components/stories/StoryPixelImage': { StoryPhotoLookContext: {} },
     });
     const player = load('modules/boomerang/storyVideo.tsx');
     assert.equal(views, os === 'ios' ? 1 : 0);
-    assert.equal(player.useStoryVideoPlayer === expoPlayer, os === 'android');
+    if (os === 'android') assert.equal(player.useStoryVideoPlayer('file:///test.mp4'), 'expo-player');
+    else assert.notEqual(player.useStoryVideoPlayer, expoPlayer);
     if (os === 'android') assert.equal(player.StoryVideoView({ player: {} }).type, 'ExpoVideo');
   }
 });

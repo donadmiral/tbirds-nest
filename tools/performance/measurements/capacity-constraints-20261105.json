@@ -1,0 +1,354 @@
+{
+  "version": 1,
+  "kind": "read-only-capacity-constraints",
+  "sourceCommit": "4f1162f50c5938353c43ac09438a487bb17d36af",
+  "productionCapacityEstablished": false,
+  "production": {
+    "version": "PostgreSQL 17.6 on aarch64-unknown-linux-gnu, compiled by gcc (GCC) 15.2.0, 64-bit",
+    "capacity": {
+      "stale": false,
+      "alerts": [],
+      "latest": {
+        "version": 1,
+        "database": {
+          "bytes": 286837907,
+          "deadlocks": 0,
+          "blocks_hit": 12631026483,
+          "temp_bytes": 1506707773660,
+          "blocks_read": 4654,
+          "rows_deleted": 211716,
+          "rows_updated": 817289,
+          "rows_inserted": 307938,
+          "statistics_reset_at": "2026-03-30T19:02:21.724308+00:00",
+          "transactions_committed": 17313784,
+          "transactions_rolled_back": 2790852
+        },
+        "components": {
+          "feed": {
+            "enabled": false,
+            "pending": 0,
+            "drain_failed": false,
+            "last_drain_at": null,
+            "recovery_required": false,
+            "oldest_pending_seconds": 0,
+            "pending_is_lower_bound": false
+          },
+          "calls": {
+            "pending": 0,
+            "pending_is_lower_bound": false,
+            "oldest_available_seconds": 0
+          },
+          "feed_ranking": {
+            "exact": true,
+            "enabled": true,
+            "version": 1,
+            "index_batch": 64,
+            "fallback_preserves_ranking": true,
+            "max_candidates_before_fallback": 10000
+          },
+          "post_counter": {
+            "shards": 64,
+            "enabled": false,
+            "pending": 0,
+            "version": 1,
+            "last_error": null,
+            "lag_target_ms": 1000,
+            "last_flush_at": "2026-11-05T15:22:59.697055+00:00",
+            "pending_capped": false,
+            "oldest_pending_at": null,
+            "synchronous_fallback": false,
+            "oldest_pending_seconds": 0,
+            "pending_is_lower_bound": false
+          },
+          "media_sandbox": {
+            "vcpus": 2,
+            "enabled": true,
+            "pending": 0,
+            "memory_mb": 4096,
+            "max_concurrency": 1,
+            "timeout_seconds": 780,
+            "active_reservations": 0,
+            "daily_cpu_cap_seconds": 156000,
+            "daily_wall_cap_seconds": 78000,
+            "pending_is_lower_bound": false,
+            "monthly_cpu_cap_seconds": 312000,
+            "monthly_wall_cap_seconds": 156000,
+            "daily_budget_used_percent": 3,
+            "daily_wall_reserved_seconds": 2340,
+            "monthly_budget_used_percent": 1.5,
+            "monthly_wall_reserved_seconds": 2340
+          },
+          "admin_reporting": {
+            "enabled": false,
+            "version": 1,
+            "transactional": true,
+            "profile_shards": 256,
+            "last_reconciled_at": "2026-11-02T16:21:49.325882+00:00",
+            "heartbeat_bucket_seconds": 60
+          },
+          "media_processing": {
+            "states": {
+              "retry": 0,
+              "failed": 0,
+              "blocked": 0,
+              "pending": 0,
+              "cancelled": 0,
+              "processing": 0,
+              "retry_capped": false,
+              "failed_capped": false,
+              "blocked_capped": false,
+              "pending_capped": false,
+              "cancelled_capped": false,
+              "processing_capped": false
+            },
+            "enabled": true,
+            "pending": 0,
+            "profile": "hls-v2",
+            "sample_limit": 10000,
+            "expired_leases": 0,
+            "worker_enabled": true,
+            "cleanup_pending": 0,
+            "delivery_enabled": true,
+            "worker_last_seen_at": "2026-11-05T05:28:12.340139+00:00",
+            "faststart_v1_pending": 0,
+            "oldest_pending_seconds": 0,
+            "pending_is_lower_bound": false
+          },
+          "notification_fanout": {
+            "enabled": false,
+            "pending": 0,
+            "version": 1,
+            "count_cap": 100001,
+            "fanout_dead": 0,
+            "dispatch_dead": 0,
+            "last_drain_at": "2026-11-05T15:22:59.698511+00:00",
+            "fanout_enabled": false,
+            "fanout_pending": 0,
+            "dispatch_enabled": false,
+            "dispatch_pending": 0,
+            "last_dispatch_at": "2026-11-05T15:22:40.233584+00:00",
+            "oldest_fanout_at": null,
+            "oldest_dispatch_at": null,
+            "pending_is_lower_bound": false
+          },
+          "notification_worker": {
+            "enabled": true,
+            "pending": 0,
+            "active_ticks": 0,
+            "max_parallel": 8,
+            "last_failed_at": null,
+            "last_issued_at": "2026-11-05T15:22:39.23191+00:00",
+            "last_completed_at": "2026-11-05T15:22:40.310335+00:00",
+            "last_completed_seconds": 19.842754
+          }
+        },
+        "connections": {
+          "active": 5,
+          "clients": 20,
+          "maximum": 60,
+          "used_percent": 33.33,
+          "waiting_for_lock": 0,
+          "idle_in_transaction": 0,
+          "oldest_transaction_seconds": 0.06406
+        },
+        "observed_at": "2026-11-05T15:23:00.153089+00:00"
+      },
+      "history": [],
+      "version": 1,
+      "providers": [
+        {
+          "unit": "requests_per_second",
+          "provider": "auth",
+          "valid_until": null,
+          "confirmed_at": null,
+          "reserved_peak": null,
+          "observed_limit": null,
+          "budget_approved": false,
+          "budget_approved_at": null,
+          "monthly_budget_usd": null,
+          "reservation_current": false,
+          "reservation_evidence": null,
+          "budget_approval_evidence": null
+        },
+        {
+          "unit": "requests_per_second",
+          "provider": "calls",
+          "valid_until": null,
+          "confirmed_at": null,
+          "reserved_peak": null,
+          "observed_limit": null,
+          "budget_approved": false,
+          "budget_approved_at": null,
+          "monthly_budget_usd": null,
+          "reservation_current": false,
+          "reservation_evidence": null,
+          "budget_approval_evidence": null
+        },
+        {
+          "unit": "connections",
+          "provider": "database",
+          "valid_until": null,
+          "confirmed_at": null,
+          "reserved_peak": null,
+          "observed_limit": 60,
+          "budget_approved": false,
+          "budget_approved_at": null,
+          "monthly_budget_usd": null,
+          "reservation_current": false,
+          "reservation_evidence": null,
+          "budget_approval_evidence": null
+        },
+        {
+          "unit": "requests_per_second",
+          "provider": "frontend",
+          "valid_until": null,
+          "confirmed_at": null,
+          "reserved_peak": null,
+          "observed_limit": null,
+          "budget_approved": false,
+          "budget_approved_at": null,
+          "monthly_budget_usd": null,
+          "reservation_current": false,
+          "reservation_evidence": null,
+          "budget_approval_evidence": null
+        },
+        {
+          "unit": "bytes_per_second",
+          "provider": "media",
+          "valid_until": null,
+          "confirmed_at": null,
+          "reserved_peak": null,
+          "observed_limit": null,
+          "budget_approved": false,
+          "budget_approved_at": null,
+          "monthly_budget_usd": null,
+          "reservation_current": false,
+          "reservation_evidence": null,
+          "budget_approval_evidence": null
+        },
+        {
+          "unit": "requests_per_second",
+          "provider": "push",
+          "valid_until": null,
+          "confirmed_at": null,
+          "reserved_peak": null,
+          "observed_limit": null,
+          "budget_approved": false,
+          "budget_approved_at": null,
+          "monthly_budget_usd": null,
+          "reservation_current": false,
+          "reservation_evidence": null,
+          "budget_approval_evidence": null
+        },
+        {
+          "unit": "connections",
+          "provider": "realtime",
+          "valid_until": null,
+          "confirmed_at": null,
+          "reserved_peak": null,
+          "observed_limit": null,
+          "budget_approved": false,
+          "budget_approved_at": null,
+          "monthly_budget_usd": null,
+          "reservation_current": false,
+          "reservation_evidence": null,
+          "budget_approval_evidence": null
+        }
+      ],
+      "sampled_at": "2026-11-05T15:23:00+00:00",
+      "observed_at": "2026-11-05T15:23:45.426646+00:00",
+      "sampling_enabled": true
+    },
+    "settings": {
+      "work_mem": {
+        "unit": "kB",
+        "setting": "2184"
+      },
+      "shared_buffers": {
+        "unit": "8kB",
+        "setting": "28672"
+      },
+      "max_connections": {
+        "unit": null,
+        "setting": "60"
+      },
+      "max_parallel_workers": {
+        "unit": null,
+        "setting": "2"
+      },
+      "max_worker_processes": {
+        "unit": null,
+        "setting": "6"
+      }
+    },
+    "schedules": [
+      {
+        "name": "prepared-feed-refresh-v1",
+        "active": true,
+        "command": "set statement_timeout='8s'; select public.drain_prepared_feed_v1(1);",
+        "schedule": "10 seconds"
+      },
+      {
+        "name": "prepared-feed-history-v1",
+        "active": true,
+        "command": "set statement_timeout='8s'; delete from cron.job_run_details where runid in (select runid from cron.job_run_details where jobid in(select jobid from cron.job where jobname in('prepared-feed-refresh-v1','prepared-feed-history-v1')) and end_time < now()-interval '7 days' order by runid limit 20000);",
+        "schedule": "17 3 * * *"
+      }
+    ],
+    "observedAt": "2026-11-05T15:23:45.426646+00:00",
+    "connections": {
+      "active": 1,
+      "clients": 15,
+      "lockWaiters": 0
+    },
+    "preparedFeed": {
+      "failed": 0,
+      "queued": 0,
+      "enabled": true,
+      "oldest_due": null,
+      "fresh_seconds": 60,
+      "max_ranked_rows": 200,
+      "snapshot_seconds": 300
+    }
+  },
+  "limitations": [
+    "Database connections and small-fixture latency do not establish throughput at five million daily users.",
+    "This readback issues no load traffic, changes no hosted settings, and reserves no provider capacity.",
+    "Vercel team/project reads expose no plan quota or throughput reservation in this connector response."
+  ],
+  "requiredUnconfirmed": [
+    "Provider-certified API and authentication request ceilings",
+    "Realtime connection and event throughput reservations",
+    "CDN delivery and origin authorization throughput",
+    "Vercel Sandbox concurrency and encode throughput at scale",
+    "Measured regional playback and mixed authenticated traffic",
+    "A 24-hour successful representative soak",
+    "Operating budget with headroom at the measured rates"
+  ],
+  "assumptionBasedTarget": {
+    "scenario": "base",
+    "scenarioSha256": "f7f0c6c4af3b659517ddffc41c6ff95e709a766c8f90b7fc828eba3beffe3b24",
+    "averageApiRps": 11574.074074074075,
+    "peakApiRps": 57870.37037037037,
+    "averageMediaBytesPerSecond": 13159722222.222221,
+    "peakMediaBytesPerSecond": 65798611111.11111,
+    "peakRealtimeConnections": 442709,
+    "minimumDistinctAccounts": 520834,
+    "minimumPeakHoldSeconds": 900,
+    "dailyApiOperations": 1000000000,
+    "dailyMediaBytes": 1137000000000000,
+    "onePreparedSnapshotPerDau": {
+      "assumption": "Each of five million daily users requests one new prepared snapshot per day",
+      "averageRequiredSnapshotsPerSecond": 57.870370370370374,
+      "peakFactor": 5,
+      "peakRequiredSnapshotsPerSecond": 289.35185185185185,
+      "configuredMaximumSnapshotsPerSecond": 0.1,
+      "configuredMaximumSnapshotsPerDay": 8640
+    },
+    "oneAuthOperationPerDau": {
+      "assumption": "Each daily user performs one authentication or token renewal per day. Actual refresh/validation traffic may differ.",
+      "averageRequiredOperationsPerSecond": 57.870370370370374,
+      "peakRequiredOperationsPerSecond": 289.35185185185185
+    }
+  }
+}

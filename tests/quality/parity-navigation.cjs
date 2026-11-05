@@ -91,6 +91,8 @@ test('the expanded native carousel retains mixed attachment order and opens the 
     'expo-image': {}, 'expo-video': {}, '../lib/videoEngine': {},
     '../lib/navigationCache': { navigationScope: () => 'viewer:1', subscribeNavigationScope: () => () => {} },
     '../services/supabase': { SUPABASE_URL: 'https://preview.supabase.co' },
+    '../lib/offlinePlaybackSelection': load('src/lib/offlinePlaybackSelection.ts'),
+    '../hooks/useOfflineFeedMedia': { useOfflineFeedMedia: () => null },
     '../hooks/useFeedStartupPreview': { useFeedStartupPreview: () => null },
     './VideoThumb': { default: 'VideoThumb' }, './MediaRenderer': { useMediaTags: () => ({}) }, './stories/StoryFilters': {}, './stories/storyPanels': {},
     '@react-navigation/native': {}, '../stores/settingsStore': {}, './PostCaption': {}, './PostSoundtrack': {},

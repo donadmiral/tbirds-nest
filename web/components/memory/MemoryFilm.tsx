@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { attachAdaptiveVideo } from '@/lib/adaptiveVideo';
 import NextImage from 'next/image';
 import { BookOpen, Download, Music2, Pause, Play, SkipBack, SkipForward, Volume2, VolumeX, X } from 'lucide-react';
 import type { MemoryPage } from '@/lib/memoryAlbum';
@@ -113,6 +114,7 @@ export function MemoryFilm({ bookId,revision,title, pages, soundtrack, filmSetti
 }
 
 function FilmVideo({ item, active, run = 0, muted, onMetadata, onReady, onError, onProgress, onEnd }: { item: MemoryFilmItem; active: boolean; run?: number; muted: boolean; onMetadata?:(duration:number)=>void; onReady: () => void; onError: () => void; onProgress: (value: number) => void; onEnd: () => void }) {
+  const adaptive = useRef<ReturnType<typeof attachAdaptiveVideo> | null>(null);
   const ref = useRef<HTMLVideoElement>(null), done = useRef(false), initialized = useRef(false);
   const firstFrame = useRef(false), frameCallback = useRef<number|null>(null);
   const progressGuard = useRef(createMemoryFilmProgressGuard());
@@ -148,8 +150,8 @@ function FilmVideo({ item, active, run = 0, muted, onMetadata, onReady, onError,
   useEffect(() => { if (active && firstFrame.current) state.current.onReady(); }, [active, run]);
   useEffect(() => {
     const video = ref.current; if (!video || !item.uri) return;
-    if (video.getAttribute('src') !== item.uri) { video.src = item.uri; video.load(); }
-    return () => { video.pause(); video.removeAttribute('src'); video.load(); };
+    const attachment = attachAdaptiveVideo(video, item.uri, { shouldPlay: allowed }); adaptive.current = attachment;
+    return () => { attachment.dispose(); adaptive.current = null; video.pause(); video.removeAttribute('src'); video.load(); };
   }, [item.uri]);
   const finish = () => { if (!allowed() || done.current) return; done.current = true; ref.current?.pause(); state.current.onProgress(1); state.current.onEnd(); };
   useEffect(() => {
@@ -166,5 +168,5 @@ function FilmVideo({ item, active, run = 0, muted, onMetadata, onReady, onError,
   }, [active, run, blocked, play, allowed]); // eslint-disable-line react-hooks/exhaustive-deps
   return <MemoryStoryFrame page={item.page as MemoryPage} clock={clock}>{style => <>
     {!decoded&&item.poster&&<NextImage unoptimized width={1080} height={1920} src={item.poster} alt="" aria-hidden style={{...style,position:'absolute',inset:0,width:'100%',height:'100%'}}/>}
-    <video ref={ref} src={item.uri!} preload="auto" playsInline muted={muted} data-memory-film-video={item.id} data-memory-frame-ready={decoded} onLoadedMetadata={configure} onCanPlay={configure} onLoadedData={observeFrame} onPlaying={observeFrame} onSeeked={observeFrame} onError={onError} onPlay={event => { if (!allowed()) event.currentTarget.pause(); }} onTimeUpdate={event => { if (!allowed() || done.current) return; const video = event.currentTarget, window = memoryFilmVideoWindow(item.page, video.duration); setClock(video.currentTime); onProgress(memoryFilmProgress(video.currentTime, window.start, window.end)); if (window.end != null && video.currentTime >= window.end - .025) finish(); }} onEnded={finish} style={{...style,opacity:decoded?1:0}} className={s.video} />{blocked && <button type="button" className={s.videoPlay} onClick={play}><Play size={20} /> Play this memory</button>}</>}</MemoryStoryFrame>;
+    <video ref={ref} preload="auto" playsInline muted={muted} data-memory-film-video={item.id} data-memory-frame-ready={decoded} onLoadedMetadata={configure} onCanPlay={configure} onLoadedData={observeFrame} onPlaying={observeFrame} onSeeked={observeFrame} onError={() => { if (!adaptive.current?.recover()) onError(); }} onPlay={event => { if (!allowed()) event.currentTarget.pause(); }} onTimeUpdate={event => { if (!allowed() || done.current) return; const video = event.currentTarget, window = memoryFilmVideoWindow(item.page, video.duration); setClock(video.currentTime); onProgress(memoryFilmProgress(video.currentTime, window.start, window.end)); if (window.end != null && video.currentTime >= window.end - .025) finish(); }} onEnded={finish} style={{...style,opacity:decoded?1:0}} className={s.video} />{blocked && <button type="button" className={s.videoPlay} onClick={play}><Play size={20} /> Play this memory</button>}</>}</MemoryStoryFrame>;
 }

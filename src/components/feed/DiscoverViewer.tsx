@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, AppState, FlatList, Modal, PanResponder, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { Image } from 'expo-image';
-import { VideoView, useVideoPlayer } from 'expo-video';
+import { VideoView } from 'expo-video';
+import { useAdaptiveVideoPlayer as useVideoPlayer } from '../../lib/useAdaptiveVideoPlayer';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from '../SafeArea';
 import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';

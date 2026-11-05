@@ -1,0 +1,77 @@
+name: Secure media native runtime
+on:
+  pull_request:
+    paths:
+      - 'modules/secure-media/**'
+      - 'scripts/quality/*secure-media*'
+      - 'scripts/quality/SecureMediaCryptoHarness.swift'
+      - 'scripts/quality/android-secure-media/**'
+      - '.github/workflows/secure-media-native-runtime.yml'
+  push:
+    branches: ['codex/loading-foundation-20261105', master]
+    paths:
+      - 'modules/secure-media/**'
+      - 'scripts/quality/*secure-media*'
+      - 'scripts/quality/SecureMediaCryptoHarness.swift'
+      - 'scripts/quality/android-secure-media/**'
+      - '.github/workflows/secure-media-native-runtime.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: secure-media-runtime-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  ios:
+    name: Real CryptoKit acceptance on iOS Simulator
+    runs-on: macos-15
+    timeout-minutes: 15
+    env:
+      CI: 'true'
+      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - run: bash scripts/quality/test-ios-secure-media.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: secure-media-ios-runtime
+          path: secure-media-ios-logs/
+          if-no-files-found: ignore
+          retention-days: 7
+  android:
+    name: Real AES-GCM acceptance on Android Emulator
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      CI: 'true'
+      EXPO_NO_TELEMETRY: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: npm
+      - name: Use Java 17 and KVM
+        run: |
+          test -n "$JAVA_HOME_17_X64"
+          echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+          echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
+          test -c /dev/kvm
+          sudo chmod a+rw /dev/kvm
+      - run: npm ci --ignore-scripts --no-fund
+      - name: Install emulator audio host dependency
+        timeout-minutes: 6
+        run: timeout --signal=TERM --kill-after=10s 300s bash scripts/quality/install-android-encoder-host.sh
+      - run: bash scripts/quality/test-android-secure-media.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: secure-media-android-runtime
+          path: android-secure-media-logs/
+          if-no-files-found: ignore
+          retention-days: 7

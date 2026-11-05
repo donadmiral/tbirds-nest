@@ -23,7 +23,7 @@ on:
       - 'scripts/quality/android-story-export/src/androidTest/assets/memory-animated.*'
       - '.github/workflows/ios-native-compile.yml'
   push:
-    branches: [master, 'codex/completion-20261101', 'codex/creator-preview-20261101', 'codex/creator-ios-preview-20261101']
+    branches: [master, 'codex/loading-foundation-20261105', 'codex/completion-20261101', 'codex/creator-preview-20261101', 'codex/creator-ios-preview-20261101']
     paths:
       - 'modules/**'
       - 'plugins/**'

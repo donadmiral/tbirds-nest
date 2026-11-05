@@ -24,7 +24,7 @@ test('late adaptive readiness cannot replace an explicitly started original',asy
 });
 test('native HLS error returns to the original at the same play position and intent',async()=>{
  const known={knownAdaptiveMedia:()=>({hlsUrl:hls}),resolveAdaptiveMedia:async()=>null};const {attachAdaptiveVideo}=load('web/lib/adaptiveVideo.ts',{'../../shared/adaptiveMedia':known},{NEXT_PUBLIC_ADAPTIVE_MEDIA:'true'});
- const v=video(),a=attachAdaptiveVideo(v,source,{shouldPlay:()=>true});await turn();assert.equal(v.src,hls);v.currentTime=12;v.paused=true;assert.equal(a.recover(),true);assert.equal(v.src,source);v.listeners.get('loadedmetadata')();assert.equal(v.currentTime,12);assert.equal(v.paused,false);assert.equal(a.recover(),false);a.dispose();
+ const v=video(),a=attachAdaptiveVideo(v,source,{shouldPlay:()=>true});await turn();assert.equal(v.src,hls);v.currentTime=12;v.paused=true;assert.equal(a.recover(),true);assert.equal(v.src,source);v.listeners.get('loadedmetadata')();await turn();assert.equal(v.currentTime,12);assert.equal(v.paused,false);assert.equal(a.recover(),false);a.dispose();
 });
 test('cold readiness never delays original preload or replaces its loaded pixels',async()=>{
  let resolve;const known={knownAdaptiveMedia:()=>null,resolveAdaptiveMedia:()=>new Promise(r=>resolve=r)};const enabled=load('web/lib/adaptiveVideo.ts',{'../../shared/adaptiveMedia':known},{NEXT_PUBLIC_ADAPTIVE_MEDIA:'true'});const v=video(),a=enabled.attachAdaptiveVideo(v,source);assert.equal(v.src,source);assert.equal(v.loads,1);resolve({hlsUrl:hls});await turn();assert.equal(v.src,source);assert.equal(v.loads,1);a.dispose();

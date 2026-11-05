@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "kind": "isolated-encoder-throughput-probe",
+  "passed": true,
+  "measuredAt": "2026-11-05T15:26:54.938Z",
+  "sourceCommit": "79cfa502d3e05e127970a48f9f390eab97d09dab",
+  "encoderSha256": "c5b03545062d93339b10cc8d6266c3f3c3c3937f3d18a0c5379bedef23030f6c",
+  "ffmpeg": "ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers",
+  "environment": {
+    "platform": "linux",
+    "arch": "x64",
+    "cpuCount": 4,
+    "node": "v22.23.4"
+  },
+  "fixture": {
+    "width": 640,
+    "height": 360,
+    "durationSeconds": 8,
+    "inputBytes": 2024785,
+    "inputSha256": "b27fdf7162f1e38fbcf99ff31504db3b3b2b2b3a7a8f8e94c9391f7b9983fcf5"
+  },
+  "jobs": 4,
+  "concurrency": 2,
+  "threadsPerEncoder": 1,
+  "elapsedMs": 7114.458139,
+  "verifiedJobsPerSecond": 0.5622353694194672,
+  "encodeMs": {
+    "count": 4,
+    "p50": 3097.549837,
+    "p95": 3110.908862,
+    "p99": 3110.908862,
+    "max": 3110.908862
+  },
+  "completed": [
+    {
+      "index": 0,
+      "encodeMs": 3095.668102,
+      "verifyMs": 461.29959499999995,
+      "durationSeconds": 8.021333,
+      "variants": 2,
+      "assets": 8,
+      "outputBytes": 2070587
+    },
+    {
+      "index": 1,
+      "encodeMs": 3097.549837,
+      "verifyMs": 447.99933599999986,
+      "durationSeconds": 8.021333,
+      "variants": 2,
+      "assets": 8,
+      "outputBytes": 2070587
+    },
+    {
+      "index": 2,
+      "encodeMs": 3110.908862,
+      "verifyMs": 452.74427600000035,
+      "durationSeconds": 8.021333,
+      "variants": 2,
+      "assets": 8,
+      "outputBytes": 2070587
+    },
+    {
+      "index": 3,
+      "encodeMs": 3103.931509,
+      "verifyMs": 453.35489099999995,
+      "durationSeconds": 8.021333,
+      "variants": 2,
+      "assets": 8,
+      "outputBytes": 2070587
+    }
+  ],
+  "originalPreserved": true,
+  "everyHlsVariantDecoded": true,
+  "fallbackAudioVerified": true,
+  "providerCalls": 0,
+  "productionCapacityEstablished": false,
+  "limitations": [
+    "Four repeated small fixtures measure only this host and codec mix.",
+    "Elapsed throughput includes verification. It excludes download, upload, queue time, Sandbox startup, and CDN delivery.",
+    "No inference about a multi-million-user production workload or reserved encoder fleet is valid."
+  ]
+}
