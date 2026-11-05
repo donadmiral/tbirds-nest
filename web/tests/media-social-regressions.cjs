@@ -30,20 +30,28 @@ const seed = (overrides = {}) => ({ liked: false, bookmarked: false, likesCount:
 function harness() {
   let viewer = 'alice', authListener;
   let session = () => ({ data: { session: viewer ? { user: { id: viewer } } : null }, error: null });
-  let queryOverride = null, actionOverride = null;
-  const rows = new Map(), reads = [], writes = [], sessionReads = [];
+  let queryOverride = null, actionOverride = null, counterOverride = null;
+  const rows = new Map(), reads = [], writes = [], sessionReads = [], counterReads = [];
   const server = id => {
     if (!rows.has(id)) rows.set(id, { likesCount: 4, bookmarksCount: 2, liked: new Set(), bookmarked: new Set() });
     return rows.get(id);
   };
   function read(table, filters) {
+    const key = Object.hasOwn(filters, 'id') ? 'id' : 'post_id';
+    if (Array.isArray(filters[key])) {
+      const values = filters[key].flatMap(id => {
+        const result = read(table, { ...filters, [key]: id });
+        return result.data ? [{ ...result.data, ...(table === 'posts' ? { id } : {}) }] : [];
+      });
+      return { data: values, error: null };
+    }
     const row = server(filters.id || filters.post_id);
     if (table === 'posts') return { data: { likes_count: row.likesCount, bookmarks_count: row.bookmarksCount }, error: null };
     const found = (table === 'post_likes' ? row.liked : row.bookmarked).has(filters.user_id);
     return { data: found ? { post_id: filters.post_id } : null, error: null };
   }
   const client = {
-    rpc: async () => ({ data: null, error: { code: 'PGRST202' } }),
+    rpc: async (name, args) => { counterReads.push({ name, args }); return counterOverride ? counterOverride(name, args) : { data: null, error: { code: 'PGRST202' } }; },
     auth: {
       getSession: () => { sessionReads.push(viewer); return Promise.resolve().then(session); },
       onAuthStateChange: fn => { authListener = fn; return { data: { subscription: { unsubscribe() {} } } }; },
@@ -55,7 +63,7 @@ function harness() {
         return Promise.resolve().then(() => queryOverride ? queryOverride(table, filters, read) : read(table, filters));
       };
       const chain = {
-        select() { return chain; }, eq(key, value) { filters[key] = value; return chain; },
+        select() { return chain; }, eq(key, value) { filters[key] = value; return chain; }, in(key, values) { filters[key] = values; return chain; },
         maybeSingle: execute, single: execute, then(ok, bad) { return execute().then(ok, bad); },
       };
       return chain;
@@ -74,14 +82,145 @@ function harness() {
   };
   const store = createPostInteractionStore(client, { like: mutate('like'), bookmark: mutate('bookmark') });
   return {
-    store, server, reads, writes, sessionReads,
+    store, server, reads, writes, sessionReads, counterReads,
     mount(id = 'post', initial = seed(), listener = () => {}) {
       const stop = store.subscribe(id, listener); store.seed(id, initial); return stop;
     },
-    setSession(fn) { session = fn; }, setQuery(fn) { queryOverride = fn; }, setAction(fn) { actionOverride = fn; },
+    setSession(fn) { session = fn; }, setQuery(fn) { queryOverride = fn; }, setAction(fn) { actionOverride = fn; }, setCounters(fn) { counterOverride = fn; },
     auth(id) { viewer = id; assert.ok(authListener, 'auth listener is installed'); authListener(id ? 'SIGNED_IN' : 'SIGNED_OUT', id ? { user: { id } } : null); },
   };
 }
+
+function authoritativeCounters(h, selected = ids => ids) {
+  h.setCounters((_name, { p_ids }) => ({ data: selected(p_ids).map(id => ({ post_id: id,
+    likes_count: h.server(id).likesCount, bookmarks_count: h.server(id).bookmarksCount,
+    comments_count: 0, reposts_count: 0, views_count: 0 })), error: null }));
+}
+
+test('concurrent card refreshes use one counter read and two membership reads', async () => {
+  const h = harness(); authoritativeCounters(h);
+  const ids = ['one', 'two', 'three', 'four'];
+  ids.forEach((id, index) => { h.mount(id); h.server(id).likesCount = 10 + index; });
+  h.server('two').liked.add('alice'); h.server('four').bookmarked.add('alice');
+  await flush(); await Promise.all(ids.map(id => h.store.refresh(id)));
+  assert.equal(h.counterReads.length, 1);
+  assert.equal(h.sessionReads.length, 3, 'startup plus one shared lookup before and after the batch');
+  assert.deepEqual([...h.counterReads[0].args.p_ids], ids);
+  assert.equal(h.reads.length, 2);
+  assert.deepEqual(h.reads.map(row => row.table).sort(), ['post_bookmarks', 'post_likes']);
+  assert.ok(h.reads.every(row => row.filters.user_id === 'alice'));
+  assert.equal(h.store.snapshot('two').liked, true);
+  assert.equal(h.store.snapshot('one').liked, false);
+  assert.equal(h.store.snapshot('four').bookmarked, true);
+  ids.forEach((id, index) => assert.equal(h.store.snapshot(id).likesCount, 10 + index));
+});
+
+test('large refreshes split counter and membership reads at one hundred post IDs', async () => {
+  const h = harness(); authoritativeCounters(h);
+  const ids = Array.from({ length: 201 }, (_, i) => `post-${i}`);
+  ids.forEach(id => h.mount(id)); await flush();
+  await Promise.all(ids.map(id => h.store.refresh(id)));
+  assert.deepEqual(h.counterReads.map(row => row.args.p_ids.length), [100, 100, 1]);
+  assert.equal(h.reads.length, 6);
+  for (const row of h.reads) assert.ok(!Array.isArray(row.filters.post_id) || row.filters.post_id.length <= 100);
+  ids.forEach(id => assert.equal(h.store.snapshot(id).pending, false));
+});
+
+test('at most two read batches run together and remaining work resumes after settlement', async () => {
+  const h = harness(), wait = defer(); authoritativeCounters(h);
+  const ids = Array.from({ length: 301 }, (_, i) => `post-${i}`);
+  ids.forEach(id => h.mount(id)); await flush();
+  h.setCounters((_name, { p_ids }) => wait.promise.then(() => ({ data: p_ids.map(id => ({ post_id: id,
+    likes_count: 4, bookmarks_count: 2, comments_count: 0, reposts_count: 0, views_count: 0 })), error: null })));
+  const work = Promise.all(ids.map(id => h.store.refresh(id))); await flush();
+  assert.equal(h.counterReads.length, 2);
+  assert.equal(h.reads.length, 4);
+  wait.resolve(); await work;
+  assert.deepEqual(h.counterReads.map(row => row.args.p_ids.length), [100, 100, 100, 1]);
+  ids.forEach(id => assert.equal(h.store.snapshot(id).pending, false));
+});
+
+test('an account change discards queued read batches before they reach the database', async () => {
+  const h = harness(), wait = defer();
+  const ids = Array.from({ length: 301 }, (_, i) => `post-${i}`);
+  ids.forEach(id => h.mount(id)); await flush();
+  h.setCounters((_name, { p_ids }) => wait.promise.then(() => ({ data: p_ids.map(id => ({ post_id: id,
+    likes_count: 99, bookmarks_count: 9, comments_count: 0, reposts_count: 0, views_count: 0 })), error: null })));
+  const work = Promise.all(ids.map(id => h.store.refresh(id))); await flush();
+  assert.equal(h.counterReads.length, 2);
+  h.auth(null); wait.resolve(); await work; await flush();
+  assert.equal(h.counterReads.length, 2, 'the other 101 posts never dispatch under the old account');
+  ids.forEach(id => {
+    assert.equal(h.store.snapshot(id).likesCount, 4);
+    assert.equal(h.store.snapshot(id).pending, false);
+    assert.equal(h.store.snapshot(id).liked, false);
+  });
+});
+
+test('batched legacy fallback preserves keyed counters and membership', async () => {
+  const h = harness(); h.mount('one'); h.mount('two'); await flush();
+  h.server('two').bookmarked.add('alice'); h.server('two').likesCount = 11;
+  await Promise.all(['one', 'two'].map(id => h.store.refresh(id)));
+  assert.equal(h.counterReads.length, 1);
+  assert.equal(h.reads.length, 3);
+  assert.equal(h.store.snapshot('one').bookmarked, false);
+  assert.equal(h.store.snapshot('two').bookmarked, true);
+  assert.equal(h.store.snapshot('two').likesCount, 11);
+});
+
+test('a missing counter affects its own card without manufacturing a zero count', async () => {
+  const h = harness(); authoritativeCounters(h, ids => ids.filter(id => id !== 'missing'));
+  h.mount('present'); h.mount('missing', seed({ likesCount: 25 })); await flush();
+  h.server('present').likesCount = 13;
+  await Promise.all(['present', 'missing'].map(id => h.store.refresh(id)));
+  assert.equal(h.store.snapshot('present').likesCount, 13);
+  assert.equal(h.store.snapshot('present').uncertain, false);
+  assert.equal(h.store.snapshot('missing').likesCount, 25);
+  assert.equal(h.store.snapshot('missing').uncertain, true);
+  assert.equal(h.store.snapshot('missing').pending, false);
+});
+
+for (const invalid of [null, [{ post_id: 'outside' }], [{ post_id: 'one' }, { post_id: 'one' }]]) {
+  test(`malformed batched membership preserves prior values: ${JSON.stringify(invalid)}`, async () => {
+    const h = harness(); authoritativeCounters(h); h.mount('one'); h.mount('two'); await flush();
+    h.setQuery((table, filters, fallback) => table === 'post_likes' ? { data: invalid, error: null } : fallback(table, filters));
+    await Promise.all(['one', 'two'].map(id => h.store.refresh(id)));
+    for (const id of ['one', 'two']) {
+      assert.equal(h.store.snapshot(id).likesCount, 4);
+      assert.equal(h.store.snapshot(id).uncertain, true);
+      assert.equal(h.store.snapshot(id).pending, false);
+    }
+  });
+}
+
+test('a previous account batch cannot publish its membership after an account switch', async () => {
+  const h = harness(), old = defer(); authoritativeCounters(h);
+  h.mount('one'); h.mount('two'); await flush();
+  let holdOld = true;
+  h.setQuery((table, filters, fallback) => {
+    if (!holdOld) return fallback(table, filters);
+    return old.promise.then(() => ({ data: [{ post_id: 'one' }, { post_id: 'two' }], error: null }));
+  });
+  const work = Promise.all(['one', 'two'].map(id => h.store.refresh(id))); await flush();
+  holdOld = false; h.server('two').bookmarked.add('bob'); h.auth('bob'); await flush();
+  old.resolve(); await work; await flush();
+  assert.equal(h.store.snapshot('one').liked, false);
+  assert.equal(h.store.snapshot('one').bookmarked, false);
+  assert.equal(h.store.snapshot('two').bookmarked, true);
+  assert.equal(h.store.snapshot('two').liked, false);
+});
+
+test('concurrent mutations reconcile one batch after their writes without replaying them', async () => {
+  const h = harness(); authoritativeCounters(h); h.mount('one'); h.mount('two'); await flush();
+  await Promise.all([h.store.set('one', 'like', true), h.store.set('two', 'bookmark', true)]);
+  assert.equal(h.writes.length, 2);
+  assert.equal(h.counterReads.length, 1);
+  assert.equal(h.reads.length, 2);
+  assert.equal(h.store.snapshot('one').liked, true);
+  assert.equal(h.store.snapshot('one').likesCount, 5);
+  assert.equal(h.store.snapshot('two').bookmarked, true);
+  assert.equal(h.store.snapshot('two').bookmarksCount, 3);
+});
 
 test('shared seeds do not add per-card startup queries and unrelated posts stay isolated', async () => {
   const h = harness(); let first = 0, second = 0;

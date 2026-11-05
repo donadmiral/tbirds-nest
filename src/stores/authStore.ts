@@ -34,6 +34,7 @@ let recoveryLinkHandle: { remove: () => void } | null = null;
 let consumedRecoveryUrl: string | null = null;
 let openedViaVerificationLink = false;
 let authGeneration = 0;
+let initialization: Promise<void> | null = null;
 let signingOut = false;
 let profileRequest: { userId: string; generation: number; promise: Promise<Profile | null> } | null = null;
 
@@ -177,100 +178,112 @@ export const useAuthStore = create<AuthState>((set, get) => {
     suppressRecoveryRedirect: false,
     recoveryUrl: null,
 
-    initialize: async () => {
-      if (signingOut) return;
-      const generation = ++authGeneration;
-      let startupFinished = false;
-      let observedSession: Session | null = null;
-      const recoverSession = () => {
-        if (!startupFinished || !observedSession || !isCurrent(generation) || get().session) return;
-        void applySession(observedSession, generation);
-        registerSession(observedSession, generation, true);
-      };
-      let resolveInitialSession!: (session: Session | null) => void;
-      const initialSession = new Promise<Session | null>((resolve) => { resolveInitialSession = resolve; });
-      set({ loading: true });
-      authListenerHandle?.subscription.unsubscribe();
-      recoveryLinkHandle?.remove();
-      // Subscribe before touching storage/network so sign-out and account
-      // changes cannot be missed during launch. Keep the callback synchronous:
-      // Supabase auth work is deferred until its internal lock is released.
-      const { data } = supabase.auth.onAuthStateChange((event, newSession) => {
-        if (event === 'INITIAL_SESSION') {
-          if (!isCurrent(generation)) return;
-          resolveInitialSession(newSession);
-          if (startupFinished && !get().session && newSession) {
-            setTimeout(() => {
-              if (!isCurrent(generation) || get().session) return;
-              void applySession(newSession, generation);
-              registerSession(newSession, generation, true);
-            }, 0);
-          }
-          return;
-        }
-        // Invalidate old reads immediately, before the deferred handler runs.
-        const eventGeneration = ++authGeneration;
-        if (signingOut) return;
-        // Recovery is a navigation gate, not a profile fetch. Preserve it even
-        // if a token refresh arrives before this event's deferred work runs.
-        if (event === 'PASSWORD_RECOVERY' && newSession && !get().suppressRecoveryRedirect) {
-          set({ isPasswordRecovery: true });
-        }
-        setTimeout(() => {
-          if (!isCurrent(eventGeneration)) return;
-          if (get().suppressRecoveryRedirect) {
-            if (event === 'SIGNED_OUT' || !newSession) clearSession();
-            else set({ loading: false, initialized: true });
+    initialize: () => {
+      if (signingOut) return Promise.resolve();
+      // App effects may run again while the store and authenticated navigator
+      // are still alive. Share cold startup and retain the existing listeners
+      // afterwards instead of replacing ready content with the launch screen.
+      if (initialization) return initialization;
+      if (get().initialized && authListenerHandle && recoveryLinkHandle) return Promise.resolve();
+      const work = (async () => {
+        const generation = ++authGeneration;
+        let startupFinished = false;
+        let observedSession: Session | null = null;
+        const recoverSession = () => {
+          if (!startupFinished || !observedSession || !isCurrent(generation) || get().session) return;
+          void applySession(observedSession, generation);
+          registerSession(observedSession, generation, true);
+        };
+        let resolveInitialSession!: (session: Session | null) => void;
+        const initialSession = new Promise<Session | null>((resolve) => { resolveInitialSession = resolve; });
+        set({ loading: true });
+        authListenerHandle?.subscription.unsubscribe();
+        recoveryLinkHandle?.remove();
+        // Subscribe before touching storage/network so sign-out and account
+        // changes cannot be missed during launch. Keep the callback synchronous:
+        // Supabase auth work is deferred until its internal lock is released.
+        const { data } = supabase.auth.onAuthStateChange((event, newSession) => {
+          if (event === 'INITIAL_SESSION') {
+            if (!isCurrent(generation)) return;
+            resolveInitialSession(newSession);
+            if (startupFinished && !get().session && newSession) {
+              setTimeout(() => {
+                if (!isCurrent(generation) || get().session) return;
+                void applySession(newSession, generation);
+                registerSession(newSession, generation, true);
+              }, 0);
+            }
             return;
           }
-          if (event === 'SIGNED_OUT' || !newSession) { clearSession(); return; }
-          if (event === 'SIGNED_IN' && openedViaVerificationLink) {
-            openedViaVerificationLink = false;
-            showMessage({ message: 'Email verified', description: 'Your account is ready. Welcome to PlatinumCircles!', type: 'success', duration: 4000 });
+          // Invalidate old reads immediately, before the deferred handler runs.
+          const eventGeneration = ++authGeneration;
+          if (signingOut) return;
+          // Recovery is a navigation gate, not a profile fetch. Preserve it even
+          // if a token refresh arrives before this event's deferred work runs.
+          if (event === 'PASSWORD_RECOVERY' && newSession && !get().suppressRecoveryRedirect) {
+            set({ isPasswordRecovery: true });
           }
-          void applySession(newSession, eventGeneration);
-          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') registerSession(newSession, eventGeneration, event === 'SIGNED_IN');
-        }, 0);
-      });
-      authListenerHandle = data;
-      recoveryLinkHandle = Linking.addEventListener('url', ({ url }) => {
-        if (!signingOut && url?.includes('type=recovery') && url !== consumedRecoveryUrl) {
-          set({ isPasswordRecovery: true, recoveryUrl: url });
-        }
-      });
-      try {
-        // Fetch the session alongside local link/cache metadata, not after it.
-        const profileCacheWork = AsyncStorage.getItem('pc-profile-cache').catch(() => null);
-        const sessionWork = Promise.race([
-          supabase.auth.getSession().then(({ data: auth }) => auth.session), initialSession,
-        ]);
-        // A slow successful getSession can recover the shell after the launch
-        // deadline, but only if no newer auth action has taken place.
-        void sessionWork.then((session) => { observedSession = session; recoverSession(); }).catch(() => {});
-        const [session, consumed, link] = await Promise.all([
-          withTimeout(sessionWork, 6000, null),
-          withTimeout(AsyncStorage.getItem('pc-consumed-recovery').catch(() => null), 6000, null),
-          withTimeout(checkInitialUrl(), 6000, { isRecovery: false, isVerification: false, url: null }),
-        ]);
-        if (!isCurrent(generation)) return;
-        consumedRecoveryUrl = consumed;
-        if (link.isRecovery && link.url !== consumedRecoveryUrl) set({ isPasswordRecovery: true, recoveryUrl: link.url });
-        openedViaVerificationLink = link.isVerification;
-        if (!session) { clearSession(false); return; }
-        let cachedProfile: Profile | null = null;
+          setTimeout(() => {
+            if (!isCurrent(eventGeneration)) return;
+            if (get().suppressRecoveryRedirect) {
+              if (event === 'SIGNED_OUT' || !newSession) clearSession();
+              else set({ loading: false, initialized: true });
+              return;
+            }
+            if (event === 'SIGNED_OUT' || !newSession) { clearSession(); return; }
+            if (event === 'SIGNED_IN' && openedViaVerificationLink) {
+              openedViaVerificationLink = false;
+              showMessage({ message: 'Email verified', description: 'Your account is ready. Welcome to PlatinumCircles!', type: 'success', duration: 4000 });
+            }
+            void applySession(newSession, eventGeneration);
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') registerSession(newSession, eventGeneration, event === 'SIGNED_IN');
+          }, 0);
+        });
+        authListenerHandle = data;
+        recoveryLinkHandle = Linking.addEventListener('url', ({ url }) => {
+          if (!signingOut && url?.includes('type=recovery') && url !== consumedRecoveryUrl) {
+            set({ isPasswordRecovery: true, recoveryUrl: url });
+          }
+        });
         try {
-          const raw = await withTimeout(profileCacheWork, 1000, null);
-          const cached = raw ? JSON.parse(raw) : null;
-          if (cached?.id === session.user.id) cachedProfile = cached;
-        } catch {}
-        if (!isCurrent(generation)) return;
-        const applied = applySession(session, generation, cachedProfile);
-        registerSession(session, generation, true);
-        await applied;
-      } catch (error) {
-        console.log('[authStore.initialize]', error);
-        if (isCurrent(generation)) clearSession(false);
-      } finally { startupFinished = true; recoverSession(); }
+          // Fetch the session alongside local link/cache metadata, not after it.
+          const profileCacheWork = AsyncStorage.getItem('pc-profile-cache').catch(() => null);
+          const sessionWork = Promise.race([
+            supabase.auth.getSession().then(({ data: auth }) => auth.session), initialSession,
+          ]);
+          // A slow successful getSession can recover the shell after the launch
+          // deadline, but only if no newer auth action has taken place.
+          void sessionWork.then((session) => { observedSession = session; recoverSession(); }).catch(() => {});
+          const [session, consumed, link] = await Promise.all([
+            withTimeout(sessionWork, 6000, null),
+            withTimeout(AsyncStorage.getItem('pc-consumed-recovery').catch(() => null), 6000, null),
+            withTimeout(checkInitialUrl(), 6000, { isRecovery: false, isVerification: false, url: null }),
+          ]);
+          if (!isCurrent(generation)) return;
+          consumedRecoveryUrl = consumed;
+          if (link.isRecovery && link.url !== consumedRecoveryUrl) set({ isPasswordRecovery: true, recoveryUrl: link.url });
+          openedViaVerificationLink = link.isVerification;
+          if (!session) { clearSession(false); return; }
+          let cachedProfile: Profile | null = null;
+          try {
+            const raw = await withTimeout(profileCacheWork, 1000, null);
+            const cached = raw ? JSON.parse(raw) : null;
+            if (cached?.id === session.user.id) cachedProfile = cached;
+          } catch {}
+          if (!isCurrent(generation)) return;
+          const applied = applySession(session, generation, cachedProfile);
+          registerSession(session, generation, true);
+          await applied;
+        } catch (error) {
+          console.log('[authStore.initialize]', error);
+          if (isCurrent(generation)) clearSession(false);
+        } finally { startupFinished = true; recoverSession(); }
+      })();
+      const pending = work.finally(() => {
+        if (initialization === pending) initialization = null;
+      });
+      initialization = pending;
+      return pending;
     },
 
     setSession: (session) => {

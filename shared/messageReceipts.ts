@@ -1,5 +1,21 @@
 export type ConversationReadTarget = { conversationId: string; userId: string; isGroup: boolean };
 
+export type GroupReadWatermark = { user_id: string; last_read_at: string | null };
+
+/** The same server watermarks drive bubble status and the latest-message
+ * summary. A new message must not inherit an older message's seen count. */
+export function groupReadersForMessage(
+  rows: GroupReadWatermark[],
+  message: { sender_id?: string | null; created_at?: string | null } | undefined,
+  viewerId: string | null,
+): string[] {
+  if (!viewerId || message?.sender_id !== viewerId || !message.created_at) return [];
+  const sentAt = Date.parse(message.created_at);
+  if (!Number.isFinite(sentAt)) return [];
+  return [...new Set(rows.filter(row => row.user_id !== viewerId && row.last_read_at
+    && Date.parse(row.last_read_at) > sentAt).map(row => row.user_id))];
+}
+
 export function canMarkConversationRead(state: {
   foreground: boolean;
   focused: boolean;

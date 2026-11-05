@@ -27,7 +27,7 @@ function stripMd(input: string | null | undefined): string {
     .replace(/\n/g, ' ')
     .trim();
 }
-import { prefetch } from '../../lib/screenTransition';
+import { prefetchFeedProfile, prefetchPostImages } from '../../services/feedIntent';
 import PollCard from '../../components/PollCard';
 import CollaboratorsSheet from '../../components/CollaboratorsSheet';
 import PeoplePickerSheet from '../../components/PeoplePickerSheet';
@@ -2368,7 +2368,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
 
   const openMention = useCallback(async (uname: string) => {
     const { data } = await supabase.from('profiles').select('id, full_name, username, avatar_url').eq('username', uname).maybeSingle();
-    if (data?.id) { prefetch('profile:' + data.id, async () => (await supabase.rpc('get_profile', { p_profile_id: data.id })).data); navigation.navigate('UserProfile', { userId: data.id, user: data }); }
+    if (data?.id) { prefetchFeedProfile(data.id); navigation.navigate('UserProfile', { userId: data.id, user: data }); }
   }, [navigation]);
 
   const openComments = useCallback((post: Post) => {
@@ -2398,7 +2398,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }} onTouchStart={() => { mediaTouchRef.current = true; }} onTouchEnd={() => { mediaTouchRef.current = false; }} onTouchCancel={() => { mediaTouchRef.current = false; }}>
             {vis.map((p: any) => (
               <View key={p.id} style={{ width: 148, borderWidth: StyleSheet.hairlineWidth, borderColor: getTheme().surface.hairline, borderRadius: 14, alignItems: 'center', paddingVertical: 14, paddingHorizontal: 10, backgroundColor: getTheme().surface.canvas }}>
-                <TouchableOpacity activeOpacity={0.8} style={{ alignItems: 'center' }} onPress={() => { prefetch('profile:' + p.id, async () => (await supabase.rpc('get_profile', { p_profile_id: p.id })).data); navigation.navigate('UserProfile', { userId: p.id, user: p }); }}>
+                <TouchableOpacity activeOpacity={0.8} style={{ alignItems: 'center' }} onPressIn={() => prefetchFeedProfile(p.id)} onPress={() => { prefetchFeedProfile(p.id); navigation.navigate('UserProfile', { userId: p.id, user: p }); }}>
                   {p.avatar_url ? <ExpoImage source={{ uri: p.avatar_url }} style={{ width: 56, height: 56, borderRadius: 28 }} contentFit="cover" /> : <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: getTheme().status.linkBg, alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontSize: 18, fontWeight: '700', color: getTheme().status.link }}>{initials(p.full_name || p.username)}</Text></View>}
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
                     <TierName userId={p.id} baseStyle={{ fontSize: 13.5, fontWeight: '700', color: getTheme().ink.primary, flexShrink: 1 }} text={p.full_name || p.username || 'Member'} />
@@ -2421,12 +2421,12 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
     const isReposted = !!repostedPostsRef.current[post.id];
     const preview = commentPreviewsRef.current[post.id];
     const isSharing = !!sharingPostRef.current[post.id];
-    const openPost = () => { if (isSharing) return; try { ((post as any).media || []).slice(0, 4).forEach((m: any) => { if (m?.url && m.media_type !== 'video') ExpoImage.prefetch(m.url).catch(() => {}); }); } catch {} navigation.navigate('Post', { postId: post.id, media: Array.isArray((post as any).media) && (post as any).media.length > 0 ? (post as any).media : undefined }); };
+    const openPost = () => { if (isSharing) return; prefetchPostImages(post, useSettingsStore.getState().uploadQuality === 'data-saver'); navigation.navigate('Post', { postId: post.id, media: Array.isArray((post as any).media) && (post as any).media.length > 0 ? (post as any).media : undefined }); };
 
     return (
       <View style={s.postCard}>
         <View style={s.postTopRow}>
-          <TouchableOpacity style={s.postMeta} onPress={() => { prefetch('profile:' + post.user_id, async () => (await supabase.rpc('get_profile', { p_profile_id: post.user_id })).data); navigation.navigate('UserProfile', { userId: post.user_id, user: author }); }} activeOpacity={0.8}>
+          <TouchableOpacity style={s.postMeta} onPressIn={() => prefetchFeedProfile(post.user_id)} onPress={() => { prefetchFeedProfile(post.user_id); navigation.navigate('UserProfile', { userId: post.user_id, user: author }); }} activeOpacity={0.8}>
             <FeedAuthorAvatar userId={post.user_id} uri={author?.avatar_url} name={author?.full_name || author?.username}
               storyUnseen={postRings[post.user_id]}
               onStory={() => (navigation as any).navigate('StoryViewer', { userId: post.user_id })} />
@@ -2437,7 +2437,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                 {(() => { const list = uniqueCollaborators(collabs[post.id] || [], post.user_id); if (!list.length) return null; if (list.length === 1) { const x: any = list[0]; return (
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
                     <Text style={{ color: t.ink.secondary, fontSize: 13 }}>with</Text>
-                    <TouchableOpacity accessibilityRole="link" accessibilityLabel={`Collaborator ${x.full_name || x.username || 'Member'}${x.username ? ', @' + x.username : ''}`} onPress={() => navigation.navigate('UserProfile', { userId: x.id })} activeOpacity={0.7}>
+                    <TouchableOpacity accessibilityRole="link" accessibilityLabel={`Collaborator ${x.full_name || x.username || 'Member'}${x.username ? ', @' + x.username : ''}`} onPressIn={() => prefetchFeedProfile(x.id)} onPress={() => { prefetchFeedProfile(x.id); navigation.navigate('UserProfile', { userId: x.id }); }} activeOpacity={0.7}>
                       <TierName userId={x.id} baseStyle={s.postAuthor} text={collaborationName(x, author?.full_name || author?.username)} />
                     </TouchableOpacity>
                     <VerifiedBadge userId={x.id} size={13} />

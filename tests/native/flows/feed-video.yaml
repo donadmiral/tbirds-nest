@@ -1,11 +1,16 @@
 appId: app.platinumcircles.mobile.qa
 name: First feed video survives scroll refresh and tab return
 ---
+# The video is already fully visible after each return to the top. Centering
+# against the whole device can scroll the post behind the fixed feed header,
+# leaving less than the production 55% row threshold. Require visible media
+# without moving an already visible card out of its playing position.
 - scrollUntilVisible:
     element:
       id: native-feed-video
     direction: DOWN
-    centerElement: true
+    visibilityPercentage: 100
+    centerElement: false
 - extendedWaitUntil:
     visible: Native feed video playing
     timeout: 15000
@@ -27,7 +32,8 @@ name: First feed video survives scroll refresh and tab return
     element:
       id: native-feed-video
     direction: DOWN
-    centerElement: true
+    visibilityPercentage: 100
+    centerElement: false
 - extendedWaitUntil:
     visible: Native feed video playing
     timeout: 15000
@@ -47,7 +53,8 @@ name: First feed video survives scroll refresh and tab return
     element:
       id: native-feed-video
     direction: DOWN
-    centerElement: true
+    visibilityPercentage: 100
+    centerElement: false
 - extendedWaitUntil:
     visible: Native feed video playing
     timeout: 15000

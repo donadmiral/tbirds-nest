@@ -68,8 +68,10 @@ import { canForwardMessage } from '../../../shared/messageContent';
 import { MESSAGE_PAGE_SIZE, olderMessageFilter, mergeMessagePage, type MessageCursor } from '../../../shared/messageHistory';
 import { createThreadWindow, type ThreadWindow, type ThreadSnapshot } from '../../../shared/threadWindow';
 import { retainRecord } from '../../../shared/retainedMaps';
-import { acknowledgeConversationRead, canMarkConversationRead } from '../../../shared/messageReceipts';
+import { acknowledgeConversationRead, canMarkConversationRead, groupReadersForMessage, type GroupReadWatermark } from '../../../shared/messageReceipts';
 import { createTypingActivity, type TypingRow } from '../../../shared/typingActivity';
+import { createRecoveryReader } from '../../../shared/recoveryReader';
+import { isReadAccessDenied } from '../../../shared/readContinuity';
 import { parseStoryMessageReference } from '../../../shared/storyMessageReference';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) { UIManager.setLayoutAnimationEnabledExperimental(true); }
@@ -529,24 +531,38 @@ export default function ChatScreen() {
   const textSendPending = useRef(false);
   const [otherTyping, setOtherTyping] = useState(false);
   const [typingUserId, setTypingUserId] = useState<string | null>(null);
-  const [seenByNames, setSeenByNames] = useState<string[]>([]);
-  const [memberReads, setMemberReads] = useState<any[]>([]);
+  const receiptScope = `${navigationScope() || ''}:${session?.user.id || ''}:${currentUserId || ''}:${conversationId || ''}`;
+  const receiptScopeRef = useRef(receiptScope); receiptScopeRef.current = receiptScope;
+  const [receiptState, setReceiptState] = useState<{ scope: string; rows: GroupReadWatermark[] }>({ scope: receiptScope, rows: [] });
+  const memberReads = receiptState.scope === receiptScope ? receiptState.rows : [];
+  const seenByNames = useMemo(() => isGroup
+    ? groupReadersForMessage(memberReads, messages[0], currentUserId) : [],
+  [isGroup, memberReads, messages, currentUserId]);
   useEffect(() => {
-    if (!isGroup || !conversationId || !currentUserId) { setMemberReads([]); return; }
+    if (!isGroup || !conversationId || !currentUserId || !focused) return;
     let live = true;
-    const pull = async () => {
-      try {
-        const { data } = await supabase.from('conversation_members')
-          .select('user_id, last_read_at')
-          .eq('conversation_id', conversationId)
-          .neq('user_id', currentUserId);
-        if (live && data) setMemberReads(data);
-      } catch {}
-    };
-    pull();
-    const iv = setInterval(pull, 6000);
-    return () => { live = false; clearInterval(iv); };
-  }, [isGroup, conversationId, currentUserId]);
+    const reader = createRecoveryReader({
+      active: AppState.currentState === 'active', intervalMs: 6000,
+      read: async signal => {
+        const current = () => live && !signal.aborted && receiptScopeRef.current === receiptScope;
+        try {
+          const { data, error } = await supabase.from('conversation_members')
+            .select('user_id, last_read_at')
+            .eq('conversation_id', conversationId)
+            .neq('user_id', currentUserId).abortSignal(signal);
+          if (error) throw error;
+          if (!Array.isArray(data) || data.some(row => typeof row?.user_id !== 'string')) throw new Error('Group read status could not be verified.');
+          if (current()) setReceiptState({ scope: receiptScope, rows: data });
+        } catch (error) {
+          if (current() && isReadAccessDenied(error)) setReceiptState({ scope: receiptScope, rows: [] });
+          throw error;
+        }
+      },
+    });
+    const appState = AppState.addEventListener('change', state => reader.setActive(state === 'active'));
+    reader.refresh();
+    return () => { live = false; reader.dispose(); appState.remove(); };
+  }, [isGroup, conversationId, currentUserId, focused, receiptScope]);
   const [seenSheet, setSeenSheet] = useState<{ msg: any; rows: { name: string; avatar: string | null; seenAt: string | null }[] } | null>(null);
   const [lastStatus, setLastStatus] = useState<OutgoingStatus>(null);
 
@@ -1223,33 +1239,6 @@ useEffect(() => {
       });
     } catch (e: any) { setLiveGroupCall(null); Alert.alert('Could not join', e?.message || 'The call may have ended.'); }
   }, [liveGroupCall, conversationId, chatTitle]);
-
-  useEffect(() => {
-    if (!isGroup || !conversationId || !currentUserId) return;
-    let live = true;
-    const check = async () => {
-      try {
-        const newest = messagesRef.current?.[0];
-        if (!newest || newest.sender_id !== currentUserId || !newest.created_at) {
-          if (live) setSeenByNames(prev => prev.length ? [] : prev);
-          return;
-        }
-        const { data } = await supabase
-          .from('conversation_members')
-          .select('user_id, last_read_at')
-          .eq('conversation_id', conversationId)
-          .neq('user_id', currentUserId)
-          .gt('last_read_at', newest.created_at);
-        if (!live) return;
-        const names: string[] = (data || []).map((r: any) => String(r.user_id));
-        setSeenByNames(prev =>
-          prev.length === names.length && prev.every((n, i) => n === names[i]) ? prev : names);
-      } catch {}
-    };
-    check();
-    const iv = setInterval(check, 5000);
-    return () => { live = false; clearInterval(iv); };
-  }, [isGroup, conversationId, currentUserId]);
 
 const openSeenInfo = useCallback(async (msg: any) => {
     if (!conversationId || !msg?.created_at) return;

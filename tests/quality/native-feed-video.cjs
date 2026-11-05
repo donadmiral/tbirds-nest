@@ -85,3 +85,42 @@ test('clipped media bounds do not establish production autoplay eligibility', ()
   assert.equal(visible[0], 'video', 'The retained initial playing position meets the same production rule');
 
 });
+
+test('iPhone video acquisition preserves the already-playing position instead of centering behind the header', () => {
+  const flow = YAML.parseAllDocuments(fs.readFileSync(path.join(root, 'tests/native/flows/feed-video.yaml'), 'utf8'))[1].toJSON();
+  const acquisitions = flow.filter(command => command.scrollUntilVisible?.element?.id === 'native-feed-video');
+  assert.equal(acquisitions.length, 3);
+  for (const command of acquisitions) assert.deepEqual(command.scrollUntilVisible, {
+    element: { id: 'native-feed-video' }, direction: 'DOWN', visibilityPercentage: 100, centerElement: false,
+  });
+  const gates = flow.filter(command => command.extendedWaitUntil?.visible === 'Native feed video playing');
+  assert.equal(gates.length, 4);
+  for (const gate of gates) assert.equal(gate.extendedWaitUntil.timeout, 15000);
+
+  // Current-source iPhone artifact 13377228916, SHA256
+  // be9ed79dced40bd3189b3b9691496bde53a808fbaebf11d55ab3c62c99824db0.
+  // Maestro observed playback before centering. The real row was 523px tall,
+  // the list viewport [184,840], and centering moved row top from 414 to -92.
+  // The media alone was reported 100% visible against the device, although the
+  // fixed header obscured it. Exercise the actual production row calculation.
+  const source = fs.readFileSync(path.join(root, 'src/screens/feed/FeedScreen.tsx'), 'utf8');
+  const ast = ts.createSourceFile('FeedScreen.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  let callback;
+  function visit(node) {
+    if (ts.isVariableDeclaration(node) && node.name.getText(ast) === 'reportHistoryVisible') callback = node.initializer.arguments[0];
+    ts.forEachChild(node, visit);
+  }
+  visit(ast); assert.ok(callback);
+  let visible;
+  const scope = {
+    historyRef: { current: { getSnapshot: () => ({ before: 0, pages: [{ index: 0, height: 1000, rows: [{ id: 'video' }] }] }) } },
+    scrollOffsetRef: { current: -230 }, historyHeaderHeight: { current: 0 }, historyViewport: { current: 656 },
+    historyRects: { current: new Map([['video', { page: 0, y: 0, height: 523 }]]) },
+    promoRowsRef: { current: [] }, displayPosts: [{ id: 'video' }],
+    onViewableItemsChanged(value) { visible = value.viewableItems.map(item => item.item.id); },
+  };
+  vm.runInNewContext(ts.transpileModule('globalThis.report = ' + callback.getText(ast), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText, scope);
+  scope.report(); assert.deepEqual(Array.from(visible), ['video']);
+  scope.scrollOffsetRef.current = 276; scope.report();
+  assert.deepEqual(Array.from(visible), [], '47.2% of the post remains visible after the unnecessary centering scroll');
+});
