@@ -1,6 +1,7 @@
 """Real QA auth, first-party original downloads and decoded encrypted-cache cold launch."""
 import base64
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -13,6 +14,10 @@ import urllib.request
 BASE = os.environ.get('APPIUM_URL', 'http://127.0.0.1:4723/wd/hub')
 PACKAGE = 'app.platinumcircles.mobile.qa'
 OUTPUT = Path(os.environ.get('DEVICEFARM_LOG_DIR', '.')) / 'platinum-connected'
+NETWORK_HELPER_PATH = Path(__file__).parents[1] / 'network_settings.py'
+NETWORK_HELPER_SPEC = importlib.util.spec_from_file_location('physical_network_settings', NETWORK_HELPER_PATH)
+network_settings = importlib.util.module_from_spec(NETWORK_HELPER_SPEC)
+NETWORK_HELPER_SPEC.loader.exec_module(network_settings)
 
 def adb(*args, binary=False):
     value = subprocess.check_output(['adb', *args], timeout=15)
@@ -45,14 +50,16 @@ def test_connected_original_cache():
     app_path = Path(os.environ['DEVICEFARM_APP_PATH'])
     app_hash = hashlib.sha256(app_path.read_bytes()).hexdigest()
     assert app_hash == config['apkSha256'], 'Installed APK must match the reviewed source receipt'
-    before_network = {key: adb('shell', 'settings', 'get', 'global', key) for key in ('airplane_mode_on', 'wifi_on', 'mobile_data')}
+    network_binding = network_settings.discover_binding(adb)
+    before_network = network_settings.read_settings(adb, network_binding)
     (OUTPUT / 'network-before.json').write_text(json.dumps(before_network, indent=2) + '\n')
+    (OUTPUT / 'network-binding.json').write_text(json.dumps(network_binding, indent=2) + '\n')
     caps = {'platformName': 'Android', 'appium:automationName': 'UiAutomator2', 'appium:appPackage': PACKAGE,
             'appium:appActivity': '.MainActivity', 'appium:app': str(app_path), 'appium:noReset': False,
             'appium:autoGrantPermissions': False, 'appium:newCommandTimeout': 90}
     session = request('POST', '/session', {'capabilities': {'alwaysMatch': caps, 'firstMatch': [{}]}})['sessionId']
     prefix = '/session/' + session
-    started, results, proofs = time.monotonic(), [], {}
+    started, results, proofs = time.monotonic(), [], {'networkBinding': network_binding, 'networkBefore': before_network}
     passed, network_changed, network_restored = False, False, False
     cold_process = None
     media = {item['kind']: item for item in config['media']}
@@ -163,6 +170,7 @@ def test_connected_original_cache():
                  'deviceOS': os.environ.get('DEVICEFARM_DEVICE_OS_VERSION'), 'abi': abi, 'qemu': qemu,
                  'apkSha256': app_hash, 'sourceCommit': config['sourceCommit'], 'runId': config['runId'],
                  'harnessSha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), 'fixtureBackend': False,
+                 'networkReadbackHelperSha256': hashlib.sha256(NETWORK_HELPER_PATH.read_bytes()).hexdigest(),
                  'connectedQaProject': config['projectId'], 'offlineOriginalMediaAcceptance': passed,
                  'networkRestored': network_restored, 'scope': 'One public image/video carousel, actual QA auth/capabilities, native encryption, refresh and offline cold decoded media.'}
         (OUTPUT / 'receipt.json').write_text(json.dumps(value, indent=2) + '\n')
@@ -198,8 +206,9 @@ def test_connected_original_cache():
         if network_changed:
             adb('shell', 'cmd', 'connectivity', 'airplane-mode', 'enable' if before_network['airplane_mode_on'] == '1' else 'disable')
             adb('shell', 'svc', 'wifi', 'enable' if before_network['wifi_on'] == '1' else 'disable')
+            network_settings.validate_binding(adb, network_binding)
             adb('shell', 'svc', 'data', 'enable' if before_network['mobile_data'] == '1' else 'disable')
-            wait(lambda: all(adb('shell', 'settings', 'get', 'global', key) == expected for key, expected in before_network.items() if expected in ('0', '1')),
+            wait(lambda: network_settings.read_settings(adb, network_binding) == before_network,
                  15, 'Original physical device network settings did not restore')
         network_restored = True
 
@@ -252,11 +261,11 @@ def test_connected_original_cache():
         network_changed = True
         adb('shell', 'cmd', 'connectivity', 'airplane-mode', 'enable')
         adb('shell', 'svc', 'wifi', 'disable')
+        network_settings.validate_binding(adb, network_binding)
         adb('shell', 'svc', 'data', 'disable')
-        wait(lambda: adb('shell', 'settings', 'get', 'global', 'airplane_mode_on') == '1'
-             and adb('shell', 'settings', 'get', 'global', 'wifi_on') == '0'
-             and adb('shell', 'settings', 'get', 'global', 'mobile_data') == '0', 15, 'Physical network disable readback failed')
-        proofs['offlineSettings'] = {key: adb('shell', 'settings', 'get', 'global', key) for key in before_network}
+        wait(lambda: network_settings.read_settings(adb, network_binding)
+             == {'airplane_mode_on': '1', 'wifi_on': '0', 'mobile_data': '0'}, 15, 'Physical network disable readback failed')
+        proofs['offlineSettings'] = network_settings.read_settings(adb, network_binding)
         mobile('activateApp', {'appId': PACKAGE})
         permission()
         text(config['caption'], 45)
@@ -267,7 +276,7 @@ def test_connected_original_cache():
         record('offline-cold-image-decrypted-and-displayed')
         swipe_media('image', 'left')
         displayed('video', local=True)
-        proofs['offlineEndSettings'] = {key: adb('shell', 'settings', 'get', 'global', key) for key in before_network}
+        proofs['offlineEndSettings'] = network_settings.read_settings(adb, network_binding)
         assert proofs['offlineEndSettings'] == {'airplane_mode_on': '1', 'wifi_on': '0', 'mobile_data': '0'}
         assert events('network-state')[-1].get('isConnected') is False, 'Cold decoded media must remain offline'
         progress = wait(lambda: [row for row in events('video-progress') if row.get('mediaId') == media['video']['mediaId']
