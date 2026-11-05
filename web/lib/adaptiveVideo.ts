@@ -1,5 +1,11 @@
-import { knownAdaptiveMedia, resolveAdaptiveMedia } from '../../shared/adaptiveMedia';
+import { clearAdaptiveMedia, knownAdaptiveMedia, resolveAdaptiveMedia } from '../../shared/adaptiveMedia';
 import type Hls from 'hls.js';
+
+/** Tiny readiness only. Video bytes stay under the shared two-buffer lease. */
+export function prefetchAdaptiveVideo(source: string) {
+  if (process.env.NEXT_PUBLIC_ADAPTIVE_MEDIA === 'true') void resolveAdaptiveMedia(source);
+}
+export function clearAdaptiveVideo() { clearAdaptiveMedia(); }
 
 /** Owns the same video element; no detached decoder or new visual controls. */
 export function attachAdaptiveVideo(video: HTMLVideoElement, source: string, options: { shouldPlay?: () => boolean } = {}) {
@@ -18,12 +24,14 @@ export function attachAdaptiveVideo(video: HTMLVideoElement, source: string, opt
   };
   const prepare = async () => {
     if (process.env.NEXT_PUBLIC_ADAPTIVE_MEDIA !== 'true') { original(); return; }
-    const ready = knownAdaptiveMedia(source) ?? await resolveAdaptiveMedia(source);
+    const ready = knownAdaptiveMedia(source);
+    // A cold discovery must never hold the original's first request or replace
+    // its already loaded pixels. Keep the result for the next prepared player.
+    if (!ready) { original(); void resolveAdaptiveMedia(source); return; }
     if (disposed || explicit) return;
     // Play can precede this React effect. Never upgrade a running or resumed
     // element merely because a late readiness lookup has just completed.
     if (!video.paused || video.currentTime > .05) { selected = true; return; }
-    if (!ready) { original(); return; }
     if (video.canPlayType('application/vnd.apple.mpegurl')) {
       selected = true; adaptive = true; video.src = ready.hlsUrl; video.load(); return;
     }

@@ -13,7 +13,8 @@ function accountHarness({ owner = 'account-a', factors = [] } = {}) {
   let cursor = 0, dirty = false, tree, component, childKey, childStart, alive = true, sequence = 0;
   const slots = [], effects = [], authListeners = new Set(), timers = new Map(), calls = [];
   const modules = new Map(), overrides = new Map();
-  let factorRows = [...factors], sessionError = null, userRead = null, prompt = '123456';
+  let factorRows = [...factors], sessionError = null, userRead = null, prompt = '123456', sessionId = 1;
+  const session = () => owner ? { user: { id: owner }, access_token: `x.${Buffer.from(JSON.stringify({ session_id: `session-${sessionId}` })).toString('base64url')}.x` } : null;
   const equal = (a, b) => a && b && a.length === b.length && a.every((v, i) => Object.is(v, b[i]));
   const hooks = {
     useState(initial) {
@@ -31,10 +32,15 @@ function accountHarness({ owner = 'account-a', factors = [] } = {}) {
       effects.push(() => { old?.cleanup?.(); record.cleanup = fn(); });
     },
     useLayoutEffect(fn, deps) { return hooks.useEffect(fn, deps); },
+    useSyncExternalStore(subscribe, snapshot) {
+      const [, update] = hooks.useState(0);
+      hooks.useEffect(() => subscribe(() => update(value => value + 1)), [subscribe]);
+      return snapshot();
+    },
   };
   const run = async (name, args, fallback) => { calls.push({ name, args }); return overrides.has(name) ? overrides.get(name)(args) : fallback(); };
   const client = { auth: {
-    getSession: async () => ({ data: { session: owner ? { user: { id: owner } } : null }, error: sessionError }),
+    getSession: async () => ({ data: { session: session() }, error: sessionError }),
     getUser: () => userRead ? userRead() : Promise.resolve({ data: { user: owner ? { id: owner } : null }, error: null }),
     onAuthStateChange(fn) { authListeners.add(fn); return { data: { subscription: { unsubscribe() { authListeners.delete(fn); } } } }; },
     mfa: {
@@ -56,13 +62,13 @@ function accountHarness({ owner = 'account-a', factors = [] } = {}) {
   function load(file) {
     if (modules.has(file)) return modules.get(file).exports;
     const module = { exports: {} }; modules.set(file, module);
-    const source = ts.transpileModule(fs.readFileSync(path.join(root, file), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText;
-    vm.runInNewContext(source, { module, exports: module.exports, Error, console, queueMicrotask, window: { prompt: () => prompt },
+    const source = ts.transpileModule(fs.readFileSync(path.join(root, file), 'utf8'), { fileName: file, compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText;
+    vm.runInNewContext(source, { module, exports: module.exports, Error, console, queueMicrotask, AbortController, atob, window: { prompt: () => prompt },
       setTimeout(fn) { const id = ++sequence; timers.set(id, fn); return id; }, clearTimeout(id) { timers.delete(id); },
       require(name) {
         const alias = name === './supabase/client' ? '@/lib/supabase/client' : name;
         if (alias in imports) return imports[alias];
-        const target = name.startsWith('@/') ? name.slice(2) : name.startsWith('./') ? path.posix.join(path.posix.dirname(file), name) : null;
+        const target = name.startsWith('@/') ? name.slice(2) : name.startsWith('.') ? path.posix.join(path.posix.dirname(file), name) : null;
         if (target) return load(target + (fs.existsSync(path.join(root, target + '.ts')) ? '.ts' : '.tsx'));
         throw Error('Unexpected import ' + name);
       },
@@ -92,13 +98,14 @@ function accountHarness({ owner = 'account-a', factors = [] } = {}) {
     provide(name, value) { imports[name] = value; },
     mount(fn) { component = fn; return render(); }, render,
     async flush() { for (let i = 0; i < 8; i++) { await new Promise(setImmediate); render(); } },
-    auth(next, event = 'SIGNED_IN') { owner = next; for (const fn of [...authListeners]) fn(event, next ? { user: { id: next } } : null); render(); },
+    auth(next, event = 'SIGNED_IN') { if (next !== owner) sessionId++; owner = next; for (const fn of [...authListeners]) fn(event, session()); render(); },
     override(name, fn) { if (fn) overrides.set(name, fn); else overrides.delete(name); },
     set userRead(fn) { userRead = fn; }, set sessionError(error) { sessionError = error; }, set prompt(value) { prompt = value; },
     expire() { for (const [id, fn] of [...timers]) { timers.delete(id); fn(); } },
     button(label) { return nodes(render()).find(n => n.type === 'button' && text(n).trim() === label); },
     input(label, value) { const input = nodes(render()).find(n => n.type === 'input' && n.props['aria-label'] === label); assert.ok(input, label); input.props.onChange({ target: { value } }); render(); },
     get nodes() { return nodes(render()); }, get text() { return text(render()); },
+    unmount() { slots.forEach(s => s?.cleanup?.()); slots.length = 0; effects.length = 0; childKey = childStart = undefined; },
     dispose() { alive = false; slots.forEach(s => s?.cleanup?.()); },
   };
 }

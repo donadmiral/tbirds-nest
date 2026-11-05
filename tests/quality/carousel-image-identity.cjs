@@ -31,7 +31,7 @@ const same = (a, b) => a && b && a.length === b.length && a.every((value, index)
 // Run the actual components with deterministic hooks. Native drawable reuse is
 // represented by the real Expo key/recyclingKey contract, not a fake image load.
 function harness() {
-  const slots = []; let cursor = 0, scope = 'viewer-a:1';
+  const slots = []; let cursor = 0, scope = 'viewer-a:1', preview = null;
   const react = {
     useState(initial) {
       const i = cursor++;
@@ -56,6 +56,8 @@ function harness() {
     '../lib/navigationCache': { navigationScope: () => scope, subscribeNavigationScope() { return () => {}; } },
     '../services/supabase': { SUPABASE_URL: base },
     '../lib/imageDisplayIdentity': identities, '../../shared/mediaDelivery': delivery,
+    '../../shared/contentMedia': content,
+    '../hooks/useFeedStartupPreview': { useFeedStartupPreview: (post, media) => preview?.postId === post && preview?.mediaId === media ? preview : null },
     '../lib/videoEngine': {}, '../stores/settingsStore': {}, '../../shared/postVoiceEffects': {},
     '../../shared/postMediaEditing': { postAspectRatio: () => 4 / 5 },
     '../../shared/carouselNavigation': { carouselIndex: (index, length) => Math.max(0, Math.min(index, length - 1)) },
@@ -66,9 +68,10 @@ function harness() {
   const render = fn => { cursor = 0; return fn(); };
   return {
     ...component,
-    image(props = {}) { return walk(render(() => component.__CarouselImage({ uri: signed(), width: 320, height: 400, postId: 'post-a', ...props }))); },
+    image(props = {}) { return walk(render(() => component.__CarouselImage({ uri: signed(), width: 320, height: 400, postId: 'post-a', mediaId: 'media-a', ...props }))); },
     carousel(media, props = {}) { return walk(render(() => component.default({ media, containerWidth: 320, postId: 'post-a', ...props }))); },
     changeScope(next) { scope = next; },
+    preview(next) { preview = next; },
   };
 }
 const image = nodes => nodes.find(node => node.type === 'Image');
@@ -153,4 +156,60 @@ test('single and album parent keys preserve image renewal but retain full video 
   assert.notEqual(album.props.keyExtractor(video), album.props.keyExtractor(changedVideo));
   const singleVideo = item => h.carousel([item]).find(node => node.type === h.__CarouselVideo);
   assert.notEqual(singleVideo(video).key, singleVideo(changedVideo).key);
+});
+
+test('encrypted preview stays painted beneath the real source until its onDisplay, without using disk-cached native placeholders', () => {
+  const h = harness(), previewUri = 'data:image/jpeg;base64,/9j/abcd';
+  h.preview({ uri: previewUri, postId: 'post-a', mediaId: 'media-a', objectKey: 'post-media/owner/photo.jpg', kind: 'image' });
+  const initial = h.image({ uri: previewUri });
+  assert.equal(initial.filter(node => node.type === 'Image').length, 1);
+  const preview = image(initial);
+  assert.equal(preview.props.cachePolicy, 'none');
+  assert.equal(loading(initial), false);
+  const swapping = h.image(), layers = swapping.filter(node => node.type === 'Image');
+  assert.equal(layers.length, 2); assert.equal(layers[0].key, preview.key);
+  assert.equal(layers[0].props.source.uri, previewUri); assert.equal(layers[1].props.source.uri, signed());
+  assert.equal(layers[1].props.placeholder, undefined, 'native placeholder path can persist plaintext pixels');
+  assert.equal(layers[1].props.onLoad, undefined); assert.equal(loading(swapping), false);
+  layers[1].props.onDisplay();
+  const displayed = h.image().filter(node => node.type === 'Image');
+  assert.equal(displayed.length, 1); assert.equal(displayed[0].props.source.uri, signed());
+});
+
+test('preview expiry, account change and object replacement cannot retain stale placeholder pixels', () => {
+  const h = harness(), uri = 'data:image/jpeg;base64,/9j/abcd';
+  h.preview({ uri, postId: 'post-a', mediaId: 'media-a', objectKey: 'post-media/owner/photo.jpg', kind: 'image' });
+  assert.equal(h.image().filter(node => node.type === 'Image').length, 2);
+  assert.equal(h.image({ uri: signed('other.jpg') }).filter(node => node.type === 'Image').length, 1);
+  h.preview(null);
+  assert.equal(h.image().filter(node => node.type === 'Image').length, 1);
+  assert.equal(loading(h.image()), true);
+  assert.equal(image(h.image({ uri })), undefined, 'expired data URI cannot become an ordinary uncached source');
+  h.image();
+  h.changeScope('viewer-b:2');
+  assert.equal(image(h.image()), undefined);
+});
+
+test('the preview hook reads one shared entry and subscribes to expiry and account ownership', () => {
+  let owner = 'a', expired = false, subscribed;
+  const preview = { postId: 'post-a', mediaId: 'media-a', uri: 'data:image/jpeg;base64,/9j/abcd' };
+  const subscribe = () => () => {};
+  const hook = load('src/hooks/useFeedStartupPreview.ts', {
+    react: { useCallback: fn => fn, useSyncExternalStore: (listen, read) => { subscribed = listen; return read(); } },
+    '../stores/authStore': { useAuthStore: select => select({ session: owner ? { user: { id: owner } } : null }) },
+    '../services/feedStartupPreviews': { feedStartupPreviews: { subscribe, peek: id => id === 'a' && !expired ? [preview] : null } },
+  });
+  assert.equal(hook.useFeedStartupPreview('post-a', 'media-a'), preview);
+  assert.equal(subscribed, subscribe);
+  assert.equal(hook.useFeedStartupPreview('other', 'media-a'), null);
+  expired = true; assert.equal(hook.useFeedStartupPreview('post-a', 'media-a'), null);
+  expired = false; owner = 'b'; assert.equal(hook.useFeedStartupPreview('post-a', 'media-a'), null);
+  owner = null; assert.equal(hook.useFeedStartupPreview('post-a', 'media-a'), null);
+});
+
+test('the parent image component keeps its media identity across preview-to-capability replacement', () => {
+  const h = harness(), media = { id: 'media-a', media_type: 'image', sort_order: 0, url: 'data:image/jpeg;base64,/9j/abcd' };
+  const preview = h.carousel([media]).find(node => node.type === h.__CarouselImage);
+  const full = h.carousel([{ ...media, url: signed() }]).find(node => node.type === h.__CarouselImage);
+  assert.equal(preview.key, full.key); assert.equal(full.props.mediaId, 'media-a');
 });

@@ -1,6 +1,6 @@
 /** A small, account-bound copy of public feed content. Never an authorization cache. */
 export const FEED_SNAPSHOT_VERSION = 1;
-export const FEED_SNAPSHOT_MAX_AGE = 15 * 60_000;
+export const FEED_SNAPSHOT_MAX_AGE = 24 * 60 * 60_000;
 export const FEED_SNAPSHOT_LIMIT = 20;
 const MAX_BYTES = 160_000;
 const MODES = ['forYou', 'latest', 'trending'] as const;
@@ -15,6 +15,9 @@ export type FeedSnapshot = { version: number; owner: string; mode: Mode; savedAt
 const key = (owner: string, mode: string) => `pc-feed-v${FEED_SNAPSHOT_VERSION}:${owner}:${mode}`;
 const text = (value: unknown, max: number) => typeof value === 'string' ? value.slice(0, max) : null;
 const count = (value: unknown) => typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 ? value : 0;
+const restricted = (value: Row) => !!(value.view_once || value.is_view_once || value.view_limit || value.is_ephemeral
+  || value.expires_at || value.deleted_at || value.is_deleted || value.revoked_at || value.is_restricted
+  || value.restricted || value.is_paywalled || value.is_sensitive || value.edit?.sensitive);
 const publicUrl = (value: unknown) => {
   if (typeof value !== 'string' || value.length > 2048) return null;
   // Signed/private URLs and credentials must not become durable feed data.
@@ -27,11 +30,11 @@ export function publicSnapshotRows(rows: Row[], eligible: Set<string>): Row[] {
   const seen = new Set<string>();
   return rows.flatMap(row => {
     if (!row || typeof row.post_id !== 'string' || typeof row.author_id !== 'string'
-      || !eligible.has(row.post_id) || seen.has(row.post_id) || seen.size >= FEED_SNAPSHOT_LIMIT) return [];
+      || restricted(row) || !eligible.has(row.post_id) || seen.has(row.post_id) || seen.size >= FEED_SNAPSHOT_LIMIT) return [];
     seen.add(row.post_id);
     const media = (Array.isArray(row.media) ? row.media : []).slice(0, 10).flatMap((item: Row) => {
       const url = publicUrl(item?.url);
-      if (!url || !['image', 'video'].includes(item.media_type)) return [];
+      if (!url || restricted(item) || !['image', 'video'].includes(item.media_type)) return [];
       return [{ id: text(item.id, 80) ?? url, url, media_type: item.media_type,
         width: count(item.width) || null, height: count(item.height) || null,
         sort_order: count(item.sort_order), is_sensitive: item.is_sensitive === true,

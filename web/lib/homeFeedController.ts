@@ -7,7 +7,7 @@ import type { HistorySnapshot, SessionHistory } from '../../shared/sessionHistor
 
 export type FeedMode = 'for_you' | 'latest' | 'trending';
 export type FeedSeed = { owner: string; rows: FeedRow[]; mutedWords: string[]; error: string | null };
-type Result = { data: unknown; error: { message: string } | null };
+type Result = { data: unknown; error: { message: string; code?: string } | null };
 type Query = PromiseLike<Result> & { abortSignal?: (signal: AbortSignal) => Query };
 type Client = { rpc: (name: string, args: Record<string, unknown>) => Query };
 type Snapshots = ReturnType<typeof createFeedSnapshotStore>;
@@ -161,9 +161,16 @@ export function createHomeFeedController(client: Client, seed: FeedSeed, snapsho
     publish({ loading: !more && !state.rows.length, loadingMore: more, error: null,
       ...(!more && !background && !modeChange ? { scrollRestore: null } : {}) });
     try {
-      const result = await query('get_feed', { p_mode: mode, p_cursor_key: more ? cursor?.sort_key : null,
+      let result = await query('get_feed', { p_mode: mode, p_cursor_key: more ? cursor?.sort_key : null,
         p_cursor_id: more ? cursor?.post_id : null, p_limit: PAGE_SIZE });
       if (!valid()) return;
+      // Prepared rankings expire independently of a reading session. Restart
+      // its cursor once, keeping the visible order and scroll anchor intact.
+      const restarted = more && result.error?.code === '22023' && result.error.message === 'PREPARED_FEED_CURSOR_EXPIRED';
+      if (restarted) {
+        result = await query('get_feed', { p_mode: mode, p_cursor_key: null, p_cursor_id: null, p_limit: PAGE_SIZE });
+        if (!valid()) return;
+      }
       if (result.error) throw new Error(result.error.message);
       if (requestedAt <= deniedFloor) throw new Error('Post access changed. Please retry.');
       const raw = (result.data ?? []) as FeedRow[];
@@ -172,7 +179,7 @@ export function createHomeFeedController(client: Client, seed: FeedSeed, snapsho
       let existing = state.rows;
       let allowed: Map<string, boolean> | null = null;
       // Revalidate retained pages, rather than mistaking their absence from page one for deletion.
-      if (!more && background && existing.length) {
+      if (((!more && background) || restarted) && existing.length) {
         allowed = await visibility([...existing.map(row => row.post_id), ...received.map(row => row.post_id)], token, owner, mode);
         if (!valid() || !allowed) return;
         const retained = allowed;
@@ -229,7 +236,10 @@ export function createHomeFeedController(client: Client, seed: FeedSeed, snapsho
       if (!keepCursor) cursor = raw.length ? raw[raw.length - 1] : null;
       liveResolved = true;
       publish({ rows, pending, loading: false, loadingMore: false, hasMore: keepCursor ? state.hasMore : raw.length >= PAGE_SIZE });
-      if (!more) void persist(raw, token, owner, mode, allowed ?? undefined, snapshotRevision);
+      if (!more) {
+        const hydrated = new Map(rows.map(row => [row.post_id, row]));
+        void persist(raw.map(row => hydrated.get(row.post_id) ?? row), token, owner, mode, allowed ?? undefined, snapshotRevision);
+      }
       measure({ operation: more ? 'page' : 'refresh', durationMs: performance.now() - started, outcome: 'ok', rows: rows.length });
     } catch {
       if (!valid()) return;

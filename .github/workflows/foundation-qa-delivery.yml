@@ -1,0 +1,44 @@
+name: Foundation iPhone QA delivery
+
+# Change this workflow in the final reviewed commit to request one delivery.
+# A source-only push runs the shared quality gates without starting another EAS build.
+# workflow_run cannot bootstrap a new workflow living only on this release branch.
+on:
+  push:
+    branches: [codex/loading-foundation-20261105]
+    paths: [.github/workflows/foundation-qa-delivery.yml]
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: foundation-iphone-qa
+  cancel-in-progress: false
+
+jobs:
+  qa-build:
+    if: github.repository == 'donadmiral/tbirds-nest' && github.event_name == 'push' && github.ref == 'refs/heads/codex/loading-foundation-20261105'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Confirm the exact release source remains unchanged
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git diff --exit-code
+      - name: Build or resume after same-source Type and quality gates pass
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+          EXPO_PUBLIC_APP_ENV: qa
+          CI: '1'
+        run: node tools/build-live-qa.mjs

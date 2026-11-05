@@ -30,7 +30,7 @@ const flush = async screen => { await new Promise(resolve => setImmediate(resolv
 const event = (key, selector = '') => ({ key, defaultPrevented: false, target: { closest: q => selector && q.includes(selector) ? {} : null },
   preventDefault() { this.defaultPrevented = true; }, stopPropagation() { this.stopped = true; } });
 
-function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, duration = 100 } = {}) {
+function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, duration = 100, preview = null } = {}) {
   let currentHooks, ioCallback, warmCallback;
   const listeners = new Map();
   const add = (type, callback) => { const set = listeners.get(type) || new Set(); set.add(callback); listeners.set(type, set); };
@@ -55,6 +55,7 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
     if (name === '@/lib/adaptiveVideo') return moduleFor(compile('lib/adaptiveVideo.ts'));
     if (name.includes('shared/adaptiveMedia')) return sharedModule('adaptiveMedia.ts');
     if (name === '@/lib/navigationCache') return { getNavigationStore: () => navigationStore };
+    if (name === '@/lib/useFeedPreview') return { useFeedPreview: () => preview };
     if (name.includes('shared/soundtrack')) return soundtrackHelpers;
     if (name.includes('shared/discover')) return discoverHelpers;
     if (name.includes('shared/carouselNavigation')) return sharedModule('carouselNavigation.ts');
@@ -615,4 +616,30 @@ test('hidden pages release speculative sources and an A to B to A session cannot
   s.session('account-b:2'); s.session('account-a:3'); screen.render(); screen.click('Play video');
   assert.equal(screen.element.playCalls, plays); assert.equal(screen.element.getAttribute('src'), null);
   screen.unmount();
+});
+
+test('a decrypted preview paints behind a pending full image and disappears on decode or final failure', () => {
+  const preview = { uri: 'data:image/jpeg;base64,/9j/AAAA' };
+  for (const result of ['load', 'error']) {
+    const s = scenario({ preview }), screen = s.mount({ postId: 'post', media: [{ id: 'one', url: 'one.jpg', media_type: 'image', width: 1200, height: 900 }] }, 'gallery');
+    let image = screen.find(node => node.type === 'img' && node.props.role === 'button');
+    assert.equal(image.props.style.backgroundImage, `url("${preview.uri}")`);
+    if (result === 'load') image.props.onLoad({ currentTarget: { naturalWidth: 1200, naturalHeight: 900 } });
+    else image.props.onError({ currentTarget: { src: 'one.jpg' } });
+    screen.render(); image = screen.find(node => node.type === 'img' && node.props.role === 'button');
+    assert.equal(image.props.style.backgroundImage, undefined); screen.unmount();
+  }
+});
+
+test('an offline preview reserves original geometry and never opens a false full-resolution viewer', () => {
+  const preview = { uri: 'data:image/jpeg;base64,/9j/AAAA' };
+  const screen = scenario({ preview }).mount({ postId: 'post', media: [{ id: 'one', url: preview.uri, media_type: 'image', width: 1200, height: 900, _startupPreview: true }] }, 'gallery');
+  screen.render(); // Apply the measured viewport before comparing image decode.
+  let image = screen.find(node => node.type === 'img' && node.props.role === 'img');
+  const width = image.props.style.width, height = image.props.style.height;
+  image.props.onLoad({ currentTarget: { naturalWidth: 160, naturalHeight: 120 } }); screen.render();
+  image = screen.find(node => node.type === 'img' && node.props.role === 'img');
+  assert.equal(image.props.style.width, width); assert.equal(image.props.style.height, height);
+  image.props.onClick({ preventDefault() {}, stopPropagation() {} }); screen.render();
+  assert.equal(screen.find(node => node.props?.role === 'dialog'), undefined); screen.unmount();
 });

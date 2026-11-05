@@ -1,4 +1,7 @@
 import { navigationCache, navigationScope, subscribeNavigationScope } from '../../lib/navigationCache';
+import { inboxStartup } from '../../services/startupContentSnapshots';
+import { readInboxStartup } from '../../services/inboxStartup';
+import { isReadAccessDenied } from '../../../shared/readContinuity';
 import { applyNavigationInboxAvatars, compareNativeInbox, matchesNativeInbox, nativeInboxOptions, preserveNavigationInboxPreviews, readNavigationInboxIds,
   readNavigationInboxWindow, refreshNavigationInbox, subscribeNavigationInboxAvatars, type Conversation, type InboxPreview } from '../../services/navigationInbox';
 import { createInboxMergeGuard, inboxQueryKey, type InboxPaging } from '../../../shared/inboxWindow';
@@ -29,6 +32,12 @@ import { Swipeable } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
 import { ConversationsSkeleton } from '../../components/Skeleton';
 
+
+function startupInbox(actor: string | null) {
+  const owner = useAuthStore.getState().session?.user.id;
+  const saved = owner ? inboxStartup.peek(owner) : null;
+  return saved?.actorId === actor ? saved.rows : null;
+}
 
 function initials(n?: string | null) {
   if (!n) return 'U';
@@ -62,7 +71,7 @@ export default function ConversationsScreen({ navigation }: any) {
   const focused = useIsFocused();
   const [sessionScope, setSessionScope] = useState(navigationScope);
 
-  const [initialInbox] = useState(() => navigationCache.read<Conversation[]>(navigationScope(), 'inbox:personal'));
+  const [initialInbox] = useState(() => navigationCache.read<Conversation[]>(navigationScope(), 'inbox:personal') ?? startupInbox(userId));
   const [conversations, setConversationState] = useState<Conversation[]>(initialInbox ?? []);
   const conversationsRef = useRef(conversations); conversationsRef.current = conversations;
   const headReload = useRef<(() => void) | null>(null), headPending = useRef(false);
@@ -132,6 +141,7 @@ export default function ConversationsScreen({ navigation }: any) {
 
   const mountedRef = useRef(true);
   const initialLoadDoneRef = useRef(initialInbox !== null);
+  const networkInboxReady = useRef(false);
   const accountRef = useRef(userId); accountRef.current = userId;
   const inboxScope = useRef(sessionScope);
   const reading = useReadingWindow<Conversation>({ identity: `${sessionScope}:${userId}:${queryKey}`, id: row => row.id,
@@ -160,7 +170,8 @@ export default function ConversationsScreen({ navigation }: any) {
       inboxScope.current = next; setSessionScope(next);
       reading.reset(); headPending.current = false;
       listAbort.current?.abort(); moreAbort.current?.abort(); moreAbort.current = null; mergeGuard.current.clear(); previewHints.current.clear(); morePending.current = false; setLoadingMore(false);
-      const cached = navigationCache.read<Conversation[]>(next, 'inbox:personal');
+      networkInboxReady.current = false;
+      const cached = navigationCache.read<Conversation[]>(next, 'inbox:personal') ?? startupInbox(userId);
       setConversations(cached ?? []); setMentionTimes({}); setLoadError(null); setLoading(cached === null);
       const nextPaging = navigationCache.read<InboxPaging>(next, 'inbox:personal:paging');
       pagingRef.current = nextPaging; setPaging(nextPaging);
@@ -169,7 +180,28 @@ export default function ConversationsScreen({ navigation }: any) {
     sync(); return subscribeNavigationScope(sync);
   }, [userId]);
   useEffect(() => {
-    if (initialLoadDoneRef.current && (!paging || paging.query === baseQueryKey)) {
+    const owner = useAuthStore.getState().session?.user.id;
+    if (!owner || !userId) return;
+    const scope = navigationScope();
+    let restored = startupInbox(userId) !== null;
+    const restore = () => {
+      if (networkInboxReady.current || !mountedRef.current || navigationScope() !== scope || accountRef.current !== userId || inboxQueryKey(optionsRef.current) !== baseQueryKey) return;
+      const cached = startupInbox(userId);
+      if (cached === null) {
+        if (restored) { restored = false; setConversations([]); setLoadError('Reconnect to refresh your conversations.'); }
+        return;
+      }
+      restored = true;
+      setConversations(cached); setLoading(false); initialLoadDoneRef.current = true;
+    };
+    const stop = inboxStartup.subscribe(restore);
+    restore(); void inboxStartup.hydrate(owner).then(restore).catch(() => {});
+    return stop;
+  }, [userId, sessionScope, baseQueryKey, setConversations]);
+  useEffect(() => {
+    // A disk-only preview keeps its short expiry. Do not promote it into the
+    // longer-lived navigation cache before the server confirms the inbox.
+    if (networkInboxReady.current && initialLoadDoneRef.current && (!paging || paging.query === baseQueryKey)) {
       navigationCache.save(inboxScope.current, 'inbox:personal', conversations);
       navigationCache.save(inboxScope.current, 'inbox:personal:paging', paging);
     }
@@ -251,16 +283,26 @@ export default function ConversationsScreen({ navigation }: any) {
         if (preserve && rows.some(row => !conversationsRef.current.some(previous => previous.id === row.id))) headPending.current = true;
         await commitWindow(rows, preserve ? 'refresh' : 'reset', current); if (!current()) return false;
       } else setConversations(rows);
+      networkInboxReady.current = true;
+      if (query === baseQueryKey) {
+        const owner = useAuthStore.getState().session?.user.id;
+        if (owner) void readInboxStartup(rows).then(saved => {
+          if (current()) return inboxStartup.write(owner, { actorId: userId, rows: saved });
+        }).catch(() => { if (current()) void inboxStartup.clear(owner).catch(() => {}); });
+      }
       pagingRef.current = preserve && result.paging && previousPaging ? { ...previousPaging, summary: result.paging.summary } : result.paging; setPaging(pagingRef.current);
       return true;
-    } catch { if (alive() && !externalSignal?.aborted) setLoadError('Your conversations could not be refreshed. Please try again.'); return false; }
+    } catch (error) { if (alive() && !externalSignal?.aborted) {
+      if (isReadAccessDenied(error)) { networkInboxReady.current = true; setConversations([]); reading.reset(); const owner = useAuthStore.getState().session?.user.id; if (owner) void inboxStartup.clear(owner).catch(() => {}); }
+      setLoadError('Your conversations could not be refreshed. Please try again.');
+    } return false; }
     finally {
       clearTimeout(deadline);
       if (alive()) { setLoading(false); initialLoadDoneRef.current = true; }
       externalSignal?.removeEventListener('abort', cancel);
       if (listAbort.current === request) listAbort.current = null;
     }
-  }, [userId, sessionScope, commitWindow]);
+  }, [userId, sessionScope, commitWindow, baseQueryKey]);
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined;

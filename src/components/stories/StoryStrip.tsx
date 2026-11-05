@@ -11,6 +11,9 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { storiesService, CatchupUser } from '../../services/storiesService';
 import { useAuthStore } from '../../stores/authStore';
+import { navigationScope } from '../../lib/navigationCache';
+import { storyStartup } from '../../services/startupContentSnapshots';
+import { readStoryStartup } from '../../services/storyStartup';
 import { supabase } from '../../services/supabase';
 import { flagsService } from '../../services/flagsService';
 import { prefetchStoryEntry, invalidateStoryEntries } from '../../services/storyReadiness';
@@ -150,7 +153,8 @@ function StoryStrip({ mode = 'all' }: Props) {
   const [flagOff, setFlagOff] = useState(false);
   useEffect(() => { flagsService.isEnabled('stories').then(on => setFlagOff(!on)).catch(() => {}); }, []);
   const navigation = useNavigation<any>();
-  const { profile } = useAuthStore();
+  const { profile, session } = useAuthStore();
+  const authOwner = session?.user.id ?? null;
   const myId = profile?.id ?? null;
   const liveSessions = useLiveStoryPresence();
   const liveByHost = new Map(liveSessions.map(session => [session.host.id, session]));
@@ -158,9 +162,14 @@ function StoryStrip({ mode = 'all' }: Props) {
   const ownerRef = useRef(myId); ownerRef.current = myId;
   useEffect(() => () => { loadGeneration.current++; }, []);
 
-  const [catchup, setCatchup] = useState<CatchupUser[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [myHasStories, setMyHasStories] = useState(false);
+  const [initialStories] = useState(() => {
+    const cached = authOwner ? storyStartup[mode].peek(authOwner) : null;
+    return cached?.actorId === myId ? cached.rows : null;
+  });
+  const [catchup, setCatchup] = useState<CatchupUser[]>(initialStories ?? []);
+  const [loading, setLoading] = useState(initialStories === null);
+  const [myHasStories, setMyHasStories] = useState(!!myId && !!initialStories?.some(row => row.user_id === myId));
+  const networkStoriesReady = useRef(false);
   const [spotlight, setSpotlight] = useState<{ story_id: string; user_id: string; full_name: string; username: string; avatar_url: string | null; views: number }[]>([]);
 
   // Phase 4.0A: Track which userIds were sent to the viewer
@@ -168,11 +177,15 @@ function StoryStrip({ mode = 'all' }: Props) {
   const viewerOpenedForRef = useRef<Set<string> | null>(null);
 
   const load = useCallback(async () => {
-    const request = ++loadGeneration.current;
-    const current = () => request === loadGeneration.current && ownerRef.current === myId;
+    const request = ++loadGeneration.current, scope = navigationScope();
+    const current = () => request === loadGeneration.current && ownerRef.current === myId && navigationScope() === scope;
     try {
       const rows = await storiesService.getCatchupFeed(mode, 30);
       if (!current()) return;
+      networkStoriesReady.current = true;
+      if (authOwner && myId) void readStoryStartup(rows).then(saved => {
+        if (current()) return storyStartup[mode].write(authOwner, { actorId: myId, rows: saved });
+      }).catch(() => { if (current()) void storyStartup[mode].clear(authOwner).catch(() => {}); });
       setCatchup(rows);
       setMyHasStories(!!myId && rows.some(r => r.user_id === myId));
       setLoading(false);
@@ -197,12 +210,31 @@ function StoryStrip({ mode = 'all' }: Props) {
     } finally {
       if (current()) setLoading(false);
     }
-  }, [mode, myId]);
+  }, [mode, myId, authOwner]);
 
   useEffect(() => {
-    setCatchup([]); setSpotlight([]); setMyHasStories(false);
-    setLoading(true);
-  }, [myId, mode]);
+    networkStoriesReady.current = false;
+    const saved = authOwner ? storyStartup[mode].peek(authOwner) : null;
+    const cached = saved?.actorId === myId ? saved.rows : null;
+    setCatchup(cached ?? []); setSpotlight([]); setMyHasStories(!!myId && !!cached?.some(row => row.user_id === myId));
+    setLoading(cached === null);
+    if (!authOwner || !myId) return;
+    const scope = navigationScope();
+    let restored = cached !== null;
+    const restore = () => {
+      if (networkStoriesReady.current || navigationScope() !== scope || ownerRef.current !== myId) return;
+      const value = storyStartup[mode].peek(authOwner);
+      if (value?.actorId !== myId) {
+        if (restored) { restored = false; setCatchup([]); setMyHasStories(false); }
+        return;
+      }
+      restored = true;
+      setCatchup(value.rows); setMyHasStories(value.rows.some(row => row.user_id === myId)); setLoading(false);
+    };
+    const stop = storyStartup[mode].subscribe(restore);
+    void storyStartup[mode].hydrate(authOwner).then(restore).catch(() => {});
+    return stop;
+  }, [myId, mode, authOwner]);
 
   useFocusEffect(
     useCallback(() => {

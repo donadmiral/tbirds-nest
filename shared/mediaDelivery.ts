@@ -17,6 +17,7 @@ export function isMediaDeliveryCapability(value: string, base: string): boolean 
   return !!mediaDeliveryObject(value, base) && /^[0-9a-f]{64}$/.test(new URL(value).searchParams.get('token') || '');
 }
 export function privateImageCachePolicy(value?: string | null): 'none' | 'memory-disk' {
+  if (value?.startsWith('data:image/')) return 'none';
   return value && /\/(?:storage\/v1\/(?:object|render\/image)\/(?:sign|authenticated)\/(?:post-media|story-media|media|chat-media|chat-files|live-clips)|functions\/v1\/media-content)\/|\/functions\/v1\/limited-media-file(?:[/?]|$)/.test(value)
     ? 'none' : 'memory-disk';
 }

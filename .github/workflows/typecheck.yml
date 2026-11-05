@@ -10,7 +10,7 @@ name: Type and quality gates
 
 on:
   push:
-    branches: [master, codex/completion-20261101, codex/web-admin-media-parity-20261101, codex/live-completion-20261102]
+    branches: [master, codex/completion-20261101, codex/web-admin-media-parity-20261101, codex/live-completion-20261102, codex/loading-foundation-20261105]
   pull_request:
   workflow_dispatch:
 

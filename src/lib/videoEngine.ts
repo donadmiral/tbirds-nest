@@ -40,22 +40,21 @@ export function enginePosition(uri: string): number {
   if (state.uri !== uri || !state.ready) return 0;
   try { return Number(state.player?.currentTime) || 0; } catch { return 0; }
 }
-export function prefetchFeedVideos(sources: PreparedVideoSource[]) {
-  if (process.env.EXPO_PUBLIC_ADAPTIVE_MEDIA !== 'true') { pool.prefetch(sources); return; }
-  // Discovery happens on the two nearby sources. An immediately claimed card
-  // plays its original without waiting or replacing an already visible player.
-  const generation = ++prefetchGeneration;
-  void Promise.all(sources.slice(0, 2).map(source => resolveAdaptiveMedia(source.uri))).then(() => {
-    if (generation === prefetchGeneration) pool.prefetch(sources.slice(0, 2));
-  });
+export function prefetchFeedVideos(sources: PreparedVideoSource[], fartherSources: PreparedVideoSource[] = []) {
+  // Start bytes now using any already warm HLS capability. A slow readiness
+  // endpoint must not delay both lookahead buffers or reset prepared players.
+  pool.prefetch(sources);
+  if (process.env.EXPO_PUBLIC_ADAPTIVE_MEDIA === 'true')
+    void Promise.all([...sources.slice(0, 2), ...fartherSources.slice(0, 2)]
+      .filter(source => (source.expiresAt ?? Infinity) > Date.now())
+      .map(source => resolveAdaptiveMedia(source.uri)));
 }
-let prefetchGeneration = 0;
 export function releaseEngine() {
   pool.release();
   useVideoEngine.getState().set({ owner: null });
 }
 export function clearVideoEngine() {
-  prefetchGeneration++; clearAdaptiveMedia();
+  clearAdaptiveMedia();
   useVideoEngine.getState().set({ ...empty, foreground: AppState.currentState === 'active' });
   pool.clear();
   pendingSeek = null;

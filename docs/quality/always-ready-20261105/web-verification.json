@@ -1,0 +1,60 @@
+{
+  "scope": "member web always-ready loading, public encrypted previews, prepared cursor recovery, operations route inventory",
+  "baseCommit": "e221ffc18f70c36d1b279835a40fa57fc9446358",
+  "recordedAt": "2026-11-05T04:56:31.104306+00:00",
+  "tests": {
+    "command": "node --test tests/feed-preview-integration.cjs tests/feed-preview-cache.cjs tests/account-resource-cache.cjs tests/account-resource-regressions.cjs tests/home-feed-quality.cjs tests/page-refresh-continuity.cjs tests/video-player-regressions.cjs tests/media-social-components.cjs tests/username-regressions.cjs tests/two-factor-regressions.cjs",
+    "cwd": "web",
+    "passed": 154,
+    "failed": 0,
+    "skipped": 0
+  },
+  "lint": "Targeted ESLint passed, including final feed cache and browser adapter changes.",
+  "routeInventory": {
+    "member": 105,
+    "operations": 35,
+    "filesystemReconciled": true
+  },
+  "limits": [
+    "No browser pixel or physical-device timing benchmark in this agent scope.",
+    "Real IndexedDB/canvas/CORS/process-restart proof is required from the added browser CI gate before release.",
+    "Only explicitly public eligible small image previews persist, not full-resolution photos or videos.",
+    "Video preview requires an existing cover image.",
+    "Operations authorization and financial data remain server-authoritative."
+  ],
+  "sourceSha256": {
+    "web/lib/accountResourceCache.ts": "1f62e43678993eff6e2bc8c411af913e569f3a1981d307507f3dc427bd30a049",
+    "web/lib/useAccountResource.ts": "1b45b7b6f64d08f1aa81900b664c726d90079801859104e73fbd4751763e2a03",
+    "web/lib/feedPreviewCache.ts": "2a4423f4645217e642db3efcd837ade835fb8d20ac76240a678ae48d0f8b4aa8",
+    "web/lib/feedPreviews.ts": "f854bf009eaa01d01d453c8905d69d5f95df465952b1bec2b062fc67e62c1a59",
+    "web/lib/useFeedPreview.ts": "815fc71d9c6e5fe66f607fefc22e96427bcb46ef9000bfaf8588931c519fb605",
+    "web/lib/feedCache.ts": "f20f2f9e67eb2c5277171c9aae2f8afcc3b25dc6c2f9b4321a8d2177d70f9388",
+    "web/lib/homeFeedController.ts": "6bf30f418609f167926880a3f8318c6ac4ac97d6ac3d52a8682aa2f26130866d",
+    "web/components/MediaGallery.tsx": "3de7b7ca2d1e550523aed2d7a7f72bcc1eb3549dd6b8b21ebe684ca220b6c3a0",
+    "web/components/HomeRail.tsx": "5a7f8fcc41e3407d23e5d0cc6e177b29d9378bc921ca58f3dde7dd2242cc46f4",
+    "web/app/calls/page.tsx": "8f185c816b59c8b242f8392ab622f7e7a8ec8fa4da4c745c836447a3d44a603c",
+    "web/app/messages/requests/page.tsx": "40887d979b1dd23901b26fc16670ff2a469910022dec539cf61ff0e66ea9181b",
+    "web/app/settings/blocked/page.tsx": "61cf2c3cc8860a316cc85ee4d5bd1e0d9de20890bc2aab95c2c2907ae2fd0375",
+    "web/app/settings/muted/page.tsx": "3e57a5ac95d0cb02c8d6a6821eaa41f425c922649cefc67cfb2a30e1cedca020",
+    "web/app/settings/restricted/page.tsx": "76b7d2ca45da370dc8c9a94daa2ce2bfe7e5b9d2b8a67b9db2edac68ac55e1f6",
+    "web/app/settings/follow-requests/page.tsx": "d60fdf265e79f13da6df1b1e955410d3b35a83b1691a85ce94a0126c09e503ad",
+    "web/tests/account-resource-cache.cjs": "93eadf8b0c2dc06bae555b90a6095ff5a935799525bc6432c26eb7232de1a06c",
+    "web/tests/feed-preview-cache.cjs": "1f1476763096bef808cbf7fdb7915d5728a73c1b1eb389168d1c0b56fb884ed5",
+    "web/tests/feed-preview-integration.cjs": "0f8b3e185f3a59ca1d0ffb3e0de6771fb1345b8063d6d0cbcc2306a925989c0c",
+    "web/tests/account-resource-regressions.cjs": "048bc0e5e5b5283d033e73fd97fa059b01e999dccd9e7bc166238c925832ded9",
+    "web/tests/helpers/account-component-harness.cjs": "7ce4cd42a3d29efef22426fd4346a9b0f65f4ad082fb35cd7f9121022267a75b",
+    "web/tests/home-feed-quality.cjs": "cfdae49163f575b437fb0f9fed129207a557887a8408dcc461c7b5e3248f7821",
+    "web/tests/media-social-components.cjs": "ce767a9b84d6af7de520b60571f1587a31cd8ea2c11f2b998b345f6ec55fc1ad",
+    "web/tests/username-regressions.cjs": "749eba9ef9f73afae3afd58b458daf85acec59e1ca2960e3a00d05ba76b36195",
+    "web/tests/video-player-regressions.cjs": "0a6385be30a0e3f060afd0fea7e74138bc1bb33b9a67a357aeeb8f583d3c008d",
+    "web/tests/browser/feed-preview-persistence.cjs": "3fdbf2ffab7119848637871fa49ba95bd6f739458009d88db8507518ef401522",
+    ".github/workflows/browser-quality.yml": "0cfc1341935a99ab893f65276d55d16541838c193157dd7e9c70569f3a279df8"
+  },
+  "typecheck": "Web tsc --noEmit --incremental false passed.",
+  "browserGate": {
+    "command": "node web/tests/browser/feed-preview-persistence.cjs",
+    "workflow": ".github/workflows/browser-quality.yml",
+    "branch": "codex/loading-foundation-20261105",
+    "localStatus": "Not executed: pinned Chromium binary absent. Runner syntax check passed. CI gate added for actual IndexedDB, canvas/CORS and process-restart verification."
+  }
+}

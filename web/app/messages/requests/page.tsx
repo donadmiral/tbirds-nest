@@ -21,7 +21,7 @@ async function loadRequests(supabase: ReturnType<typeof createClient>): Promise<
   return (data??[]) as Row[];
 }
 export default function MessageRequestsPage() {
-  const resource=useAccountResource(loadRequests, []);
+  const resource=useAccountResource(loadRequests, [], { cacheKey: "messages:requests" });
   const router=useRouter();
   const rows=resource.data;
   const locks=useRef(new Set<string>());
@@ -37,8 +37,8 @@ export default function MessageRequestsPage() {
       const {error}=await withTimeout(resource.client.rpc(action==="accept"?"accept_message_request":"decline_message_request",{p_conversation_id:id}));
       if(error)throw error;
       await resource.assertOwner();
+      resource.setData(values=>values.filter(value=>value.conversation_id!==id));
       if(action==="accept")router.push("/messages?c="+encodeURIComponent(id));
-      else resource.setData(values=>values.filter(value=>value.conversation_id!==id));
     } catch(cause) {setActionError(errorMessage(cause,"The request could not be updated. Please try again."));}
     finally {locks.current.delete(id);setBusy(value=>{const next={...value};delete next[id];return next;});}
   };

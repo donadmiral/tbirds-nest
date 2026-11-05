@@ -1,28 +1,32 @@
 /** Capabilities are ephemeral and stay in this small process-local readiness cache. */
 type Ready = { source: string; hlsUrl: string; sourceVersion: string; expiresAt: number };
 const ready = new Map<string, { value: Ready | null; until: number }>();
-const pending = new Map<string, Promise<Ready | null>>();
+const pending = new Map<string, { task: Promise<Ready | null>; controller: AbortController }>();
 let generation = 0;
 export function adaptiveProbeUrl(source: string): string | null {
   try {
     const u = new URL(source);
-    if (u.protocol !== 'https:' || u.username || u.password || !/^\/functions\/v1\/media-content\/(post-media|story-media)\/.+\.(mp4|mov|m4v)$/i.test(u.pathname) || !/^[0-9a-f]{64}$/.test(u.searchParams.get('token') || '')) return null;
+    if (u.protocol !== 'https:' || u.username || u.password || !/^\/functions\/v1\/media-content\/(post-media|story-media)\/.+\.(mp4|mov|m4v)$/i.test(u.pathname) || u.searchParams.getAll('token').length !== 1 || !/^[0-9a-f]{64}$/.test(u.searchParams.get('token') || '')) return null;
     u.searchParams.set('stream', 'check'); return u.href;
   } catch { return null; }
 }
-export function clearAdaptiveMedia(): void { generation++; ready.clear(); }
+export function clearAdaptiveMedia(): void {
+  generation++; ready.clear();
+  for (const request of pending.values()) request.controller.abort();
+  pending.clear();
+}
 export function knownAdaptiveMedia(source: string): Ready | null {
   const value = ready.get(source); return value && value.until > Date.now() ? value.value : null;
 }
 export async function resolveAdaptiveMedia(source: string, fetcher: typeof fetch = fetch): Promise<Ready | null> {
   const probe = adaptiveProbeUrl(source); if (!probe) return null;
   const hit = ready.get(source); if (hit && hit.until > Date.now()) return hit.value;
-  const current = pending.get(source); if (current) return current;
+  const current = pending.get(source); if (current) return current.task;
   // Scrolling through many cards cannot queue unlimited readiness requests.
   if (pending.size >= 4) return null;
+  const startedGeneration = generation, controller = new AbortController();
   const task = (async () => {
-    const startedGeneration = generation;
-    const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 1500);
+    const timer = setTimeout(() => controller.abort(), 1500);
     let value: Ready | null = null;
     try {
       const response = await fetcher(probe, { signal: controller.signal, cache: 'no-store', credentials: 'omit' });
@@ -44,7 +48,8 @@ export async function resolveAdaptiveMedia(source: string, fetcher: typeof fetch
       const data = JSON.parse(text), u = new URL(data.hlsUrl);
       if (data.ready === true && u.protocol === 'https:' && !u.username && !u.password && /^\/playback\/(post-media|story-media)\//.test(u.pathname)
         && decodeURIComponent(u.pathname) === decodeURIComponent(new URL(source).pathname.replace('/functions/v1/media-content/', '/playback/')) + '/master.m3u8'
-        && u.searchParams.get('token') === new URL(source).searchParams.get('token') && typeof data.sourceVersion === 'string'
+        && u.searchParams.getAll('token').length === 1 && u.searchParams.get('token') === new URL(source).searchParams.get('token')
+        && typeof data.sourceVersion === 'string' && data.sourceVersion.length > 0 && data.sourceVersion.length <= 128
         && Number.isFinite(data.expiresAt) && data.expiresAt > Date.now() + 10000) value = { source, hlsUrl: u.href, sourceVersion: data.sourceVersion, expiresAt: data.expiresAt };
     } catch { /* Processing and gateway availability must not delay original playback. */ }
     finally { clearTimeout(timer); }
@@ -53,6 +58,6 @@ export async function resolveAdaptiveMedia(source: string, fetcher: typeof fetch
     while (ready.size > 128) ready.delete(ready.keys().next().value!);
     return value;
   })();
-  pending.set(source, task);
-  try { return await task; } finally { pending.delete(source); }
+  pending.set(source, { task, controller });
+  try { return await task; } finally { if (pending.get(source)?.task === task) pending.delete(source); }
 }

@@ -42,6 +42,7 @@ function fixture({ read, sign, thumbs } = {}) {
  const requests = [], signs = [], thumbnailRequests = [];
  const set = key => value => { state[key] = typeof value === 'function' ? value(state[key]) : value; };
  const globals = {
+  notificationStartup: { write: async () => {}, clear: async () => {} }, networkNotificationsReady: { current: false },
   userId: 'viewer', generation: { current: 0 }, owner: { current: 'viewer' }, mounted: { current: true }, cursorRef: { current: { offset: 0, asOf: '2026-10-31' } }, pageLock: { current: false }, done: false,
   navigationScope: () => scope, deadline: value => Promise.resolve(value),
   ...continuity, ...readContinuity, SUPABASE_URL: base, mediaScope: { current: null }, thumbSources: { current: { scope: null, posts: [], stories: [] } }, rowsRef: { get current() { return state.rows; } },
@@ -259,4 +260,44 @@ test('expiry removes held notification capabilities without waiting for another 
  expire();
  assert.equal(h.state.rows[0].post_thumb, null); assert.equal(h.state.rows[0]._mediaExpiresAt, undefined);
  assert.deepEqual({ ...h.state.thumbs }, {});
+});
+
+function startupEffect(h, initial) {
+ let initializer;
+ const visit = node => {
+  if (ts.isCallExpression(node) && node.expression.getText(ast) === 'useEffect'
+    && node.arguments[0]?.getText(ast).includes('networkNotificationsReady.current=false')) initializer = node.arguments[0].getText(ast);
+  ts.forEachChild(node, visit);
+ };
+ visit(ast); assert.ok(initializer);
+ let saved = initial; const listeners = new Set();
+ Object.assign(h.globals.notificationStartup, {
+  peek: () => saved, hydrate: async () => saved,
+  write: async (_owner, next) => { saved = next; listeners.forEach(fn => fn()); },
+  clear: async () => { saved = null; listeners.forEach(fn => fn()); },
+  subscribe: fn => { listeners.add(fn); return () => listeners.delete(fn); },
+ });
+ const cleanup = compile('module.exports = ' + initializer, { ...h.globals, setBusy() {} })();
+ return { cleanup, saved: () => saved, restore(value) { saved = value; listeners.forEach(fn => fn()); } };
+}
+test('notification startup paints cached preview while refresh waits, then fresh data wins over late disk callbacks', async () => {
+ const gate = deferred(), h = fixture({ read: () => gate.promise });
+ const cached = [row(1, { post_thumb: null, body_preview: 'Saved ordinary reply' })];
+ const restore = startupEffect(h, cached);
+ assert.equal(h.state.loading, false); assert.equal(h.state.rows[0].body_preview, 'Saved ordinary reply');
+ const work = h.load(); await turn(); assert.equal(h.state.rows[0].body_preview, 'Saved ordinary reply');
+ gate.resolve({ data: [row(2)], error: null }); await work;
+ restore.restore(cached); assert.equal(h.state.rows[0].notification_id, 'notice-2'); restore.cleanup();
+});
+test('notification startup accepts late disk completion and clears an expired preview without waiting for network', async () => {
+ const h = fixture(), restore = startupEffect(h, null);
+ assert.equal(h.state.loading, true);
+ restore.restore([row(1, { post_thumb: null })]); assert.equal(h.state.rows.length, 1); assert.equal(h.state.loading, false);
+ restore.restore(null); assert.equal(h.state.rows.length, 0); assert.match(h.state.error, /Reconnect/); restore.cleanup();
+});
+test('confirmed notification access denial removes saved previews and prevents a late disk resurrection', async () => {
+ const h = fixture({ read: async () => ({ data: null, error: { code: '42501', message: 'Denied' } }) });
+ const cached = [row(1, { post_thumb: null })], restore = startupEffect(h, cached);
+ await h.load(); assert.equal(h.state.rows.length, 0); assert.equal(restore.saved(), null);
+ restore.restore(cached); assert.equal(h.state.rows.length, 0); restore.cleanup();
 });

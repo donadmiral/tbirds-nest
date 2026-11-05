@@ -36,7 +36,7 @@ async function loadActivity(supabase: ReturnType<typeof createClient>, uid: stri
   return {posts:posts.count,views:rows.reduce((n,row)=>n+(row.views_count??0),0),engagement:rows.reduce((n,row)=>n+(row.likes_count??0)+(row.comments_count??0),0),followers:followers.count};
 }
 function YourActivity() {
-  const resource=useAccountResource<Activity|null>(loadActivity,null);
+  const resource=useAccountResource<Activity|null>(loadActivity,null, { cacheKey: "home:weekly-activity" });
   if(resource.error)return <Panel title="Your activity"><p className="text-sm text-muted" role="status">{resource.error}</p><button type="button" className="mt-2 min-h-11 text-sm font-semibold text-ink" onClick={resource.retry}>Try again</button></Panel>;
   const a=resource.data;
   if (!a || (a.posts === 0 && a.views === 0 && a.engagement === 0 && a.followers === 0)) return null;

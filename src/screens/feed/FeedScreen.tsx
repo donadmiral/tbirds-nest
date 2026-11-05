@@ -101,6 +101,7 @@ import { hydratePostMedia, withoutPrivateMedia, retainFeedMedia } from '../../se
 import { sharedPostPreview } from '../../../shared/sharedPostPreview';
 import { renewFeedMedia } from '../../../shared/feedMedia';
 import { feedSnapshots, savePublicFeedSnapshot, reconcileFeedVisibility } from '../../services/feedSnapshot';
+import { feedStartupPreviews } from '../../services/feedStartupPreviews';
 import { createFeedLive, feedLiveWindow } from '../../../shared/feedLive';
 import { feedSnapshotFresh, mergeNativeFeedLive } from '../../../shared/feedLiveMerge';
 import { mergeFeedRefresh, feedPrefetchUrls } from '../../../shared/feedSnapshot';
@@ -163,6 +164,25 @@ function mapFeedRow(r: any): Post {
       : [],
   };
   return { ...base, score: scorePost(base) };
+}
+
+function restoreBootFeed(owner: string | null, mode = 'forYou') {
+  const active = useAuthStore.getState();
+  if (!owner || active.profile?.id !== owner || active.session?.user.id !== owner) return null;
+  const snapshot = feedSnapshots.peek(owner, mode);
+  if (!snapshot) return null;
+  const muted = ((active.profile as any)?.muted_words ?? []).filter((word: unknown): word is string => typeof word === 'string' && word.length > 0);
+  const rows = snapshot.rows.map(mapFeedRow).filter(post => {
+    const text = `${post.content ?? ''} ${post.article_title ?? ''}`.toLowerCase();
+    return !muted.some((word: string) => text.includes(word.toLowerCase()));
+  });
+  const profiles: ProfileMap = {}, likes: Record<string, boolean> = {}, marks: Record<string, boolean> = {}, reposts: Record<string, boolean> = {};
+  rows.forEach(post => {
+    const history = post._history!;
+    profiles[post.user_id] = history.profile;
+    likes[post.id] = history.liked; marks[post.id] = history.marked; reposts[post.id] = history.reposted;
+  });
+  return { rows, profiles, likes, marks, reposts };
 }
 
 function relTime(d?: string | null) {
@@ -285,7 +305,8 @@ export default function FeedScreen({ navigation }: any) {
   const { composerText, setComposerText, exclusivePost, setExclusivePost, innovationPost, setInnovationPost }
     = useFeedTextDraft(session?.user.id === userId ? userId : null);
 
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [bootFeed] = useState(() => restoreBootFeed(userId));
+  const [posts, setPosts] = useState<Post[]>(() => bootFeed?.rows ?? []);
   const promoRowsRef = useRef<Post[]>([]);
   const historyRef = useRef<SessionHistory<Post> | null>(null);
   const historyStop = useRef<(() => void) | null>(null);
@@ -303,7 +324,7 @@ export default function FeedScreen({ navigation }: any) {
   const [feedOwner, setFeedOwner] = useState(userId);
   const dataSaver = useSettingsStore(state => state.uploadQuality === 'data-saver');
   const autoplayVideos = useSettingsStore(state => state.autoplayVideos);
-  const [profilesMap, setProfilesMap] = useState<ProfileMap>({});
+  const [profilesMap, setProfilesMap] = useState<ProfileMap>(() => bootFeed?.profiles ?? {});
   const [postRings, setPostRings] = useState<Record<string, boolean>>({});
   useFocusEffect(useCallback(() => {
     let alive = true;
@@ -315,11 +336,11 @@ export default function FeedScreen({ navigation }: any) {
     }).catch(() => {});
     return () => { alive = false; };
   }, []));
-  const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
+  const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>(() => bootFeed?.likes ?? {});
   const [expandedPosts, setExpandedPosts] = useState<Record<string, boolean>>({});
   const [likerNames, setLikerNames] = useState<Record<string, string[]>>({});
-  const [bookmarkedPosts, setBookmarkedPosts] = useState<Record<string, boolean>>({});
-  const [repostedPosts, setRepostedPosts] = useState<Record<string, boolean>>({});
+  const [bookmarkedPosts, setBookmarkedPosts] = useState<Record<string, boolean>>(() => bootFeed?.marks ?? {});
+  const [repostedPosts, setRepostedPosts] = useState<Record<string, boolean>>(() => bootFeed?.reposts ?? {});
   const [sharePostTarget, setSharePostTarget] = useState<Post | null>(null);
   // Muted words: posts containing any of them stay out of every feed here.
   const [mutedWords, setMutedWords] = useState<string[]>(() => {
@@ -349,7 +370,7 @@ export default function FeedScreen({ navigation }: any) {
   const overlayCounts = (list: Post[]) => list.map(pp => { const cc = countCacheRef.current[pp.id]; return cc ? { ...pp, ...cc } : pp; });
   const feedListRef = useRef<any>(null);
   const [commentPreviews, setCommentPreviews] = useState<Record<string, CommentPreview>>({});
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!bootFeed);
   const [feedError, setFeedError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -376,7 +397,7 @@ export default function FeedScreen({ navigation }: any) {
   }>()).current;
   const pendingPostsRef = useRef<Post[]>([]);
   const scrollOffsetRef = useRef(0);
-  const restoredSnapshotRef = useRef(false);
+  const restoredSnapshotRef = useRef(!!bootFeed);
   const prefetchedImagesRef = useRef(new Set<string>());
   const discoverCatRef = useRef(discoverCat);
   const mediaTouchRef = useRef(false);
@@ -555,7 +576,7 @@ export default function FeedScreen({ navigation }: any) {
   const repostedPostsRef = useRef<Record<string, boolean>>({});
   const commentPreviewsRef = useRef<Record<string, CommentPreview>>({});
   const sharingPostRef = useRef<Record<string, boolean>>({});
-  const postsRef = useRef<Post[]>([]);
+  const postsRef = useRef<Post[]>(bootFeed?.rows ?? []);
   const feedLiveRef = useRef<ReturnType<typeof createFeedLive> | null>(null);
   const [feedBroadcast, setFeedBroadcast] = useState(false);
   const interactionChangedAt = useRef<Record<string, number>>({});
@@ -724,6 +745,20 @@ export default function FeedScreen({ navigation }: any) {
   }, [userId]);
 
   useEffect(() => { postsRef.current = posts; }, [posts]);
+  useEffect(() => {
+    if (!userId) return;
+    return feedStartupPreviews.subscribe(() => {
+      if (feedStartupPreviews.peek(userId) !== null) return;
+      // Remove expired preview pixels while retaining their reserved geometry.
+      const expire = (post: Post): Post => post.media?.some((item: any) => item._startupPreview && item.url)
+        ? { ...post, media: post.media.map((item: any) => item._startupPreview ? { ...item, url: '' } : item) } : post;
+      const previous = postsRef.current;
+      const next = previous.map(expire);
+      if (next.some((post, index) => post !== previous[index])) { postsRef.current = next; setPosts(next); }
+      feedTabs.update(tab => ({ ...tab, rows: tab.rows.map(expire) }));
+    });
+  }, [userId, feedTabs]);
+
   useEffect(() => { likedPostsRef.current = likedPosts; }, [likedPosts]);
   useEffect(() => { bookmarkedPostsRef.current = bookmarkedPosts; }, [bookmarkedPosts]);
   useEffect(() => { repostedPostsRef.current = repostedPosts; }, [repostedPosts]);
@@ -944,7 +979,8 @@ export default function FeedScreen({ navigation }: any) {
       clearTimeout(deadline);
       setLoading(false);
       setRefreshing(false);
-      void savePublicFeedSnapshot(userId, mode, rows, isCurrent);
+      const hydratedById = new Map(reconciled.map(post => [post.id, post.media]));
+      void savePublicFeedSnapshot(userId, mode, rows.map(row => ({ ...row, media: hydratedById.get(row.post_id) ?? row.media })), isCurrent);
 
       const pmFromFeed: ProfileMap = {};
       const lm0: Record<string, boolean> = {}, bm0: Record<string, boolean> = {}, rm0: Record<string, boolean> = {};
@@ -1148,13 +1184,16 @@ export default function FeedScreen({ navigation }: any) {
     new Set([historyRef.current, ...feedTabs.snapshot().map(([, tab]) => tab.history)]).forEach(value => { void value?.dispose().catch(() => {}); });
     historyRef.current = null; historyReady.current = null; historyRects.current.clear(); setHistoryWindow(null);
     feedTabs.clear();
-    postsRef.current = [];
+    feedSnapshots.setAccount(userId);
+    const warm = restoreBootFeed(userId, feedModeRef.current);
+    postsRef.current = warm?.rows ?? [];
     feedMediaScopeRef.current = null;
     setFeedOwner(userId);
-    setPosts([]); setProfilesMap({}); setLikedPosts({}); setBookmarkedPosts({}); setRepostedPosts({});
+    setPosts(warm?.rows ?? []); setProfilesMap(warm?.profiles ?? {});
+    setLikedPosts(warm?.likes ?? {}); setBookmarkedPosts(warm?.marks ?? {}); setRepostedPosts(warm?.reposts ?? {});
     setCommentPreviews({}); setQuotedMap({}); setLikerNames({}); setFeedError(null);
     setFollowingIds(new Set()); setRequestedIds(new Set()); setWtfSuggestions([]); setPollPosts({}); setCollabs({});
-    restoredSnapshotRef.current = false; scrollOffsetRef.current = 0;
+    restoredSnapshotRef.current = !!warm; scrollOffsetRef.current = 0;
     countCacheRef.current = {}; hiddenIdsRef.current.clear();
     feedStampFloor.current = -1;
     seenPendingRef.current.clear(); seenSentRef.current.clear();
@@ -1163,7 +1202,7 @@ export default function FeedScreen({ navigation }: any) {
     cursorRef.current = null; hasMoreRef.current = true;
     feedSnapshots.setAccount(userId);
     if (!userId) { setLoading(false); return () => { alive = false; }; }
-    setLoading(true);
+    setLoading(!warm);
     const scope = feedScopeRef.current;
     const initialRequest = feedRequestRef.current + 1;
     void feedSnapshots.read(userId, feedModeRef.current).then(snapshot => {
@@ -2166,7 +2205,16 @@ export default function FeedScreen({ navigation }: any) {
           })
         : await supabase.rpc('get_feed', { p_mode: feedModeToServer(mode), p_cursor_key: cur!.key, p_cursor_id: cur!.id, p_limit: PAGE_SIZE });
       if (!isCurrent()) return;
-      if (moreErr) { setFeedError('Could not load more posts. Please try again.'); return; }
+      if (moreErr) {
+        if (moreErr.code === '22023' && moreErr.message.includes('PREPARED_FEED_CURSOR_EXPIRED')) {
+          // Retain the reading window while renewing the prepared cursor.
+          restoredSnapshotRef.current = true;
+          cursorRef.current = null;
+          await loadFeedRef.current?.(false, true);
+          return;
+        }
+        setFeedError('Could not load more posts. Please try again.'); return;
+      }
       setFeedError(null);
       const rows = (moreRows ?? []) as any[];
       if (rows.length === 0) { hasMoreRef.current = false; return; }
@@ -2315,7 +2363,8 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
   useEffect(() => {
     if (!screenFocused || AppState.currentState !== 'active' || dataSaver) return;
     const activeIndex = Math.max(0, displayPosts.findIndex(post => post.id === activePostId));
-    prefetchFeedVideos(upcomingFeedVideos(displayPosts, activeIndex + 1, autoplayVideos));
+    prefetchFeedVideos(upcomingFeedVideos(displayPosts, activeIndex + 1, autoplayVideos),
+      upcomingFeedVideos(displayPosts, activeIndex + 5, autoplayVideos));
     const urls = feedPrefetchUrls(displayPosts, activeIndex + 1, dataSaver)
       .filter(url => !prefetchedImagesRef.current.has(url));
     if (!urls.length) return;

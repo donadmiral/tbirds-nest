@@ -95,6 +95,45 @@ test('pagination requests are deduplicated and old pages cannot enter a refreshe
   assert.equal(h.controller.getSnapshot().rows.length,0);h.controller.dispose();
 });
 
+test('expired prepared cursors recover once from a fresh head while retaining visible order and scroll', async () => {
+  const seeds = Array.from({ length: 20 }, (_, i) => row('shown-' + i));
+  const h = harness(seeds), held = deferred(); let pages = 0;
+  h.setReply(async (name, args) => {
+    if (name === 'get_feed_visibility') return { data: args.p_ids.map(post_id => ({ post_id, snapshot_eligible: true })), error: null };
+    if (++pages === 1) return { data: null, error: { code: '22023', message: 'PREPARED_FEED_CURSOR_EXPIRED' } };
+    if (pages === 2) return held.promise;
+    assert.equal(args.p_cursor_id, 'new-18');
+    return { data: [row('next')], error: null };
+  });
+  const work = h.controller.load(true); await tick();
+  assert.equal(h.controller.getSnapshot().rows[0], seeds[0]);
+  assert.equal(h.controller.getSnapshot().scrollRestore, null);
+  assert.equal(h.calls[1].args.p_cursor_key, null); assert.equal(h.calls[1].args.p_cursor_id, null);
+  held.resolve({ data: [row('shown-0', 5), ...Array.from({ length: 19 }, (_, i) => row('new-' + i))], error: null }); await work;
+  const recovered = h.controller.getSnapshot();
+  assert.equal(recovered.rows.length, 39); assert.equal(recovered.rows[0].post_id, 'shown-0'); assert.equal(recovered.rows[0].likes_count, 5);
+  assert.equal(recovered.rows[19].post_id, 'shown-19'); assert.equal(recovered.error, null); assert.equal(recovered.scrollRestore, null);
+  await h.controller.load(true); assert.equal(h.controller.getSnapshot().rows.at(-1).post_id, 'next'); h.controller.dispose();
+});
+
+test('prepared cursor recovery failures remain retryable without clearing the list or looping', async () => {
+  const seeds = Array.from({ length: 20 }, (_, i) => row(String(i))), h = harness(seeds);
+  h.setReply(async () => ({ data: null, error: { code: '22023', message: 'PREPARED_FEED_CURSOR_EXPIRED' } }));
+  await h.controller.load(true);
+  assert.equal(h.calls.length, 2); assert.equal(h.controller.getSnapshot().rows[0], seeds[0]);
+  assert.equal(h.controller.getSnapshot().loadingMore, false); assert.ok(h.controller.getSnapshot().error); h.controller.dispose();
+});
+
+test('unrelated invalid cursors do not trigger prepared recovery and account changes discard its head', async () => {
+  const seeds = Array.from({ length: 20 }, (_, i) => row(String(i))), h = harness(seeds);
+  h.setReply(async () => ({ data: null, error: { code: '22023', message: 'Invalid arguments' } }));
+  await h.controller.load(true); assert.equal(h.calls.length, 1);
+  const head = deferred(); let calls = 0;
+  h.setReply(async () => ++calls === 1 ? { data: null, error: { code: '22023', message: 'PREPARED_FEED_CURSOR_EXPIRED' } } : head.promise);
+  const work = h.controller.load(true); await tick(); h.controller.setOwner(null); head.resolve({ data: [row('old account')], error: null }); await work;
+  assert.equal(h.controller.getSnapshot().rows.length, 0); assert.equal(h.controller.getSnapshot().owner, null); h.controller.dispose();
+});
+
 test('appending a page preserves existing row and media identity and renews only the new media', async () => {
   const { renewFeedMedia } = load('../shared/feedMedia.ts'), hydrated = [];
   const expiry = Date.now() + 180000;

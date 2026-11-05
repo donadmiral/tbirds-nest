@@ -50,6 +50,26 @@ test('saved snapshots expire and cannot be read by another owner or mode', async
   assert.equal(await store.read('a', 'latest'), null);
 });
 
+test('ordinary public feed survives an overnight cold launch but never exceeds one day', async () => {
+  let now = 1000;
+  const storage = memory(), first = createFeedSnapshotStore(storage, () => now);
+  first.setAccount('a'); await first.write('a', 'forYou', [row('one')], new Set(['one']));
+  now += 12 * 60 * 60_000;
+  const restarted = createFeedSnapshotStore(storage, () => now); restarted.setAccount('a');
+  assert.equal((await restarted.read('a', 'forYou')).rows[0].post_id, 'one');
+  assert.equal(FEED_SNAPSHOT_MAX_AGE, 24 * 60 * 60_000);
+  now += 12 * 60 * 60_000 + 1;
+  assert.equal(await restarted.read('a', 'forYou'), null);
+});
+
+test('ephemeral, revoked, restricted and sensitive rows or media never become durable public snapshots', () => {
+  for (const flag of ['view_once', 'is_view_once', 'is_ephemeral', 'expires_at', 'deleted_at', 'revoked_at', 'is_restricted', 'is_sensitive']) {
+    assert.equal(publicSnapshotRows([{ ...row('one'), [flag]: true }], new Set(['one'])).length, 0);
+    const post = row('one'); post.media[0][flag] = true;
+    assert.equal(publicSnapshotRows([post], new Set(['one']))[0].media.length, 0);
+  }
+});
+
 test('invalid, future, foreign-owner and obsolete-version persisted data fail closed', async () => {
   for (const value of ['{broken', JSON.stringify({ version: 1, owner: 'b', mode: 'latest', savedAt: 100, rows: [row('one')] }),
     JSON.stringify({ version: 2, owner: 'a', mode: 'latest', savedAt: 100, rows: [row('one')] }),

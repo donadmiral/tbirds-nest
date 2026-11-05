@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react';
 import { useVideoPlayer, type VideoPlayer } from 'expo-video';
 import { knownAdaptiveMedia, resolveAdaptiveMedia } from '../../shared/adaptiveMedia';
 
-/** Keeps the existing native player and controls; upgrades only before playback. */
+/** Selects a warm source once. Cold discovery never replaces loaded pixels. */
 export function useAdaptiveVideoPlayer(uri: string, setup?: (player: VideoPlayer) => void): VideoPlayer {
   const source = useMemo(() => {
     const ready = process.env.EXPO_PUBLIC_ADAPTIVE_MEDIA === 'true' ? knownAdaptiveMedia(uri) : null;
@@ -22,11 +22,7 @@ export function useAdaptiveVideoPlayer(uri: string, setup?: (player: VideoPlayer
       }).catch(() => {}).finally(() => { restoring = false; });
     };
     const listener = player.addListener('statusChange', event => { if (event.status === 'error') recover(); });
-    if (!adaptive) void resolveAdaptiveMedia(uri).then(async ready => {
-      if (!ready || !alive || player.playing || player.currentTime > .05) return;
-      adaptive = true;
-      try { await player.replaceAsync({ uri: ready.hlsUrl, contentType: 'hls', useCaching: false }); } catch { recover(); }
-    });
+    if (!adaptive) void resolveAdaptiveMedia(uri);
     return () => { alive = false; listener.remove(); };
   }, [player, source, uri]);
   return player;

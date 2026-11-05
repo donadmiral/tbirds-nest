@@ -24,7 +24,7 @@ async function fetchRows(supabase: ReturnType<typeof createClient>): Promise<Row
 }
 
 export default function RestrictedAccountsPage() {
-  const { client: supabase, data: rows, setData: setRows, error: loadError, loading, retry, assertOwner, refreshError, refreshing } = useAccountResource<Row[]>(fetchRows, []);
+  const { client: supabase, data: rows, setData: setRows, error: loadError, loading, retry, assertOwner, refreshError, refreshing } = useAccountResource<Row[]>(fetchRows, [], { cacheKey: "settings:restricted" });
   const [actionError, setActionError] = useState("");
   const err = actionError || loadError;
   const [busy, setBusy] = useState<Record<string, boolean>>({});

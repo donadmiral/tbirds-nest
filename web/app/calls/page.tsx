@@ -45,7 +45,7 @@ async function loadCalls(supabase: ReturnType<typeof createClient>, me: string):
   return list.map(row=>({...row,other:byId.get(row.initiator_id===me?row.receiver_id??"":row.initiator_id)}));
 }
 export default function CallsPage() {
-  const resource=useAccountResource(loadCalls, []);
+  const resource=useAccountResource(loadCalls, [], { cacheKey: "calls:history" });
   const uid=resource.owner, rows=resource.data;
   const now=useCurrentTime();
   const redial = (row: Row, isVideo: boolean) => {

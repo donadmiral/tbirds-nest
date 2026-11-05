@@ -2,7 +2,7 @@ name: Browser interaction and video gates
 
 on:
   push:
-    branches: ['codex/completion-20261101', 'codex/web-admin-media-parity-20261101', 'codex/live-completion-20261102']
+    branches: ['codex/completion-20261101', 'codex/web-admin-media-parity-20261101', 'codex/live-completion-20261102', 'codex/loading-foundation-20261105']
     paths:
       - 'admin-web/**'
       - 'web/**'
@@ -78,6 +78,9 @@ jobs:
         run: |
           timeout --signal=TERM --kill-after=10s 300s bash scripts/quality/install-linux-test-runtime.sh browser-media web/node_modules/playwright/cli.js
           bash scripts/quality/install-browser-test-runtime.sh "$RUNNER_TEMP/platinum-browser"
+      - name: Verify encrypted preview restart, raster capture and privacy cleanup
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
+        run: node web/tests/browser/feed-preview-persistence.cjs
       - name: Exercise actual admin components
         # Run independent gates after an earlier test fails, but only after successful setup.
         # Ordinary step failures still fail the job; cancellation stops further gates.
@@ -202,5 +205,7 @@ jobs:
             /tmp/platinum-browser-evidence/thread-history/*.png
             /tmp/platinum-browser-evidence/live/*.json
             /tmp/platinum-browser-evidence/live/*.png
+            /tmp/platinum-browser-evidence/feed-previews/*.json
+            /tmp/platinum-browser-evidence/feed-previews/*.png
           if-no-files-found: ignore
           retention-days: 7

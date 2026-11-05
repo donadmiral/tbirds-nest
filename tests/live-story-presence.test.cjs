@@ -61,13 +61,15 @@ test('native live bubble routes the ring and story independently without nesting
   assert.equal(nodes(Bubble({session:live()})).filter(node=>node.type==='Button').length,1);
 });
 
-function nativeStrip({ following=[], stories=[], spot=[], readStories, readSpot }={}) {
+function nativeStrip({ following=[], stories=[], spot=[], readStories, readSpot, readSnapshot, startup=null }={}) {
   let cursor=0,dirty=true,tree,effects=[],scope=[];
   const actions=[],slots=[];const jsx=(type,props,key)=>({type,props,key});
   const same=(a,b)=>a&&b&&a.length===b.length&&a.every((v,i)=>Object.is(v,b[i]));
   const react={memo:x=>x,useState(value){const i=cursor++;if(!(i in slots))slots[i]=typeof value==='function'?value():value;return[slots[i],next=>{const value=typeof next==='function'?next(slots[i]):next;if(!Object.is(slots[i],value)){slots[i]=value;dirty=true;}}];},useRef(value){const i=cursor++;return slots[i]??={current:value};},useCallback(fn,deps){const i=cursor++;if(!slots[i]||!same(slots[i].deps,deps))slots[i]={fn,deps};return slots[i].fn;},useEffect(fn,deps){const i=cursor++;if(!slots[i]||!same(slots[i].deps,deps)){const old=slots[i];slots[i]={deps};effects.push(()=>{old?.cleanup?.();slots[i].cleanup=fn();});}}};
   const native=new Proxy({Animated:{createAnimatedComponent:x=>x}}, {get:(o,k)=>o[k]??k});
-  let storyRequests=0, storyChanged;
+  let storyRequests=0, storyChanged, cached= startup;
+  const cacheListeners=new Set(), writes=[];
+  const cache={peek:()=>cached,hydrate:async()=>cached,write:async(_owner,value)=>{cached=value;writes.push(value);cacheListeners.forEach(fn=>fn());},clear:async()=>{cached=null;cacheListeners.forEach(fn=>fn());},subscribe(fn){cacheListeners.add(fn);return()=>cacheListeners.delete(fn);}};
   const channel={on(_event,_filter,callback){storyChanged=callback;return channel;},subscribe(){return channel;}};
   const Strip=load('src/components/stories/StoryStrip.tsx',{
     react,'react/jsx-runtime':{jsx,jsxs:jsx,Fragment:'Fragment'},'react-native':native,
@@ -76,12 +78,14 @@ function nativeStrip({ following=[], stories=[], spot=[], readStories, readSpot 
     '../../theme/useTheme':{themedSheet:fn=>fn({surface:{canvas:'#fff',hairline:'#eee'},ink:{inverse:'#fff'}})},
     '../TierName':{default:'TierName'},'../VerifiedBadge':{default:'VerifiedBadge'},'@expo/vector-icons':{Feather:'Feather'},'react-native-svg':{Circle:'Circle'},
     '@react-navigation/native':{useNavigation:()=>({navigate:(...args)=>actions.push(args)}),useFocusEffect:fn=>react.useEffect(fn,[fn])},
-    '../../services/storiesService':{storiesService:{getCatchupFeed:async()=>{storyRequests++;return readStories?readStories():stories;}}},'../../stores/authStore':{useAuthStore:()=>({profile:{id:id(200),full_name:'Self'}})},
+    '../../services/storiesService':{storiesService:{getCatchupFeed:async()=>{storyRequests++;return readStories?readStories():stories;}}},'../../stores/authStore':{useAuthStore:()=>({profile:{id:id(200),full_name:'Self'},session:{user:{id:'owner'}}})},
     '../../services/supabase':{supabase:{rpc:async()=>readSpot?readSpot():({data:spot}),channel:()=>channel,removeChannel(){}}},'../../services/flagsService':{flagsService:{isEnabled:async()=>true}},
+    '../../services/storyStartup':{readStoryStartup:rows=>readSnapshot?readSnapshot(rows):Promise.resolve(rows)},
+    '../../lib/navigationCache':{navigationScope:()=> '1:owner'}, '../../services/startupContentSnapshots':{storyStartup:{all:cache}},
     '../../services/storyReadiness':{prefetchStoryEntry(){},invalidateStoryEntries(){}},
   }).default;
   const render=()=>{let n=0;while(dirty){if(++n>30)throw Error('Render loop');dirty=false;cursor=0;tree=Strip({});const pending=effects;effects=[];pending.forEach(fn=>fn());}return tree;};
-  render();return{get tree(){return render();},get storyRequests(){return storyRequests;},reload(){storyChanged();},actions,async flush(){for(let i=0;i<6;i++){await flush();render();}},refresh(){dirty=true;render();},cleanup(){slots.forEach(s=>s?.cleanup?.());}};
+  render();return{writes,setStartup(value){cached=value;cacheListeners.forEach(fn=>fn());render();},get tree(){return render();},get storyRequests(){return storyRequests;},reload(){storyChanged();},actions,async flush(){for(let i=0;i<6;i++){await flush();render();}},refresh(){dirty=true;render();},cleanup(){slots.forEach(s=>s?.cleanup?.());}};
 }
 test('story entry makes one core request and displays its result without waiting for spotlight',async()=>{
   let release;const held=new Promise(resolve=>{release=resolve;});
@@ -120,4 +124,28 @@ test('actual native story strip gives a live spotlight host a separate Story act
   const session=live();const h=nativeStrip({following:[session],spot:[{user_id:session.host.id,story_id:id(50),full_name:'Author'}]});await h.flush();
   const bubbles=nodes(h.tree).filter(n=>n.type==='LiveStoryBubble');assert.equal(bubbles.length,1);bubbles[0].props.onStory();
   assert.equal(h.actions[0][0],'StoryViewer');assert.equal(h.actions[0][1].startUserId,session.host.id);h.cleanup();
+});
+
+const savedStories = () => ({ actorId: id(200), rows: [{ user_id: id(100), full_name: 'Saved author', has_unseen: true, unseen_count: 1, story_count: 1, latest_story_id: id(300), latest_story_at: new Date().toISOString(), avatar_url: null, username: 'author' }] });
+test('native story tray restores saved rings before network and a confirmed empty page removes them', async () => {
+  let resolve; const held = new Promise(done => { resolve = done; });
+  const h = nativeStrip({ startup: savedStories(), readStories: () => held });
+  assert.ok(nodes(h.tree).some(node => node.key === id(100))); await h.flush();
+  assert.ok(nodes(h.tree).some(node => node.key === id(100)));
+  resolve([]); await h.flush(); assert.equal(nodes(h.tree).some(node => node.key === id(100)), false);
+  assert.equal(h.writes.at(-1).rows.length, 0);
+  h.setStartup(savedStories()); assert.equal(nodes(h.tree).some(node => node.key === id(100)), false); h.cleanup();
+});
+test('native story tray accepts late disk hydrate and removes expired metadata while network is pending', async () => {
+  let resolve; const held = new Promise(done => { resolve = done; });
+  const h = nativeStrip({ readStories: () => held }); await h.flush();
+  h.setStartup(savedStories()); assert.ok(nodes(h.tree).some(node => node.key === id(100)));
+  h.setStartup(null); assert.equal(nodes(h.tree).some(node => node.key === id(100)), false);
+  resolve([]); await h.flush(); h.cleanup();
+});
+test('story expiry lookup does not delay the already loaded tray', async () => {
+ let resolve; const held = new Promise(done => { resolve = done; });
+ const row = savedStories().rows[0], h = nativeStrip({ stories: [row], readSnapshot: () => held });
+ await h.flush(); assert.ok(nodes(h.tree).some(node => node.key === row.user_id)); assert.equal(h.writes.length, 0);
+ resolve([row]); await h.flush(); assert.equal(h.writes.length, 1); h.cleanup();
 });

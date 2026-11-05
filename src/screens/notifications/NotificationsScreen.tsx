@@ -32,6 +32,7 @@ import { supabase, SUPABASE_URL } from '../../services/supabase';
 import { notificationMediaKeys, notificationThumbnails, retainNotificationRows, retainNotificationSnapshot, retainNotificationSources, type NotificationMediaSnapshot } from '../../../shared/notificationMediaContinuity';
 import { useAuthStore } from '../../stores/authStore';
 import { navigationScope } from '../../lib/navigationCache';
+import { notificationStartup } from '../../services/startupContentSnapshots';
 import { typeSize, fontWeight, radius, space } from '../../constants/tokens';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 
@@ -236,11 +237,13 @@ export default function NotificationsScreen({ navigation }: any) {
   const { t, isDark } = useTheme();
   const userId = useAuthStore(state => state.session?.user.id || '');
 
-  const [rows, setRows] = useState<Notif[]>([]);
+  const [initialNotifications] = useState(() => userId ? notificationStartup.peek(userId) : null);
+  const [rows, setRows] = useState<Notif[]>(initialNotifications ?? []);
+  const networkNotificationsReady = useRef(false);
   const [filt, setFilt] = useState('all');
   const [thumbs, setThumbs] = useState<Record<string, string>>({});
   const reqCount = rows.filter(r => r.type === 'follow_request').length;
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(initialNotifications === null);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<Record<string, boolean>>({});
@@ -326,12 +329,14 @@ export default function NotificationsScreen({ navigation }: any) {
       if(!current())return;
       if (!Array.isArray(data) || data.some(row => !row || typeof row.notification_id !== 'string')) throw new Error('The activity response could not be verified. Please retry.');
       const batch=data as Notif[],published=retainNotificationRows(rowsRef.current,batch,SUPABASE_URL,mediaScope.current,scope);
+      networkNotificationsReady.current = true;
+      void notificationStartup.write(actor, batch).catch(() => {});
       mediaScope.current=scope;
       thumbSources.current=retainNotificationSnapshot(thumbSources.current,batch,SUPABASE_URL,scope);
       setRows(invitesFirst(published));setThumbs(notificationThumbnails(thumbSources.current));cursorRef.current.offset=batch.length;setDone(batch.length<60);
       setLoading(false);setRefreshing(false);
       void hydrateRows(batch,published,run,actor,scope);
-    }catch(e:any){if(current()){if(isReadAccessDenied(e)){setRows([]);setThumbs({});thumbSources.current={scope:null,posts:[],stories:[]};mediaScope.current=null;}setError(e?.message||'Notifications could not be loaded.');if(signal)throw e;}}
+    }catch(e:any){if(current()){if(isReadAccessDenied(e)){networkNotificationsReady.current=true;void notificationStartup.clear(actor).catch(()=>{});setRows([]);setThumbs({});thumbSources.current={scope:null,posts:[],stories:[]};mediaScope.current=null;}setError(e?.message||'Notifications could not be loaded.');if(signal)throw e;}}
     finally{if(current()){setLoading(false);setRefreshing(false);}}
   },[userId,hydrateRows]);
   const loadMore=useCallback(async()=>{
@@ -350,7 +355,23 @@ export default function NotificationsScreen({ navigation }: any) {
     }catch(e:any){if(current())setError(e?.message||'More notifications could not be loaded.');}
     finally{if(current()){pageLock.current=false;setLoadingMore(false);}}
   },[userId,done,hydrateRows]);
-  useEffect(()=>{generation.current++;pageLock.current=false;mediaScope.current=null;thumbSources.current={scope:null,posts:[],stories:[]};setRows([]);setThumbs({});setBusy({});setDone(false);setLoading(!!userId);setError(null);},[userId]);
+  useEffect(()=>{
+    generation.current++;pageLock.current=false;mediaScope.current=null;thumbSources.current={scope:null,posts:[],stories:[]};networkNotificationsReady.current=false;
+    const cached = userId ? notificationStartup.peek(userId) : null;
+    setRows(cached ?? []);setThumbs({});setBusy({});setDone(false);setLoading(!!userId && cached === null);setError(null);
+    if (!userId) return;
+    const scope = navigationScope();
+    let restored = cached !== null;
+    const restore = () => {
+      if (networkNotificationsReady.current || !mounted.current || owner.current !== userId || navigationScope() !== scope) return;
+      const saved = notificationStartup.peek(userId);
+      if (saved !== null) { restored = true; setRows(saved); setLoading(false); }
+      else if (restored) { restored = false; setRows([]); setError('Reconnect to refresh your activity.'); }
+    };
+    const stop = notificationStartup.subscribe(restore);
+    void notificationStartup.hydrate(userId).then(restore).catch(() => {});
+    return stop;
+  },[userId]);
   useEffect(() => {
     const sources = [...rows, ...thumbSources.current.posts, ...thumbSources.current.stories] as Array<{ _mediaExpiresAt?: number }>;
     const expires = sources.map(row => row._mediaExpiresAt).filter((value): value is number => typeof value === 'number' && Number.isFinite(value));

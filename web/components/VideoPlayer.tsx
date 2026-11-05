@@ -7,7 +7,7 @@ import { autoplayEnabled, dataSaverEnabled } from "@/lib/mediaPrefs";
 import { PLAYBACK_SPEEDS, playbackWindow, clampVideoTime, formatVideoTime } from "@/lib/videoPlayback";
 import { videoPreloads } from '@/lib/videoReadiness';
 import { getNavigationStore } from '@/lib/navigationCache';
-import { attachAdaptiveVideo } from '@/lib/adaptiveVideo';
+import { attachAdaptiveVideo, clearAdaptiveVideo, prefetchAdaptiveVideo } from '@/lib/adaptiveVideo';
 
 import {PostSoundtrack} from './PostSoundtrack';
 import type {SoundtrackSelection} from '../../shared/soundtrack';
@@ -143,6 +143,19 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
 
   useEffect(() => {
     const el = wrapRef.current;
+    if (!el || !allowPlayback || process.env.NEXT_PUBLIC_ADAPTIVE_MEDIA !== 'true' || typeof IntersectionObserver === 'undefined') return;
+    // Resolve capabilities farther ahead than the byte-buffer window. This
+    // warms HLS selection without allocating a decoder or fetching a segment.
+    const discovery = new IntersectionObserver(([entry]) => {
+      if (entry?.isIntersecting && !document.hidden && !dataSaverEnabled() && !sessionRevoked.current)
+        prefetchAdaptiveVideo(src);
+    }, { rootMargin: '200% 0px', threshold: 0 });
+    discovery.observe(el);
+    return () => discovery.disconnect();
+  }, [allowPlayback, src]);
+
+  useEffect(() => {
+    const el = wrapRef.current;
     if (!el || !allowPlayback) { setNearViewport(false); return; }
     const lease = videoPreloads.register(setNearViewport); warmLease.current = lease;
     lease.activate(wantsPlayback.current);
@@ -190,7 +203,7 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
     return store.subscribe(() => {
       const next = store.getSnapshot();
       if (session.initialized && next.scope !== session.scope) {
-        sessionRevoked.current = true; positions.clear(); stop(); warmLease.current?.approach(null); setNearViewport(false);
+        sessionRevoked.current = true; clearAdaptiveVideo(); positions.clear(); stop(); warmLease.current?.approach(null); setNearViewport(false);
       }
       session = next;
     });

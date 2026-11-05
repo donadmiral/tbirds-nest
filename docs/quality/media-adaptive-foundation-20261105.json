@@ -1,0 +1,47 @@
+{
+  "checkedAt": "2026-11-05T04:52:35.136097+00:00",
+  "sourceUrl": "https://vercel.com/docs/sandbox/pricing",
+  "sourceHtmlSha256": "fffaac1760e8447e342810961f030b7fe001f9741cba4627d8cfd1fc14aab37d",
+  "regionRates": {
+    "regionCode": "pdx1",
+    "regionDisplayName": "Portland, USA (pdx1)",
+    "cpuUnitAmount": "0.128",
+    "memoryUnitAmount": "0.0212",
+    "dataTransferUnitAmount": "0.15",
+    "driveStorageUnitAmount": "0.0500",
+    "driveReadUnitAmount": "0.0015",
+    "driveWriteUnitAmount": "0.0040"
+  },
+  "profile": {
+    "vcpus": 2,
+    "memoryGB": 4,
+    "reservationWallSeconds": 780,
+    "reservationCpuSeconds": 1560
+  },
+  "maximumComputeUSD": {
+    "perReservation": 0.0738406,
+    "twelveReservations": 0.8860872,
+    "twentyReservations": 1.476812,
+    "hundredReservations": 7.38406
+  },
+  "excludes": [
+    "transfer",
+    "snapshot storage",
+    "controller functions",
+    "database",
+    "playback delivery"
+  ],
+  "proposedOperatingLimits": {
+    "dailyReservations": 20,
+    "monthlyReservations": 100
+  },
+  "hostedLimitsChanged": false,
+  "localValidation": {
+    "workerGatewaySandboxTestsPassed": 45,
+    "clientPlayerTestsPassed": 29,
+    "actualFFmpegEncodeAndIndependentDecode": true,
+    "databaseRegressionStatus": "Requires native PostgreSQL CI; local host maps root UID only",
+    "pgliteSequentialMigrationSmokePassed": true,
+    "webPlayerRegressionsPassed": 48
+  }
+}

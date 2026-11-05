@@ -26,7 +26,7 @@ async function fetchRows(supabase: ReturnType<typeof createClient>, uid: string)
 }
 
 export default function MutedStoriesPage() {
-  const { client: supabase, data: rows, setData: setRows, error: loadError, loading, retry, assertOwner, refreshError, refreshing } = useAccountResource<Row[]>(fetchRows, []);
+  const { client: supabase, data: rows, setData: setRows, error: loadError, loading, retry, assertOwner, refreshError, refreshing } = useAccountResource<Row[]>(fetchRows, [], { cacheKey: "settings:muted" });
 
 
   const [actionError, setActionError] = useState("");

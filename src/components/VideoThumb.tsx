@@ -3,7 +3,7 @@
  * cached in memory, with a small play chip. Used wherever a video
  * appears as a preview tile rather than a player.
  */
-import React, { useEffect, useState, useSyncExternalStore } from 'react';
+import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import * as VideoThumbnails from 'expo-video-thumbnails';
@@ -91,7 +91,7 @@ function retainFrame(key: string, uri: string) {
   };
 }
 
-export default function VideoThumb({ uri, posterUri, size = 64, radius = 8, height, fill, chip = true, contentPosition, contentFit = 'cover', allowDecode = true }: { uri: string; posterUri?: string | null; size?: number; radius?: number; height?: number; fill?: boolean; chip?: boolean; contentPosition?: { left: `${number}%`; top: `${number}%` }; contentFit?: 'cover' | 'contain'; allowDecode?: boolean }) {
+export default function VideoThumb({ uri, posterUri, fallbackPosterUri, size = 64, radius = 8, height, fill, chip = true, contentPosition, contentFit = 'cover', allowDecode = true }: { uri: string; posterUri?: string | null; fallbackPosterUri?: string | null; size?: number; radius?: number; height?: number; fill?: boolean; chip?: boolean; contentPosition?: { left: `${number}%`; top: `${number}%` }; contentFit?: 'cover' | 'contain'; allowDecode?: boolean }) {
   const h = height ?? size;
   const scope = useSyncExternalStore(subscribeNavigationScope, navigationScope, navigationScope);
   const key = `${scope ?? 'signed-out'}:${generation}:${uri}`;
@@ -118,12 +118,24 @@ export default function VideoThumb({ uri, posterUri, size = 64, radius = 8, heig
   // the render before the effect has reset its state.
   const thumb = usePoster ? posterUri : !allowDecode ? null : preview.source === key ? preview.thumb : cache.get(key) ?? null;
   const failed = !usePoster && preview.source === key && preview.failed;
+  const imageKey = `${key}:${thumb}`;
+  const fallbackGrant = useRef({ uri: fallbackPosterUri, scope });
+  if (fallbackGrant.current.uri !== fallbackPosterUri) fallbackGrant.current = { uri: fallbackPosterUri, scope };
+  const activeImage = useRef(imageKey); activeImage.current = imageKey;
+  const failedImage = useRef<string | null>(null);
+  const [displayedImage, setDisplayedImage] = useState<string | null>(null);
+  const fallback = scope && fallbackGrant.current.scope === scope && fallbackPosterUri && displayedImage !== imageKey ? fallbackPosterUri : null;
   return (
-    <View pointerEvents="none" accessibilityLabel={thumb ? 'Video preview' : !allowDecode ? 'Video' : failed ? 'Video preview unavailable. Open the post to retry.' : 'Loading video preview'} style={fill ? { width: '100%', height: '100%', backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' } : { width: size, height: h, borderRadius: radius, backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-      {thumb ? <ExpoImage key={`${key}:${thumb}`} recyclingKey={`${key}:${thumb}`} source={{ uri: thumb }} cachePolicy={privateImageCachePolicy(uri) === 'none' ? 'none' : privateImageCachePolicy(thumb)} transition={0} style={fill ? { width: '100%', height: '100%' } : { width: size, height: h }} contentFit={contentFit} contentPosition={contentPosition} onError={() => {
+    <View pointerEvents="none" accessibilityLabel={thumb || fallback ? 'Video preview' : !allowDecode ? 'Video' : failed ? 'Video preview unavailable. Open the post to retry.' : 'Loading video preview'} style={fill ? { width: '100%', height: '100%', backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' } : { width: size, height: h, borderRadius: radius, backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+      {fallback ? <ExpoImage source={{ uri: fallback }} cachePolicy="none" transition={0}
+        style={{ position: 'absolute', width: '100%', height: '100%' }} contentFit={contentFit} contentPosition={contentPosition} /> : null}
+      {thumb ? <ExpoImage key={imageKey} recyclingKey={imageKey} source={{ uri: thumb }} cachePolicy={privateImageCachePolicy(uri) === 'none' ? 'none' : privateImageCachePolicy(thumb)} transition={0} style={fill ? { width: '100%', height: '100%' } : { width: size, height: h }} contentFit={contentFit} contentPosition={contentPosition}
+      onDisplay={() => { if (activeImage.current === imageKey && failedImage.current !== imageKey) setDisplayedImage(imageKey); }} onError={() => {
+        if (activeImage.current !== imageKey) return;
+        failedImage.current = imageKey; setDisplayedImage(null);
         if (usePoster) { setFailedPoster(`${key}:${posterUri}`); return; }
         evict(key); setPreview({ source: key, thumb: null, failed: true });
-      }} /> : !allowDecode ? <Text style={{ color: '#FFFFFF', fontSize: 16 }}>{'\u25B6'} Video</Text> : failed ? <Text numberOfLines={2} style={{ color: '#FFFFFF', fontSize: 11, textAlign: 'center', padding: 6 }}>Preview unavailable</Text> : <ActivityIndicator size="small" color="#FFFFFF" />}
+      }} /> : fallback ? null : !allowDecode ? <Text style={{ color: '#FFFFFF', fontSize: 16 }}>{'\u25B6'} Video</Text> : failed ? <Text numberOfLines={2} style={{ color: '#FFFFFF', fontSize: 11, textAlign: 'center', padding: 6 }}>Preview unavailable</Text> : <ActivityIndicator size="small" color="#FFFFFF" />}
       {chip && thumb ? <View style={{ position: 'absolute', width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#FFFFFF', fontSize: 12, marginLeft: 2 }}>{'\u25B6'}</Text></View> : null}
     </View>
   );

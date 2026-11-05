@@ -14,6 +14,7 @@ function harness() {
   const instance = name => { if (!instances.has(name)) instances.set(name, { slots: [], effects: [] }); return instances.get(name); };
   const react = {
     useState(value) { const {slots}=active,i = cursor++; if (!(i in slots)) slots[i] = typeof value === 'function' ? value() : value; return [slots[i], v => { slots[i] = typeof v === 'function' ? v(slots[i]) : v; }]; },
+    useRef(value) { const {slots}=active,i = cursor++; return slots[i] ??= { current: value }; },
     useEffect(fn, deps) { const {slots,effects}=active,i = cursor++; if (!slots[i] || deps.some((d, j) => !Object.is(d, slots[i].deps[j]))) effects.push(() => { slots[i]?.cleanup?.(); slots[i] = { deps, cleanup: fn() }; }); },
     useSyncExternalStore(subscribe,snapshot) { const {slots}=active,i=cursor++; if(!(i in slots))slots[i]={cleanup:subscribe(()=>{})}; return snapshot(); },
   };
@@ -52,6 +53,23 @@ test('short videos request their first frame once and failures expose a readable
   const h = harness(); h.render('short'); h.flush();await tick(); assert.equal(h.requests[0].options.time, 0); h.requests[0].reject(Error('Unavailable')); await tick();
   const tree = h.render('short'); assert.match(tree.props.accessibilityLabel, /unavailable/);
   assert.equal(walk(tree).some(n => n.type === 'Spinner'), false); assert.equal(tree.props.pointerEvents, 'none');
+});
+
+test('encrypted fallback stays visible until the real video poster displays and disappears on expiry or account change', () => {
+  const h = harness(), fallback = 'data:image/jpeg;base64,/9j/abcd';
+  const props = { allowDecode: false, fallbackPosterUri: fallback };
+  const first = walk(h.render('video', 'real-cover', props)).filter(node => node.type === 'Image');
+  assert.equal(first.length, 2); assert.equal(first[0].props.cachePolicy, 'none');
+  assert.equal(first[0].props.source.uri, fallback); assert.equal(first[1].props.source.uri, 'real-cover');
+  first[1].props.onDisplay();
+  assert.equal(walk(h.render('video', 'real-cover', props)).filter(node => node.type === 'Image').length, 1);
+  first[1].props.onError(); first[1].props.onDisplay();
+  const failed = walk(h.render('video', 'real-cover', props)).filter(node => node.type === 'Image');
+  assert.equal(failed.length, 1); assert.equal(failed[0].props.source.uri, fallback);
+  assert.equal(walk(h.render('video', null, { allowDecode: false })).some(node => node.type === 'Image'), false);
+  h.render('video', null, props); h.changeScope('account-b:2');
+  assert.equal(walk(h.render('video', null, props)).some(node => node.type === 'Image'), false);
+  h.dispose();
 });
 test('a missing cached image fails visibly and a new signed URL gets a fresh frame', async () => {
   const h = harness(); h.render('signed-one'); h.flush();await tick(); h.requests[0].resolve({ uri: 'file:///cache/gone.jpg' }); await tick();

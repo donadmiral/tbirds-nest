@@ -22,6 +22,7 @@ import { readPostMediaEdits, readPostMediaTags, subscribePostMetadataSession } f
 import { usePostInteractions } from "@/lib/usePostInteractions";
 import { COMMENT_COUNT_UPDATED, refreshCommentCount, reconcileLiveCommentCount, type CommentCountUpdate } from "@/lib/commentCounts";
 import { getNavigationStore } from "@/lib/navigationCache";
+import { useFeedPreview } from '@/lib/useFeedPreview';
 
 import {PostSoundtrack} from "./PostSoundtrack";
 import {readSoundtrack} from "../../shared/soundtrack";
@@ -31,7 +32,7 @@ function publicImageLoader({ src, width }: { src: string; width: number }) {
   return displayImageUrl(src, Math.min(width, 1440))!;
 }
 
-type MediaItem = { id: string; url: string; media_type: string | null; width?: number | null; height?: number | null; alt_text?: string | null; is_sensitive?: boolean | null; edit?: PostMediaEditRecipe | null };
+type MediaItem = { id: string; url: string; media_type: string | null; width?: number | null; height?: number | null; alt_text?: string | null; is_sensitive?: boolean | null; edit?: PostMediaEditRecipe | null; _startupPreview?: boolean; _previewObject?: string };
 
 // post_media.edit recipes come from a small authorized side query when older feed rows omit them.
 // Legacy media carries a placeholder id; only real media ids are ever sent to the media tables.
@@ -356,8 +357,11 @@ function PostMediaGallery({ media, postId, viewsCount, post, fullFrame = false, 
     if (dimensions(w, h)) setTrueDims((r) => (r[id] && r[id].w === w && r[id].h === h ? r : { ...r, [id]: { w, h } }));
   }, []);
 
-  if (media.length === 0) return null;
   const item = media[Math.min(idx, media.length - 1)];
+  const preview = useFeedPreview(postId, item);
+  const [previewHidden, setPreviewHidden] = useState<string | null>(null);
+  if (media.length === 0) return null;
+  const previewUri = previewHidden === item.url ? null : preview?.uri;
   const declared = dimensions(item.width, item.height);
   const known = trueDims[item.id] ?? declared;
   // Reserve document space from the feed response before media loads. Late
@@ -493,7 +497,7 @@ function PostMediaGallery({ media, postId, viewsCount, post, fullFrame = false, 
         >
           {item.media_type === "video" ? (
             <div style={contentDims ? { width: contentDims.w + "px", height: contentDims.h + "px" } : { width: "100%" }}>
-              <div className="relative h-full w-full overflow-hidden"><VideoPlayer src={item.url} postId={postId} viewsCount={viewsCount}
+              <div className="relative h-full w-full overflow-hidden"><VideoPlayer src={item.url} postId={postId} viewsCount={viewsCount} poster={preview?.uri}
                 fullFrame={(fullFrame || !declared) && !explicitFrame}
                 width={known?.w} height={known?.h}
                 onDims={(w, h) => measure(item.id, w, h)}
@@ -505,21 +509,21 @@ function PostMediaGallery({ media, postId, viewsCount, post, fullFrame = false, 
           ) : (
             <div className="relative flex items-center justify-center overflow-hidden" style={contentDims ? { width: contentDims.w, height: contentDims.h } : undefined}>
 
-            <NextImage unoptimized={dataSaverEnabled() || !item.url.includes('/storage/v1/object/public/')} width={known?.w || 1200} height={known?.h || 900} src={dataSaverEnabled() ? displayImageUrl(item.url, 480)! : item.url}
+            {(!item._startupPreview || previewUri) ? <NextImage unoptimized={dataSaverEnabled() || !item.url.includes('/storage/v1/object/public/')} width={known?.w || 1200} height={known?.h || 900} src={dataSaverEnabled() ? displayImageUrl(item.url, 480)! : item.url}
               loader={publicImageLoader} sizes="(max-width: 700px) 92vw, 640px"
-              onError={(e) => { if (e.currentTarget.src !== item.url) { e.currentTarget.removeAttribute("srcset"); e.currentTarget.src = item.url; } }}
-              onLoad={(e) => measure(item.id, e.currentTarget.naturalWidth, e.currentTarget.naturalHeight)}
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); openViewer(idx, e.currentTarget); }}
-              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); openViewer(idx, e.currentTarget); } }}
+              onError={(e) => { if (e.currentTarget.src !== item.url) { e.currentTarget.removeAttribute("srcset"); e.currentTarget.src = item.url; } else setPreviewHidden(item.url); }}
+              onLoad={(e) => { if (!item._startupPreview) { measure(item.id, e.currentTarget.naturalWidth, e.currentTarget.naturalHeight); setPreviewHidden(item.url); } }}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (!item._startupPreview) openViewer(idx, e.currentTarget); }}
+              onKeyDown={(e) => { if (!item._startupPreview && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); e.stopPropagation(); openViewer(idx, e.currentTarget); } }}
               data-media-opener
-              role="button"
-              tabIndex={0}
+              role={item._startupPreview ? 'img' : 'button'}
+              tabIndex={item._startupPreview ? -1 : 0}
               aria-label={"Open " + altOf(item, idx)}
               alt={altOf(item, idx)}
               loading="lazy"
-              style={explicitFrame && contentDims ? {width:contentDims.w,height:contentDims.h,objectFit:editOf(item)?.fit||'cover',...editStyle(editOf(item))} : fittedDims ? { width: fittedDims.sourceW, height: fittedDims.sourceH, maxWidth: 'none', maxHeight: 'none', flexShrink: 0, ...editStyle(editOf(item)) } : editStyle(editOf(item))}
+              style={{ backgroundImage: previewUri ? `url("${previewUri}")` : undefined, backgroundSize: '100% 100%', ...(explicitFrame && contentDims ? {width:contentDims.w,height:contentDims.h,objectFit:editOf(item)?.fit||'cover',...editStyle(editOf(item))} : fittedDims ? { width: fittedDims.sourceW, height: fittedDims.sourceH, maxWidth: 'none', maxHeight: 'none', flexShrink: 0, ...editStyle(editOf(item)) } : editStyle(editOf(item))) }}
               className={"cursor-zoom-in object-contain " + (dims ? "" : "max-h-[80vh] w-full")}
-            />
+            /> : null}
               <EditPlanes e={editOf(item)} />
               <PostSoundtrack selection={readSoundtrack(editOf(media[0])?.soundtrack)} active={!viewerOpen&&(!item.is_sensitive||!!revealed[item.id])} className="absolute bottom-2 right-2"/>
               <TagLayer tags={tags[item.id] || []} w={contentDims?.w} h={contentDims?.h} />

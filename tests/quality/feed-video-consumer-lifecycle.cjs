@@ -81,6 +81,8 @@ function harness(extraProps = {}) {
     '../stores/settingsStore': { useSettingsStore: select => select({ autoplayVideos: true }) },
     '../../shared/mediaDelivery': { privateImageCachePolicy: () => 'none' },
     '../lib/imageDisplayIdentity': { imageDisplayIdentity: uri => uri },
+    '../hooks/useFeedStartupPreview': { useFeedStartupPreview: () => null },
+    '../../shared/contentMedia': {},
     '../lib/navigationCache': {}, '../services/supabase': {},
     '../../shared/postVoiceEffects': { postPlaybackSettings: () => ({ rate: 1, preservesPitch: true }) },
     '../../shared/postMediaEditing': {}, '../../shared/carouselNavigation': {}, '../../shared/soundtrack': {},
