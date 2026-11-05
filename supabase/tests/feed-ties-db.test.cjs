@@ -46,6 +46,41 @@ beforeEach(async () => { await exec('savepoint tie_case;'); });
 afterEach(async () => { await exec('rollback to savepoint tie_case;release savepoint tie_case;'); });
 after(async () => { if (db) { await exec('rollback;reset role;'); await db.close(); } });
 
+test('amortized scoring preserves exact multi-day ranking, cursor pages and function permissions', async () => {
+  await exec('reset role;');
+  const before = await definitions();
+  const sqlText = sql('20261105052732_amortized_feed_frontier_scoring.sql');
+  await exec(sqlText.slice(sqlText.indexOf('do $migration$'), sqlText.indexOf('notify pgrst')));
+  const after = await definitions();
+  for (let i = 0; i < before.length; i++) {
+    const { prosrc: oldBody, definition: oldDef, ...oldContract } = before[i];
+    const { prosrc: newBody, definition: newDef, ...newContract } = after[i];
+    assert.deepEqual(newContract, oldContract);
+    if (before[i].proname !== 'select_page') assert.equal(newBody, oldBody);
+    else {
+      assert.match(newBody, /score_at integer:=200/);
+      assert.match(newBody, /p_limit>50/);
+      assert.match(newBody, /best<threshold/);
+    }
+  }
+  await exec(`insert into posts(id,user_id,content,created_at,likes_count,channel)
+    select ('10000000-0000-4000-8000-'||lpad((60000+n)::text,12,'0'))::uuid,
+      ('10000000-0000-4000-8000-'||lpad((100+n%53)::text,12,'0'))::uuid,
+      'Amortized ranking fixture',now()-make_interval(days=>n%21,hours=>n%4),n%77,
+      case when n%3=0 then 'innovation' else 'home' end from generate_series(1,400)n;
+    set role authenticated;`);
+  for (const mode of ['for_you', 'innovation']) {
+    let cursor = 'null,null';
+    for (let page = 0; page < 4; page++) {
+      const actual = await rows(`select * from get_feed('${mode}',${cursor},20)`);
+      assert.deepEqual(actual, await rows(`select * from feed_ranking.fallback('${mode}',${cursor},20)`), mode + ' page ' + page);
+      const last = actual.at(-1);
+      if (!last) break;
+      cursor = `${last.sort_key},'${last.post_id}'`;
+    }
+  }
+});
+
 test('the original equal-timestamp fixture uses indexed ranking with deterministic diversity slots', async () => {
   assert.equal(initialProof.fallback, true);
   assert.equal(initialProof.reason, 'legacy_tie');

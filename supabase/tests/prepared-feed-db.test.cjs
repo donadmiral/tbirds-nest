@@ -51,6 +51,7 @@ before(async () => {
   await exec(sql('20261105051338_prepared_feed_bounded_hydration.sql'));
   await exec(sql('20261105051457_prepared_feed_client_capability_gate.sql'));
   await exec(sql('20261105052419_feed_catalog_point_visibility.sql'));
+  await exec(sql('20261105052732_amortized_feed_frontier_scoring.sql'));
   await exec('select configure_indexed_feed_v1(true);');
  }
  await exec(`create function pg_temp.prepared_expected_error(statement text) returns text language plpgsql security invoker as $$
