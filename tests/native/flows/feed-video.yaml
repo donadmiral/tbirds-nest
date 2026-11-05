@@ -1,16 +1,30 @@
 appId: app.platinumcircles.mobile.qa
 name: First feed video survives scroll refresh and tab return
 ---
-# The video is already fully visible after each return to the top. Centering
-# against the whole device can scroll the post behind the fixed feed header,
-# leaving less than the production 55% row threshold. Require visible media
-# without moving an already visible card out of its playing position.
-- scrollUntilVisible:
-    element:
-      id: native-feed-video
-    direction: DOWN
-    visibilityPercentage: 100
-    centerElement: false
+# Android reports only the clipped part of this accessibility target as its
+# bounds. Center it to bring the full video into the list viewport. iOS already
+# exposes the full video at this position; centering there would move the post
+# behind the fixed header and below the production 55% row visibility threshold.
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: native-feed-video
+          direction: DOWN
+          visibilityPercentage: 100
+          centerElement: true
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: native-feed-video
+          direction: DOWN
+          visibilityPercentage: 100
+          centerElement: false
 - extendedWaitUntil:
     visible: Native feed video playing
     timeout: 15000
@@ -28,12 +42,26 @@ name: First feed video survives scroll refresh and tab return
 - extendedWaitUntil:
     visible: Your story
     timeout: 15000
-- scrollUntilVisible:
-    element:
-      id: native-feed-video
-    direction: DOWN
-    visibilityPercentage: 100
-    centerElement: false
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: native-feed-video
+          direction: DOWN
+          visibilityPercentage: 100
+          centerElement: true
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: native-feed-video
+          direction: DOWN
+          visibilityPercentage: 100
+          centerElement: false
 - extendedWaitUntil:
     visible: Native feed video playing
     timeout: 15000
@@ -49,12 +77,26 @@ name: First feed video survives scroll refresh and tab return
     start: 50%, 43%
     end: 50%, 90%
     duration: 700
-- scrollUntilVisible:
-    element:
-      id: native-feed-video
-    direction: DOWN
-    visibilityPercentage: 100
-    centerElement: false
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: native-feed-video
+          direction: DOWN
+          visibilityPercentage: 100
+          centerElement: true
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: native-feed-video
+          direction: DOWN
+          visibilityPercentage: 100
+          centerElement: false
 - extendedWaitUntil:
     visible: Native feed video playing
     timeout: 15000

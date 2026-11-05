@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "kind": "retained-android-full-ui",
+  "applicationSourceCommit": "9c0108364189b85f8f2f00264b25f31801aa4254",
+  "applicationSourceTree": "598eba815fd3c7138bae177568df7f4c30f46670",
+  "productSourceCommit": "e221ffc18f70c36d1b279835a40fa57fc9446358",
+  "producerRunId": 41964686880,
+  "artifactId": 13387079306,
+  "artifactArchiveSha256": "99fe45feb2ae762542935f2c64b037952d87e01a80be90e1aa16929e29730aa4",
+  "binarySha256": "455ab3eb39077b4e0caffd322a5cb04b963da097632a6ba9eb0f8a7f60610a9e",
+  "binaryManifestSha256": "684807ff60fa8b6aea12baed9778696fb02ba276560b9743755f76de198d1695",
+  "sourceReceiptSha256": "5a3eac940b0d89119805d31222c640d77f50bf8294fac132faef89b7976636c8",
+  "externalFlows": {
+    "tests/native/flows/feed-video.yaml": "1d3d56126c1f92bdf1098eaf87a259677ff5499662ff43052e32d181566b1461"
+  },
+  "rebuild": false,
+  "rebundle": false,
+  "resign": false
+}

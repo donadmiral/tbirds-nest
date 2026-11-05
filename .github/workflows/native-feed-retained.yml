@@ -1,0 +1,78 @@
+name: Verify retained Android full app without rebuilding
+on:
+  push:
+    branches: [codex/native-feed-retained-20261105]
+    paths:
+      - '.github/workflows/native-feed-retained.yml'
+      - 'scripts/quality/retained-android-full-ui.*'
+      - 'scripts/quality/run-retained-android-full-ui.sh'
+      - 'tests/native/flows/feed-video.yaml'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: retained-android-full-ui-${{ github.ref }}
+  cancel-in-progress: false
+env:
+  CI: 'true'
+  EXPO_NO_TELEMETRY: '1'
+  EXPO_PUBLIC_APP_ENV: qa
+  EXPO_PUBLIC_SUPABASE_URL: https://uaulhuelcfkjwojtymmw.supabase.co
+  EXPO_PUBLIC_SUPABASE_ANON_KEY: native-ui-synthetic-no-provider-key
+  MAESTRO_CLI_NO_ANALYTICS: 'true'
+  PYTHONDONTWRITEBYTECODE: '1'
+jobs:
+  retained-android-full-ui:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out the exact retained application source and parents
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: 9c0108364189b85f8f2f00264b25f31801aa4254
+          fetch-depth: 2
+          path: application
+          persist-credentials: false
+      - name: Check out the external gesture consumer
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          path: consumer
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+      - name: Download only the exact retained producer artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: '13387079306'
+          run-id: 41964686880
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          path: application/retained-native-ui
+      - name: Verify source, APK and external gesture before device setup
+        working-directory: application
+        run: python3 ../consumer/scripts/quality/retained-android-full-ui.py prepare
+      - name: Prepare the isolated Android host
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+          echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
+          test -d "${ANDROID_HOME:?The runner must provide its Android SDK}"
+          test -c /dev/kvm
+          sudo chmod a+rw /dev/kvm
+          timeout --signal=TERM --kill-after=10s 300s bash consumer/scripts/quality/install-linux-test-runtime.sh media
+          sudo timeout --signal=TERM --kill-after=10s 180s apt-get install --yes --no-install-recommends libpulse0 xvfb mesa-utils libgl1-mesa-dri libglx-mesa0 libegl-mesa0
+      - name: Install the original checksum-pinned Maestro CLI
+        working-directory: application
+        run: bash scripts/quality/install-native-ui-tools.sh
+      - name: Run both original required journeys and all original verifiers
+        working-directory: application
+        run: bash ../consumer/scripts/quality/run-retained-android-full-ui.sh
+      - name: Retain fresh full-app evidence and provenance
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: retained-android-full-app-ui
+          path: application/native-ui-logs/
+          if-no-files-found: warn
+          retention-days: 7
