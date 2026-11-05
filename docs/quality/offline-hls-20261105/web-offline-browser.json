@@ -1,0 +1,76 @@
+{
+  "sourceCommit": "252368b1495649a464561c583e90e23ffea0f472",
+  "workflowRun": 42055695660,
+  "jobId": 127343546919,
+  "jobConclusion": "cancelled",
+  "testStepConclusion": "success",
+  "capturedAtUtc": "2026-11-05T15:32:47.5727381Z",
+  "evidenceSource": "Completed GitHub Actions job log; offline-originals directory was absent from the artifact allowlist.",
+  "allBrowserTestSteps": "6 through 28 completed successfully; artifact upload step 29 completed successfully.",
+  "artifact": {
+    "id": 13428913112,
+    "sha256": "08ec8225acc70b3875f05315813ce1912df3df4102687e78162d70b18fadffb8",
+    "localPath": "/tmp/browser-quality-evidence-252368b.zip"
+  },
+  "result": {
+    "status": "passed",
+    "stored": {
+      "count": 2,
+      "exportRejected": true,
+      "extractable": false,
+      "containsGrant": false,
+      "bytes": [
+        16888,
+        1098094
+      ]
+    },
+    "restored": {
+      "photo": {
+        "hash": "6eac3afcad3316fb5b97ab3b0109d54a0b48ce69c0ad44413ef7c58c4bb738bd",
+        "bytes": 16872,
+        "width": 2560,
+        "height": 1440
+      },
+      "movie": {
+        "hash": "1accab76716ce197c70bc3e735040396543e3562398a36eaffeeeea574448829",
+        "bytes": 1098078,
+        "width": 720,
+        "height": 1280,
+        "time": 0.2147
+      }
+    },
+    "mediaRequests": 2,
+    "checks": [
+      "Full original PNG and MP4 bytes persisted with AES-GCM, non-extractable key, no grant URL and exact ciphertext lengths",
+      "New browser process, offline network: exact full-resolution image decode and original portrait video playback with no media request",
+      "Fresh public-eligibility denial removes the full original",
+      "Logout removes original ciphertext, key and read access"
+    ]
+  },
+  "finalWebQuality": {
+    "sourceCommit": "015dcb5d6a8e9b941cba66816d14a28a5315d587",
+    "workflowRun": 42057256496,
+    "jobId": 127348920983,
+    "conclusion": "success",
+    "typeScript": "passed",
+    "tests": 1039,
+    "passed": 1039,
+    "failed": 0,
+    "durationMs": 48537.718083
+  },
+  "offlineSourceComparison": {
+    "from": "252368b1495649a464561c583e90e23ffea0f472",
+    "to": "015dcb5d6a8e9b941cba66816d14a28a5315d587",
+    "unchanged": true,
+    "files": [
+      "web/lib/offlineMedia.ts",
+      "web/lib/offlineMediaCache.ts",
+      "web/lib/useOfflineMedia.ts",
+      "web/lib/feedCache.ts",
+      "web/components/MediaGallery.tsx",
+      "web/tests/browser/offline-media-persistence.cjs",
+      "shared/feedSnapshot.ts"
+    ]
+  },
+  "scope": "Original eligible public feed-media bytes, version and account bound. This verifies media restoration and decoding after browser process restart with network offline, not offline HTML/app-shell navigation or all private content."
+}

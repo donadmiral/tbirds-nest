@@ -99,7 +99,10 @@ else{
  const clipCreator=id(91),clipSession=id(92),clipId=id(93),clipLease=id(94),clipJob=id(95),clipPub=id(96),clipObject=id(97),clipPost=id(98);
  const clipPrefix=`${owner}/${clipSession}/${clipId}/${clipLease}/`,clipPath=clipPrefix+'horizontal.mp4';
  async function seedClip(){
-  await q(`insert into auth.users(id) values('${owner}'),('${clipCreator}');
+  // The real clip_publish_one RPC inserts the publication and its destination
+  // in one transaction. psql otherwise autocommits each fixture statement and
+  // would run deferred admission before the post exists.
+  await q(`begin;insert into auth.users(id) values('${owner}'),('${clipCreator}');
    insert into live_streams.sessions values('${clipSession}','${owner}','public',true);
    insert into live_streams.clips values('${clipId}','${clipSession}','${owner}','${clipCreator}','${clipLease}','${clipPrefix}',
     'ready','approved','cleared',1,'["horizontal"]','{"assets":[{"name":"horizontal.mp4","bytes":1000,"sha256":"${'a'.repeat(64)}","content_type":"video/mp4"}]}');
@@ -108,7 +111,7 @@ else{
     values('${clipObject}','live-clips','${clipPath}','clip-v1','${clipCreator}','{"size":1000,"mimetype":"video/mp4","eTag":"clip-etag"}',
      '{"live_clip_id":"${clipId}","live_clip_job_id":"${clipJob}","live_clip_lease_id":"${clipLease}","sha256":"${'a'.repeat(64)}"}');
    insert into live_streams.clip_publications values('${clipPub}','${clipId}','${owner}','feed','${clipPost}',null,'horizontal','published');
-   insert into posts(id,user_id,media_url) values('${clipPost}','${owner}','https://abcdefghijklmnopqrst.supabase.co/storage/v1/object/public/live-clips/${clipPath}');`);
+   insert into posts(id,user_id,media_url) values('${clipPost}','${owner}','https://abcdefghijklmnopqrst.supabase.co/storage/v1/object/public/live-clips/${clipPath}');commit;`);
  }
  const clipSnapshot=()=>v(`select media_renditions.source_snapshot('${clipObject}','clip-v1')`);
  test('published clip admission observes the completed destination and preserves creator versus session-owner provenance',async()=>{

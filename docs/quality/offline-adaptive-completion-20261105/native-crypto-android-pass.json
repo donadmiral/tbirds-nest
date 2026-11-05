@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "cases": [
+    "invalidKeyAndOversizeInputRejected",
+    "tamperedTagRejectedWithoutPlaintext",
+    "fullResolutionRoundtrip",
+    "rotatedAccountKeyCannotDecrypt",
+    "traversalAndSymlinkEscapeRejected",
+    "freshNoncePerWrite"
+  ],
+  "physicalDevice": false,
+  "platform": "Android Emulator",
+  "commit": "27f920c7eb73ed51a228f0c3a158e342136bafbb",
+  "sourceSha256": "ac4a9036e4a1f16cc794baf1b12e1813f3da90866c3bc998533b67e7262e43cf",
+  "workflowRun": 42056207825,
+  "job": 127345167893,
+  "artifact": 13429992144,
+  "archiveSha256": "5263ad446e0f150ddc13af09160dd7424eb455248bda0773bcebce7fbf2592ba",
+  "nativeSourceUnchangedAt": "015dcb5d6a8e9b941cba66816d14a28a5315d587"
+}

@@ -1,6 +1,6 @@
 name: Foundation iPhone QA delivery
 
-# Delivery revision: encrypted originals and authorized published-clip/channel HLS.
+# Delivery revision: encrypted originals, published-clip HLS, and atomic publication fixtures.
 # A source-only push runs the shared quality gates without starting another EAS build.
 # workflow_run cannot bootstrap a new workflow living only on this release branch.
 on:

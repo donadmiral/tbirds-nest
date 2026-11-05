@@ -10,7 +10,7 @@ permissions:
 
 concurrency:
   group: capacity-foundation-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   isolated-load:
@@ -39,6 +39,7 @@ jobs:
       - name: Install local test dependencies
         timeout-minutes: 3
         run: |
+          mkdir -p capacity-results
           sudo apt-get update
           sudo apt-get install --yes postgresql-client
           if [ "$PC_CAPACITY_PROFILE" = foundation ]; then
@@ -105,6 +106,7 @@ jobs:
       - name: Retain bounded measurements and local database logs
         if: always()
         run: |
+          mkdir -p capacity-results
           docker logs pc-capacity-foundation > capacity-results/postgres.log 2>&1 || true
           docker inspect pc-capacity-foundation > capacity-results/container.json || true
           git rev-parse HEAD > capacity-results/source-commit.txt
