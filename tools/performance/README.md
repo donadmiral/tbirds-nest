@@ -57,3 +57,36 @@ The scale gate now binds receipts to the SHA-256 of the checked-in base scenario
 At the current five-million base target this means 57,870 peak API requests/s, 442,709 realtime connections, 65.8 GB/s peak delivered media, one billion successful API requests and 1.137 PB of delivered media over a 24-hour run. These are explicit planning assumptions, not observed product demand. Changing product assumptions requires a reviewed scenario change and a new measured receipt.
 
 `measurements/capacity-constraints-20261105.json` records fresh read-only production configuration at 15:23 UTC. The scheduled prepared-feed worker can attempt at most 8,640 snapshots/day at one per ten seconds, before failures or slow work. Even the assumption of one snapshot per DAU needs 5,000,000/day. The configured production database still has 60 connections and 224 MiB shared buffers. Provider peak reservations and the scale budget are unconfirmed. These facts prevent five-million acceptance independently of the isolated regression result.
+
+## Current measured conclusion, 5 November 2026
+
+Native run [42074151763](https://github.com/donadmiral/tbirds-nest/actions/runs/42074151763) tested source `75078e4ab762c45a9acba0239bdc5a8b5bdcd173`. All 32 prepared-feed PostgreSQL regressions and all 17 budget, isolation and worker tests passed. The foundation load passed. The expanded load remains blocked by preparation throughput. The hosted scheduler rollout is held.
+
+The exact query fixes preserve the canonical score, complete top-200 IDs and keys, current authorization, strict proof and canonical fallback. Statement-local raw-score reuse removes repeated scoring inside one snapshot. The bounded affinity cohort resolves the observed case where one liked author inflated every unseen author's bound and caused the full-feed fallback. It preloads a complete cohort only when at most eight affinity authors and 512 eligible posts fit, counting those IDs toward the existing candidate limit. Larger cohorts retain the original conservative bound. The native run completed all 128 expanded preparations with no worker failure and a maximum job duration of 4,594.01 ms, below the existing 8,000 ms worker deadline. The earlier 30-second timeout is no longer the failing gate.
+
+| Foundation measurement | Result |
+| --- | ---: |
+| Completed / offered reads | 1,200 / 1,200 |
+| Errors / unissued arrivals | 0 / 0 |
+| Steady service p95 / scheduled-arrival p95 | 35.38 ms / 34.55 ms |
+| Soak service p95 / scheduled-arrival p95 | 31.91 ms / 31.52 ms |
+| Real snapshot renewals during the load | 25 |
+| Worker-held-lock read | 7.52 ms |
+| Eight reconnects, including complete reads | 160.77 ms |
+
+Service and arrival-to-completion are separate measured distributions. Sub-millisecond pacing offsets can make the latter slightly smaller. All required arrivals still completed and the schedule-lag gate passed. Live revocation, card completeness and cross-account checks passed. The separate 64-job admission and four-encode HLS probes passed within their stated scope.
+
+The expanded profile kept 250,000 generated posts, 250,130 total posts, 128 authenticated actors, 32 client workers, 2 CPUs, 2 GiB, 60 database connections and four non-overlapping preparation lanes. The initial 128 snapshots took **144.088 seconds**, or **0.888 snapshots/second**. Container samples stayed near the two-core CPU limit during preparation. Earlier heads expired before initial readback, which failed `prepared_head_not_fresh`. The intended 6,000 steady reads and 7,200 soak reads were never started. This result establishes neither expanded read latency nor sustained refresh capacity.
+
+With 128 viewers, 60-second freshness requires at least `128 / 60 = 2.133` preparations/second before any headroom. The existing 45-second refresh cadence requires `128 / 45 = 2.844`/second. That is **3.202 times** the measured rate. Four lanes would need an average job time at most **1,406.25 ms** at that cadence, compared with the observed approximately 4,483 ms median under contention. More frequent scheduling alone cannot remove saturated database work.
+
+The complete native artifacts, logs, source commit, resource samples and SHA-256 digests are retained in [the evidence manifest](measurements/native-75078e4/manifest.json). The directly readable results are [foundation](measurements/prepared-feed-foundation-ci-75078e4-20261105.json) and [expanded](measurements/prepared-feed-expanded-failed-75078e4-20261105.json). Earlier failed receipts remain historical evidence. No deadline, freshness condition, offered rate, dataset or acceptance threshold was lowered.
+
+## Minimal operating choices for the blocked gate
+
+[The operating proposal](measurements/capacity-operating-proposal-20261105.json) records the exact gap and two possible next steps. Neither is a deployed change or a capacity certificate.
+
+1. Run a separately authorized resource experiment while preserving the complete expanded workload and acceptance rules. Under an unverified perfect-linear-scaling assumption, the preparation-only CPU requirement would rise from two cores to approximately 6.40 core-equivalents for the current refresh cadence, or 9.15 with 30 percent spare CPU. This is a planning calculation, not a provider tier recommendation. Worker concurrency can become a separate limit, and actual scheduled jobs have connection and cold-plan overhead that persistent local workers do not measure. Select a hosted tier only after measuring the chosen worker count, mixed traffic and cost within an approved budget.
+2. Change the ranking architecture enough to remove repeated per-viewer work. Candidate directions are statement-scoped batch authorization or an exact shared candidate index with revision-based invalidation and conservative score bounds. Both need canonical top-200 equality, current access checks and invalidation for content, score, graph, privacy and preference changes. A guessed candidate cutoff cannot replace the strict proof. The original 2-CPU profile must demonstrate the required improvement before claiming that this option closes the same-resource gate.
+
+After isolated acceptance, perform the read-only QA preflight and a bounded canary using the actual hosted scheduler, including per-lane non-overlap, connection and statement caps, freshness, live revocation and rollback. Leave the hosted schedule unchanged until those checks pass. A result from a larger resource profile must retain its different resource limits and cannot overwrite the failed 2-CPU result. Five-million-DAU acceptance still requires the separately defined reservations, approved budget and representative 24-hour mixed-load evidence.

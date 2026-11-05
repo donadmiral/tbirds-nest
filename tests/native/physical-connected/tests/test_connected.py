@@ -270,15 +270,24 @@ def test_connected_original_cache():
         proofs['offlineEndSettings'] = {key: adb('shell', 'settings', 'get', 'global', key) for key in before_network}
         assert proofs['offlineEndSettings'] == {'airplane_mode_on': '1', 'wifi_on': '0', 'mobile_data': '0'}
         assert events('network-state')[-1].get('isConnected') is False, 'Cold decoded media must remain offline'
+        progress = wait(lambda: [row for row in events('video-progress') if row.get('mediaId') == media['video']['mediaId']
+                        and row.get('sourceClass') == 'decrypted-local' and row.get('firstFrame') and row.get('playing')]
+                        if len([row for row in events('video-progress') if row.get('mediaId') == media['video']['mediaId']
+                                and row.get('sourceClass') == 'decrypted-local']) >= 2 else None,
+                        10, 'Two advancing native video samples after a decoded cold frame are required')
+        assert len(progress) == 2 and progress[1]['currentTime'] > progress[0]['currentTime'] + .1
+        proofs['coldVideoProgress'] = [{'nativeSeconds': row['currentTime'], 'elapsedMs': row['elapsedMs']} for row in progress]
+        first_image = next(row for row in events('image-displayed') if row.get('mediaId') == media['image']['mediaId'] and row.get('sourceClass') == 'decrypted-local')
+        proofs['coldImageOnDisplayElapsedMs'] = first_image['elapsedMs']
         assert not events('cache-sealed'), 'Offline cold process must not download new originals'
         assert not [row for row in events('http-result') if row.get('status', 999) < 400], 'Offline cold process must not have a successful hosted request'
         proofs['coldFiles'] = file_proofs(cold=True)
         record('offline-cold-video-decrypted-and-playing')
         restore_network()
-        wait(lambda: any(row.get('isConnected') is True for row in events('network-state')), 25, 'App did not observe restored network')
         swipe_media('video', 'right')
         displayed('image', local=True)
         refresh()
+        wait(lambda: events('network-state')[-1].get('isConnected') is True, 15, 'App did not observe restored QA reachability')
         displayed('image', local=True)
         assert 'Your feed could not load' not in command('GET', '/source')
         record('restored-network-refresh-retains-image')

@@ -1,5 +1,5 @@
 {
-  "recordedAt": "2026-11-05T17:02:59.445156+00:00",
+  "recordedAt": "2026-11-05T17:30:16.220420+00:00",
   "schemaMigration": "supabase/migrations/20261105155600_private_chat_adaptive_delivery.sql",
   "migrationSha256": "5b42ffa1cae062948c4cd55c4575325fa3e26c651495a5e2b2b86bc8e0e07b96",
   "installationDefault": "private_hls.settings.enabled=false",
@@ -34,6 +34,8 @@
   "activationOrder": [
     "Apply the additive migration with enabled=false.",
     "Apply 20261105171030_legacy_limited_delivery_completion.sql to complete the pinned original reader and terminal original close.",
+    "Apply the verified ordinary-chat ticket catch-up before replacing chat-media-sign, because current clients request no-store for ordinary messages and group avatars.",
+    "Deploy limited-media-file and verify its pinned original read/close, then replace chat-media-sign. Existing media-content v9 already accepts chat ticket paths.",
     "Deploy private-hls Edge and current chat-capable media worker.",
     "Inspect inert schema, RLS and public function permissions.",
     "Enable the QA-only backend setting and QA client HLS flags.",
@@ -59,10 +61,68 @@
     "Do not restore consumed views, delete rendition rows by hand, enable generic content tokens for chat, or broaden cache eligibility. Let fenced cleanup remove retired derivatives."
   ],
   "openGates": [
-    "Cleanup of controlled QA fixture is pending root coordination.",
-    "Actual browser private HLS fixture awaits CI after source publication.",
-    "Native private-HLS header propagation, playback and background/account lifecycle still need a client runtime receipt. Graded public iOS HLS is a separate gate owned by root."
+    "Native private-HLS header propagation, playback and background/account lifecycle need a client runtime receipt. Graded public iOS HLS is a separate gate owned by root.",
+    "Ordinary chat no-store catch-up migration must pass native PostgreSQL and hosted original-media checks before production chat-media-sign replacement."
   ],
   "legacyCatchupMigration": "supabase/migrations/20261105171030_legacy_limited_delivery_completion.sql",
-  "legacyCatchupSha256": "11ea95965816defb36c4e2c7a0c92262d280c95809a0f9fb04e0ea79f5dc2ec8"
+  "legacyCatchupSha256": "11ea95965816defb36c4e2c7a0c92262d280c95809a0f9fb04e0ea79f5dc2ec8",
+  "browserGate": {
+    "passed": true,
+    "runId": 42073141305,
+    "commit": "adf48a31fda7b38e931981d660136444cac2f58a",
+    "receipt": "private-hls-browser-pass.json",
+    "scope": "Real Chrome React/hls.js/MSE/pixels, six cases with synthetic authorization. Separate hosted canary verifies actual auth."
+  },
+  "fixtureCleanup": {
+    "complete": true,
+    "receipt": "private-hls-cleanup.json",
+    "source": "Root authoritative readback: all users, sessions, profiles, messages, conversations, objects and pending cleanup absent. Temporary cleanup endpoint retired."
+  },
+  "ordinaryChatCatchupMigration": "supabase/migrations/20261105172326_chat_media_ticket_delivery_completion.sql",
+  "ordinaryChatCatchupSha256": "6d1411bfead01270e1978cb6634d8419efae14ac923225024af445ae0cad43fb",
+  "legacyEdges": {
+    "qa": {
+      "chat-media-sign": {
+        "version": 18,
+        "verifyJwt": false,
+        "currentIndexMatches": true
+      },
+      "limited-media-file": {
+        "version": 2,
+        "verifyJwt": false,
+        "currentFilesMatch": true
+      },
+      "sharedHelperDrift": "QA mediaDeliveryUrl export equals current; unrelated helper additions are live-clips bucket and data:image no-cache policy."
+    },
+    "productionBefore": {
+      "chat-media-sign": {
+        "version": 22,
+        "verifyJwt": true,
+        "hasNoStoreSupport": false
+      },
+      "limited-media-file": "absent",
+      "media-content": {
+        "version": 9,
+        "verifyJwt": false,
+        "acceptsChatPaths": true,
+        "callsServiceOnlyResolver": true
+      }
+    },
+    "chatMediaSignFiles": {
+      "supabase/functions/chat-media-sign/index.ts": "ccc74a28ae1330763e9a0a1bddef8df51503ff28a168ddf0cda7c6e485b9a4e1",
+      "supabase/functions/chat-media-sign/deno.json": "c3e35c3fa9f31537196d35670e608adacf3af7ee2d4bb8f61d8f24c72e27176a",
+      "shared/mediaDelivery.ts": "e8364d34735bce914535e7d9574e03e254abfde28170d888add2c5d965e7887e"
+    },
+    "limitedMediaFileFiles": {
+      "supabase/functions/limited-media-file/index.ts": "7ff81f4742a4a6501abf9fcf9c12985363134580f551179bdcaa6598d2a4477d",
+      "supabase/functions/private-media-session/handler.ts": "11b53d74da4607c6a89bc5ef11d258694a8d4e6409f3c2f5606c00e133add1ac"
+    },
+    "npm": "npm:@supabase/supabase-js@2.112.3",
+    "serverSecrets": [
+      "SUPABASE_URL",
+      "SUPABASE_ANON_KEY",
+      "SUPABASE_SERVICE_ROLE_KEY"
+    ],
+    "auth": "Every handler authenticates the actual user with getUser. Original reads/close use the caller JWT and live session-bound SQL grants. Preserve current chat-media-sign gateway verification unless a separately verified gateway compatibility change is needed. New limited-media-file matches QA verify_jwt=false with mandatory handler JWT validation."
+  }
 }

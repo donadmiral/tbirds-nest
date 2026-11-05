@@ -5,7 +5,8 @@ const receipt = { version: 1, process: Date.now().toString(36) + '-' + Math.rand
   startedAt: Date.now(), connectedBackend: true, events: [] };
 let writing = Promise.resolve();
 const safe = new Set(['postId', 'mediaId', 'sourceVersion', 'cipherFile', 'plainFile', 'kind', 'sourceClass',
-  'bytes', 'status', 'path', 'elapsedMs', 'isConnected', 'isInternetReachable']);
+  'bytes', 'status', 'path', 'elapsedMs', 'isConnected', 'isInternetReachable', 'currentTime', 'playing', 'firstFrame']);
+const videoSamples = new Map();
 function record(type, fields = {}) {
   const event = { type, at: Date.now(), elapsedMs: Date.now() - receipt.startedAt };
   for (const [key, value] of Object.entries(fields)) {
@@ -36,10 +37,23 @@ function install() {
       throw error;
     });
   };
-  const NetInfo = require('@react-native-community/netinfo').default;
-  NetInfo.addEventListener(state => record('network-state', {
-    isConnected: state.isConnected, isInternetReachable: state.isInternetReachable,
-  }));
   record('process-started');
 }
-module.exports = { install, record };
+function observeConnectivity() {
+  // Subscribe only after App imports its normal modules. Do not initialize a
+  // replacement detector or alter the real foreground/recovery health probe.
+  const { useNetStore } = require('../../src/stores/netStore');
+  const observe = state => record('network-state', { isConnected: state.online, isInternetReachable: state.online });
+  observe(useNetStore.getState());
+  useNetStore.subscribe((state, previous) => { if (state.online !== previous.online) observe(state); });
+}
+function recordVideo(fields) {
+  if (!fields.firstFrame || !fields.playing || !Number.isFinite(fields.currentTime) || fields.currentTime <= .2) return;
+  const id = [fields.postId, fields.mediaId, fields.sourceClass].join(':');
+  const values = videoSamples.get(id) || [];
+  if (values.length >= 2 || values.length && fields.currentTime <= values[0] + .1) return;
+  values.push(fields.currentTime);
+  videoSamples.set(id, values);
+  record('video-progress', fields);
+}
+module.exports = { install, observeConnectivity, recordVideo, record };

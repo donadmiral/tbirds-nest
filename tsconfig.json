@@ -10,6 +10,7 @@
   },
   "exclude": [
     "supabase/functions/**",
+    "supabase/ops/**",
     "admin-web",
     "web",
     "android",

@@ -1,6 +1,6 @@
 name: Foundation iPhone QA delivery
 
-# Delivery revision: verify bounded frozen-output recovery using the production player-layer topology.
+# Delivery revision: isolate server operations from the mobile typecheck and complete renderer verification.
 # A source-only push runs the shared quality gates without starting another EAS build.
 # workflow_run cannot bootstrap a new workflow living only on this release branch.
 on:

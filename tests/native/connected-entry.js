@@ -7,6 +7,8 @@ if (process.env.EXPO_PUBLIC_APP_ENV !== 'qa'
 }
 const { registerRootComponent } = require('expo');
 require('@daily-co/react-native-daily-js');
-require('./connected-observer.cjs').install();
+const observer = require('./connected-observer.cjs');
+observer.install();
 const App = require('../../App').default;
+observer.observeConnectivity();
 registerRootComponent(App);

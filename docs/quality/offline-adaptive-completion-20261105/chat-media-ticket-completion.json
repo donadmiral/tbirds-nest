@@ -1,0 +1,66 @@
+{
+  "recordedAt": "2026-11-05T17:34:06.423225+00:00",
+  "scope": "Ordinary chat and group-avatar no-store prerequisite. Completes existing QA contracts on the inspected production baseline. No live writes.",
+  "migration": "supabase/migrations/20261105172326_chat_media_ticket_delivery_completion.sql",
+  "sourceSha256": {
+    "supabase/migrations/20261105172326_chat_media_ticket_delivery_completion.sql": "6d1411bfead01270e1978cb6634d8419efae14ac923225024af445ae0cad43fb",
+    "supabase/tests/media-content-tickets-db.test.cjs": "4170bb33eb2a31f1072c351f61c1700dcb9f8ef9a171eaabea8f6aa63d36f99b",
+    "supabase/tests/chat-media-ticket-qa-contracts-20261105.sql": "11262c1696bedbc895a6701f65fad0495959b142962b6efc65f8f2dbd90254b3"
+  },
+  "localTest": {
+    "command": "PC_TEST_PGLITE=1 node --test supabase/tests/media-content-tickets-db.test.cjs",
+    "passed": 19,
+    "failed": 0,
+    "scope": "10 existing content-ticket cases plus 9 forward-chat cases. Full deployed media baseline, PGlite. Native PostgreSQL 17 CI remains required."
+  },
+  "productionPreflight": {
+    "readOnly": true,
+    "currentIssuerBodyMd5": "06ecfee711fe5d28a3fb38e507e3401b",
+    "currentResolverBodyMd5": "5384ffa037d180f74969c8c00a6a4dc0",
+    "settingsEnabled": true,
+    "missing": [
+      "issue_chat_media_delivery(uuid[])",
+      "issue_chat_object_delivery(text[])",
+      "chat_locator_unrestricted(text)",
+      "can_read_legacy_chat_object(text,text)"
+    ],
+    "existingChannelSourceKindPreserved": true,
+    "existingMediaContentEdgeVersion": 9,
+    "mediaContentEdgeSupportsChatPaths": true
+  },
+  "expectedAfter": {
+    "issuerBodyMd5": "0ebaedeaded2112da609f33e07f91fa4",
+    "productionResolverBodyMd5": "5d323413e971c44e049a29057662fd5d",
+    "qaResolverBodyMd5": "ad13482b7786c2279b8f1aac969a2a30"
+  },
+  "preservation": [
+    "Production readiness gate retained verbatim",
+    "QA business-session predicate retained verbatim",
+    "Content issuer and session helper definitions and ACLs unchanged",
+    "Existing conversation, channel and recruiter authorities unchanged",
+    "Storage policies and bucket visibility unchanged",
+    "Existing channel_message source-kind check retained",
+    "New internal helper functions have no client or service direct EXECUTE",
+    "Limited media is excluded from ordinary tickets and view counters remain unchanged"
+  ],
+  "boundedWork": {
+    "messageIds": 100,
+    "objectUrls": 100,
+    "staleTicketsDeletedPerRequest": 2000,
+    "lockTimeoutSeconds": 3,
+    "statementTimeoutSeconds": 30,
+    "cleanupCutoff": "One fixed timestamptz per RPC, used as an index range bound. EXPLAIN ANALYZE over 10,001 fresh tickets finds zero expired rows and executes no sequential scan."
+  },
+  "rolloutOrder": [
+    "Native PostgreSQL 17 CI pass for this exact source",
+    "QA catch-up and deployed no-store original-byte validation",
+    "Production chat-ticket plus legacy pinned-grant catch-up",
+    "Deploy limited-media-file before replacing chat-media-sign",
+    "Verify ordinary messages, group avatars, limited original/HLS same grant, expiry and close",
+    "Activate client flags only after reviewed receipts"
+  ],
+  "nativePostgres": "pending publication and CI",
+  "hostedOriginalByteProxy": "not yet verified against this new source",
+  "productionDeployed": false,
+  "peerReview": "Capacity agent reviewed bounded work and predicate preservation. The volatile expiry cutoff was replaced with a per-RPC constant before publication."
+}

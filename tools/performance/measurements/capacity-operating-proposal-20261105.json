@@ -1,0 +1,109 @@
+{
+  "version": 1,
+  "kind": "capacity-operating-proposal",
+  "assessedAt": "2026-11-05T17:33:36.512536+00:00",
+  "sourceCommit": "75078e4ab762c45a9acba0239bdc5a8b5bdcd173",
+  "decision": "hold-hosted-prepared-scheduler-rollout",
+  "productionCapacityEstablished": false,
+  "hostedChangesApplied": false,
+  "evidence": "tools/performance/measurements/native-75078e4/manifest.json",
+  "nativeRegressions": {
+    "databasePassed": 32,
+    "budgetIsolationWorkerPassed": 17
+  },
+  "foundation": {
+    "passed": true,
+    "offeredReads": 1200,
+    "completedReads": 1200,
+    "errors": 0,
+    "droppedArrivals": 0,
+    "steadyServiceP95Ms": 35.381766999998945,
+    "steadyEndToEndP95Ms": 34.54776299999867,
+    "soakServiceP95Ms": 31.913392000002204,
+    "soakEndToEndP95Ms": 31.516719999999623,
+    "realRefreshesDuringLoad": 25
+  },
+  "expanded": {
+    "passed": false,
+    "generatedPosts": 250000,
+    "totalPosts": 250130,
+    "authenticatedActors": 128,
+    "clientWorkers": 32,
+    "cpuLimit": 2,
+    "memoryGiB": 2,
+    "maxConnections": 60,
+    "workerLanes": 4,
+    "workerIntervalMs": 1000,
+    "jobsPerTick": 1,
+    "freshnessSeconds": 60,
+    "refreshIntervalSeconds": 45,
+    "initialSnapshotsCompleted": 128,
+    "initialPreparationMs": 144087.605021,
+    "measuredPreparationsPerSecond": 0.8883484459426242,
+    "maximumJobServiceMs": 4594.014878999995,
+    "hostedJobDeadlineMs": 8000,
+    "isolatedSqlTimeoutMs": 30000,
+    "failedGate": "prepared_head_not_fresh",
+    "steadyAndSoakReached": false,
+    "snapshotRenewalsDuringLoadMeasured": false
+  },
+  "requiredThroughput": {
+    "absoluteFreshnessMinimumPerSecond": 2.1333333333333333,
+    "existingRefreshCadenceMinimumPerSecond": 2.8444444444444446,
+    "requiredImprovementOverMeasured": 3.2019467782444444,
+    "fourLaneMaximumAverageJobMsAtTarget": 1406.25,
+    "headroomIncluded": false
+  },
+  "options": [
+    {
+      "id": "resource-calibration",
+      "action": "Use a separately authorized disposable resource experiment with the unchanged expanded dataset, arrivals, deadlines, ranking and freshness checks. Measure CPU and worker lanes together before selecting any hosted tier.",
+      "planningOnly": {
+        "perfectLinearScalingCpuEquivalent": 6.403893556488889,
+        "perfectLinearScalingCpuEquivalentWith30PercentSpare": 9.148419366412698,
+        "assumptions": [
+          "The sampled near-two-core saturation is the limiting resource.",
+          "Throughput scales perfectly with additional CPU and enough independent workers.",
+          "No additional read, write, memory, I/O or provider overhead appears."
+        ],
+        "validated": false
+      },
+      "constraints": [
+        "Increasing schedules alone cannot remove saturated database work.",
+        "A four-lane worker pool can become the next concurrency limit.",
+        "Keep per-lane non-overlap, connection caps, query deadlines and bounded history cleanup.",
+        "No hosted resource purchase, quota change or scheduler activation is authorized by this proposal."
+      ]
+    },
+    {
+      "id": "exact-ranking-architecture",
+      "action": "Reduce repeated per-viewer catalog authorization and ranking through a reviewed statement-scoped batch authorization path or exact shared candidate index with revision-based invalidation and conservative bounds.",
+      "acceptance": [
+        "Preserve every canonical top-200 ID and key, including affinity, following, seen and author-diversity effects.",
+        "Retain incoming block, private, hidden, deletion and session checks under current authority and recheck at hydration.",
+        "Invalidate for post, score, graph, privacy and preference changes before reusing cross-statement work.",
+        "Retain the canonical fallback whenever an exact proof is unavailable.",
+        "Demonstrate at least the measured 3.2-fold preparation-rate gap under the original 2-CPU/2-GiB profile before hosted QA."
+      ],
+      "validated": false
+    }
+  ],
+  "releaseSequence": [
+    "Preserve the original deployed scheduler and existing release behavior while the expanded gate is blocked.",
+    "Rerun both exact-source native profiles after a material query/architecture change, or report a separate resource-profile result without relabeling the original failure.",
+    "After isolated acceptance, perform the read-only QA preflight, a bounded actual-scheduler canary, and verify rollback.",
+    "Apply reviewed query and scheduler changes only after the selected profile, budget and release gates are authorized."
+  ],
+  "fiveMillionDau": {
+    "accepted": false,
+    "executedRepresentativeRun": false,
+    "existingConstraintEvidence": "tools/performance/measurements/capacity-constraints-20261105.json",
+    "missing": [
+      "Current provider-confirmed peak reservations",
+      "Approved and priced operating budget",
+      "Representative 24-hour authenticated mixed workload",
+      "Regional delivery and realtime evidence",
+      "Exact released web/native/admin/backend source alignment"
+    ]
+  }
+}

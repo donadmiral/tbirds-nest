@@ -1,0 +1,126 @@
+{
+  "commit": "d5f52033e852796d1ac404e976239c4932def364",
+  "ios": {
+    "run": 42068097620,
+    "artifact": 13436031680,
+    "digest": "12e3fb1da66b54a54be00a7b21bd794fed72b9e578097949b0dfd2dc8a5ef0e6",
+    "jobs": [
+      {
+        "id": 127387857247,
+        "name": "Verify full memory movies on iOS Simulator",
+        "conclusion": "success"
+      },
+      {
+        "id": 127387857594,
+        "name": "Verify React video composition on iOS Simulator",
+        "conclusion": "success"
+      },
+      {
+        "id": 127387857903,
+        "name": "Compile Swift and native integration",
+        "conclusion": "success"
+      },
+      {
+        "id": 127387857944,
+        "name": "Verify encoded story audio on iOS Simulator",
+        "conclusion": "success"
+      }
+    ],
+    "passed": true,
+    "sourceBindings": [
+      {
+        "path": "modules/boomerang/ios/BoomerangModule.swift",
+        "sha256": "d47541d56f5faf85205296f50eac3ae4309319b155fcf488d988c433191d9a40",
+        "exactCommitHashMatched": true,
+        "matchesCurrentWorktree": true
+      },
+      {
+        "path": "modules/boomerang/ios/StoryVideoView.swift",
+        "sha256": "de00cb001aab799a4c98a3389f92a98375ccc86443b97e5c3ef823afe3451e3a",
+        "exactCommitHashMatched": true,
+        "matchesCurrentWorktree": true
+      },
+      {
+        "path": "modules/boomerang/ios/StoryHLSGradeSurface.swift",
+        "sha256": "cb4788a654323a2bc2c5ced934923a31ab50fbeb4bf3dd40d6bf0c075e142d35",
+        "exactCommitHashMatched": true,
+        "matchesCurrentWorktree": true
+      },
+      {
+        "path": "modules/boomerang/ios/StoryVideoComposition.swift",
+        "sha256": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+        "exactCommitHashMatched": true,
+        "matchesCurrentWorktree": true
+      },
+      {
+        "path": "modules/boomerang/ios/ReactVideoComposition.swift",
+        "sha256": "ce998526d48cb8dd7acc055795da393505852b7d18c0a03d15b4854c1a96128c",
+        "exactCommitHashMatched": true,
+        "matchesCurrentWorktree": true
+      }
+    ],
+    "receiptSha256": "3c3aafa16835ac181ba5a9e3c3b24f7b699f8465202be6b5cf381fe23eae76a5"
+  },
+  "android": {
+    "run": 42068097715,
+    "artifact": 13435307247,
+    "digest": "8eb1d6f90c38baeb7f2d6851253789265b371523af2c10245717b06079f66cac",
+    "jobs": [
+      {
+        "id": 127387856284,
+        "name": "Compile Kotlin and Android native integration",
+        "conclusion": "success"
+      },
+      {
+        "id": 127387858515,
+        "name": "Verify encoded story audio and memory movies on Android Emulator",
+        "conclusion": "success"
+      }
+    ],
+    "passed": true,
+    "sourceBindings": [
+      {
+        "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt",
+        "sha256": "c9017bf6a6e8c7a3d73e9e25cb826c127b1dbbd63148b181ed0038d22b247d04",
+        "exactCommitHashMatched": true,
+        "matchesCurrentWorktree": true
+      },
+      {
+        "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt",
+        "sha256": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633",
+        "exactCommitHashMatched": true,
+        "matchesCurrentWorktree": true
+      },
+      {
+        "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt",
+        "sha256": "41274ee6340b69443485ba95a8cf49516c31ca283dac897db483967edc4201ab",
+        "exactCommitHashMatched": true,
+        "matchesCurrentWorktree": true
+      },
+      {
+        "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt",
+        "sha256": "16544d1080678d47805f75e6c129ab65fa0f05c94366dac6ed0970868f753ff5",
+        "exactCommitHashMatched": true,
+        "matchesCurrentWorktree": true
+      },
+      {
+        "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/ReactVideoComposition.kt",
+        "sha256": "29fbf5471f73e95045c1f14c6d6283a43776f1cc9049481fad52ab3399a75317",
+        "exactCommitHashMatched": true,
+        "matchesCurrentWorktree": true
+      },
+      {
+        "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/ReactVideoEffects.kt",
+        "sha256": "f9033203949b23287c1e19a97a42b2d6b3ec82b3fb6aa54fdaaa4cc43266ad91",
+        "exactCommitHashMatched": true,
+        "matchesCurrentWorktree": true
+      }
+    ],
+    "receiptSha256": "61cef82854aa64f8780c04312b9c55a25bba66a94507bd493a821bc88939d100"
+  },
+  "passed": true,
+  "scope": "Full native integration compilation and separately successful Simulator/Emulator export jobs at exact d5f5203 source. Includes StoryVideoView HLS readiness fix.",
+  "physicalDeviceAcceptance": false,
+  "hostedPrivateHlsAcceptance": false,
+  "gradedHlsRuntimeAcceptanceInferred": false
+}

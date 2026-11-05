@@ -12,6 +12,8 @@ function carousel(source) {
   source = replaceOnce(source,
     'onDisplay={() => { if (activeRequest.current === request && failedRequestRef.current !== request) setLoadedIdentity(identity); }}',
     "onDisplay={() => { if (activeRequest.current === request && failedRequestRef.current !== request) { setLoadedIdentity(identity); require('../../tests/native/connected-observer.cjs').record('image-displayed', { postId, mediaId, sourceClass: offline?.kind === 'image' ? 'decrypted-local' : 'remote' }); } }}");
+  source = replaceOnce(source, '  const shouldPlay = isVisible && isScreenActive && screenFocused && !paused && !frameFailed && (autoplayOn || userPlayed);',
+    "  const shouldPlay = isVisible && isScreenActive && screenFocused && !paused && !frameFailed && (autoplayOn || userPlayed);\n  useEffect(() => {\n    if (hasFrame && owns && sourceReady && musicClock.playing) require('../../tests/native/connected-observer.cjs').recordVideo({ postId, mediaId, currentTime: musicClock.time, playing: true, firstFrame: true, sourceClass: uri.includes('/pc-offline-v1/active/') ? 'decrypted-local' : 'remote' });\n  }, [hasFrame, owns, sourceReady, musicClock.playing, musicClock.time, postId, mediaId, uri]);");
   return source;
 }
 function cache(source) {

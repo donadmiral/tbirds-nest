@@ -1,0 +1,42 @@
+{
+  "commit": "d5f52033e852796d1ac404e976239c4932def364",
+  "workflow_run": "42068097620",
+  "result": "unsigned iOS Simulator compile passed",
+  "native_sources": {
+    "modules/boomerang/ios/BoomerangModule.swift": {
+      "sha256": "d47541d56f5faf85205296f50eac3ae4309319b155fcf488d988c433191d9a40",
+      "compiled_objects": [
+        "native-compile-derived/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/Boomerang.build/Objects-normal/x86_64/BoomerangModule.o"
+      ]
+    },
+    "modules/boomerang/ios/StoryVideoView.swift": {
+      "sha256": "de00cb001aab799a4c98a3389f92a98375ccc86443b97e5c3ef823afe3451e3a",
+      "compiled_objects": [
+        "native-compile-derived/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/Boomerang.build/Objects-normal/x86_64/StoryVideoView.o"
+      ]
+    },
+    "modules/boomerang/ios/StoryHLSGradeSurface.swift": {
+      "sha256": "cb4788a654323a2bc2c5ced934923a31ab50fbeb4bf3dd40d6bf0c075e142d35",
+      "compiled_objects": [
+        "native-compile-derived/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/Boomerang.build/Objects-normal/x86_64/StoryHLSGradeSurface.o"
+      ]
+    },
+    "modules/boomerang/ios/StoryVideoComposition.swift": {
+      "sha256": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+      "compiled_objects": [
+        "native-compile-derived/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/Boomerang.build/Objects-normal/x86_64/StoryVideoComposition.o"
+      ]
+    },
+    "modules/boomerang/ios/ReactVideoComposition.swift": {
+      "sha256": "ce998526d48cb8dd7acc055795da393505852b7d18c0a03d15b4854c1a96128c",
+      "compiled_objects": [
+        "native-compile-derived/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/Boomerang.build/Objects-normal/x86_64/ReactVideoComposition.o"
+      ]
+    }
+  },
+  "simulator_architecture": "x86_64",
+  "app_executable_linked": true,
+  "device_or_provider_acceptance": false,
+  "archive_or_ipa_created": false,
+  "app_uploaded_or_submitted": false
+}
