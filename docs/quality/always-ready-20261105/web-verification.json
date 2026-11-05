@@ -1,7 +1,7 @@
 {
   "scope": "member web always-ready loading, public encrypted previews, prepared cursor recovery, operations route inventory",
   "baseCommit": "e221ffc18f70c36d1b279835a40fa57fc9446358",
-  "recordedAt": "2026-11-05T04:56:31.104306+00:00",
+  "recordedAt": "2026-11-05T05:04:19.649216+00:00",
   "tests": {
     "command": "node --test tests/feed-preview-integration.cjs tests/feed-preview-cache.cjs tests/account-resource-cache.cjs tests/account-resource-regressions.cjs tests/home-feed-quality.cjs tests/page-refresh-continuity.cjs tests/video-player-regressions.cjs tests/media-social-components.cjs tests/username-regressions.cjs tests/two-factor-regressions.cjs",
     "cwd": "web",
@@ -16,8 +16,8 @@
     "filesystemReconciled": true
   },
   "limits": [
-    "No browser pixel or physical-device timing benchmark in this agent scope.",
-    "Real IndexedDB/canvas/CORS/process-restart proof is required from the added browser CI gate before release.",
+    "No physical-device timing benchmark in this agent scope.",
+    "The final full browser suite passed on 5949b165. Deployed 6f26e5f2 has identical browser application source. Synthetic browser tests are distinct from physical-device acceptance.",
     "Only explicitly public eligible small image previews persist, not full-resolution photos or videos.",
     "Video preview requires an existing cover image.",
     "Operations authorization and financial data remain server-authoritative."
@@ -28,9 +28,9 @@
     "web/lib/feedPreviewCache.ts": "2a4423f4645217e642db3efcd837ade835fb8d20ac76240a678ae48d0f8b4aa8",
     "web/lib/feedPreviews.ts": "f854bf009eaa01d01d453c8905d69d5f95df465952b1bec2b062fc67e62c1a59",
     "web/lib/useFeedPreview.ts": "815fc71d9c6e5fe66f607fefc22e96427bcb46ef9000bfaf8588931c519fb605",
-    "web/lib/feedCache.ts": "f20f2f9e67eb2c5277171c9aae2f8afcc3b25dc6c2f9b4321a8d2177d70f9388",
+    "web/lib/feedCache.ts": "ebaab9a4b2e2c69fe7cf22838cf1fa5c9ef08260644dcaa9b0aa63ba8a9ab97f",
     "web/lib/homeFeedController.ts": "6bf30f418609f167926880a3f8318c6ac4ac97d6ac3d52a8682aa2f26130866d",
-    "web/components/MediaGallery.tsx": "3de7b7ca2d1e550523aed2d7a7f72bcc1eb3549dd6b8b21ebe684ca220b6c3a0",
+    "web/components/MediaGallery.tsx": "04182c1bddbd153c6aa7705a48e4ddffa40120e1d4523acd613d6c3168b5fb9d",
     "web/components/HomeRail.tsx": "5a7f8fcc41e3407d23e5d0cc6e177b29d9378bc921ca58f3dde7dd2242cc46f4",
     "web/app/calls/page.tsx": "8f185c816b59c8b242f8392ab622f7e7a8ec8fa4da4c745c836447a3d44a603c",
     "web/app/messages/requests/page.tsx": "40887d979b1dd23901b26fc16670ff2a469910022dec539cf61ff0e66ea9181b",
@@ -40,13 +40,13 @@
     "web/app/settings/follow-requests/page.tsx": "d60fdf265e79f13da6df1b1e955410d3b35a83b1691a85ce94a0126c09e503ad",
     "web/tests/account-resource-cache.cjs": "93eadf8b0c2dc06bae555b90a6095ff5a935799525bc6432c26eb7232de1a06c",
     "web/tests/feed-preview-cache.cjs": "1f1476763096bef808cbf7fdb7915d5728a73c1b1eb389168d1c0b56fb884ed5",
-    "web/tests/feed-preview-integration.cjs": "0f8b3e185f3a59ca1d0ffb3e0de6771fb1345b8063d6d0cbcc2306a925989c0c",
+    "web/tests/feed-preview-integration.cjs": "42a15363bcb844def3784f5c46555487f01c0e411e92631d790f01e92a1400ef",
     "web/tests/account-resource-regressions.cjs": "048bc0e5e5b5283d033e73fd97fa059b01e999dccd9e7bc166238c925832ded9",
     "web/tests/helpers/account-component-harness.cjs": "7ce4cd42a3d29efef22426fd4346a9b0f65f4ad082fb35cd7f9121022267a75b",
     "web/tests/home-feed-quality.cjs": "cfdae49163f575b437fb0f9fed129207a557887a8408dcc461c7b5e3248f7821",
     "web/tests/media-social-components.cjs": "ce767a9b84d6af7de520b60571f1587a31cd8ea2c11f2b998b345f6ec55fc1ad",
     "web/tests/username-regressions.cjs": "749eba9ef9f73afae3afd58b458daf85acec59e1ca2960e3a00d05ba76b36195",
-    "web/tests/video-player-regressions.cjs": "0a6385be30a0e3f060afd0fea7e74138bc1bb33b9a67a357aeeb8f583d3c008d",
+    "web/tests/video-player-regressions.cjs": "6a72bc1ac41a74bb630303b1703813271ad5685d02eb5d93fe229f4d163aa03d",
     "web/tests/browser/feed-preview-persistence.cjs": "3fdbf2ffab7119848637871fa49ba95bd6f739458009d88db8507518ef401522",
     ".github/workflows/browser-quality.yml": "0cfc1341935a99ab893f65276d55d16541838c193157dd7e9c70569f3a279df8"
   },
@@ -55,6 +55,55 @@
     "command": "node web/tests/browser/feed-preview-persistence.cjs",
     "workflow": ".github/workflows/browser-quality.yml",
     "branch": "codex/loading-foundation-20261105",
-    "localStatus": "Not executed: pinned Chromium binary absent. Runner syntax check passed. CI gate added for actual IndexedDB, canvas/CORS and process-restart verification."
-  }
+    "localStatus": "Local Chromium unavailable. Actual gate passed in hosted browser CI.",
+    "status": "passed",
+    "workflowRun": 41971047579,
+    "job": 127059134780,
+    "step": 6,
+    "workflowUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41971047579",
+    "verified": [
+      "IndexedDB non-extractable CryptoKey clone",
+      "Cross-origin canvas JPEG capture",
+      "Browser-process restart restores preview without media request",
+      "Rejected CORS capture writes no pixels",
+      "Logout purges memory and IndexedDB"
+    ],
+    "fullWorkflowStatus": "success",
+    "completedAt": "2026-11-05T05:08:10Z",
+    "artifactId": 13390466006
+  },
+  "testedCommit": "852bc24b2597c6c5e835fe33a9ea3fde21c27297",
+  "pendingPlaceholderCompatibility": {
+    "base": "852bc24b2597c6c5e835fe33a9ea3fde21c27297",
+    "purpose": "Match shared dimension-only media placeholders to encrypted previews without changing stored crop/dimensions. Reserve the final video frame while showing an image-only placeholder.",
+    "focusedTestsPassed": 66,
+    "lint": "passed",
+    "requiresFinalSourceCI": true,
+    "sourceSha256": {
+      "web/lib/feedCache.ts": "ebaab9a4b2e2c69fe7cf22838cf1fa5c9ef08260644dcaa9b0aa63ba8a9ab97f",
+      "web/components/MediaGallery.tsx": "04182c1bddbd153c6aa7705a48e4ddffa40120e1d4523acd613d6c3168b5fb9d",
+      "web/tests/feed-preview-integration.cjs": "42a15363bcb844def3784f5c46555487f01c0e411e92631d790f01e92a1400ef",
+      "web/tests/video-player-regressions.cjs": "6a72bc1ac41a74bb630303b1703813271ad5685d02eb5d93fe229f4d163aa03d"
+    }
+  },
+  "cacheCapabilityValidation": {
+    "token": "platinum-cache/1",
+    "transport": "Appended to existing x-client-info by the final fetch wrapper after the SSR SDK adds its own version header. Existing tokens and other request options remain.",
+    "testsPassed": 4,
+    "actualInstalledSdkFactoriesTested": [
+      "createBrowserClient",
+      "createServerClient"
+    ],
+    "typecheck": "passed",
+    "lint": "passed",
+    "sourceSha256": {
+      "web/lib/supabase/client.ts": "140763807366a1d997f7ba55f720efe378acd4999795d8839fd13abbcd553906",
+      "web/lib/supabase/server.ts": "51b3a4753d44641c59a33c2bf545d949971aa2eda74e66121627be918c891b88",
+      "web/lib/supabase/cacheCapabilityFetch.ts": "067d0d34cc056e3b245f7d3947b1a532974588fd8a8a4c69532f5954393b9d72",
+      "web/tests/supabase-cache-capability.cjs": "200c893f0ef89c1153492f36c3be659f7b3c1f06d98b345c806a6ef3aec273cb"
+    }
+  },
+  "finalBrowserRun": 41972966503,
+  "deployedWebSource": "6f26e5f26210bf9d5cffdc7a0d2c9df9c3bdc019",
+  "productionDeployment": "dpl_f2Wg85SixLDdTDg1Q9psUZ3Z1Dpi"
 }

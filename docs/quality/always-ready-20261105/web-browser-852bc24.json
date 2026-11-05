@@ -1,0 +1,34 @@
+{
+  "testedCommit": "852bc24b2597c6c5e835fe33a9ea3fde21c27297",
+  "workflowRun": 41971047579,
+  "job": 127059134780,
+  "status": "success",
+  "completedAt": "2026-11-05T05:08:10Z",
+  "artifactId": 13390466006,
+  "artifactUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41971047579/artifacts/13390466006",
+  "preview": {
+    "status": "passed",
+    "first": {
+      "width": 160,
+      "height": 120,
+      "pixel": [
+        21,
+        129,
+        168,
+        255
+      ],
+      "exportRejected": true,
+      "storedCryptoKey": true,
+      "extractable": false,
+      "plainPixelPersisted": false,
+      "count": 1
+    },
+    "mediaRequests": 3,
+    "checks": [
+      "Actual cross-origin fetch, bitmap decode, 160px canvas JPEG and non-extractable IndexedDB CryptoKey clone",
+      "New browser process restores and decodes encrypted preview without a media request",
+      "CORS-denied capture fails quietly without durable pixels",
+      "Logout removes decrypted preview and IndexedDB envelope"
+    ]
+  }
+}

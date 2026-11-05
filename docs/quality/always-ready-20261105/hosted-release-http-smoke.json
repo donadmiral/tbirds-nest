@@ -1,0 +1,74 @@
+[
+  {
+    "url": "https://platinumcircles.app",
+    "status": 200,
+    "final_url": "https://platinumcircles.app",
+    "bytes": 19138,
+    "content_type": "text/html; charset=utf-8",
+    "milliseconds": 5752.11
+  },
+  {
+    "url": "https://platinumcircles.app/login",
+    "status": 200,
+    "final_url": "https://platinumcircles.app/login",
+    "bytes": 21078,
+    "content_type": "text/html; charset=utf-8",
+    "milliseconds": 4787.19
+  },
+  {
+    "url": "https://platinumcircles.app/feed",
+    "status": 200,
+    "final_url": "https://platinumcircles.app/feed",
+    "bytes": 28029,
+    "content_type": "text/html; charset=utf-8",
+    "milliseconds": 5841.18
+  },
+  {
+    "url": "https://platinumcircles.app/messages",
+    "status": 200,
+    "final_url": "https://platinumcircles.app/messages",
+    "bytes": 27518,
+    "content_type": "text/html; charset=utf-8",
+    "milliseconds": 3767.92
+  },
+  {
+    "url": "https://platinumcircles.app/notifications",
+    "status": 200,
+    "final_url": "https://platinumcircles.app/notifications",
+    "bytes": 23973,
+    "content_type": "text/html; charset=utf-8",
+    "milliseconds": 2890.97
+  },
+  {
+    "url": "https://platinumcircles.app/market",
+    "status": 200,
+    "final_url": "https://platinumcircles.app/market",
+    "bytes": 35908,
+    "content_type": "text/html; charset=utf-8",
+    "milliseconds": 2613.39
+  },
+  {
+    "url": "https://platinumcircles.app/jobs",
+    "status": 200,
+    "final_url": "https://platinumcircles.app/jobs",
+    "bytes": 35976,
+    "content_type": "text/html; charset=utf-8",
+    "milliseconds": 3215.92
+  },
+  {
+    "url": "https://admin.platinumcircles.app",
+    "status": 200,
+    "final_url": "https://admin.platinumcircles.app",
+    "bytes": 16250,
+    "content_type": "text/html; charset=utf-8",
+    "milliseconds": 5947.92
+  },
+  {
+    "url": "https://platinum-media-renditions-qa.vercel.app/health",
+    "status": 200,
+    "final_url": "https://platinum-media-renditions-qa.vercel.app/health",
+    "bytes": 50,
+    "content_type": "application/json",
+    "milliseconds": 4545.43
+  }
+]

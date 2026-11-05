@@ -1,0 +1,25 @@
+{
+  "master": {
+    "status": 200,
+    "bytes": 919,
+    "ms": 6838.35
+  },
+  "variant": {
+    "status": 200,
+    "bytes": 521,
+    "ms": 3965.4
+  },
+  "segment": {
+    "status": 200,
+    "bytes": 214696,
+    "ms": 5111.66
+  },
+  "decode_exit_code": 0,
+  "invalid_ticket_status": 403,
+  "job_id": "856bbd50-e2fd-4e0f-9722-37cc2d980643",
+  "source_fps": 22.261021388040156,
+  "misleading_nominal_fps": 600,
+  "environment": "production",
+  "physical_device_test": false,
+  "passed": true
+}

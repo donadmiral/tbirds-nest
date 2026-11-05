@@ -1,0 +1,47 @@
+{
+  "workerSource": "6f26e5f26210bf9d5cffdc7a0d2c9df9c3bdc019",
+  "qaDeployment": "dpl_Dx8n3gA9HwwjAp6LqqWAjH4ogPEi",
+  "productionDeployment": "dpl_6ZsyATGJH31JvsaeMrdTg8vrY7p1",
+  "qa": {
+    "jobs": {
+      "ready": 11,
+      "cancelled": 3
+    },
+    "dispatch": {
+      "enabled": true,
+      "last_error": false,
+      "last_request_at": "2026-11-05T05:32:00.176304+00:00",
+      "last_http_status": 200,
+      "last_response_at": "2026-11-05T05:31:01.152519+00:00"
+    },
+    "active_sandboxes": 0
+  },
+  "production": {
+    "jobs": {
+      "ready": 8
+    },
+    "dispatch": {
+      "enabled": true,
+      "last_error": false,
+      "last_request_at": "2026-11-05T05:31:01.890296+00:00",
+      "last_http_status": 200,
+      "last_response_at": "2026-11-05T05:30:04.090646+00:00"
+    },
+    "active_sandboxes": 0
+  },
+  "localWorkerTests": {
+    "passed": 51,
+    "failed": 0
+  },
+  "productionBackfill": {
+    "eligibleCanonicalVideos": 8,
+    "ready": 8,
+    "failed": 0,
+    "unboundOrMismatchedExcluded": 36
+  },
+  "limitations": [
+    "The source profile remains hls-v2 with original-media fallback.",
+    "This does not transcode unbound uploads, private chats or every custom composition pipeline.",
+    "HTTP playback and independent decode passed; no physical device playback acceptance was performed in this run."
+  ]
+}

@@ -22,7 +22,8 @@
     "perReservation": 0.0738406,
     "twelveReservations": 0.8860872,
     "twentyReservations": 1.476812,
-    "hundredReservations": 7.38406
+    "hundredReservations": 7.38406,
+    "twoHundredReservations": 14.76812
   },
   "excludes": [
     "transfer",
@@ -35,13 +36,44 @@
     "dailyReservations": 20,
     "monthlyReservations": 100
   },
-  "hostedLimitsChanged": false,
+  "hostedLimitsChanged": true,
   "localValidation": {
-    "workerGatewaySandboxTestsPassed": 45,
+    "workerGatewaySandboxTestsPassed": 51,
     "clientPlayerTestsPassed": 29,
     "actualFFmpegEncodeAndIndependentDecode": true,
-    "databaseRegressionStatus": "Requires native PostgreSQL CI; local host maps root UID only",
+    "databaseRegressionStatus": "Native PostgreSQL 17 CI passed: 15 rendition and 13 sandbox tests including real concurrent reservations. The isolated 64-job/16-session media admission load also passed.",
     "pgliteSequentialMigrationSmokePassed": true,
-    "webPlayerRegressionsPassed": 48
-  }
+    "webPlayerRegressionsPassed": 48,
+    "nativePostgresWorkflowRun": 41970763818,
+    "nativePostgresWorkflowSource": "c3698173f784b7d084f81d0ec8d0443e6a32dacc"
+  },
+  "updatedAt": "2026-11-05T05:09:10.013708+00:00",
+  "activatedOperatingLimits": {
+    "qa": {
+      "dailyReservations": 20,
+      "monthlyReservations": 100,
+      "concurrentVMs": 1,
+      "dailyMaximumComputeUSD": 1.476812,
+      "monthlyMaximumComputeUSD": 7.38406
+    },
+    "production": {
+      "dailyReservations": 100,
+      "monthlyReservations": 200,
+      "concurrentVMs": 1,
+      "dailyMaximumComputeUSD": 7.38406,
+      "monthlyMaximumComputeUSD": 14.76812
+    },
+    "source": "Root agent applied and read back hosted settings on 2026-11-05. Gate state is recorded separately in hosted rollout receipts."
+  },
+  "batch": {
+    "maxSequentialJobs": 8,
+    "totalDeadlineMs": 720000,
+    "minimumRemainingBeforeNextClaimMs": 30000,
+    "maxConcurrentEncoders": 1,
+    "scratchCleanupBetweenJobs": true,
+    "stopsOnTransientFailure": true,
+    "reservationChargeUnchanged": true,
+    "hostedBatchProofPending": true
+  },
+  "finalHostedStatusReceipt": "always-ready-20261105/final-media-status.json"
 }

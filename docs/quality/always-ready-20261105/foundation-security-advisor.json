@@ -1,0 +1,77 @@
+{
+  "provider": "Supabase security advisor",
+  "scope": "Prepared feed, feed ranking and media-rendition schemas",
+  "findings": [
+    {
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "table": "feed_ranking.settings"
+    },
+    {
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "table": "media_renditions.assets"
+    },
+    {
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "table": "media_renditions.attempts"
+    },
+    {
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "table": "media_renditions.broker_keys"
+    },
+    {
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "table": "media_renditions.broker_nonces"
+    },
+    {
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "table": "media_renditions.broker_rates"
+    },
+    {
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "table": "media_renditions.jobs"
+    },
+    {
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "table": "media_renditions.publications"
+    },
+    {
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "table": "media_renditions.sandbox_runs"
+    },
+    {
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "table": "media_renditions.sandbox_settings"
+    },
+    {
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "table": "media_renditions.sandbox_usage"
+    },
+    {
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "table": "media_renditions.settings"
+    },
+    {
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "table": "media_renditions.worker_dispatch"
+    },
+    {
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "table": "prepared_feed.settings"
+    }
+  ],
+  "assessment": "Only INFO notices for RLS-enabled internal tables with no client policies. These tables are intentionally inaccessible to member clients; narrowly authorized functions handle operations. This is not an all-app security certification."
+}

@@ -1,0 +1,76 @@
+{
+  "checkedAt": "2026-11-05T05:14:38.447Z",
+  "qa": {
+    "projectRef": "uaulhuelcfkjwojtymmw",
+    "workerDeployment": "dpl_FaWHSSbk5F6NySKNEdJBL9A641dj",
+    "pages": [
+      {
+        "state": "complete",
+        "hasMore": false,
+        "scanned": 48,
+        "admitted": 10,
+        "eligible": 10,
+        "nextAfterId": "f859214e-3a10-4fc3-bbb3-e3f3c913a58f"
+      }
+    ],
+    "totals": {
+      "scanned": 48,
+      "admitted": 10,
+      "complete": true
+    }
+  },
+  "production": {
+    "projectRef": "prlkikhckbifseosbukl",
+    "workerDeployment": "dpl_DbLmPA5k2o1N8bP4doQuK3hzcm9x",
+    "pages": [
+      {
+        "state": "complete",
+        "hasMore": true,
+        "scanned": 100,
+        "admitted": 2,
+        "eligible": 2,
+        "nextAfterId": "324acef3-826a-4f78-a293-ca50ade69d03"
+      },
+      {
+        "state": "complete",
+        "hasMore": true,
+        "scanned": 100,
+        "admitted": 2,
+        "eligible": 2,
+        "nextAfterId": "6b8af3fc-e3ba-4c43-9463-9a1bcc306d50"
+      },
+      {
+        "state": "complete",
+        "hasMore": true,
+        "scanned": 100,
+        "admitted": 1,
+        "eligible": 1,
+        "nextAfterId": "9f74e962-fc25-4e51-8e57-61de7993dfcf"
+      },
+      {
+        "state": "complete",
+        "hasMore": true,
+        "scanned": 100,
+        "admitted": 1,
+        "eligible": 1,
+        "nextAfterId": "d666d897-edee-43aa-9df1-17ab084b7cf9"
+      },
+      {
+        "state": "complete",
+        "hasMore": false,
+        "scanned": 72,
+        "admitted": 2,
+        "eligible": 2,
+        "nextAfterId": "ff42dd1d-02b8-4893-83b2-87caf3c3fc77"
+      }
+    ],
+    "totals": {
+      "scanned": 472,
+      "admitted": 8,
+      "complete": true
+    }
+  },
+  "method": "Reviewed service-only backfill_media_renditions_v2, 100-row keyset pages, p_dry_run=false",
+  "limitsChanged": false,
+  "manualJobRetries": 0
+}

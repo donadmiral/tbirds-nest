@@ -1,0 +1,101 @@
+{
+  "checkedAt": "2026-11-05T05:10:53.654Z",
+  "readOnly": true,
+  "admitted": 0,
+  "qa": {
+    "projectRef": "uaulhuelcfkjwojtymmw",
+    "pages": [
+      {
+        "state": "preview",
+        "hasMore": false,
+        "scanned": 48,
+        "admitted": 0,
+        "eligible": 10,
+        "nextAfterId": "f859214e-3a10-4fc3-bbb3-e3f3c913a58f"
+      }
+    ],
+    "totals": {
+      "pages": 1,
+      "scanned": 48,
+      "eligible": 10,
+      "admitted": 0,
+      "complete": true
+    }
+  },
+  "production": {
+    "projectRef": "prlkikhckbifseosbukl",
+    "pages": [
+      {
+        "state": "preview",
+        "hasMore": true,
+        "scanned": 100,
+        "admitted": 0,
+        "eligible": 2,
+        "nextAfterId": "324acef3-826a-4f78-a293-ca50ade69d03"
+      },
+      {
+        "state": "preview",
+        "hasMore": true,
+        "scanned": 100,
+        "admitted": 0,
+        "eligible": 2,
+        "nextAfterId": "6b8af3fc-e3ba-4c43-9463-9a1bcc306d50"
+      },
+      {
+        "state": "preview",
+        "hasMore": true,
+        "scanned": 100,
+        "admitted": 0,
+        "eligible": 1,
+        "nextAfterId": "9f74e962-fc25-4e51-8e57-61de7993dfcf"
+      },
+      {
+        "state": "preview",
+        "hasMore": true,
+        "scanned": 100,
+        "admitted": 0,
+        "eligible": 1,
+        "nextAfterId": "d666d897-edee-43aa-9df1-17ab084b7cf9"
+      },
+      {
+        "state": "preview",
+        "hasMore": false,
+        "scanned": 72,
+        "admitted": 0,
+        "eligible": 2,
+        "nextAfterId": "ff42dd1d-02b8-4893-83b2-87caf3c3fc77"
+      }
+    ],
+    "totals": {
+      "pages": 5,
+      "scanned": 472,
+      "eligible": 8,
+      "admitted": 0,
+      "complete": true
+    },
+    "classification": {
+      "videoObjects": 44,
+      "canonicalSources": 8,
+      "withoutContentBinding": 36,
+      "missingOrMismatchedOwner": 16,
+      "alreadyQueuedAtPreview": 0,
+      "countsOverlap": true
+    }
+  },
+  "migrationEquivalence": {
+    "repositoryMigration": "20261105044918_adaptive_media_admission_backfill_v2.sql",
+    "qa": [
+      "20261105050946",
+      "20261105050951"
+    ],
+    "production": [
+      "20261105051023",
+      "20261105051025"
+    ],
+    "functionBodyMd5": [
+      "469e118a914394b46b45d62746076465",
+      "53df197997ba06f9d2ad197e24027341"
+    ],
+    "hostedVerification": "Root read back exact function hashes and no anon/authenticated execute grants. Service role can execute only the bounded backfill."
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "clientCommit": "6f26e5f26210bf9d5cffdc7a0d2c9df9c3bdc019",
+  "backendCommit": "2e62dd9599c3989d19924049972855684bf935f5",
+  "web": {
+    "deployment": "dpl_f2Wg85SixLDdTDg1Q9psUZ3Z1Dpi",
+    "url": "https://platinumcircles.app",
+    "ready": true
+  },
+  "mediaWorkers": {
+    "production": "dpl_6ZsyATGJH31JvsaeMrdTg8vrY7p1",
+    "qa": "dpl_Dx8n3gA9HwwjAp6LqqWAjH4ogPEi",
+    "ready": true
+  },
+  "quality": {
+    "clientRun": 41973870205,
+    "clientAllSixJobsPassed": true,
+    "browserRun": 41972966503,
+    "browserSource": "5949b165a7ecb5d8eaa2df04ccd15b17828a1720",
+    "browserApplicationUnchanged": true,
+    "finalLoadRun": 41974292820,
+    "finalLoadPassed": true
+  },
+  "runtimeLogs": {
+    "window": "15m",
+    "scope": "New production web and media-worker deployments only",
+    "errorFatalGroupsReturned": 0
+  },
+  "admin": {
+    "sourceUnchanged": true,
+    "sourceComparison": "e221ffc..6f26e5f",
+    "deployment": "dpl_7j26tK2o3o98ar66fRBMxCeb83nn",
+    "url": "https://admin.platinumcircles.app"
+  },
+  "capacityCertifiedForFiveMillionDAU": false
+}

@@ -1,5 +1,7 @@
 # Performance follow-up
 
+Historical baseline. The loading and media status below is superseded by [the 2026-11-05 loading release](always-ready-20261105/release.md). Its remaining architectural limits still apply where the new release does not replace them.
+
 Baseline: `0ed045c4f23cd928913b483cabff7dce4232bfca` (QA build 32).
 
 ## Changes

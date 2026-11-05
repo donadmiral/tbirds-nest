@@ -1,0 +1,421 @@
+{
+  "sources": [
+    {
+      "name": "prepared_feed_private_foundation",
+      "path": "supabase/ops/prepared-feed-staged-20261105/01_private_foundation.sql",
+      "sha256": "8a432cc07972dde74ad9f0536bc0a639c6441228871b751a23c55ab599b949fc",
+      "sql_md5": "a9917e024712366b3b55078b7644f53f"
+    },
+    {
+      "name": "prepared_feed_private_rank",
+      "path": "supabase/ops/prepared-feed-staged-20261105/02_private_rank.sql",
+      "sha256": "8295782854d390c0bfb10755f00a8d4a28d05318654446554fa37370d0a8da9f",
+      "sql_md5": "b6eb121305ef1647d6d3d71ae2804dd2"
+    },
+    {
+      "name": "prepared_feed_private_worker",
+      "path": "supabase/ops/prepared-feed-staged-20261105/03_private_worker.sql",
+      "sha256": "ae407fed3777ab45a4cebdd3e1e9c0fe156619168a02762ad478624f5568507a",
+      "sql_md5": "b21d1b8992bb5ffc2c577fb16a6a16c2"
+    },
+    {
+      "name": "prepared_feed_private_controls",
+      "path": "supabase/ops/prepared-feed-staged-20261105/04_private_controls.sql",
+      "sha256": "9e2ec96b065cadc42ff0fd68b1e04700e52f1d80d3473ebbff14c56e191fd695",
+      "sql_md5": "d31a175ae1328a027a03d9f6ad37862e"
+    },
+    {
+      "name": "prepared_feed_private_tail",
+      "path": "supabase/ops/prepared-feed-staged-20261105/05_private_tail.sql",
+      "sha256": "0d98c5f9622f2d14956b589117b8adc8893294f27a75ec63a9a0800bd563f52d",
+      "sql_md5": "9a108173f0c568446eda53ced1ffd32c"
+    },
+    {
+      "name": "prepared_feed_private_dispatch",
+      "path": "supabase/ops/prepared-feed-staged-20261105/06_private_dispatch.sql",
+      "sha256": "011b356f3fd165691c2a0ae50ecb4153e4a5fadd346970d8d776774d8e3e8f54",
+      "sql_md5": "94c378842b18c29d1e454cc3ae513ba3"
+    },
+    {
+      "name": "prepared_feed_activate_contract",
+      "path": "supabase/ops/prepared-feed-staged-20261105/07_activate_contract.sql",
+      "sha256": "2741dc83fb02d12d02e65122b85f864c1e8ce94d087de49c938d18e90a5c49ac",
+      "sql_md5": "ce93257743c98000142f8ca7b18b951d"
+    },
+    {
+      "name": "prepared_feed_narrow_ranking",
+      "path": "supabase/migrations/20261105051142_prepared_feed_narrow_ranking.sql",
+      "sha256": "ab2d267865043a89c31989b5e24fed4333a33a224d765dbadd0ae80e4ee143ed",
+      "sql_md5": "45bbbea81cf61fcd05c8c6e19eeddcca"
+    },
+    {
+      "name": "prepared_feed_single_snapshot_rank",
+      "path": "supabase/migrations/20261105051152_prepared_feed_single_snapshot_rank.sql",
+      "sha256": "30aa899bfbc5e5b4b4794de7b76c0d34283f79cec8d2e586be3d1c60978874c9",
+      "sql_md5": "9c284e7de3620ccfec6ecbd4d0995090"
+    },
+    {
+      "name": "prepared_feed_bounded_hydration",
+      "path": "supabase/migrations/20261105051338_prepared_feed_bounded_hydration.sql",
+      "sha256": "3f84268cef57533bea4ec2b5797875a023138594c638bc50962058b94c45abd5",
+      "sql_md5": "96ac39a105975181ae04e5cfbfa9f656"
+    },
+    {
+      "name": "prepared_feed_client_capability_gate",
+      "path": "supabase/migrations/20261105051457_prepared_feed_client_capability_gate.sql",
+      "sha256": "8f9c6a1342f778cbc81eef6c963919ebd4e6380921a32e4864d558763cf43919",
+      "sql_md5": "700118d79335ffe590e59eb1b65a9894"
+    }
+  ],
+  "all_source_md5s_match": true,
+  "environments": {
+    "qa": {
+      "status": {
+        "failed": 0,
+        "queued": 0,
+        "enabled": false,
+        "oldest_due": null,
+        "fresh_seconds": 60,
+        "max_ranked_rows": 200,
+        "snapshot_seconds": 300
+      },
+      "functions": [
+        {
+          "name": "prepared_feed.canonical",
+          "owner": "postgres",
+          "body_md5": "0253c5a855e7648ebc63e0a0e42dbe8a",
+          "arguments": "p_mode text, p_cursor_key double precision, p_cursor_id uuid, p_limit integer",
+          "security_definer": false
+        },
+        {
+          "name": "prepared_feed.enabled",
+          "owner": "postgres",
+          "body_md5": "5f1fb78323b29ffd72f7ebad8e5cae02",
+          "arguments": "",
+          "security_definer": true
+        },
+        {
+          "name": "prepared_feed.exact_ids",
+          "owner": "postgres",
+          "body_md5": "87b8bd662fea0977374107296aa01a97",
+          "arguments": "p_mode text",
+          "security_definer": false
+        },
+        {
+          "name": "prepared_feed.invalidate_viewer",
+          "owner": "postgres",
+          "body_md5": "7541f23d7dc4e9407d883a46970f8690",
+          "arguments": "",
+          "security_definer": true
+        },
+        {
+          "name": "prepared_feed.rank",
+          "owner": "prepared_feed_reader",
+          "body_md5": "717346e7f6e1c568e19f320eb5d19d73",
+          "arguments": "p_claims jsonb, p_mode text",
+          "security_definer": true
+        },
+        {
+          "name": "prepared_feed.request",
+          "owner": "postgres",
+          "body_md5": "62a13c01d2cf1e7262cc0966b6e3f280",
+          "arguments": "p_mode text",
+          "security_definer": true
+        },
+        {
+          "name": "prepared_feed.scope",
+          "owner": "postgres",
+          "body_md5": "43b9a2b12b7bcf0ba7b1571e28ed8131",
+          "arguments": "",
+          "security_definer": false
+        },
+        {
+          "name": "prepared_feed.select_page",
+          "owner": "postgres",
+          "body_md5": "81dd45f216d9ea8b7a08745d95539549",
+          "arguments": "p_mode text, p_cursor_key double precision, p_cursor_id uuid, p_limit integer",
+          "security_definer": false
+        },
+        {
+          "name": "prepared_feed.tail",
+          "owner": "postgres",
+          "body_md5": "7609550d866eb6a44514a68702257a27",
+          "arguments": "p_mode text, p_key double precision, p_id uuid, p_limit integer, p_exclude uuid[]",
+          "security_definer": false
+        },
+        {
+          "name": "public.configure_prepared_feed_v1",
+          "owner": "postgres",
+          "body_md5": "320151eaca5601a7802c65d7f0a09976",
+          "arguments": "p_enabled boolean",
+          "security_definer": true
+        },
+        {
+          "name": "public.drain_prepared_feed_v1",
+          "owner": "postgres",
+          "body_md5": "abcfe583c6a6a23a47f69be8a508ee74",
+          "arguments": "p_jobs integer",
+          "security_definer": true
+        },
+        {
+          "name": "public.get_feed",
+          "owner": "postgres",
+          "body_md5": "e6a71258c0b29346e74acc2c64df9711",
+          "arguments": "p_mode text, p_cursor_key double precision, p_cursor_id uuid, p_limit integer",
+          "security_definer": false
+        },
+        {
+          "name": "public.prepared_feed_status_v1",
+          "owner": "postgres",
+          "body_md5": "a98faa30aa25dd9b022dfca6bc0af9a2",
+          "arguments": "",
+          "security_definer": true
+        }
+      ],
+      "migrations": [
+        {
+          "name": "prepared_feed_private_foundation",
+          "sql_md5": "a9917e024712366b3b55078b7644f53f",
+          "version": "20261105045800"
+        },
+        {
+          "name": "prepared_feed_private_rank",
+          "sql_md5": "b6eb121305ef1647d6d3d71ae2804dd2",
+          "version": "20261105050612"
+        },
+        {
+          "name": "prepared_feed_private_worker",
+          "sql_md5": "b21d1b8992bb5ffc2c577fb16a6a16c2",
+          "version": "20261105051130"
+        },
+        {
+          "name": "prepared_feed_private_controls",
+          "sql_md5": "d31a175ae1328a027a03d9f6ad37862e",
+          "version": "20261105051132"
+        },
+        {
+          "name": "prepared_feed_private_tail",
+          "sql_md5": "9a108173f0c568446eda53ced1ffd32c",
+          "version": "20261105051134"
+        },
+        {
+          "name": "prepared_feed_private_dispatch",
+          "sql_md5": "94c378842b18c29d1e454cc3ae513ba3",
+          "version": "20261105051139"
+        },
+        {
+          "name": "prepared_feed_activate_contract",
+          "sql_md5": "ce93257743c98000142f8ca7b18b951d",
+          "version": "20261105051149"
+        },
+        {
+          "name": "prepared_feed_narrow_ranking",
+          "sql_md5": "45bbbea81cf61fcd05c8c6e19eeddcca",
+          "version": "20261105051503"
+        },
+        {
+          "name": "prepared_feed_single_snapshot_rank",
+          "sql_md5": "9c284e7de3620ccfec6ecbd4d0995090",
+          "version": "20261105051505"
+        },
+        {
+          "name": "prepared_feed_bounded_hydration",
+          "sql_md5": "96ac39a105975181ae04e5cfbfa9f656",
+          "version": "20261105051506"
+        },
+        {
+          "name": "prepared_feed_client_capability_gate",
+          "sql_md5": "700118d79335ffe590e59eb1b65a9894",
+          "version": "20261105051600"
+        }
+      ],
+      "demand_rows": 0,
+      "observed_at": "2026-11-05T05:18:16.150955+00:00",
+      "snapshot_rows": 0
+    },
+    "production": {
+      "status": {
+        "failed": 0,
+        "queued": 0,
+        "enabled": false,
+        "oldest_due": null,
+        "fresh_seconds": 60,
+        "max_ranked_rows": 200,
+        "snapshot_seconds": 300
+      },
+      "functions": [
+        {
+          "name": "prepared_feed.canonical",
+          "owner": "postgres",
+          "body_md5": "0253c5a855e7648ebc63e0a0e42dbe8a",
+          "arguments": "p_mode text, p_cursor_key double precision, p_cursor_id uuid, p_limit integer",
+          "security_definer": false
+        },
+        {
+          "name": "prepared_feed.enabled",
+          "owner": "postgres",
+          "body_md5": "5f1fb78323b29ffd72f7ebad8e5cae02",
+          "arguments": "",
+          "security_definer": true
+        },
+        {
+          "name": "prepared_feed.exact_ids",
+          "owner": "postgres",
+          "body_md5": "87b8bd662fea0977374107296aa01a97",
+          "arguments": "p_mode text",
+          "security_definer": false
+        },
+        {
+          "name": "prepared_feed.invalidate_viewer",
+          "owner": "postgres",
+          "body_md5": "7541f23d7dc4e9407d883a46970f8690",
+          "arguments": "",
+          "security_definer": true
+        },
+        {
+          "name": "prepared_feed.rank",
+          "owner": "prepared_feed_reader",
+          "body_md5": "717346e7f6e1c568e19f320eb5d19d73",
+          "arguments": "p_claims jsonb, p_mode text",
+          "security_definer": true
+        },
+        {
+          "name": "prepared_feed.request",
+          "owner": "postgres",
+          "body_md5": "62a13c01d2cf1e7262cc0966b6e3f280",
+          "arguments": "p_mode text",
+          "security_definer": true
+        },
+        {
+          "name": "prepared_feed.scope",
+          "owner": "postgres",
+          "body_md5": "43b9a2b12b7bcf0ba7b1571e28ed8131",
+          "arguments": "",
+          "security_definer": false
+        },
+        {
+          "name": "prepared_feed.select_page",
+          "owner": "postgres",
+          "body_md5": "81dd45f216d9ea8b7a08745d95539549",
+          "arguments": "p_mode text, p_cursor_key double precision, p_cursor_id uuid, p_limit integer",
+          "security_definer": false
+        },
+        {
+          "name": "prepared_feed.tail",
+          "owner": "postgres",
+          "body_md5": "7609550d866eb6a44514a68702257a27",
+          "arguments": "p_mode text, p_key double precision, p_id uuid, p_limit integer, p_exclude uuid[]",
+          "security_definer": false
+        },
+        {
+          "name": "public.configure_prepared_feed_v1",
+          "owner": "postgres",
+          "body_md5": "320151eaca5601a7802c65d7f0a09976",
+          "arguments": "p_enabled boolean",
+          "security_definer": true
+        },
+        {
+          "name": "public.drain_prepared_feed_v1",
+          "owner": "postgres",
+          "body_md5": "abcfe583c6a6a23a47f69be8a508ee74",
+          "arguments": "p_jobs integer",
+          "security_definer": true
+        },
+        {
+          "name": "public.get_feed",
+          "owner": "postgres",
+          "body_md5": "e6a71258c0b29346e74acc2c64df9711",
+          "arguments": "p_mode text, p_cursor_key double precision, p_cursor_id uuid, p_limit integer",
+          "security_definer": false
+        },
+        {
+          "name": "public.prepared_feed_status_v1",
+          "owner": "postgres",
+          "body_md5": "a98faa30aa25dd9b022dfca6bc0af9a2",
+          "arguments": "",
+          "security_definer": true
+        }
+      ],
+      "migrations": [
+        {
+          "name": "prepared_feed_private_foundation",
+          "sql_md5": "a9917e024712366b3b55078b7644f53f",
+          "version": "20261105051159"
+        },
+        {
+          "name": "prepared_feed_private_rank",
+          "sql_md5": "b6eb121305ef1647d6d3d71ae2804dd2",
+          "version": "20261105051202"
+        },
+        {
+          "name": "prepared_feed_private_worker",
+          "sql_md5": "b21d1b8992bb5ffc2c577fb16a6a16c2",
+          "version": "20261105051309"
+        },
+        {
+          "name": "prepared_feed_private_controls",
+          "sql_md5": "d31a175ae1328a027a03d9f6ad37862e",
+          "version": "20261105051311"
+        },
+        {
+          "name": "prepared_feed_private_tail",
+          "sql_md5": "9a108173f0c568446eda53ced1ffd32c",
+          "version": "20261105051312"
+        },
+        {
+          "name": "prepared_feed_private_dispatch",
+          "sql_md5": "94c378842b18c29d1e454cc3ae513ba3",
+          "version": "20261105051314"
+        },
+        {
+          "name": "prepared_feed_activate_contract",
+          "sql_md5": "ce93257743c98000142f8ca7b18b951d",
+          "version": "20261105051322"
+        },
+        {
+          "name": "prepared_feed_narrow_ranking",
+          "sql_md5": "45bbbea81cf61fcd05c8c6e19eeddcca",
+          "version": "20261105051512"
+        },
+        {
+          "name": "prepared_feed_single_snapshot_rank",
+          "sql_md5": "9c284e7de3620ccfec6ecbd4d0995090",
+          "version": "20261105051514"
+        },
+        {
+          "name": "prepared_feed_bounded_hydration",
+          "sql_md5": "96ac39a105975181ae04e5cfbfa9f656",
+          "version": "20261105051516"
+        },
+        {
+          "name": "prepared_feed_client_capability_gate",
+          "sql_md5": "700118d79335ffe590e59eb1b65a9894",
+          "version": "20261105051602"
+        }
+      ],
+      "demand_rows": 0,
+      "observed_at": "2026-11-05T05:18:15.081132+00:00",
+      "snapshot_rows": 0
+    }
+  },
+  "qa_canary": {
+    "passed": true,
+    "existing_test_session_verified": true,
+    "rollback_only": true,
+    "first_count": 10,
+    "prepared_count": 10,
+    "negative_cursors": true,
+    "current_visibility_count": 10,
+    "hidden_post_excluded": true,
+    "worker_prepared": 1,
+    "worker_failed": 0,
+    "cold_ms": 289.49,
+    "worker_ms": 25.11,
+    "warm_ms": 213.52,
+    "statement_timeout_seconds": 8,
+    "post_rollback_prepared_enabled": false,
+    "post_rollback_demand_rows": 0,
+    "post_rollback_snapshot_rows": 0,
+    "scope": "One existing named QA test session and ten eligible posts. Functional evidence, not a load or capacity measurement. No users or sessions created."
+  }
+}

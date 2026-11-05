@@ -1,0 +1,26 @@
+{
+  "master": {
+    "status": 200,
+    "bytes": 1013,
+    "hls": true
+  },
+  "variant": {
+    "status": 200,
+    "bytes": 1422,
+    "hls": true
+  },
+  "segment": {
+    "status": 200,
+    "bytes": 244024,
+    "cache_control": null
+  },
+  "decode_exit": 0,
+  "invalid_ticket_status": 403,
+  "checked_at": "2026-11-05T05:00:45.491201+00:00",
+  "environment": "qa",
+  "source_sha": "e221ffc18f70c36d1b279835a40fa57fc9446358",
+  "job_id": "9b3bceb9-f781-43ef-9ec2-e0ce7d0d85be",
+  "worker_deployment": "dpl_7JtezkeVRaPzw5FCAMD23SRGhE6N",
+  "gateway_deployment": "dpl_HG9JnizZk2hBUodtUP8AYmDFagSS",
+  "scope": "One existing canonical QA source, actual HLS playlist, segment and independent FFmpeg decode. Not regional throughput or device playback."
+}
