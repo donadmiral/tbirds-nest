@@ -1,0 +1,95 @@
+name: Bounded capacity foundation
+
+on:
+  push:
+    branches: [codex/loading-foundation-20261105]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: capacity-foundation-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  isolated-load:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      PGHOST: /tmp/pc-capacity-foundation
+      PGPORT: '5432'
+      PGUSER: pc_capacity
+      PGCONNECT_TIMEOUT: '5'
+      PGAPPNAME: pc-capacity-foundation
+      PC_TEST_PSQL: /usr/bin/psql
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+      - name: Install local test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client ffmpeg
+          npm ci --prefix supabase/tests/rpc-authorization --no-fund
+          mkdir -p capacity-results
+      - name: Start isolated PostgreSQL without TCP or container networking
+        run: |
+          mkdir -p "$PGHOST"
+          chmod 777 "$PGHOST"
+          docker run --detach --name pc-capacity-foundation --network none \
+            --cpus 2 --memory 2g --shm-size 256m \
+            --env POSTGRES_HOST_AUTH_METHOD=trust --env POSTGRES_USER=pc_capacity \
+            --mount "type=bind,src=$PGHOST,dst=/var/run/postgresql" \
+            postgres:17.11 -c listen_addresses='' -c jit=off \
+            -c max_connections=60 -c shared_buffers=256MB -c work_mem=4MB
+          ready=false
+          for attempt in $(seq 1 60); do
+            if pg_isready --dbname=postgres; then ready=true; break; fi
+            sleep 1
+          done
+          test "$ready" = true
+          psql --dbname=postgres --command='select version(), inet_server_addr();' > capacity-results/postgres.txt
+          for database in pc_scale_prepared_feed pc_scale_media_v2 pc_scale_media_sandbox pc_scale_foundation_feed pc_scale_foundation_media; do
+            createdb "$database"
+          done
+      - name: Verify budgets, isolation and actual PostgreSQL contracts
+        run: |
+          node --test tests/capacity-workload.test.cjs tests/capacity-isolation.test.cjs
+          PGDATABASE=pc_scale_prepared_feed node --test supabase/tests/prepared-feed-db.test.cjs
+          dropdb pc_scale_prepared_feed
+          psql --dbname=postgres --command='drop role prepared_feed_reader;'
+          PGDATABASE=pc_scale_media_v2 node --test supabase/tests/media-renditions-db.test.cjs
+          PGDATABASE=pc_scale_media_sandbox node --test supabase/tests/media-sandbox-db.test.cjs
+      - name: Measure prepared feed, bounded soak and database reconnects
+        env:
+          PGDATABASE: pc_scale_foundation_feed
+        run: node tools/performance/prepared-feed-load.cjs capacity-results/prepared-feed.json
+      - name: Measure contested media admission and lease recovery
+        if: ${{ !cancelled() }}
+        env:
+          PGDATABASE: pc_scale_foundation_media
+        run: node tools/performance/media-admission-load.cjs capacity-results/media-admission.json
+      - name: Measure real local HLS encoding and independent decoding
+        if: ${{ !cancelled() }}
+        run: node tools/performance/media-encode-probe.mjs capacity-results/media-encoder.json
+      - name: Retain bounded measurements and local database logs
+        if: always()
+        run: |
+          docker logs pc-capacity-foundation > capacity-results/postgres.log 2>&1 || true
+          docker inspect pc-capacity-foundation > capacity-results/container.json || true
+          git rev-parse HEAD > capacity-results/source-commit.txt
+          cp tools/performance/provider-readback-20261105.json capacity-results/provider-readback.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: bounded-capacity-foundation
+          path: capacity-results
+          retention-days: 7
+          if-no-files-found: error
+      - name: Remove disposable PostgreSQL
+        if: always()
+        run: docker rm --force pc-capacity-foundation || true

@@ -9,7 +9,7 @@ else{
  const assets=[{name:'master.m3u8',mime:'application/vnd.apple.mpegurl',playlist:'#EXTM3U\nr0/index.m3u8\n'},{name:'r0/index.m3u8',mime:'application/vnd.apple.mpegurl',playlist:'#EXTM3U\nseg00000.ts\n#EXT-X-ENDLIST\n'},{name:'r0/seg00000.ts',mime:'video/mp2t'},{name:'fallback.mp4',mime:'video/mp4'}].map(a=>({...a,bytes:100,sha256:'a'.repeat(64)}));
  async function seed(n=0){const f=n?owner+`/source${n}.mp4`:file,e=n?id(20+n):entity,o=n?id(40+n):object;await q(`insert into auth.users(id) values('${owner}') on conflict do nothing;insert into storage.objects(id,bucket_id,name,version,owner_id,metadata) values('${o}','story-media','${f}','source-v1','${owner}','{"size":1000,"eTag":"source-etag"}');insert into stories(id,user_id,media_url) values('${e}','${owner}','https://fixture.test/storage/v1/object/public/story-media/${f}');insert into content_media_bindings(entity_kind,entity_id,bucket_id,object_path,uploader_id) values('story','${e}','story-media','${f}','${owner}')`);}
  async function outputs(j){assert.equal(await v(`select register_media_rendition_assets_v2('${j.job_id}','${j.lease_id}',${j.attempt},$a$${JSON.stringify(assets)}$a$)`),'t');for(const a of assets)await q(`insert into storage.objects(bucket_id,name,version,metadata,user_metadata) values('adaptive-media','${j.output_prefix+a.name}','out-v1','{"size":100,"eTag":"output-etag"}','{"processing_lease_id":"${j.lease_id}","sha256":"${a.sha256}"}')`);}
- before(async()=>{if(process.env.PGDATABASE!=='pc_scale_media_v2')throw new Error('Dedicated pc_scale_media_v2 database required');db=new LocalPsqlSession();await q("set client_min_messages='warning';drop schema if exists media_renditions,media_processing,media_delivery,storage,auth,extensions,public cascade;create schema public");await q(fs.readFileSync(path.join(__dirname,'media-processing-fixture.sql'),'utf8'));await q(fs.readFileSync(path.join(__dirname,'../migrations/20261102071532_durable_media_processing_v1.sql'),'utf8'));await q(fs.readFileSync(path.join(__dirname,'../migrations/20261102090521_adaptive_media_renditions_v2.sql'),'utf8'));await q(fs.readFileSync(path.join(__dirname,'../migrations/20261102100428_media_broker_scoped_credentials_v2.sql'),'utf8'));await q(fs.readFileSync(path.join(__dirname,'../migrations/20261102101149_media_worker_dispatch_v2.sql'),'utf8'));});
+ before(async()=>{if(process.env.PGDATABASE!=='pc_scale_media_v2')throw new Error('Dedicated pc_scale_media_v2 database required');db=new LocalPsqlSession();await q("set client_min_messages='warning';drop schema if exists media_renditions,media_processing,media_delivery,storage,auth,extensions,public cascade;create schema public");await q(fs.readFileSync(path.join(__dirname,'media-processing-fixture.sql'),'utf8'));await q(fs.readFileSync(path.join(__dirname,'../migrations/20261102071532_durable_media_processing_v1.sql'),'utf8'));await q(fs.readFileSync(path.join(__dirname,'../migrations/20261102090521_adaptive_media_renditions_v2.sql'),'utf8'));await q(fs.readFileSync(path.join(__dirname,'../migrations/20261102100428_media_broker_scoped_credentials_v2.sql'),'utf8'));await q(fs.readFileSync(path.join(__dirname,'../migrations/20261102101149_media_worker_dispatch_v2.sql'),'utf8'));await q(fs.readFileSync(path.join(__dirname,'../migrations/20261105044918_adaptive_media_admission_backfill_v2.sql'),'utf8'));});
  after(async()=>db?.close());
  beforeEach(async()=>{await q("reset role;set request.jwt.claims='{\"role\":\"service_role\"}';truncate media_renditions.broker_nonces,media_renditions.broker_rates,media_renditions.broker_keys,media_renditions.publications,media_renditions.assets,media_renditions.attempts,media_renditions.jobs,media_processing.variants,media_processing.attempts,media_processing.jobs,media_processing.invalidations,storage.objects,stories,posts,post_media,auth.users,content_media_bindings,media_delivery.tickets;delete from media_renditions.settings;insert into media_renditions.settings(singleton) values(true)");});
  test('migration is inert and private tables/bucket remain unavailable to ordinary users',async()=>{await seed();assert.equal(await v('select count(*) from media_renditions.jobs'),0);assert.equal(await claim(),'');for(const role of ['anon','authenticated']){await q('set role '+role);assert.equal(await v("select fixture_fails('select * from media_renditions.jobs')"),'t');assert.equal(await v("select fixture_fails('select claim_media_rendition_v2()')"),'t');assert.equal(await v("select count(*) from storage.buckets where id='adaptive-media'"),0);await q('reset role');}});
@@ -43,5 +43,38 @@ else{
  });
 
  test('external worker dispatch remains inert before explicit protected configuration',async()=>{assert.equal(await v('select dispatch_media_worker_v2()'),'');assert.equal((await v('select media_worker_dispatch_status_v2()')).enabled,false);for(const role of ['anon','authenticated'])assert.equal(await v(`select has_function_privilege('${role}','public.dispatch_media_worker_v2()','EXECUTE')`),'f');});
+
+ test('upload completion after its canonical binding still admits exactly one immutable job',async()=>{
+  await q('update media_renditions.settings set admission_enabled=true');
+  await q(`insert into auth.users(id) values('${owner}');insert into stories(id,user_id,media_url) values('${entity}','${owner}','https://fixture.test/storage/v1/object/public/story-media/${file}');insert into content_media_bindings(entity_kind,entity_id,bucket_id,object_path,uploader_id) values('story','${entity}','story-media','${file}','${owner}')`);
+  assert.equal(await v('select count(*) from media_renditions.jobs'),0);
+  await q(`insert into storage.objects(id,bucket_id,name,version,owner_id,metadata) values('${object}','story-media','${file}','source-v1','${owner}','{"size":1000,"eTag":"source-etag"}')`);
+  assert.equal(await v('select count(*) from media_renditions.jobs'),1);
+  await q(`update content_media_bindings set object_path=object_path where entity_id='${entity}'`);
+  assert.equal(await v('select count(*) from media_renditions.jobs'),1);
+ });
+ test('legacy backfill is a preview by default, gated, bounded and idempotent',async()=>{
+  await seed();await seed(1);await seed(2);
+  const preview=await v('select backfill_media_renditions_v2(null,2)');
+  assert.equal(preview.state,'preview');assert.equal(preview.scanned,2);assert.equal(preview.eligible,2);assert.equal(preview.hasMore,true);
+  assert.equal(await v('select count(*) from media_renditions.jobs'),0);
+  assert.equal((await v('select backfill_media_renditions_v2(null,2,false)')).state,'disabled');
+  await q('update media_renditions.settings set admission_enabled=true');
+  const first=await v('select backfill_media_renditions_v2(null,2,false)');assert.equal(first.admitted,2);
+  const last=await v(`select backfill_media_renditions_v2('${first.nextAfterId}',2,false)`);assert.equal(last.scanned,1);assert.equal(last.admitted,1);assert.equal(last.hasMore,false);
+  assert.equal((await v('select backfill_media_renditions_v2(null,100,false)')).admitted,0);
+  assert.equal(await v('select count(*) from media_renditions.jobs'),3);
+ });
+ test('backfill excludes unbound, removed, wrong-owner and nonvideo media',async()=>{
+  await seed();await q(`delete from content_media_bindings where entity_id='${entity}'`);
+  await seed(1);await q(`update storage.objects set owner_id='${id(999)}' where id='${id(41)}'`);
+  await seed(2);await q(`update storage.objects set name='${owner}/image.jpg' where id='${id(42)}'`);
+  await q('update media_renditions.settings set admission_enabled=true');
+  const result=await v('select backfill_media_renditions_v2(null,100,false)');assert.equal(result.scanned,3);assert.equal(result.eligible,0);assert.equal(result.admitted,0);
+ });
+ test('backfill rejects excess work and is unavailable to ordinary callers',async()=>{
+  for(const input of ['null,101,false','null,0,false','null,1,null'])assert.equal(await v(`select fixture_fails('select backfill_media_renditions_v2(${input})')`),'t');
+  for(const role of ['anon','authenticated'])assert.equal(await v(`select has_function_privilege('${role}','public.backfill_media_renditions_v2(uuid,integer,boolean)','EXECUTE')`),'f');
+ });
 
 }

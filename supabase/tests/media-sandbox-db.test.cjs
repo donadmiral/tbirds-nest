@@ -11,7 +11,7 @@ else{
  before(async()=>{
   if(process.env.PGDATABASE!=='pc_scale_media_sandbox')throw Error('Dedicated pc_scale_media_sandbox database required');db=new LocalPsqlSession();
   await q("set client_min_messages='warning';drop schema if exists media_renditions,media_processing,media_delivery,storage,auth,extensions,public cascade;create schema public");
-  for(const file of ['media-processing-fixture.sql','../migrations/20261102071532_durable_media_processing_v1.sql','../migrations/20261102090521_adaptive_media_renditions_v2.sql','../migrations/20261102100428_media_broker_scoped_credentials_v2.sql','../migrations/20261102174937_bounded_media_sandbox_dispatch_v1.sql'])await q(fs.readFileSync(path.join(__dirname,file),'utf8'));
+  for(const file of ['media-processing-fixture.sql','../migrations/20261102071532_durable_media_processing_v1.sql','../migrations/20261102090521_adaptive_media_renditions_v2.sql','../migrations/20261102100428_media_broker_scoped_credentials_v2.sql','../migrations/20261102174937_bounded_media_sandbox_dispatch_v1.sql','../migrations/20261105045037_media_sandbox_production_budget_bounds_v1.sql'])await q(fs.readFileSync(path.join(__dirname,file),'utf8'));
  });
  after(async()=>db?.close());
  beforeEach(async()=>{await q("reset role;set request.jwt.claims='{\"role\":\"service_role\"}';truncate media_renditions.sandbox_runs,media_renditions.sandbox_usage,media_renditions.publications,media_renditions.assets,media_renditions.attempts,media_renditions.jobs;update media_renditions.sandbox_settings set enabled=false,daily_wall_seconds=1560,monthly_wall_seconds=6240,daily_cpu_seconds=3120,monthly_cpu_seconds=12480;update media_renditions.settings set worker_enabled=false,maintenance_enabled=false,emergency_revoke=false,input_max_bytes=536870912");});
@@ -67,5 +67,20 @@ else{
  test('new launcher scope is distinct and remains hash-authenticated',async()=>{
   await q(`insert into media_renditions.broker_keys(id,role,token_hash,max_requests_per_minute) values('${id(70)}','dispatcher',extensions.digest(repeat('c',64),'sha256'),128)`);
   assert.equal(await v(`select authorize_media_broker_v2('${id(70)}',encode(extensions.digest(repeat('c',64),'sha256'),'hex'),'${id(71)}',clock_timestamp())`),'dispatcher');
+ });
+ test('production bounds keep the defaults inert and allow an explicit twelve-job batch without weakening one-VM ownership',async()=>{
+  const initial=await v('select to_jsonb(s) from media_renditions.sandbox_settings s');
+  assert.equal(initial.enabled,false);assert.equal(initial.daily_wall_seconds,1560);assert.equal(initial.monthly_wall_seconds,6240);
+  await q('update media_renditions.sandbox_settings set enabled=true,daily_wall_seconds=9360,daily_cpu_seconds=18720,monthly_wall_seconds=15600,monthly_cpu_seconds=31200;update media_renditions.settings set worker_enabled=true');await queue();
+  for(let n=1;n<=12;n++){
+   assert.ok((await reserve(n)).id);assert.equal(await reserve(100+n),'');
+   assert.equal(await attach(n),'t');assert.equal(await finish(n),'t');
+  }
+  assert.equal(await reserve(13),'');assert.equal(await v("select creations from media_renditions.sandbox_usage where period='day'"),12);
+  assert.equal(await v("select wall_seconds from media_renditions.sandbox_usage where period='month'"),9360);
+ });
+ test('production budget cannot exceed the reviewed ceilings',async()=>{
+  for(const assignment of ['daily_wall_seconds=78001','daily_cpu_seconds=156001','monthly_wall_seconds=1560001','monthly_cpu_seconds=3120001'])
+   assert.equal(await v(`select fixture_fails('update media_renditions.sandbox_settings set ${assignment}')`),'t');
  });
 }
