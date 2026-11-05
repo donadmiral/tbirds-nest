@@ -14,9 +14,15 @@ concurrency:
 
 jobs:
   isolated-load:
+    name: isolated-load-${{ matrix.profile }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        profile: [foundation, expanded]
     env:
+      PC_CAPACITY_PROFILE: ${{ matrix.profile }}
       PGHOST: /tmp/pc-capacity-foundation
       PGPORT: '5432'
       PGUSER: pc_capacity
@@ -61,8 +67,9 @@ jobs:
             createdb "$database"
           done
       - name: Verify budgets, isolation and actual PostgreSQL contracts
+        if: matrix.profile == 'foundation'
         run: |
-          node --test tests/capacity-workload.test.cjs tests/capacity-isolation.test.cjs
+          node --test tests/capacity-workload.test.cjs tests/capacity-isolation.test.cjs tests/capacity-gate.test.cjs
           PREPARED_FEED_NARROW=1 PGDATABASE=pc_scale_prepared_feed node --test supabase/tests/prepared-feed-db.test.cjs
           dropdb pc_scale_prepared_feed
           psql --dbname=postgres --command='drop role prepared_feed_reader;'
@@ -72,14 +79,24 @@ jobs:
       - name: Measure prepared feed, bounded soak and database reconnects
         env:
           PGDATABASE: pc_scale_foundation_feed
-        run: node tools/performance/prepared-feed-load.cjs capacity-results/prepared-feed.json
+        run: |
+          (
+            while true; do
+              date --utc --iso-8601=seconds
+              docker stats --no-stream --format '{{json .}}' pc-capacity-foundation
+              sleep 5
+            done
+          ) > capacity-results/container-samples.ndjson &
+          metrics_pid=$!
+          trap 'kill "$metrics_pid" 2>/dev/null || true' EXIT
+          node tools/performance/prepared-feed-load.cjs capacity-results/prepared-feed.json
       - name: Measure contested media admission and lease recovery
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.profile == 'foundation' }}
         env:
           PGDATABASE: pc_scale_foundation_media
         run: node tools/performance/media-admission-load.cjs capacity-results/media-admission.json
       - name: Measure real local HLS encoding and independent decoding
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.profile == 'foundation' }}
         run: node tools/performance/media-encode-probe.mjs capacity-results/media-encoder.json
       - name: Retain bounded measurements and local database logs
         if: always()
@@ -91,7 +108,7 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
-          name: bounded-capacity-foundation
+          name: ${{ matrix.profile == 'foundation' && 'bounded-capacity-foundation' || 'bounded-capacity-expanded' }}
           path: capacity-results
           retention-days: 7
           if-no-files-found: error

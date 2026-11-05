@@ -19,7 +19,14 @@ const migrations = [
   'supabase/migrations/20261105052419_feed_catalog_point_visibility.sql',
   'supabase/migrations/20261105052732_amortized_feed_frontier_scoring.sql',
 ];
-const ACTORS = 16, POSTS = 25000, WORKERS = 8;
+const PROFILES = Object.freeze({
+  foundation: { actors: 16, posts: 25000, workers: 8, steady: { seconds: 30, rate: 20 }, soak: { seconds: 60, rate: 10 } },
+  expanded: { actors: 128, posts: 250000, workers: 32, steady: { seconds: 60, rate: 100 }, soak: { seconds: 120, rate: 60 } },
+});
+const profileName = process.env.PC_CAPACITY_PROFILE || 'foundation';
+if (!Object.hasOwn(PROFILES, profileName)) throw Error('Unknown isolated capacity profile');
+const profile = PROFILES[profileName];
+const ACTORS = profile.actors, POSTS = profile.posts, WORKERS = profile.workers;
 const actors = Array.from({ length: ACTORS }, (_, i) => id(100 + i));
 const privatePosts = new Map(actors.map((actor, i) => [id(900000 + i), actor]));
 function authenticate(actor, session = actor) {
@@ -52,7 +59,7 @@ async function run(output = process.argv[2]) {
   const admin = createSession(), maintenance = createSession();
   let workers = [], timer, maintenanceRun, maintenanceFailure;
   const report = { version: 1, kind: 'isolated-prepared-feed-load', sourceCommit: sourceCommit(), measuredAt: new Date().toISOString(),
-    posts: POSTS, authenticatedActors: ACTORS, workers: WORKERS, providerCalls: 0,
+    profile: profileName, posts: POSTS, authenticatedActors: ACTORS, workers: WORKERS, providerCalls: 0,
     clientCapability: 'platinum-cache/1',
     sourceFiles: manifest([...migrations, 'supabase/tests/feed-scale-fixture.cjs', 'supabase/tests/engagement-counter-fixture.cjs',
       'tools/performance/production-read-indexes.sql', 'tools/performance/production-read-indexes-20261105.json']),
@@ -97,6 +104,7 @@ async function run(output = process.argv[2]) {
     report.totalPosts = Number(await admin.query('select count(*) from posts'));
     report.readIndexes = await admin.json("select jsonb_agg(jsonb_build_object('schema',schemaname,'table',tablename,'name',indexname,'definition',indexdef) order by schemaname,tablename,indexname) from pg_indexes where schemaname in ('public','feed_ranking','prepared_feed')");
     report.database = await admin.json("select jsonb_build_object('version',version(),'local_socket',inet_server_addr() is null,'max_connections',current_setting('max_connections'),'shared_buffers',current_setting('shared_buffers'),'work_mem',current_setting('work_mem'),'database_bytes',pg_database_size(current_database()))");
+    report.databaseStatsBefore = await admin.json("select jsonb_build_object('observedAt',clock_timestamp(),'commits',xact_commit,'rollbacks',xact_rollback,'blocksRead',blks_read,'blocksHit',blks_hit,'tempBytes',temp_bytes,'deadlocks',deadlocks) from pg_stat_database where datname=current_database()");
     assert.equal(report.database.local_socket, true);
     checkpoint('initial_frontier');
     for (let n = 0; n < WORKERS; n++) { const db = createSession(); workers.push(db); await db.query("set statement_timeout='3s';"); }
@@ -153,9 +161,9 @@ async function run(output = process.argv[2]) {
       return { bytes: result.bytes };
     };
     checkpoint('steady_workload');
-    report.steady = await runWorkload({ seconds: 30, rate: 20, concurrency: WORKERS, maxP95Ms: 500 }, operation);
+    report.steady = await runWorkload({ ...profile.steady, concurrency: WORKERS, maxP95Ms: 500 }, operation);
     checkpoint('soak_workload');
-    report.soak = await runWorkload({ seconds: 60, rate: 10, concurrency: WORKERS, maxP95Ms: 500 }, operation);
+    report.soak = await runWorkload({ ...profile.soak, concurrency: WORKERS, maxP95Ms: 500 }, operation);
     clearInterval(timer); timer = null;
     if (maintenanceRun) await maintenanceRun;
     if (maintenanceFailure) throw maintenanceFailure;
@@ -181,9 +189,10 @@ async function run(output = process.argv[2]) {
     assert.equal(revoked.rows.length, 20);
     report.liveRevocationRechecked = true;
     report.preparedStatus = await admin.json('select prepared_feed_status_v1()');
+    report.databaseStatsAfter = await admin.json("select jsonb_build_object('observedAt',clock_timestamp(),'commits',xact_commit,'rollbacks',xact_rollback,'blocksRead',blks_read,'blocksHit',blks_hit,'tempBytes',temp_bytes,'deadlocks',deadlocks) from pg_stat_database where datname=current_database()");
     report.passed = report.steady.passed && report.soak.passed;
     report.limitations = ['Direct authenticated PostgreSQL RPC calls over a local Unix socket, not HTTP or Supabase Realtime.',
-      'The 60-second bounded soak is a regression gate, not a day-long production capacity certification.',
+      `The ${profile.soak.seconds}-second bounded soak is a regression gate, not a day-long production capacity certification.`,
       'Fixture actor and row counts do not establish a supported DAU count. No hosted capacity or spend was changed.'];
     checkpoint('complete');
     return report;
@@ -198,4 +207,4 @@ async function run(output = process.argv[2]) {
   }
 }
 if (require.main === module) run().then(report => { outputReport(report, process.argv[2]); if (!report.passed) process.exitCode = 1; }).catch(error => { console.error(error); process.exitCode = 1; });
-module.exports = { run, validateCards, authenticate };
+module.exports = { run, validateCards, authenticate, PROFILES };
