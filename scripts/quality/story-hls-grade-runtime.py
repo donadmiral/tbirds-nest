@@ -121,6 +121,42 @@ def matches_orientation(measurement, name):
         {'centerMeanRGB': measurement['bottomRightMeanRGB']}, name)
 
 
+def compositor_screenshot(device, path, timeout=8):
+    """Read this capture's complete PNG even if simctl keeps its output pipe open."""
+    path.unlink(missing_ok=True)
+    started = time.monotonic()
+    # Some fresh Simulator runtimes finish writing the PNG but leave simctl
+    # running. Completion is a new, fully decoded compositor image. Neither an
+    # old file nor a partial PNG may satisfy the independent pixel assertions.
+    capture = subprocess.Popen(['xcrun', 'simctl', 'io', device, 'screenshot', '--type=png', str(path)],
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    measurement = None
+    try:
+        while time.monotonic() - started < timeout:
+            try:
+                data = path.read_bytes()
+                if data.endswith(b'\x00\x00\x00\x00IEND\xaeB`\x82'):
+                    measurement = png_center(path)
+                    break
+            except (OSError, ValueError, zlib.error, struct.error):
+                pass
+            if capture.poll() is not None:
+                raise RuntimeError('Compositor capture ended without a complete PNG: ' + str(capture.returncode))
+            time.sleep(0.05)
+        if measurement is None:
+            raise RuntimeError('Compositor capture did not write a complete PNG within the bounded deadline')
+        return measurement, {'captureSeconds': round(time.monotonic() - started, 3),
+                             'captureExitCode': capture.poll(), 'completePng': True}
+    finally:
+        if capture.poll() is None:
+            capture.terminate()
+            try:
+                capture.wait(timeout=1)
+            except subprocess.TimeoutExpired:
+                capture.kill()
+                capture.wait(timeout=1)
+
+
 def serve(args):
     lock = threading.Lock()
 
@@ -201,18 +237,18 @@ def run(args):
                         raise RuntimeError('Native screenshot expected color differs from independent driver')
                     screenshot = output / (name + '.png')
                     pixel_deadline = time.monotonic() + 8
-                    measurement, passed = {}, False
+                    measurement, passed, captures = {}, False, []
                     while time.monotonic() < pixel_deadline:
-                        shot = command(['xcrun', 'simctl', 'io', args.device, 'screenshot', '--type=png', str(screenshot)], timeout=15)
-                        if shot.returncode != 0:
-                            raise RuntimeError('Compositor screenshot failed: ' + shot.stderr[-1000:])
-                        measurement = png_center(screenshot)
+                        measurement, capture = compositor_screenshot(args.device, screenshot,
+                            timeout=max(0.1, pixel_deadline - time.monotonic()))
+                        captures.append(capture)
                         passed = (matches_color(measurement, EXPECTED_PIXELS[name])
                                   and matches_orientation(measurement, EXPECTED_PIXELS[name]))
                         if passed:
                             break
                         time.sleep(0.15)
-                    result['pixels'][name] = {**measurement, 'passed': passed, 'expected': EXPECTED_PIXELS[name]}
+                    result['pixels'][name] = {**measurement, 'passed': passed, 'expected': EXPECTED_PIXELS[name],
+                                              'captures': captures}
                     ack = documents / 'story-hls-grade-ack.json'
                     temporary = ack.with_suffix('.tmp')
                     temporary.write_text(json.dumps({'phase': name, 'passed': passed}))

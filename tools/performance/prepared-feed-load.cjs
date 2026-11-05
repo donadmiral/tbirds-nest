@@ -19,6 +19,7 @@ const migrations = [
   'supabase/migrations/20261105052419_feed_catalog_point_visibility.sql',
   'supabase/migrations/20261105052732_amortized_feed_frontier_scoring.sql',
   'supabase/migrations/20261105155522_prepared_frontier_final_proof.sql',
+  'supabase/migrations/20261105160752_prepared_mass_integer_seek.sql',
 ];
 const PROFILES = Object.freeze({
   foundation: { actors: 16, posts: 25000, workers: 8, steady: { seconds: 30, rate: 20 }, soak: { seconds: 60, rate: 10 } },

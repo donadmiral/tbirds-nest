@@ -3,7 +3,7 @@ android_test_host: amazon_linux_2023
 phases:
   install:
     commands:
-      - devicefarm-cli use node 20
+      - devicefarm-cli use node 22
       - devicefarm-cli use python 3.12
       - devicefarm-cli use appium 2
       - appium --version

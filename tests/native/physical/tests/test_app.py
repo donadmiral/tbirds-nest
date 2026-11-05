@@ -4,6 +4,7 @@ Uses the real React Native screens, media player, disk, and process lifecycle.
 Network responses are synthetic. Does not certify hosted capacity or backend parity.
 """
 import base64
+import hashlib
 import json
 import os
 import subprocess
@@ -50,6 +51,9 @@ def run():
     results = []
     passed = False
     started = time.monotonic()
+    app_path = os.environ.get('DEVICEFARM_APP_PATH')
+    app_sha256 = hashlib.sha256(Path(app_path).read_bytes()).hexdigest() if app_path else None
+    harness_sha256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
 
     def command(method, path, body=None):
         return request(method, prefix + path, body)
@@ -60,7 +64,10 @@ def run():
         while time.monotonic() < deadline:
             try:
                 found = command('POST', '/element', {'using': using, 'value': value})
-                return found['element-6066-11e4-a52e-4f735466cecf']
+                element = found['element-6066-11e4-a52e-4f735466cecf']
+                if not command('GET', '/element/' + element + '/displayed'):
+                    raise RuntimeError('Element is present but hidden')
+                return element
             except RuntimeError as error:
                 last = error
                 time.sleep(1)
@@ -75,6 +82,17 @@ def run():
     def click(element):
         command('POST', '/element/' + element + '/click', {})
 
+    def deny_notification_prompt():
+        # Android may ask again after the first denial and a cold relaunch.
+        # Only dismiss this exact app's notification request, never other dialogs.
+        try:
+            notification = wait_element('id', 'com.android.permissioncontroller:id/permission_message', 5)
+        except AssertionError:
+            return
+        message = command('GET', '/element/' + notification + '/text')
+        assert message == 'Allow Platinum QA to send you notifications?', message
+        click(wait_element('id', 'com.android.permissioncontroller:id/permission_deny_button', 5))
+
     def snapshot(name):
         (OUTPUT / (name + '.png')).write_bytes(base64.b64decode(command('GET', '/screenshot')))
         (OUTPUT / (name + '.xml')).write_text(command('GET', '/source'))
@@ -82,11 +100,43 @@ def run():
     def mobile(script, args):
         return command('POST', '/execute/sync', {'script': 'mobile: ' + script, 'args': [args]})
 
+    def main_tab(name):
+        # Match the established Maestro reveal-main-tabs flow. Scrolling toward
+        # earlier posts reveals the production auto-hiding bar before a tap.
+        try:
+            target = identifier(name, 2)
+        except AssertionError:
+            bounds = command('GET', '/window/rect')
+            width, height = int(bounds['width']), int(bounds['height'])
+            command('POST', '/actions', {'actions': [{'type': 'pointer', 'id': 'nav-reveal', 'parameters': {'pointerType': 'touch'}, 'actions': [
+                {'type': 'pointerMove', 'duration': 0, 'x': width // 2, 'y': int(height * .40)},
+                {'type': 'pointerDown', 'button': 0},
+                {'type': 'pointerMove', 'duration': 500, 'x': width // 2, 'y': int(height * .55)},
+                {'type': 'pointerUp', 'button': 0}]}]})
+            target = identifier(name, 5)
+        click(target)
+
+    def write_receipt():
+        receipt = {'passed': passed, 'checks': results, 'physicalDevice': True,
+                   'deviceName': os.environ.get('DEVICEFARM_DEVICE_NAME'), 'abi': abi, 'qemu': qemu, 'deviceOS': os.environ.get('DEVICEFARM_DEVICE_OS_VERSION'),
+                   'apkSha256': app_sha256, 'harnessSha256': harness_sha256,
+                   'fixtureBackend': True, 'realProviderAcceptance': False, 'offlineOriginalMediaAcceptance': False,
+                   'scope': 'Installed full ARM64 application, native video, refresh, navigation and cold relaunch with synthetic account data.'}
+        (OUTPUT / 'receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
+
     def record(name):
         results.append({'name': name, 'elapsedSeconds': round(time.monotonic() - started, 3), 'passed': True})
+        write_receipt()
         snapshot(name)
 
     try:
+        # The player continuously updates accessibility. UiAutomator's default
+        # 10-second idle wait repeated for each lookup and display check, using
+        # most of the bounded run. Keep a short idle wait and all explicit waits,
+        # visibility checks, gestures and playback assertions unchanged.
+        command('POST', '/appium/settings', {'settings': {'waitForIdleTimeout': 1000}})
+        assert command('GET', '/appium/settings')['waitForIdleTimeout'] == 1000
+        write_receipt()
         email = wait_element('-android uiautomator', 'new UiSelector().className("android.widget.EditText").instance(0)', 90)
         command('POST', '/element/' + email + '/value', {'text': 'qa.alex@example.invalid'})
         try:
@@ -100,6 +150,9 @@ def run():
         except RuntimeError:
             pass
         click(text('Sign in'))
+        # Match the established Maestro policy (notifications: deny). Android
+        # presents this system dialog after authentication on a fresh install.
+        deny_notification_prompt()
         text('A quiet morning in the desert. Small moments worth keeping.', 45)
         record('signed-in-feed')
         size = command('GET', '/window/rect')
@@ -110,7 +163,7 @@ def run():
         wait_element('accessibility id', 'Native feed video playing', 30)
         record('native-video-playing')
         mobile('scrollGesture', dict(region, direction='down', percent=1.0))
-        click(identifier('main-tab-feed'))
+        main_tab('main-tab-feed')
         text('Your story')
         # A real pull-to-refresh gesture through the production list handler.
         command('POST', '/actions', {'actions': [{'type': 'pointer', 'id': 'finger', 'parameters': {'pointerType': 'touch'}, 'actions': [
@@ -122,14 +175,17 @@ def run():
         mobile('scrollGesture', dict(region, direction='down', percent=.40))
         wait_element('accessibility id', 'Native feed video playing', 30)
         record('video-survives-refresh')
-        click(identifier('main-tab-messages'))
+        main_tab('main-tab-messages')
         wait_element('-android uiautomator', 'new UiSelector().textContains("Ready for our next adventure?")')
         record('messages-navigation')
-        click(identifier('main-tab-feed'))
+        main_tab('main-tab-feed')
         wait_element('accessibility id', 'Native feed video playing', 30)
         record('video-resumes-after-navigation')
+        main_tab('main-tab-feed')
+        text('Your story')
         mobile('terminateApp', {'appId': PACKAGE})
         mobile('activateApp', {'appId': PACKAGE})
+        deny_notification_prompt()
         text('A quiet morning in the desert. Small moments worth keeping.', 45)
         record('cold-relaunch-retains-session-feed')
         assert len(results) == 6
@@ -141,11 +197,7 @@ def run():
             pass
         raise
     finally:
-        receipt = {'passed': passed, 'checks': results, 'physicalDevice': True,
-                   'deviceName': os.environ.get('DEVICEFARM_DEVICE_NAME'), 'abi': abi, 'qemu': qemu, 'deviceOS': os.environ.get('DEVICEFARM_DEVICE_OS_VERSION'),
-                   'fixtureBackend': True, 'realProviderAcceptance': False, 'offlineOriginalMediaAcceptance': False,
-                   'scope': 'Installed full ARM64 application, native video, refresh, navigation and cold relaunch with synthetic account data.'}
-        (OUTPUT / 'receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
+        write_receipt()
         try:
             request('DELETE', prefix)
         except Exception:

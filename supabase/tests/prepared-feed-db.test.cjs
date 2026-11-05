@@ -54,6 +54,7 @@ before(async () => {
   await exec(sql('20261105052419_feed_catalog_point_visibility.sql'));
   await exec(sql('20261105052732_amortized_feed_frontier_scoring.sql'));
   await exec(sql('20261105155522_prepared_frontier_final_proof.sql'));
+  await exec(sql('20261105160752_prepared_mass_integer_seek.sql'));
   await exec('select configure_indexed_feed_v1(true);');
  }
  await exec(`create function pg_temp.prepared_expected_error(statement text) returns text language plpgsql security invoker as $$
@@ -192,6 +193,51 @@ test('a remaining bound equal to the selected score cannot pass the strict proof
   const page=(await rows("select prepared_feed.select_page('for_you',null,null,1) result"))[0].result;
   assert.equal(page.fallback,true);assert.equal(page.reason,'proof_budget');assert.equal(page.candidates,64);
  },true);
+});
+test('integer mass keys preserve half-unit and UUID cursor order without rounding',narrowOnly,async()=>{
+ await boundaryFixture(async()=>{
+  await admin();await exec('update feed_ranking.catalog set mass=3.5;');
+  assert.equal((await rows('select count(*) n from feed_ranking.catalog where mass_units=7'))[0].n,80);
+  await expectError('update feed_ranking.catalog set mass=3.25',/23514/);
+  await expectError('update feed_ranking.catalog set mass=1e40',/22003/);
+  await exec('set role prepared_feed_reader;');
+  const cursor=(await rows('select mass,post_id from feed_ranking.catalog order by mass desc,post_id desc offset 12 limit 1'))[0];
+  const numeric=await rows(`select post_id,mass from feed_ranking.catalog where (mass,post_id)<(${cursor.mass},'${cursor.post_id}'::uuid) order by mass desc,post_id desc limit 64`);
+  const integer=await rows(`select post_id,mass from feed_ranking.catalog where (mass_units,post_id)<((${cursor.mass}::numeric*2)::bigint,'${cursor.post_id}'::uuid) order by mass_units desc,post_id desc limit 64`);
+  assert.equal(numeric.length,64);assert.deepEqual(integer,numeric);
+ });
+});
+test('generic integer mass continuation uses the index below catalog visibility',narrowOnly,async()=>{
+ await admin();await exec('begin;');
+ try{
+  await exec("set local plan_cache_mode=force_generic_plan;set local enable_seqscan=off;set local enable_bitmapscan=off;set role prepared_feed_reader;");
+  const cursor=(await rows('select bucket::text bucket,mass,post_id from feed_ranking.catalog order by mass desc,post_id desc offset 5 limit 1'))[0];
+  await exec(`prepare prepared_mass_seek_test(date,timestamptz,numeric,uuid) as
+   select c.post_id,c.mass from feed_ranking.catalog c where c.bucket=$1 and c.created_at>$2
+    and (c.mass_units,c.post_id)<(($3*2)::bigint,$4) order by c.mass_units desc,c.post_id desc limit 64;`);
+  const statement=`explain(format json) execute prepared_mass_seek_test('${cursor.bucket}','-infinity',${cursor.mass},'${cursor.post_id}')`;
+  const plan=real?JSON.parse(await db.query(statement)):(await db.query(statement)).rows[0]['QUERY PLAN'];
+  const indexConditions=[];
+  function visit(node){if(!node||typeof node!=='object')return;if(node['Index Cond'])indexConditions.push(node['Index Cond']);for(const value of Object.values(node))visit(value);}
+  visit(plan);assert.ok(indexConditions.some(condition=>condition.includes('mass_units')&&condition.includes('ROW(')),JSON.stringify(indexConditions));
+  await exec('deallocate prepared_mass_seek_test;');
+ }finally{await exec('rollback;');await authenticate();}
+});
+test('integer mass traversal retains definer-visible incoming blocks',narrowOnly,async()=>{
+ await admin();await exec('begin;');
+ try{
+  await exec(`alter table blocked_users enable row level security;
+   create policy incoming_block_test on blocked_users for select to authenticated using(blocker_id=auth.uid());
+   insert into blocked_users values('${OWNER}','${VIEWER}') on conflict do nothing;`);
+  await authenticate();assert.equal((await rows(`select count(*) n from blocked_users where blocker_id='${OWNER}'`))[0].n,0);
+  await admin();await exec('set role prepared_feed_reader;');
+  assert.equal((await rows(`select count(*) n from feed_ranking.catalog where user_id='${OWNER}'`))[0].n,0);
+  const page=(await rows("select prepared_feed.select_page('for_you',null,null,200) result"))[0].result;
+  assert.equal(page.fallback,false);
+  await admin();
+  const blockedIds=new Set((await rows(`select id from posts where user_id='${OWNER}'`)).map(row=>row.id));
+  assert.equal(page.ids.some(post=>blockedIds.has(post)),false);
+ }finally{await exec('rollback;');await authenticate();}
 });
 test('prepared fixture retains the exact hosted marketplace exclusion',narrowOnly,async()=>{
  await admin();

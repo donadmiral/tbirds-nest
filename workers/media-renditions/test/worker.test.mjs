@@ -12,7 +12,37 @@ function harness(options={}){const calls=[],uploads=[];let sourceFile;const api=
 }
 test('worker orders lease proof, manifest registration, immutable upload and atomic publish, then removes local files',async()=>{const h=harness();assert.equal((await h.worker.drain()).state,'ready');const names=h.calls.map(c=>c.name);assert.ok(names.indexOf('register_media_rendition_assets_v2')<names.indexOf('finish_media_rendition_v2'));assert.equal(h.uploads[0].j.output_prefix,job.output_prefix);assert.notEqual(h.uploads[0].j.output_prefix,job.source_path);await assert.rejects(readFile(h.sourceFile),/ENOENT/);});
 test('transient provider errors persist retry and permanent invalid inputs dead-letter',async()=>{for(const [options,outcome]of[[{uploadError:true},'retry'],[{encodeError:Object.assign(new Error('duration_budget'),{permanent:true})},'failed']]){const h=harness(options);assert.equal((await h.worker.drain()).state,outcome);assert.equal(h.calls.find(c=>c.name==='finish_media_rendition_v2').args.p_outcome,outcome);await assert.rejects(readFile(h.sourceFile),/ENOENT/);}});
-test('source revocation prevents upload and malformed claims never read the original',async()=>{const h=harness({revoked:true});assert.equal((await h.worker.drain()).state,'retry');assert.equal(h.uploads.length,0);const bad=harness({job:{source_bucket:'chat-media'}});assert.equal((await bad.worker.drain()).state,'unavailable');assert.equal(bad.sourceFile,undefined);});
+test('source revocation prevents uploads for public and private media',async()=>{
+ for(const source_bucket of ['story-media','chat-media','chat-files']){
+  const h=harness({revoked:true,job:{source_bucket}});
+  assert.equal((await h.worker.drain()).state,'retry');
+  assert.equal(h.uploads.length,0);
+  assert.equal(h.calls.find(c=>c.name==='finish_media_rendition_v2').args.p_error_code,'source_changed');
+ }
+});
+test('valid private media uses the same fenced upload and publication path',async()=>{
+ for(const source_bucket of ['chat-media','chat-files']){
+  const h=harness({job:{source_bucket}});
+  assert.equal((await h.worker.drain()).state,'ready');
+  assert.equal(h.uploads.length,1);
+  assert.equal(h.uploads[0].j.source_bucket,source_bucket);
+  assert.ok(h.calls.some(c=>c.name==='check_media_rendition_v2'));
+  assert.equal(h.calls.find(c=>c.name==='finish_media_rendition_v2').args.p_outcome,'ready');
+  await assert.rejects(readFile(h.sourceFile),/ENOENT/);
+ }
+});
+test('unsupported buckets and invalid private source paths never read the original',async()=>{
+ for(const invalid of [
+  {source_bucket:'unapproved-media'},
+  {source_bucket:'chat-media',source_path:sid+'/source.mp4'},
+  {source_bucket:'chat-files',source_path:owner+'/../source.mp4'},
+ ]){
+  const h=harness({job:invalid});
+  assert.equal((await h.worker.drain()).state,'unavailable');
+  assert.equal(h.sourceFile,undefined);
+  assert.equal(h.uploads.length,0);
+ }
+});
 test('one process owns at most one encoder and cancellation persists bounded retry',async()=>{let entered=false;const h=harness({deadlineMs:30,hold:signal=>new Promise((resolve,reject)=>{entered=true;signal.addEventListener('abort',()=>reject(new Error('worker_deadline')),{once:true});})});const work=h.worker.drain();while(!entered)await new Promise(r=>setTimeout(r,1));assert.equal((await h.worker.drain()).state,'busy');assert.equal((await work).state,'retry');assert.equal(h.calls.find(c=>c.name==='finish_media_rendition_v2').args.p_error_code,'worker_deadline');});
 test('sequential batch removes each scratch directory before the next fenced worker claim',async()=>{
  const h=harness();let completed=0,lastSource;
