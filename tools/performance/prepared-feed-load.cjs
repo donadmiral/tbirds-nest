@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const { performance } = require('node:perf_hooks');
 const { createSession, source, manifest, sourceCommit, outputReport } = require('./local-capacity-db.cjs');
 const { runWorkload, distribution } = require('./bounded-workload.cjs');
+const { policy: workerPolicy, startPreparedFeedWorkers } = require('./prepared-feed-workers.cjs');
 const { fixture, id, marketFilterPatch } = require('../../supabase/tests/feed-scale-fixture.cjs');
 const migrations = [
   'supabase/migrations/20261102090625_exact_feed_hydration_and_narrow_ranking.sql',
@@ -20,6 +21,7 @@ const migrations = [
   'supabase/migrations/20261105052732_amortized_feed_frontier_scoring.sql',
   'supabase/migrations/20261105155522_prepared_frontier_final_proof.sql',
   'supabase/migrations/20261105160752_prepared_mass_integer_seek.sql',
+  'supabase/migrations/20261105164113_prepared_statement_score_cache.sql',
 ];
 const PROFILES = Object.freeze({
   foundation: { actors: 16, posts: 25000, workers: 8, steady: { seconds: 30, rate: 20 }, soak: { seconds: 60, rate: 10 } },
@@ -46,25 +48,30 @@ async function readFeed(db, actor) {
   return { rows: JSON.parse(raw), bytes: Buffer.byteLength(raw) };
 }
 function validateCards(rows, actor, requirePrepared = false) {
-  assert.equal(rows.length, 20);
-  assert.equal(new Set(rows.map(row => row.post_id)).size, rows.length);
-  assert.ok(rows.some(row => privatePosts.get(row.post_id) === actor), 'Owner-only sentinel must remain visible to its owner');
+  const requireCard = (condition, code, message) => {
+    if (!condition) throw Object.assign(Error(message), { code });
+  };
+  requireCard(rows.length === 20, 'feed_card_count', 'The RPC must return twenty complete cards');
+  requireCard(new Set(rows.map(row => row.post_id)).size === rows.length, 'feed_duplicate_card', 'Cards must be unique');
+  requireCard(rows.some(row => privatePosts.get(row.post_id) === actor), 'feed_owner_sentinel_missing', 'Owner-only sentinel must remain visible to its owner');
   for (const row of rows) {
-    assert.ok(!privatePosts.has(row.post_id) || privatePosts.get(row.post_id) === actor, 'Cross-account private card');
-    assert.ok(Array.isArray(row.media), 'The RPC must hydrate complete media arrays');
-    if (requirePrepared) assert.ok(row.sort_key < -4000000000000000, 'The read must use prepared ranking');
+    requireCard(!privatePosts.has(row.post_id) || privatePosts.get(row.post_id) === actor, 'feed_cross_account_card', 'Cross-account private card');
+    requireCard(Array.isArray(row.media), 'feed_media_missing', 'The RPC must hydrate complete media arrays');
+    if (requirePrepared) requireCard(row.sort_key < -4000000000000000, 'prepared_head_not_fresh', 'The read must use fresh prepared ranking');
   }
 }
 
 async function run(output = process.argv[2]) {
   if (process.env.PGDATABASE !== 'pc_scale_foundation_feed') throw Error('Use disposable pc_scale_foundation_feed');
-  const admin = createSession(), maintenance = createSession();
-  let workers = [], timer, maintenanceRun, maintenanceFailure;
+  const admin = createSession(), maintenance = Array.from({ length: workerPolicy.lanes }, () => createSession());
+  let workers = [], backgroundWorkers;
   const report = { version: 1, kind: 'isolated-prepared-feed-load', sourceCommit: sourceCommit(), measuredAt: new Date().toISOString(),
     profile: profileName, posts: POSTS, authenticatedActors: ACTORS, workers: WORKERS, providerCalls: 0,
     clientCapability: 'platinum-cache/1',
     sourceFiles: manifest([...migrations, 'supabase/tests/feed-scale-fixture.cjs', 'supabase/tests/engagement-counter-fixture.cjs',
-      'tools/performance/production-read-indexes.sql', 'tools/performance/production-read-indexes-20261105.json']),
+      'tools/performance/production-read-indexes.sql', 'tools/performance/production-read-indexes-20261105.json',
+      'tools/performance/prepared-feed-workers.cjs', 'supabase/ops/prepared-feed-worker-v2/policy.json']),
+    scheduler: workerPolicy,
     productionCapacityEstablished: false, passed: false, phase: 'setup', phaseTimings: [] };
   const began = performance.now();
   function checkpoint(phase, details = {}) {
@@ -77,7 +84,7 @@ async function run(output = process.argv[2]) {
     // Cancel expensive setup/background work inside PostgreSQL before the
     // client watchdog. A closed psql process alone need not stop its query.
     await admin.query("set statement_timeout='30s';");
-    await maintenance.query("set statement_timeout='30s';");
+    for (const db of maintenance) await db.query(`set statement_timeout='${workerPolicy.isolatedStatementTimeoutMs}ms';`);
     await admin.query("set client_min_messages='warning';drop schema if exists prepared_feed,feed_ranking,post_counter_internal,auth,public cascade;create schema public");
     await admin.query(fixture);
     await admin.query(marketFilterPatch);
@@ -125,15 +132,41 @@ async function run(output = process.argv[2]) {
     checkpoint('enqueue_preparation');
     await admin.query('select configure_prepared_feed_v1(true);');
     for (let i = 0; i < ACTORS; i++) await readFeed(workers[i % WORKERS], actors[i]);
-    const prepStart = performance.now(); let prepared = 0;
-    for (let batch = 0; batch < ACTORS; batch++) {
-      checkpoint('prepare_batch', { batch, completedSnapshots: prepared });
-      const drain = await maintenance.json('select drain_prepared_feed_v1(4)');
-      assert.equal(drain.failed, 0); prepared += drain.prepared;
-      if (prepared >= ACTORS) break;
-    }
-    assert.equal(prepared, ACTORS);
-    report.initialPreparation = { snapshots: prepared, elapsedMs: performance.now() - prepStart };
+    const prepStart = performance.now();let initialPrepared = false, checkingInitial = false, resolveInitial;
+    const firstPreparation = new Promise(resolve => { resolveInitial = resolve; });
+    checkpoint('prepare_batch', { batch: 0, completedSnapshots: 0 });
+    backgroundWorkers = startPreparedFeedWorkers(
+      (workerId, jobs) => maintenance[workerId].json(`select drain_prepared_feed_v1(${jobs})`),
+      async ({ prepared, totalPrepared, elapsedMs }) => {
+        if (initialPrepared) return;
+        if (prepared && totalPrepared % 4 === 0) checkpoint('prepare_batch', { batch: totalPrepared / 4, completedSnapshots: totalPrepared });
+        if (totalPrepared >= ACTORS && !checkingInitial) {
+          checkingInitial = true;
+          try {
+            // Parallel lanes can refresh an early viewer while the last
+            // initial viewer is still running. Count distinct viewers, not
+            // worker completions. Freshness is checked by every read below.
+            const viewers = Number(await admin.query('select count(distinct viewer_id) from prepared_feed.snapshots'));
+            if (viewers === ACTORS) {
+              const metrics = backgroundWorkers.metrics(), elapsed = performance.now() - prepStart;
+              if (metrics.busyServiceMs.max > workerPolicy.hostedStatementTimeoutMs) {
+                throw Object.assign(Error('A worker exceeded the existing hosted statement deadline'), { code: 'worker_hosted_deadline_exceeded' });
+              }
+              initialPrepared = true;
+              report.initialPreparation = { snapshots: viewers, totalPreparations: backgroundWorkers.prepared, elapsedMs: elapsed,
+                preparedPerSecond: backgroundWorkers.prepared / (elapsed / 1000), workers: metrics };
+              resolveInitial();
+            }
+          } finally { checkingInitial = false; }
+        }
+        if (!initialPrepared && backgroundWorkers.ticks >= ACTORS * 4) {
+          throw Object.assign(Error('Initial preparation exhausted its original attempt budget'), { code: 'preparation_attempt_budget' });
+        }
+      });
+    await Promise.race([firstPreparation, backgroundWorkers.done.then(() => {
+      if (!initialPrepared) throw backgroundWorkers.failure || Error('Prepared worker stopped before initial preparation');
+    })]);
+    if (backgroundWorkers.failure) throw backgroundWorkers.failure;
     checkpoint('prepared_readback');
     for (let i = 0; i < ACTORS; i++) validateCards((await readFeed(workers[i % WORKERS], actors[i])).rows, actors[i], true);
 
@@ -147,17 +180,11 @@ async function run(output = process.argv[2]) {
       assert.ok(report.workerLockReadMs < 500, 'Demand lock must not delay the client read');
     } finally { await admin.query('rollback'); }
 
-    // Keep the actual bounded worker running across the 60-second soak and TTL rollover.
-    let drainedDuringLoad = 0;
-    timer = setInterval(() => {
-      if (maintenanceRun) return;
-      maintenanceRun = maintenance.json('select drain_prepared_feed_v1(4)').then(row => {
-        if (row.failed) throw Error('Prepared worker failed');
-        drainedDuringLoad += row.prepared;
-      }).catch(error => { maintenanceFailure = error; }).finally(() => { maintenanceRun = null; });
-    }, 5000);
+    // The same deployable bounded policy continues through readback, the
+    // worker lock, the offered load, and the unchanged freshness rollover.
+    const preparedAtLoadStart = backgroundWorkers.prepared, refreshStart = performance.now();
     const operation = async ({ workerId, sequence }) => {
-      if (maintenanceFailure) throw maintenanceFailure;
+      if (backgroundWorkers.failure) throw backgroundWorkers.failure;
       const actor = actors[sequence % ACTORS];
       const result = await readFeed(workers[workerId], actor);
       validateCards(result.rows, actor, true);
@@ -167,11 +194,16 @@ async function run(output = process.argv[2]) {
     report.steady = await runWorkload({ ...profile.steady, concurrency: WORKERS, maxP95Ms: 500 }, operation);
     checkpoint('soak_workload');
     report.soak = await runWorkload({ ...profile.soak, concurrency: WORKERS, maxP95Ms: 500 }, operation);
-    clearInterval(timer); timer = null;
-    if (maintenanceRun) await maintenanceRun;
-    if (maintenanceFailure) throw maintenanceFailure;
-    report.preparedDuringLoad = drainedDuringLoad;
-    assert.ok(drainedDuringLoad > 0, 'The soak must cross a real preparation refresh');
+    await backgroundWorkers.stop();
+    report.workerMetrics = backgroundWorkers.metrics();
+    if (backgroundWorkers.failure) throw backgroundWorkers.failure;
+    if (report.workerMetrics.busyServiceMs.max > workerPolicy.hostedStatementTimeoutMs) {
+      throw Object.assign(Error('A worker exceeded the existing hosted statement deadline'), { code: 'worker_hosted_deadline_exceeded' });
+    }
+    report.preparedDuringLoad = backgroundWorkers.prepared - preparedAtLoadStart;
+    report.refreshThroughput = { snapshots: report.preparedDuringLoad, elapsedMs: performance.now() - refreshStart,
+      preparedPerSecond: report.preparedDuringLoad / ((performance.now() - refreshStart) / 1000) };
+    assert.ok(report.preparedDuringLoad > 0, 'The soak must cross a real preparation refresh');
 
     // Recreate every client connection together, retaining account boundaries.
     checkpoint('reconnect');
@@ -200,13 +232,13 @@ async function run(output = process.argv[2]) {
     checkpoint('complete');
     return report;
   } catch (error) {
+    if (backgroundWorkers) report.workerMetrics = backgroundWorkers.metrics();
     report.failure = { phase: report.phase, code: /^[A-Za-z0-9_]{1,40}$/.test(error?.code || '') ? error.code : 'operation_failed' };
     if (output) outputReport(report, output);
     throw error;
   } finally {
-    if (timer) clearInterval(timer);
-    if (maintenanceRun) await maintenanceRun;
-    await Promise.allSettled([...workers, maintenance, admin].map(db => db.close()));
+    if (backgroundWorkers) await backgroundWorkers.stop();
+    await Promise.allSettled([...workers, ...maintenance, admin].map(db => db.close()));
   }
 }
 if (require.main === module) run().then(report => { outputReport(report, process.argv[2]); if (!report.passed) process.exitCode = 1; }).catch(error => { console.error(error); process.exitCode = 1; });

@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "kind": "local-prepared-feed-score-and-scheduler-regression",
+  "measuredAt": "2026-11-05T16:53:46.081Z",
+  "sourceCommit": "d5f52033e852796d1ac404e976239c4932def364",
+  "uncommittedFilesBoundBySha256": true,
+  "checks": [
+    {
+      "command": "PREPARED_FEED_NARROW=1 node --test supabase/tests/prepared-feed-db.test.cjs",
+      "engine": "PGlite PostgreSQL WASM",
+      "passed": 26,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 103670.782525
+    },
+    {
+      "command": "node --test tests/capacity-workload.test.cjs tests/capacity-isolation.test.cjs tests/capacity-gate.test.cjs tests/prepared-feed-workers.test.cjs",
+      "passed": 17,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "node supabase/ops/prepared-feed-worker-v2/build.cjs --check",
+      "exitCode": 0
+    }
+  ],
+  "sourceFiles": {
+    "supabase/migrations/20261105164113_prepared_statement_score_cache.sql": "4a334e63bc8fc41d920aa904c5a70012e938217f94df26e4a1df3ad74f94344c",
+    "supabase/tests/prepared-feed-db.test.cjs": "6f32b0b2cf979c84ea44097ebf740c11ebcd9d9ec3517cc62dd0d39b4ea7d560",
+    "tools/performance/prepared-feed-load.cjs": "b9d08d7494d22e33daab0f88815a40e34520c9ee284fca8e44fdff7f416406eb",
+    "tools/performance/prepared-feed-workers.cjs": "3bc1aaaeb13edcefe1072a708cc4c91c507a69d8bd14efa00c9c276a49816159",
+    "tests/prepared-feed-workers.test.cjs": "3dc0285f8dab14b79930e9456880c01b2320b47a48f7ef61dc09949fab81a127",
+    "supabase/ops/prepared-feed-worker-v2/policy.json": "fec9dcfc710b065afa52dc03942da18b6901b56f444d1078e94e6d8a400f6822",
+    "supabase/ops/prepared-feed-worker-v2/activate.sql": "24a1494176c4a0386a0624ab7df7feb0ec4154447462764024b51cbb69c4292e",
+    "supabase/ops/prepared-feed-worker-v2/rollback.sql": "15d62dcfefc5babb776992fa6ffedd15b1644b779e2871685e1c4bdc613d8286",
+    ".github/workflows/capacity-foundation.yml": "fdb49969e6e64bc841d2401a3bd40b2e7c2accd3edbfec798d6b82fe6f5c14f1"
+  },
+  "nativePostgresGate": "pending",
+  "hostedSchedulerInstalled": false,
+  "productionCapacityEstablished": false
+}

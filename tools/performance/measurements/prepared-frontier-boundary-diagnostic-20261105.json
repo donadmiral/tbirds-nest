@@ -1,0 +1,22 @@
+{
+  "kind": "local-pglite-algorithm-diagnostic-not-capacity-proof",
+  "boundaryElapsedMs": 14881,
+  "candidates": 10036,
+  "fallback": false,
+  "rows": 200,
+  "equal": true,
+  "fixture": {
+    "ordinaryPosts": 250000,
+    "privateSentinels": 128,
+    "mediaRows": 83333,
+    "actors": 128
+  },
+  "sourceBaseCommit": "160f22b72d5ddf5eacde5bfa3ab962ccfb591116",
+  "migration": "supabase/migrations/20261105155522_prepared_frontier_final_proof.sql",
+  "migrationSha256": "decb79252ed2609c4a4527d1eb1779843d25d3fc75cfbc243562372ec44c648c",
+  "productionCapacityEstablished": false,
+  "limitations": [
+    "This is an algorithm/identity comparison in local PGlite, not native PostgreSQL throughput evidence.",
+    "The unchanged expanded CI workload and its deadlines still require a successful native run."
+  ]
+}

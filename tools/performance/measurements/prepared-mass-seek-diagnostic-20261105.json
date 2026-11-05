@@ -1,0 +1,19 @@
+{
+  "kind": "local-pglite-algorithm-diagnostic-not-capacity-proof",
+  "measuredAt": "2026-11-05T16:09:02.351Z",
+  "candidatePosts": 250130,
+  "viewer": "synthetic-100",
+  "baselineMilliseconds": 15510,
+  "candidateMilliseconds": 6332,
+  "candidates": 10036,
+  "resultCount": 200,
+  "fallback": false,
+  "exactCompleteJsonEqual": true,
+  "migrationFile": "supabase/migrations/20261105160752_prepared_mass_integer_seek.sql",
+  "migrationSha256": "bbe3dbbdfdf941d30c1c8ec416c2ff942fca4f22d5f717893389dc120af80739",
+  "limitations": [
+    "WASM PGlite local algorithm A/B, not native PostgreSQL capacity or production measurement.",
+    "Same transaction, ranking instant and synthetic viewer for both ordered-result comparisons.",
+    "Native unchanged 250k-post workload still must pass."
+  ]
+}

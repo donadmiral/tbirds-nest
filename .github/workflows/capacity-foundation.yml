@@ -11,7 +11,9 @@ on:
       - 'supabase/migrations/*ranking*.sql'
       - 'supabase/migrations/*counter*.sql'
       - 'supabase/tests/*feed*.cjs'
+      - 'supabase/ops/prepared-feed-worker-v2/**'
       - 'tests/capacity*.cjs'
+      - 'tests/prepared-feed-workers.test.cjs'
   workflow_dispatch:
 
 permissions:
@@ -88,7 +90,8 @@ jobs:
       - name: Verify budgets, isolation and actual PostgreSQL contracts
         if: matrix.profile == 'foundation'
         run: |
-          node --test tests/capacity-workload.test.cjs tests/capacity-isolation.test.cjs tests/capacity-gate.test.cjs
+          node supabase/ops/prepared-feed-worker-v2/build.cjs --check
+          node --test tests/capacity-workload.test.cjs tests/capacity-isolation.test.cjs tests/capacity-gate.test.cjs tests/prepared-feed-workers.test.cjs
           PREPARED_FEED_NARROW=1 PGDATABASE=pc_scale_prepared_feed node --test supabase/tests/prepared-feed-db.test.cjs
           dropdb pc_scale_prepared_feed
           psql --dbname=postgres --command='drop role prepared_feed_reader;'

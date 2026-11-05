@@ -55,6 +55,7 @@ before(async () => {
   await exec(sql('20261105052732_amortized_feed_frontier_scoring.sql'));
   await exec(sql('20261105155522_prepared_frontier_final_proof.sql'));
   await exec(sql('20261105160752_prepared_mass_integer_seek.sql'));
+  await exec(sql('20261105164113_prepared_statement_score_cache.sql'));
   await exec('select configure_indexed_feed_v1(true);');
  }
  await exec(`create function pg_temp.prepared_expected_error(statement text) returns text language plpgsql security invoker as $$
@@ -237,6 +238,47 @@ test('integer mass traversal retains definer-visible incoming blocks',narrowOnly
   await admin();
   const blockedIds=new Set((await rows(`select id from posts where user_id='${OWNER}'`)).map(row=>row.id));
   assert.equal(page.ids.some(post=>blockedIds.has(post)),false);
+ }finally{await exec('rollback;');await authenticate();}
+});
+test('statement score reuse evaluates each candidate once and rebuilds exact author diversity',narrowOnly,async()=>{
+ await admin();await exec('begin;');
+ try{
+  await exec(`truncate posts cascade;
+   insert into posts(id,user_id,content,created_at,likes_count,comments_count,channel)
+   select ('10000000-0000-4000-8000-'||lpad((970000+n)::text,12,'0'))::uuid,
+    ('10000000-0000-4000-8000-'||lpad((100+n%53)::text,12,'0'))::uuid,
+    'Statement score fixture',now()-make_interval(hours=>n%48,secs=>n),n%733,n%19,
+    case when n%3=0 then 'innovation' else 'home' end from generate_series(1,1600)n;
+   insert into follows select '${VIEWER}',id from profiles where id>='${id(102)}' and id<='${id(120)}' on conflict do nothing;
+   insert into post_seen select id,'${VIEWER}' from posts where likes_count%13=0;`);
+  let definition=(await rows("select pg_get_functiondef('prepared_feed.select_page(text,double precision,uuid,integer)'::regprocedure) definition"))[0].definition;
+  // More frequent checkpoints exercise score reuse without altering the
+  // candidate set, ranking formula, strict proof, or requested 200 winners.
+  definition=definition.replace('score_at integer:=200;','score_at integer:=50;').replace(
+   '   into fresh_ids,fresh_authors,fresh_raws from feed_ranking.score(new_candidates,p_mode);',
+   `   into fresh_ids,fresh_authors,fresh_raws from feed_ranking.score(new_candidates,p_mode);
+    perform set_config('prepared_feed.test_scored_ids',coalesce(current_setting('prepared_feed.test_scored_ids',true),'')||';'||array_to_string(new_candidates,','),true);`);
+  await exec(definition);await authenticate();await exec("select set_config('prepared_feed.test_scored_ids','',true);reset role;set role prepared_feed_reader;");
+  const page=(await rows("select prepared_feed.select_page('for_you',null,null,200) result"))[0].result;
+  const expected=(await rows("select prepared_feed.exact_ids('for_you') result"))[0].result;
+  assert.equal(page.fallback,false);assert.equal(page.ids.length,200);
+  assert.deepEqual(page.ids,expected.map(r=>r.id));assert.deepEqual(page.keys,expected.map(r=>r.key));
+  const batches=(await rows("select current_setting('prepared_feed.test_scored_ids',true) value"))[0].value.split(';').filter(Boolean).map(batch=>batch.split(','));
+  assert.ok(batches.length>1,'The fixture must reach multiple proof checkpoints');
+  const evaluated=batches.flat();assert.equal(new Set(evaluated).size,evaluated.length,'A candidate must not repeat expensive raw scoring');
+  await admin();await exec(`insert into blocked_users values('${id(102)}','${VIEWER}') on conflict do nothing;`);await authenticate();
+  assert.deepEqual(await ranked('for_you'),await canonicalIds('for_you'),'A later statement must recheck current access');
+ }finally{await exec('rollback;');await authenticate();}
+});
+test('a changed scorer contract takes the canonical fallback before reusing raw scores',narrowOnly,async()=>{
+ await admin();await exec('begin;');
+ try{
+  const saved=(await rows("select pg_get_functiondef(oid) definition,prosrc from pg_proc where oid='feed_ranking.score(uuid[],text)'::regprocedure"))[0];
+  await exec(saved.definition.replace(saved.prosrc,saved.prosrc+'\n-- changed contract fixture\n'));
+  await exec('set role prepared_feed_reader;');
+  const page=(await rows("select prepared_feed.select_page('for_you',null,null,200) result"))[0].result;
+  assert.equal(page.fallback,true);assert.equal(page.reason,'score_contract_changed');assert.equal(page.candidates,0);
+  await authenticate();assert.deepEqual(await ranked('for_you'),await canonicalIds('for_you'));
  }finally{await exec('rollback;');await authenticate();}
 });
 test('prepared fixture retains the exact hosted marketplace exclusion',narrowOnly,async()=>{

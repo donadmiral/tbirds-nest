@@ -115,6 +115,26 @@ function createFixture(onChange = () => {}, { feedVideoSource, immersiveLive = f
     return { access_token: token, refresh_token: 'synthetic-refresh-' + owner, token_type: 'bearer', expires_in: 3600,
       expires_at: now + 3600, user: user() };
   }
+  function restoreSyntheticSession(headers) {
+    // A real backend outlives the application process. This in-process fixture
+    // must recognize its own still-valid saved bearer after a cold app launch.
+    // Never restore a real JWT, an expired fixture token, or a signed-out session
+    // in the current process. Production auth/storage code is not replaced.
+    if (owner || sessionId) return;
+    const match = /^Bearer ([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)\.synthetic-not-a-signature$/.exec(headers.get('authorization') || '');
+    if (!match) return;
+    try {
+      const decode = value => JSON.parse(atob(value.replace(/-/g, '+').replace(/_/g, '/')));
+      const header = decode(match[1]), claims = decode(match[2]), now = Math.floor(Date.now() / 1000);
+      const id = /^90000000-0000-4000-8000-([0-9]{12})$/.exec(claims.session_id || '');
+      if (header.alg !== 'HS256' || header.typ !== 'JWT' || claims.aud !== 'authenticated' || claims.role !== 'authenticated'
+        || claims.aal !== 'aal1' || !profiles.some(profile => profile.id === claims.sub) || !id || Number(id[1]) < 1
+        || !Number.isSafeInteger(claims.iat) || !Number.isSafeInteger(claims.exp)
+        || claims.iat > now + 60 || claims.exp <= now || claims.exp - claims.iat !== 3600) return;
+      owner = claims.sub; sessionId = claims.session_id; sessionCounter = Math.max(sessionCounter, Number(id[1]));
+      receipt.restoredSyntheticSession = true;
+    } catch { /* An unrelated or malformed token never authenticates this fixture. */ }
+  }
   const unknown = (method, path) => {
     record('unhandled', { method, path });
     return response({ code: 'NATIVE_UI_UNHANDLED', message: 'No synthetic contract for ' + method + ' ' + path }, 501);
@@ -318,8 +338,9 @@ function createFixture(onChange = () => {}, { feedVideoSource, immersiveLive = f
       const timer = setTimeout(resolve, delayMs);
       init.signal?.addEventListener('abort', () => { clearTimeout(timer); reject(Object.assign(new Error('Aborted'), { name: 'AbortError' })); }, { once: true });
     });
-    record('requests', { method, path, owner });
     const headers = new Headers(init.headers || input.headers || {});
+    restoreSyntheticSession(headers);
+    record('requests', { method, path, owner });
     const body = typeof init.body === 'string' && init.body ? JSON.parse(init.body) : {};
     if (path === '/auth/v1/health' && method === 'GET') return response({ name: 'Synthetic native UI Auth health' });
     if (path === '/auth/v1/token' && method === 'POST') {

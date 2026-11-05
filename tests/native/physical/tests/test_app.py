@@ -194,6 +194,10 @@ def run():
         mobile('activateApp', {'appId': PACKAGE})
         deny_notification_prompt()
         text('A quiet morning in the desert. Small moments worth keeping.', 45)
+        identifier('native-feed-video')
+        wait_element('accessibility id', 'Native feed video playing', 30)
+        cold_source = command('GET', '/source')
+        assert 'Your feed could not load' not in cold_source, 'Cold relaunch retained a feed error'
         record('cold-relaunch-retains-session-feed')
         assert len(results) == 6
         passed = True
