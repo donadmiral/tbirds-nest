@@ -16,6 +16,7 @@ const migrations = [
   'supabase/migrations/20261105051152_prepared_feed_single_snapshot_rank.sql',
   'supabase/migrations/20261105051338_prepared_feed_bounded_hydration.sql',
   'supabase/migrations/20261105051457_prepared_feed_client_capability_gate.sql',
+  'supabase/migrations/20261105052419_feed_catalog_point_visibility.sql',
 ];
 const ACTORS = 16, POSTS = 25000, WORKERS = 8;
 const actors = Array.from({ length: ACTORS }, (_, i) => id(100 + i));

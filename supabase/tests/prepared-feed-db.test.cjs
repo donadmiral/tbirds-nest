@@ -50,6 +50,7 @@ before(async () => {
    'FUNCTION public.get_feed(','FUNCTION public.get_feed_before_bounded(');end$$;`);
   await exec(sql('20261105051338_prepared_feed_bounded_hydration.sql'));
   await exec(sql('20261105051457_prepared_feed_client_capability_gate.sql'));
+  await exec(sql('20261105052419_feed_catalog_point_visibility.sql'));
   await exec('select configure_indexed_feed_v1(true);');
  }
  await exec(`create function pg_temp.prepared_expected_error(statement text) returns text language plpgsql security invoker as $$
@@ -256,4 +257,15 @@ test('legacy clients stay canonical without queueing and exact capability enable
   await exec('select drain_prepared_feed_v1(1);');await authenticate();
   assert.ok((await rows("select sort_key from get_feed('for_you',null,null,20)")).every(r=>r.sort_key<-4000000000000000));
  }finally{await exec('rollback;');await authenticate();}
+});
+
+if (process.env.PREPARED_FEED_NARROW === '1') test('catalog authorization uses a point lookup while retaining its canonical fallback',async()=>{
+ await authenticate();
+ const policy=(await rows("select pg_get_expr(polqual,polrelid) expression from pg_policy where polrelid='feed_ranking.catalog'::regclass and polname='feed_catalog_visible'"))[0].expression;
+ assert.match(policy,/p\.id = catalog\.post_id/);
+ assert.match(policy,/get_feed_visibility\(ARRAY\[catalog\.post_id\]\)/);
+ const statement="explain(format json) select * from feed_ranking.catalog where post_id='"+id(1)+"'";
+ const plan=real?JSON.parse(await db.query(statement)):(await db.query(statement)).rows[0]['QUERY PLAN'];
+ const nodes=[];const visit=value=>{if(!value||typeof value!=='object')return;if(value['Relation Name'])nodes.push(value);for(const child of Object.values(value))if(Array.isArray(child))child.forEach(visit);else visit(child);};visit(plan);
+ assert.ok(nodes.some(node=>node['Relation Name']==='posts'&&String(node['Index Cond']).includes('catalog.post_id')), 'Post visibility must use the catalog ID as its index condition');
 });

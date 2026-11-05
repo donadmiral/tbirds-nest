@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,rm,readFile} from 'node:fs/promises';
+import {mkdtemp,rm,readFile,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import os from 'node:os';
 import path from 'node:path';
@@ -31,4 +31,20 @@ test('playlists cannot introduce external URLs, traversal, key URLs or incomplet
 });
 test('encoder cancellation terminates the real child process promptly',async()=>{
  const c=new AbortController();const started=Date.now();const work=command('ffmpeg',['-hide_banner','-loglevel','error','-re','-f','lavfi','-i','testsrc2=size=320x240:rate=30','-f','null','-'],{signal:c.signal});setTimeout(()=>c.abort(),100);await assert.rejects(work,/worker_deadline/);assert.ok(Date.now()-started<3000);
+});
+
+test('VFR timestamp rate does not reject a bounded average frame rate',async()=>{
+ const dir=await mkdtemp(path.join(os.tmpdir(),'pc-vfr-probe-'));
+ const previous=process.env.FFPROBE_PATH;
+ try{
+  const executable=path.join(dir,'probe');
+  process.env.FFPROBE_PATH=executable;
+  const metadata={streams:[{codec_type:'video',width:406,height:720,r_frame_rate:'600/1',avg_frame_rate:'51000/2291'}],format:{duration:'3.818333',format_name:'mov,mp4,m4a,3gp,3g2,mj2'}};
+  const setMetadata=()=>writeFile(executable,'#!/usr/bin/env node\nprocess.stdout.write('+JSON.stringify(JSON.stringify(metadata))+');\n',{mode:0o700});
+  await setMetadata();assert.ok(Math.abs((await probe('fixture.mp4')).fps-51000/2291)<.000001);
+  metadata.streams[0].avg_frame_rate='0/0';metadata.streams[0].r_frame_rate='60/1';
+  await setMetadata();assert.equal((await probe('fixture.mp4')).fps,60);
+  metadata.streams[0].avg_frame_rate='121/1';
+  await setMetadata();await assert.rejects(probe('fixture.mp4'),/input_media_budget/);
+ }finally{if(previous===undefined)delete process.env.FFPROBE_PATH;else process.env.FFPROBE_PATH=previous;await rm(dir,{recursive:true,force:true});}
 });
