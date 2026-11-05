@@ -56,6 +56,7 @@ before(async () => {
   await exec(sql('20261105155522_prepared_frontier_final_proof.sql'));
   await exec(sql('20261105160752_prepared_mass_integer_seek.sql'));
   await exec(sql('20261105164113_prepared_statement_score_cache.sql'));
+  await exec(sql('20261105171503_prepared_affinity_cohort_bound.sql'));
   await exec('select configure_indexed_feed_v1(true);');
  }
  await exec(`create function pg_temp.prepared_expected_error(statement text) returns text language plpgsql security invoker as $$
@@ -279,6 +280,46 @@ test('a changed scorer contract takes the canonical fallback before reusing raw 
   const page=(await rows("select prepared_feed.select_page('for_you',null,null,200) result"))[0].result;
   assert.equal(page.fallback,true);assert.equal(page.reason,'score_contract_changed');assert.equal(page.candidates,0);
   await authenticate();assert.deepEqual(await ranked('for_you'),await canonicalIds('for_you'));
+ }finally{await exec('rollback;');await authenticate();}
+});
+for(const scenario of [
+ {label:'one complete 512-post affinity author',authors:1,posts:512,preloaded:512,bound:0,mode:'for_you'},
+ {label:'eight complete affinity authors',authors:8,posts:512,preloaded:512,bound:0,mode:'for_you'},
+ {label:'an incomplete 513-post affinity cohort',authors:1,posts:513,preloaded:0,bound:1,mode:'for_you'},
+ {label:'nine affinity authors',authors:9,posts:18,preloaded:0,bound:1,mode:'for_you'},
+ {label:'the exact innovation cohort',authors:1,posts:600,preloaded:300,bound:0,mode:'innovation'},
+ {label:'the exact one-year cohort',authors:1,posts:600,oldPosts:100,preloaded:500,bound:0,mode:'for_you'},
+])test(`affinity bound preserves canonical winners with ${scenario.label}`,narrowOnly,async()=>{
+ await admin();await exec('begin;');
+ try{
+  await exec(`truncate posts cascade;delete from follows;
+   insert into posts(id,user_id,content,created_at,likes_count,channel)
+   select ('10000000-0000-4000-8000-'||lpad((990000+n)::text,12,'0'))::uuid,
+    ('10000000-0000-4000-8000-'||lpad((200+n%${scenario.authors})::text,12,'0'))::uuid,
+    'Affinity cohort',case when n<${scenario.oldPosts||0} then now()-interval '366 days'
+     else now()-make_interval(hours=>n%12,secs=>n+1) end,700+n%11,
+    case when '${scenario.mode}'='innovation' and n%2=1 then 'home' else 'innovation' end
+   from generate_series(0,${scenario.posts-1})n;
+   insert into posts(id,user_id,content,created_at,likes_count,channel)
+   select ('10000000-0000-4000-8000-'||lpad((995000+n)::text,12,'0'))::uuid,
+    ('10000000-0000-4000-8000-'||lpad((300+n)::text,12,'0'))::uuid,
+    'Other author',now()-make_interval(hours=>n%12,secs=>n+1),n%17,'innovation'
+   from generate_series(0,219)n;
+   insert into post_likes(post_id,user_id)
+   select ('10000000-0000-4000-8000-'||lpad((990000+n)::text,12,'0'))::uuid,'${VIEWER}'
+   from generate_series(0,${scenario.authors-1})n;
+   insert into post_seen select id,'${VIEWER}' from posts where likes_count%13=0;`);
+  let definition=(await rows("select pg_get_functiondef('prepared_feed.select_page(text,double precision,uuid,integer)'::regprocedure) definition"))[0].definition;
+  definition=definition.replace(' factor:=(case',` perform set_config('prepared_feed.test_affinity',jsonb_build_object(
+   'preloaded',cardinality(candidates),'authors',affinity_author_count,'bound',affinity_max)::text,true);
+ factor:=(case`);
+  await exec(definition);await authenticate();await exec('reset role;set role prepared_feed_reader;');
+  const page=(await rows(`select prepared_feed.select_page('${scenario.mode}',null,null,200) result`))[0].result;
+  const branch=JSON.parse((await rows("select current_setting('prepared_feed.test_affinity',true) value"))[0].value);
+  assert.deepEqual(branch,{preloaded:scenario.preloaded,authors:scenario.authors,bound:scenario.bound});
+  assert.equal(page.fallback,false);assert.equal(page.ids.length,200);
+  const expected=(await rows(`select prepared_feed.exact_ids('${scenario.mode}') result`))[0].result;
+  assert.deepEqual(page.ids,expected.map(r=>r.id));assert.deepEqual(page.keys,expected.map(r=>r.key));
  }finally{await exec('rollback;');await authenticate();}
 });
 test('prepared fixture retains the exact hosted marketplace exclusion',narrowOnly,async()=>{

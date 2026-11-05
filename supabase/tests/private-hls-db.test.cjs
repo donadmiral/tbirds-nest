@@ -23,6 +23,16 @@ const claims=async(uid=B,sid=S,role='authenticated')=>query("select set_config('
 const open=()=>value('select public.open_chat_hls_v1($1,$2) value',[M,R]);
 const close=()=>value('select public.close_chat_hls_v1($1,$2) value',[M,R]);
 const read=a=>value('select public.read_chat_hls_v1($1,$2,$3,$4,$5) value',[M,R,'source-v1',a.leaseId,'r0/seg00000.ts']);
+// Catch the exact expected SQL denial inside a subtransaction. An uncaught
+// error exits the real psql process because its ON_ERROR_STOP gate is enabled.
+const expectLegacySessionRejection=()=>exec(`do $$begin
+ begin
+  perform public.read_legacy_chat_media('${M}','${R}');
+  raise exception 'Expected legacy reader to reject the invalid session';
+ exception when sqlstate '42501' then
+  if sqlerrm <> 'MEDIA_SESSION_REQUIRED' then raise; end if;
+ end;
+end $$;`);
 before(async()=>{
  db=process.env.PC_TEST_PSQL?realDatabase():new PGlite({extensions:{pgcrypto}});
  if(process.env.PC_TEST_PSQL){const proof=await query('select version(),inet_server_addr()');assert.match(proof.rows[0].version,/PostgreSQL 17\./);assert.equal(proof.rows[0].inet_server_addr,null);}
@@ -169,9 +179,9 @@ test('legacy original read and HLS share one view and closing the original revok
 test('legacy reader rejects another session, another user and expired or revoked sessions',async()=>{
  await exec('update messages set view_limit=1');await query('select * from claim_chat_media_view($1,$2)',[M,R]);
  await claims(B,S2);assert.equal(await value('select public.read_legacy_chat_media($1,$2) value',[M,R]),null);
- await claims(X,S);await assert.rejects(query('select public.read_legacy_chat_media($1,$2)',[M,R]),/MEDIA_SESSION_REQUIRED/);
+ await claims(X,S);await expectLegacySessionRejection();
  await claims();await query("update auth.sessions set not_after=now()-interval '1 second' where id=$1",[S]);
- await assert.rejects(query('select public.read_legacy_chat_media($1,$2)',[M,R]),/MEDIA_SESSION_REQUIRED/);
+ await expectLegacySessionRejection();
  await query('update auth.sessions set not_after=null where id=$1',[S]);
  await query("update chat_media_view_grants set expires_at=now()-interval '1 second'");
  assert.equal(await value('select public.read_legacy_chat_media($1,$2) value',[M,R]),null);

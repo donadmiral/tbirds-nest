@@ -1,6 +1,6 @@
 name: Foundation iPhone QA delivery
 
-# Delivery revision: complete real foreground pixel verification and connected offline-cache proof.
+# Delivery revision: verify bounded frozen-output recovery using the production player-layer topology.
 # A source-only push runs the shared quality gates without starting another EAS build.
 # workflow_run cannot bootstrap a new workflow living only on this release branch.
 on:

@@ -73,12 +73,14 @@
   "providerCapacity": false,
   "recordedAt": "2026-11-05T17:02:59.443974+00:00",
   "cleanup": {
-    "status": "pending_root_coordinated_cleanup",
-    "reason": "Guarded Supabase mutation tool stalled twice without result or rejection; read-only check confirmed no cleanup.",
-    "expectedSourceObjects": 2,
-    "expectedDerivativeObjects": 8,
-    "expectedUsers": 2,
-    "expectedSessions": 2
+    "status": "verified_complete",
+    "receipt": "private-hls-cleanup.json",
+    "users": 0,
+    "sessions": 0,
+    "sourceObjects": 0,
+    "derivativeObjects": 0,
+    "pendingCleanup": 0,
+    "temporaryEndpointRetired": true
   },
   "edge": {
     "projectId": "uaulhuelcfkjwojtymmw",

@@ -45,10 +45,12 @@ private enum HLSFixtureError: Error, LocalizedError {
   func prepare(trim: Double = 1.5) async throws {
     try await HLSFixture.wait("HLS item never became ready") { self.item.status != .unknown }
     try requireHLS(item.status == .readyToPlay, item.error?.localizedDescription ?? "HLS item failed")
-    let sought = await withCheckedContinuation { (c: CheckedContinuation<Bool, Never>) in
-      player.seek(to: CMTime(seconds: trim, preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero) { c.resume(returning: $0) }
+    var sought: Bool?
+    player.seek(to: CMTime(seconds: trim, preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero) { finished in
+      Task { @MainActor in sought = finished }
     }
-    try requireHLS(sought, "Trim seek was cancelled")
+    try await HLSFixture.wait("Trim seek did not complete", timeout: 10) { sought != nil }
+    try requireHLS(sought == true, "Trim seek was cancelled")
     surface.resetFrame()
   }
   func update(_ value: [Double]? = nil, active: Bool = true) {
@@ -275,26 +277,40 @@ private enum HLSFixtureError: Error, LocalizedError {
       try await record("frozen HLS output fails within five seconds despite repeated backward seeks") {
         let observed = try ObservedHLS(in: container)
         defer { observed.close() }
+        // Production StoryVideoView retains this same-player layer under the
+        // Metal view. Removing the only output from a sinkless fixture causes
+        // AVFoundation to suspend decoding and never finish a precise seek.
+        // Keep the real rendering sink while faulting only the graded output.
+        let playerLayer = AVPlayerLayer(player: observed.player)
+        playerLayer.frame = container.bounds
+        container.layer.insertSublayer(playerLayer, at: 0)
+        defer { playerLayer.player = nil; playerLayer.removeFromSuperlayer() }
         try await observed.prepare(); observed.update(green); observed.player.play(); try await observed.ready()
         guard let output = observed.item.outputs.first else { throw HLSFixtureError.failed("No output available for failure fixture") }
         observed.item.remove(output)
         let started = ProcessInfo.processInfo.systemUptime
+        phase("frozen-output-detached")
         var rewinds = 0
         while observed.failures == 0 && ProcessInfo.processInfo.systemUptime - started < 5 {
           try await Task.sleep(nanoseconds: 600_000_000)
           if observed.failures > 0 { break }
-          let sought = await withCheckedContinuation { (c: CheckedContinuation<Bool, Never>) in
-            observed.player.seek(to: CMTime(seconds: 1.5, preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero) { c.resume(returning: $0) }
+          var sought: Bool?
+          observed.player.seek(to: CMTime(seconds: 1.5, preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero) { finished in
+            Task { @MainActor in sought = finished }
           }
-          try requireHLS(sought, "Failure fixture rewind was cancelled")
+          let remaining = max(0.01, 5 - (ProcessInfo.processInfo.systemUptime - started))
+          try await wait("Failure fixture rewind did not complete", timeout: min(1, remaining)) { sought != nil }
+          try requireHLS(sought == true, "Failure fixture rewind was cancelled")
           rewinds += 1; observed.player.play()
+          phase("frozen-output-rewind-\(rewinds)")
         }
         let elapsed = ProcessInfo.processInfo.systemUptime - started
         try requireHLS(observed.failures == 1 && elapsed <= 5 && rewinds >= 2, "Backward seeks suppressed the bounded frozen-output failure")
         try requireHLS(observed.item.outputs.isEmpty, "Failed output remained attached")
         try await Task.sleep(nanoseconds: 150_000_000)
         try requireHLS(observed.failures == 1, "Frozen output reported duplicate failure")
-        return ["failureSeconds": elapsed, "rewinds": rewinds, "failureCallbacks": observed.failures, "attachedOutputs": observed.item.outputs.count]
+        return ["failureSeconds": elapsed, "rewinds": rewinds, "failureCallbacks": observed.failures,
+                "attachedOutputs": observed.item.outputs.count, "samePlayerRenderingSink": playerLayer.player === observed.player]
       }
       try await record("invalid grade fails once and releases its HLS output") {
         let observed = try ObservedHLS(in: container)
