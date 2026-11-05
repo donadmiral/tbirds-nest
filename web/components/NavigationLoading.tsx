@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useLayoutEffect, useState, useSyncExternalStore } from 'react';
-import { BriefcaseBusiness, Home, LayoutDashboard, MessageCircle, Store, User } from 'lucide-react';
+import { ArrowLeft, BriefcaseBusiness, Home, LayoutDashboard, MessageCircle, Store, User } from 'lucide-react';
 import { getNavigationStore } from '@/lib/navigationCache';
 import { forgetNavigationChrome, readNavigationChrome, rememberNavigationChrome, type NavigationChromeIdentity } from '@/lib/navigationChromeMemory';
 import { PRIMARY_DESTINATIONS, isDestinationActive } from '@/lib/navigation';
@@ -65,5 +65,8 @@ export function NavigationLoading({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const identity = readNavigationChrome(store, session, path);
   return identity ? <PassiveChrome identity={identity} path={path}>{children}</PassiveChrome>
-    : <main className="min-h-screen p-6" aria-busy="true" data-navigation-loading="neutral">{children}</main>;
+    : <main className="min-h-screen p-6" aria-busy="true" data-navigation-loading="neutral">
+      {path === '/studio' || path.startsWith('/studio/') ? <Link href="/home" prefetch={false} className="mb-6 inline-flex min-h-12 items-center gap-2 rounded-full border px-4 text-sm font-semibold"><ArrowLeft size={16} aria-hidden />Back to Platinum Circles</Link> : null}
+      {children}
+    </main>;
 }

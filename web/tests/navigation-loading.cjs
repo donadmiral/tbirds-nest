@@ -109,6 +109,25 @@ test('actual public, auth, professional and unresolved fallback renders no remem
   h.change({ initialized: false }); const { NavigationLoading } = component(h);
   assert.doesNotMatch(renderToStaticMarkup(React.createElement(NavigationLoading, null, 'Pending content')), /Alice|alice|data-app-chrome/);
 });
+test('Studio and descendant loading fallbacks offer a neutral return link before viewer verification', () => {
+  for (const change of [{}, { initialized: false }, { changed: true }]) {
+    const h = fixture(); api.rememberNavigationChrome(h.store, h.session, identity); h.change(change);
+    for (const route of ['/studio', '/studio/team', '/studio/content/item']) {
+      const { NavigationLoading } = component(h, { path: route });
+      const html = renderToStaticMarkup(React.createElement(NavigationLoading, null, 'Pending content'));
+      assert.match(html, /data-navigation-loading="neutral"/);
+      assert.match(html, /href="\/home"/); assert.match(html, /Back to Platinum Circles/);
+      assert.match(html, /data-prefetch="false"/); assert.match(html, /Pending content/);
+      assert.equal((html.match(/<a /g) || []).length, 1);
+      assert.doesNotMatch(html, /Alice|alice|avatars\/A|data-app-chrome|<(input|button|textarea)/);
+    }
+  }
+  const h = fixture();
+  for (const route of ['/studio-other', '/login', '/privacy', '/jobs']) {
+    const { NavigationLoading } = component(h, { path: route });
+    assert.doesNotMatch(renderToStaticMarkup(React.createElement(NavigationLoading, null, 'Pending content')), /Back to Platinum Circles/);
+  }
+});
 test('actual recorder effect rejects session replacement between render and commit', () => {
   const h = fixture(); let effect;
   const { RememberNavigationChrome } = component(h, { react: { useState: init => [init()], useSyncExternalStore: (_s, get) => get(), useLayoutEffect: callback => { effect = callback; } } });
