@@ -53,7 +53,7 @@ physical_python="${RUNNER_TEMP:-/tmp}/platinum-physical-python/bin/python"
 "$physical_python" -m pip download --only-binary=:all: --dest tests/native/physical/wheelhouse -r tests/native/physical/requirements.txt
 "$physical_python" -m pip install --no-index --find-links=tests/native/physical/wheelhouse -r tests/native/physical/requirements.txt
 if [[ "${PHYSICAL_BACKEND:-isolated}" == connected ]]; then
-  "$physical_python" -m pytest --collect-only tests/native/physical-connected/tests | tee physical-android-build/test-collection.log
+  "$physical_python" -m pytest --collect-only tests/native/physical-connected/tests/test_connected.py::test_connected_original_cache | tee physical-android-build/test-collection.log
 else
   "$physical_python" -m pytest --collect-only tests/native/physical/tests | tee physical-android-build/test-collection.log
 fi

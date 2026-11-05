@@ -23,6 +23,7 @@
   },
   "worker": "Publish the current worker bundle that accepts only authenticated ordinary/limited chat source claims. Generic content gateway continues to exclude chat-media/chat-files. Existing sandbox concurrency and budgets are unchanged.",
   "preflight": [
+    "Production lacks media_delivery.legacy_grants plus binding trigger and read_legacy_chat_media/close_legacy_chat_media. Apply the narrow legacy catch-up migration before enabling original private fallback.",
     "Current production content source_snapshot definition matches the QA private_hls.content_source_snapshot preserved implementation.",
     "Existing chat locator, original grant and conversation-access functions match the tested QA contracts.",
     "private_media schema remains absent. Existing legacy limited grants are the supported path.",
@@ -32,6 +33,7 @@
   ],
   "activationOrder": [
     "Apply the additive migration with enabled=false.",
+    "Apply 20261105171030_legacy_limited_delivery_completion.sql to complete the pinned original reader and terminal original close.",
     "Deploy private-hls Edge and current chat-capable media worker.",
     "Inspect inert schema, RLS and public function permissions.",
     "Enable the QA-only backend setting and QA client HLS flags.",
@@ -60,5 +62,7 @@
     "Cleanup of controlled QA fixture is pending root coordination.",
     "Actual browser private HLS fixture awaits CI after source publication.",
     "Native private-HLS header propagation, playback and background/account lifecycle still need a client runtime receipt. Graded public iOS HLS is a separate gate owned by root."
-  ]
+  ],
+  "legacyCatchupMigration": "supabase/migrations/20261105171030_legacy_limited_delivery_completion.sql",
+  "legacyCatchupSha256": "11ea95965816defb36c4e2c7a0c92262d280c95809a0f9fb04e0ea79f5dc2ec8"
 }

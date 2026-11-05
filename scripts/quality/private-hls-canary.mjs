@@ -64,6 +64,12 @@ try{
   await writeFile(join(root,'probe-result.json'),JSON.stringify({passed:true,projectId:state.projectId,runId:state.runId,checks:safeReceipt,physicalPhone:false,providerCapacity:false},null,2)+'\n',{mode:0o600});console.log(JSON.stringify({phase,passed:true,checks:safeReceipt.length}));
  }
  if(phase==='cleanup-storage'){
-  const r=await request('/storage/v1/object/chat-media',{account:state.accounts.sender,method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefixes:Object.values(state.media).map(x=>x.path)})});assert(r.status===200,'Storage cleanup HTTP '+r.status);console.log(JSON.stringify({phase,passed:true,sourcePaths:2,derivativeCleanupStillRequiresVerification:true}));
+  const wanted=Object.values(state.media).map(x=>x.path);
+  const r=await request('/storage/v1/object/chat-media',{account:state.accounts.sender,method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefixes:wanted})});assert(r.status===200,'Storage cleanup HTTP '+r.status);
+  const removed=r.json(),names=Array.isArray(removed)?removed.map(x=>x?.name):[];
+  // Storage can return 200 with [] when RLS removes every matching row. Status
+  // alone never establishes physical deletion or permits deleting the users.
+  assert(names.length===wanted.length&&new Set(names).size===wanted.length&&wanted.every(name=>names.includes(name)),'Storage cleanup did not confirm both exact source names; authoritative readback is required');
+  console.log(JSON.stringify({phase,passed:true,sourcePaths:names.length,exactSourceNamesConfirmed:true,derivativeCleanupStillRequiresVerification:true}));
  }
 }catch(error){await writeFile(join(root,'phase-failure.json'),JSON.stringify({phase,message:error.message,checks:safeReceipt},null,2)+'\n',{mode:0o600});console.error(JSON.stringify({phase,passed:false,error:error.message}));process.exitCode=1;}

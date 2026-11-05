@@ -16,6 +16,7 @@ function realDatabase(){
 const id=n=>`90000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const A=id(1),B=id(2),X=id(3),S=id(4),S2=id(5),M=id(6),O=id(7),R=id(8),C=id(9),R2=id(10);
 const file=A+'/private.mp4',url='https://qa.supabase.co/storage/v1/object/public/chat-media/'+file;
+const legacyCompletion=fs.readFileSync(path.join(__dirname,'../migrations/20261105171030_legacy_limited_delivery_completion.sql'),'utf8');
 let db;
 const exec=sql=>db.exec(sql),query=(sql,args)=>db.query(sql,args),value=async(sql,args)=>(await query(sql,args)).rows[0]?.value;
 const claims=async(uid=B,sid=S,role='authenticated')=>query("select set_config('request.jwt.claims',$1,false)",[JSON.stringify({sub:uid,session_id:sid,role})]);
@@ -45,6 +46,12 @@ before(async()=>{
  await exec(fs.readFileSync(path.join(__dirname,'published-clip-renditions-fixture.sql'),'utf8'));
  await exec(fs.readFileSync(path.join(__dirname,'../migrations/20261105153608_published_live_clip_renditions.sql'),'utf8'));
  await exec(fs.readFileSync(path.join(__dirname,'../migrations/20261105155600_private_chat_adaptive_delivery.sql'),'utf8'));
+ // Use the exact existing hosted session helper and the additive catch-up,
+ // rather than a permissive stub for the original limited-media reader.
+ const delivery=fs.readFileSync(path.join(__dirname,'../migrations/20261029231440_bounded_media_delivery.sql'),'utf8');
+ await exec('create schema if not exists media_delivery');
+ await exec(delivery.slice(delivery.indexOf('create function media_delivery.require_session()'),delivery.indexOf('-- A stale binding')).replace('create function ','create or replace function '));
+ await exec(legacyCompletion);
 });
 after(()=>db?.close());
 beforeEach(async()=>{
@@ -83,9 +90,14 @@ test('limited grants never open implicitly or increase counters; exact new bindi
  const a=await open();assert.ok(a);assert.ok(await read(a));assert.ok(await read(a));assert.equal(await value('select remaining value from chat_media_view_grants'),0);assert.equal(await value('select views value from message_views'),1);
  await query('update chat_media_view_grants set expires_at=now()-interval \'1 second\'');assert.equal(await read(a),null);
 });
-test('legacy grants without new immutable binding keep original fallback and never gain HLS',async()=>{
+test('pre-existing unbound grants never gain pinned original playback or HLS',async()=>{
  await exec('update messages set view_limit=1');await claims(B,'90000000-0000-4000-8000-000000000999');
- await query('insert into chat_media_view_grants values($1,$2,$3,now()+interval \'2 minutes\',0)',[B,R,M]);await claims();assert.equal(await open(),null);
+ await exec('alter table chat_media_view_grants disable trigger bind_legacy_media_delivery');
+ await query('insert into chat_media_view_grants values($1,$2,$3,now()+interval \'2 minutes\',0)',[B,R,M]);
+ await exec('alter table chat_media_view_grants enable trigger bind_legacy_media_delivery');
+ await claims();await exec(legacyCompletion);assert.equal(await open(),null);
+ assert.equal(await value('select public.read_legacy_chat_media($1,$2) value',[M,R]),null);
+ assert.equal(await value('select count(*)::int value from media_delivery.legacy_grants'),0);
 });
 test('expired grant, foreign source owner and corrupt ready assets fail closed',async()=>{
  const a=await open();await query('update private_hls.grants set expires_at=now()-interval \'1 second\'');assert.equal(await read(a),null);
@@ -133,4 +145,55 @@ test('inactive tombstones expire only after their capability window and per-user
  await query(`insert into private_hls.grants(user_id,request_id,session_id,message_id,expires_at,closed_at)
  select $1,gen_random_uuid(),$2,$3,now()+interval '10 minutes',now() from generate_series(1,128)`,[B,S,M]);assert.equal(await open(),null);assert.equal(await close(),false);
  await query("update private_hls.grants set expires_at=now()-interval '25 hours'");assert.ok(await open());assert.equal(await value('select count(*)::int value from private_hls.grants'),1);
+});
+test('legacy completion is repeatable on QA and keeps the same count, deadline and source pin',async()=>{
+ await exec('update messages set view_limit=1');await query('select * from claim_chat_media_view($1,$2)',[M,R]);
+ const deadline=await value('select expires_at::text value from chat_media_view_grants');
+ await exec(legacyCompletion);
+ const original=await value('select public.read_legacy_chat_media($1,$2) value',[M,R]);
+ assert.equal(original.url,url);assert.equal(original.objectVersion,'source-v1');assert.equal(original.requestId,R);
+ assert.equal(await value('select expires_at::text value from chat_media_view_grants'),deadline);
+ assert.equal(await value('select views value from message_views'),1);
+ assert.equal(await value('select count(*)::int value from media_delivery.legacy_grants'),1);
+});
+test('legacy original read and HLS share one view and closing the original revokes both paths',async()=>{
+ await exec('update messages set view_limit=1');await query('select * from claim_chat_media_view($1,$2)',[M,R]);
+ const a=await open();assert.ok(a);assert.ok(await read(a));
+ assert.ok(await value('select public.read_legacy_chat_media($1,$2) value',[M,R]));
+ await query('select * from claim_chat_media_view($1,$2)',[M,R]);assert.equal(await value('select views value from message_views'),1);
+ assert.equal(await value('select public.close_legacy_chat_media($1,$2) value',[M,R]),true);
+ assert.equal(await value('select public.read_legacy_chat_media($1,$2) value',[M,R]),null);assert.equal(await read(a),null);
+ assert.equal((await query('select * from claim_chat_media_view($1,$2)',[M,R2])).rows[0].url,null);
+ assert.equal(await value('select views value from message_views'),1);
+});
+test('legacy reader rejects another session, another user and expired or revoked sessions',async()=>{
+ await exec('update messages set view_limit=1');await query('select * from claim_chat_media_view($1,$2)',[M,R]);
+ await claims(B,S2);assert.equal(await value('select public.read_legacy_chat_media($1,$2) value',[M,R]),null);
+ await claims(X,S);await assert.rejects(query('select public.read_legacy_chat_media($1,$2)',[M,R]),/MEDIA_SESSION_REQUIRED/);
+ await claims();await query("update auth.sessions set not_after=now()-interval '1 second' where id=$1",[S]);
+ await assert.rejects(query('select public.read_legacy_chat_media($1,$2)',[M,R]),/MEDIA_SESSION_REQUIRED/);
+ await query('update auth.sessions set not_after=null where id=$1',[S]);
+ await query("update chat_media_view_grants set expires_at=now()-interval '1 second'");
+ assert.equal(await value('select public.read_legacy_chat_media($1,$2) value',[M,R]),null);
+});
+test('legacy reader rejects source replacement and current conversation membership loss',async()=>{
+ await exec('update messages set view_limit=1');await query('select * from claim_chat_media_view($1,$2)',[M,R]);
+ await query('update conversations set user_2=$1',[X]);assert.equal(await value('select public.read_legacy_chat_media($1,$2) value',[M,R]),null);
+ await query('update conversations set user_2=$1',[B]);assert.ok(await value('select public.read_legacy_chat_media($1,$2) value',[M,R]));
+ await query('update storage.objects set version=$1 where id=$2',['new-source-version',O]);
+ assert.equal(await value('select public.read_legacy_chat_media($1,$2) value',[M,R]),null);
+});
+test('legacy completion keeps binding tables private and only authenticated callers may read or close',async()=>{
+ for(const role of ['anon','authenticated','service_role'])assert.equal(await value(`select has_table_privilege('${role}','media_delivery.legacy_grants','select') value`),false);
+ assert.equal(await value("select relrowsecurity value from pg_class where oid='media_delivery.legacy_grants'::regclass"),true);
+ for(const role of ['anon','service_role'])for(const fn of ['read_legacy_chat_media','close_legacy_chat_media'])
+  assert.equal(await value(`select has_function_privilege('${role}','public.${fn}(uuid,uuid)','execute') value`),false);
+ for(const fn of ['read_legacy_chat_media','close_legacy_chat_media'])
+  assert.equal(await value(`select has_function_privilege('authenticated','public.${fn}(uuid,uuid)','execute') value`),true);
+});
+test('legacy completion fails closed at a future private-session cutover',async()=>{
+ await exec('update messages set view_limit=1');await query('select * from claim_chat_media_view($1,$2)',[M,R]);
+ await exec('create schema private_media');
+ try { assert.equal(await value('select public.read_legacy_chat_media($1,$2) value',[M,R]),null); }
+ finally { await exec('drop schema private_media'); }
 });

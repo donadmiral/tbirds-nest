@@ -107,10 +107,15 @@ try {
     console.log(JSON.stringify({ phase, passed: true, firstRankedFeedPost: true, snapshotEligible: true, authorizedOriginals: 2 }));
   }
   if (phase === 'cleanup-storage') {
+    const expected = Object.values(state.media).map(media => media.path);
     const result = await request('/storage/v1/object/post-media', { account: state.accounts.author, method: 'DELETE',
-      json: { prefixes: Object.values(state.media).map(media => media.path) } });
+      json: { prefixes: expected } });
     assert(result.status === 200, 'Exact QA source deletion HTTP ' + result.status);
-    console.log(JSON.stringify({ phase, passed: true, sourcePaths: 2, derivativeCleanupRequiresVerification: true }));
+    const removed = result.json();
+    assert(Array.isArray(removed) && removed.length === expected.length
+      && expected.every(path => removed.some(item => item?.name === path)), 'Storage did not acknowledge both exact source deletions. Independent readback is required.');
+    console.log(JSON.stringify({ phase, passed: true, acknowledgedSourcePaths: expected.length,
+      sourceDeletionReadbackRequired: true, derivativeCleanupRequiresVerification: true }));
   }
 } catch (error) {
   await writeFile(join(root, 'phase-failure.json'), JSON.stringify({ phase, error: error.message }, null, 2) + '\n', { mode: 0o600 });

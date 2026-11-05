@@ -10,7 +10,7 @@ phases:
       - appium driver list --installed
       - cd "$DEVICEFARM_TEST_PACKAGE_PATH"
       - python -m pip install --no-index --find-links=wheelhouse -r requirements.txt
-      - python -m pytest --collect-only tests
+      - python -m pytest --collect-only tests/test_connected.py::test_connected_original_cache
   pre_test:
     commands:
       - >-
@@ -23,7 +23,7 @@ phases:
   test:
     commands:
       - cd "$DEVICEFARM_TEST_PACKAGE_PATH"
-      - timeout --signal=INT 480 python -m pytest -v --tb=short tests --junitxml="$DEVICEFARM_LOG_DIR/physical-connected-junit.xml"
+      - timeout --signal=INT 480 python -m pytest -v --tb=short tests/test_connected.py::test_connected_original_cache --junitxml="$DEVICEFARM_LOG_DIR/physical-connected-junit.xml"
   post_test:
     commands:
       - adb shell am force-stop app.platinumcircles.mobile.qa

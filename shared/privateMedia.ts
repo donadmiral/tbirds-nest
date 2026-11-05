@@ -26,6 +26,8 @@ export function createPrivateViewSession(options: {
   hide: () => void;
 }) {
   let closed = false;
+  // Keep native browser fetch's receiver unchanged, including during close.
+  const transport = options.fetch;
   const headers = {
     Authorization: `Bearer ${options.token}`,
     apikey: options.apiKey,
@@ -47,7 +49,7 @@ export function createPrivateViewSession(options: {
   const revoke = async (reason: PrivateCloseReason) => {
     const timeout = deadline(10000);
     try {
-      await options.fetch(options.endpoint, {
+      await transport(options.endpoint, {
         method: "POST",
         headers,
         body: body("close", { reason }),
@@ -70,7 +72,7 @@ export function createPrivateViewSession(options: {
       if (closed || !options.current()) return null;
       const timeout = deadline(20000);
       try {
-        const response = await options.fetch(options.endpoint, {
+        const response = await transport(options.endpoint, {
           method: "POST",
           headers,
           body: body("open"),
