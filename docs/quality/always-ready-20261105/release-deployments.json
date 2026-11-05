@@ -14,6 +14,8 @@
   "quality": {
     "clientRun": 41973870205,
     "clientAllSixJobsPassed": true,
+    "backendRun": 41974292785,
+    "backendAllSixJobsPassed": true,
     "browserRun": 41972966503,
     "browserSource": "5949b165a7ecb5d8eaa2df04ccd15b17828a1720",
     "browserApplicationUnchanged": true,
@@ -31,5 +33,13 @@
     "deployment": "dpl_7j26tK2o3o98ar66fRBMxCeb83nn",
     "url": "https://admin.platinumcircles.app"
   },
-  "capacityCertifiedForFiveMillionDAU": false
+  "capacityCertifiedForFiveMillionDAU": false,
+  "iphoneQA": {
+    "status": "FINISHED",
+    "source": "6f26e5f26210bf9d5cffdc7a0d2c9df9c3bdc019",
+    "qualityRunId": 41973870205,
+    "buildId": "e31b1aa4-1277-4c03-9197-177f61537905",
+    "installPage": "https://expo.dev/accounts/donadmiral/projects/platinum-circles/builds/e31b1aa4-1277-4c03-9197-177f61537905",
+    "buildNumber": "34"
+  }
 }

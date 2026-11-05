@@ -32,7 +32,7 @@ Adaptive video workers process supported canonical uploads into HLS variants, po
 
 The web and media-worker application release is `6f26e5f26210bf9d5cffdc7a0d2c9df9c3bdc019`. Its six Type and quality jobs passed in run [41973870205](https://github.com/donadmiral/tbirds-nest/actions/runs/41973870205). The final browser suite passed in [41972966503](https://github.com/donadmiral/tbirds-nest/actions/runs/41972966503); its browser application source is identical to the deployed release.
 
-The additional database optimization is `2e62dd9599c3989d19924049972855684bf935f5`. It changes when the existing exact frontier is scored, retaining the same visibility rules, score formula, cursor order and page limit. It does not change the mobile or web application package.
+The additional database optimization is `2e62dd9599c3989d19924049972855684bf935f5`. All six Type and quality jobs passed for this exact source in [41974292785](https://github.com/donadmiral/tbirds-nest/actions/runs/41974292785). It changes when the existing exact frontier is scored, retaining the same visibility rules, score formula, cursor order and page limit. It does not change the mobile or web application package.
 
 | Component | Released state |
 | --- | --- |
@@ -43,7 +43,7 @@ The additional database optimization is `2e62dd9599c3989d19924049972855684bf935f
 | Feed background worker | One snapshot per pass, every 10 seconds, eight-second statement deadline |
 | Worker history | Own-job records older than seven days removed in bounded daily batches |
 | Admin | Existing release retained. No admin source or dependency changes. Current component/browser and quality gates passed |
-| iPhone package | Build workflow [41973870173](https://github.com/donadmiral/tbirds-nest/actions/runs/41973870173), final artifact receipt pending |
+| iPhone package | [QA 34, ready to install](https://expo.dev/accounts/donadmiral/projects/platinum-circles/builds/e31b1aa4-1277-4c03-9197-177f61537905). Build workflow [41973870173](https://github.com/donadmiral/tbirds-nest/actions/runs/41973870173) succeeded on exact client source `6f26e5f2` |
 
 The worker has no login permission and cannot bypass RLS. Real scheduled processing was observed in both environments. The next authenticated request used prepared cursors. See scheduled-feed-rollout.json. The activation and rollback SQL are recorded under supabase/ops/prepared-feed-staged-20261105.
 

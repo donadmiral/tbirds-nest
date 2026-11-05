@@ -1,6 +1,13 @@
 {
   "provider": "Supabase security advisor",
   "scope": "Prepared feed, feed ranking and media-rendition schemas",
+  "productionPrivilegePostflight": {
+    "anonymousCanCallFeed": false,
+    "memberCanRunWorker": false,
+    "memberCanConfigureWorker": false,
+    "anonymousCanReadSnapshots": false,
+    "preparedTablesHaveRLS": true
+  },
   "findings": [
     {
       "name": "rls_enabled_no_policy",
