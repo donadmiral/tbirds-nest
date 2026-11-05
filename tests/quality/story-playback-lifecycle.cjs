@@ -168,6 +168,7 @@ function renderPostCard(sticker) {
   const module = load('src/components/stories/PostStoryCard.tsx', {
     react: { ...react, default: react }, 'react-native': native, '@expo/vector-icons': { Feather: 'Icon' },
     './StoryPixelImage': { default: 'Photo', StoryPhotoReadinessContext: {} }, 'expo-video': { VideoView: 'Video', useVideoPlayer: () => player() },
+    '../../lib/useAdaptiveVideoPlayer': { useAdaptiveVideoPlayer: () => player() },
     '../../../shared/postVoiceEffects': { normalizePostPlayback: () => ({}), applyPostPlayback() {} }, '../../../shared/postMediaEditing': { postTrimWindow: () => ({}) },
     '../../../shared/storyPresentation': load('shared/storyPresentation.ts'), '../../../shared/storyPlayback': load('shared/storyPlayback.ts'), '../VerifiedBadge': { default: 'VerifiedBadge' },
   });
