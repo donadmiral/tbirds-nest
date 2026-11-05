@@ -51,6 +51,25 @@ test('eligible signed media keeps only reserved geometry and identity across dis
     sort_order: 0, edit: { aspect: 'original', aspectRatio: .5625 }, _startupPlaceholder: true, _startupPreview: true, _startupMediaType: 'video' });
 });
 
+test('legacy media rotation survives the snapshot without an explicit aspect and rejects non-finite values', async () => {
+  for (const mediaUrl of [url('legacy'), 'https://example.supabase.co/storage/v1/object/sign/post-media/legacy.jpg?token=secret']) {
+    for (const rotation of [0, 45, 90, 270, -90]) {
+      const source = { ...row('legacy'), media: [{ id: 'm1', url: mediaUrl, media_type: 'image',
+        width: 1920, height: 1080, edit: { rotation } }] };
+      const store = createFeedSnapshotStore(memory()); store.setAccount('a');
+      await store.write('a', 'forYou', [source], new Set(['legacy']));
+      const media = (await store.read('a', 'forYou')).rows[0].media[0];
+      assert.equal(media.edit.rotation, rotation);
+      assert.equal(media.edit.aspect, undefined); assert.equal(media.edit.aspectRatio, undefined);
+      assert.equal(media.width, 1920); assert.equal(media.height, 1080);
+    }
+  }
+  for (const rotation of [Infinity, -Infinity, NaN, '90', null]) {
+    const source = { ...row('legacy'), media: [{ ...row('legacy').media[0], edit: { rotation } }] };
+    assert.equal(publicSnapshotRows([source], new Set(['legacy']))[0].media[0].edit.rotation, undefined);
+  }
+});
+
 test('saved snapshots expire and cannot be read by another owner or mode', async () => {
   let now = 1000;
   const storage = memory(); const store = createFeedSnapshotStore(storage, () => now);

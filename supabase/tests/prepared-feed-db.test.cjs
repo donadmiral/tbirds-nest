@@ -10,6 +10,7 @@ async function rows(sql) {
  return real ? JSON.parse(await db.query(statement)) : (await db.query(statement)).rows[0].result;
 }
 const authenticate = async (user=VIEWER, session=id(900001)) => exec(`reset role;select set_config('request.jwt.claim.sub','${user}',false);
+ select set_config('request.headers','{"x-client-info":"supabase-js/2 platinum-cache/1"}',false);
  select set_config('request.jwt.claims',jsonb_build_object('sub','${user}','role','authenticated','session_id','${session}','exp',floor(extract(epoch from now()))+3600)::text,false);set role authenticated;`);
 const admin = () => exec('reset role;');
 const stripCursor = list => list.map(({sort_key,...row})=>row);
@@ -33,7 +34,24 @@ before(async () => {
  now()-make_interval(hours=>n,secs=>n),n%17,n%9,n%4,'home' from generate_series(1,230)n;
  insert into follows values('${VIEWER}','${OWNER}');`);
  await exec(migration);
- await exec(sql('20261105044917_prepared_feed_snapshots.sql'));
+ if (process.env.PREPARED_FEED_NARROW === '1') {
+  for(const file of ['20261102092828_indexed_feed_rank_frontier.sql','20261102175247_feed_catalog_inline_visibility.sql','20261102180219_feed_frontier_defer_partial_scoring.sql','20261105045938_deterministic_feed_author_ties.sql']) await exec(sql(file));
+ }
+ if (process.env.PREPARED_FEED_STAGED === '1') {
+  const fs=require('node:fs'),path=require('node:path');
+  for(const {name:file} of require('../ops/prepared-feed-staged-20261105/manifest.json').stages) {
+   await exec(fs.readFileSync(path.join(__dirname,'../ops/prepared-feed-staged-20261105',file),'utf8'));
+  }
+ } else await exec(sql('20261105044917_prepared_feed_snapshots.sql'));
+ if (process.env.PREPARED_FEED_NARROW === '1') {
+  await exec(sql('20261105051142_prepared_feed_narrow_ranking.sql'));
+  await exec(sql('20261105051152_prepared_feed_single_snapshot_rank.sql'));
+  await exec(`do $$begin execute replace(pg_get_functiondef('public.get_feed(text,double precision,uuid,integer)'::regprocedure),
+   'FUNCTION public.get_feed(','FUNCTION public.get_feed_before_bounded(');end$$;`);
+  await exec(sql('20261105051338_prepared_feed_bounded_hydration.sql'));
+  await exec(sql('20261105051457_prepared_feed_client_capability_gate.sql'));
+  await exec('select configure_indexed_feed_v1(true);');
+ }
  await exec(`create function pg_temp.prepared_expected_error(statement text) returns text language plpgsql security invoker as $$
  begin execute statement; return null; exception when others then return SQLSTATE||': '||SQLERRM; end $$;`);
  await authenticate();
@@ -118,4 +136,124 @@ test('expired claims and anonymous calls cannot queue work, and job batches are 
  await rows("select * from get_feed('for_you',null,null,2)");await admin();assert.equal((await rows('select count(*) n from prepared_feed.demand'))[0].n,0);
  await expectError('select drain_prepared_feed_v1(5)',/INVALID_PREPARED_FEED_BATCH/);
  await exec('set role anon;');await expectError("select * from get_feed('for_you',null,null,2)",/permission denied/);await authenticate();
+});
+
+const narrowOnly={skip:process.env.PREPARED_FEED_NARROW!=='1'};
+async function ranked(mode){
+ await admin();await exec('set role prepared_feed_reader;');
+ const result=(await rows(`select prepared_feed.rank(auth.jwt(),'${mode}') result`))[0].result;
+ await authenticate();return result;
+}
+async function canonicalIds(mode){
+ const expected=[];let cursor=null;
+ for(let n=0;n<4;n++){
+  const page=await rows(`select post_id id,sort_key key from prepared_feed.canonical('${mode}',${cursor?cursor.key:'null'},${cursor?`'${cursor.id}'`:'null'},50)`);
+  expected.push(...page);if(page.length<50)break;cursor=page.at(-1);
+ }
+ return expected;
+}
+test('one narrow200 pass equals canonical pages across all modes and both frontier settings',narrowOnly,async()=>{
+ await admin();await exec(`update posts set channel='innovation' where likes_count%3=0;
+ insert into trending_snapshot select 'post',id,row_number()over(order by likes_count desc,id)::int from posts where likes_count>10 on conflict do nothing;`);
+ await authenticate();await exec('begin;');
+ try{
+  for(const enabled of [true,false]){
+   await admin();await exec(`select configure_indexed_feed_v1(${enabled});`);await authenticate();
+   for(const mode of ['for_you','innovation','following','trending'])assert.deepEqual(await ranked(mode),await canonicalIds(mode),`${mode} enabled=${enabled}`);
+  }
+ }finally{await exec('rollback;');await authenticate();}
+});
+test('same-author tied scores across50/64/200 preserve deterministic full-window ordering',narrowOnly,async()=>{
+ await admin();await exec(`insert into posts(id,user_id,content,created_at,likes_count,channel)
+ select ('10000000-0000-4000-8000-'||lpad((800000+n)::text,12,'0'))::uuid,'${id(102)}','tied boundary',now()-interval '1 day',999,'home' from generate_series(1,240)n;`);
+ await authenticate();await exec('begin;');
+ try{assert.deepEqual(await ranked('for_you'),await canonicalIds('for_you'));}
+ finally{await exec('rollback;');await authenticate();}
+});
+test('snapshot worker builds IDs without calling card hydration and preserves restricted owner',narrowOnly,async()=>{
+ await admin();
+ assert.equal((await rows("select pg_get_userbyid(proowner) owner from pg_proc where oid='prepared_feed.rank(jsonb,text)'::regprocedure"))[0].owner,'prepared_feed_reader');
+ const saved=(await rows("select pg_get_functiondef(oid) definition,pg_get_function_result(oid) result from pg_proc where oid='public.get_feed_rows_by_ids_v1(uuid[])'::regprocedure"))[0];
+ await authenticate();await exec("select prepared_feed.request('for_you');");await admin();
+ await exec(`create or replace function public.get_feed_rows_by_ids_v1(p_ids uuid[]) returns ${saved.result} language plpgsql stable security invoker set search_path=public as $$begin raise exception 'CARD_HYDRATION_MUST_NOT_RUN_IN_WORKER';end$$;`);
+ try{
+  const result=(await rows('select drain_prepared_feed_v1(1) result'))[0].result;
+  assert.equal(result.failed,0);assert.equal(result.prepared,1);
+ }finally{await exec(saved.definition);await authenticate();}
+});
+test('narrow selector is worker-only and revalidates private blocked and deleted rows',narrowOnly,async()=>{
+ await expectError("select prepared_feed.select_page('for_you',null,null,200)",/permission denied/);
+ await expectError("select prepared_feed.exact_ids('for_you')",/permission denied/);
+ const first=(await ranked('for_you'))[0];
+ await admin();await exec(`update posts set audience='mentioned' where id='${first.id}'`);
+ assert.equal((await ranked('for_you')).some(p=>p.id===first.id),false);
+ await admin();await exec(`update posts set audience='everyone' where id='${first.id}';insert into blocked_users values('${id(102)}','${VIEWER}') on conflict do nothing;`);
+ assert.equal((await ranked('for_you')).some(p=>Number(p.id.slice(-12))>800000),false);
+ await admin();await exec(`delete from blocked_users where blocker_id='${id(102)}';delete from posts where id='${first.id}';`);
+ assert.equal((await ranked('for_you')).some(p=>p.id===first.id),false);
+});
+
+async function freshSnapshot(){
+ await admin();await exec('delete from prepared_feed.demand;select configure_prepared_feed_v1(true);');
+ await authenticate();await exec("select prepared_feed.request('for_you');");await admin();await exec('select drain_prepared_feed_v1(1);');
+ const saved=(await rows(`select cursor_serial,ids from prepared_feed.snapshots where viewer_id='${VIEWER}' order by created_at desc,id desc limit 1`))[0];
+ await authenticate();return saved;
+}
+async function trackHydration(run){
+ await admin();const saved=(await rows("select pg_get_functiondef(oid) definition,pg_get_function_result(oid) result from pg_proc where oid='public.get_feed_rows_by_ids_v1(uuid[])'::regprocedure"))[0];
+ await exec(saved.definition.replace('FUNCTION public.get_feed_rows_by_ids_v1(','FUNCTION prepared_feed.test_card_reader('));
+ await exec(`grant execute on function prepared_feed.test_card_reader(uuid[]) to authenticated;
+ create or replace function public.get_feed_rows_by_ids_v1(p_ids uuid[]) returns ${saved.result} language plpgsql stable security invoker set search_path=public as $$begin
+ perform set_config('prepared_feed.test_windows',coalesce(current_setting('prepared_feed.test_windows',true),'')||','||cardinality(p_ids),false);
+ return query select * from prepared_feed.test_card_reader(p_ids);end$$;
+ select set_config('prepared_feed.test_windows','',false);`);
+ await authenticate();
+ try{const result=await run();const windows=(await rows("select current_setting('prepared_feed.test_windows',true) sizes"))[0].sizes.split(',').filter(Boolean).map(Number);return{result,windows};}
+ finally{await admin();await exec(saved.definition+';drop function prepared_feed.test_card_reader(uuid[]);');await authenticate();}
+}
+test('warm20 hydrates exactly20 IDs and refills current hidden/private/deleted rows without changing order',narrowOnly,async()=>{
+ const saved=await freshSnapshot();await exec('begin;');
+ try{
+  const plain=await rows("select * from get_feed_before_bounded('for_you',null,null,20)");
+  const tracked=await trackHydration(()=>rows("select * from get_feed('for_you',null,null,20)"));
+  assert.deepEqual(tracked.result,plain);assert.deepEqual(tracked.windows,[20]);
+  await expectError("select * from get_feed('for_you',null,null,-1)",/2201W: LIMIT must not be negative/);
+  await admin();
+  await exec(`insert into hidden_posts select '${VIEWER}',unnest(array[${saved.ids.slice(1,21).map(v=>`'${v}'::uuid`).join(',')}]) on conflict do nothing;
+   update posts set audience='mentioned' where id=any(array[${saved.ids.slice(21,40).map(v=>`'${v}'::uuid`).join(',')}]);
+   delete from posts where id=any(array[${saved.ids.slice(40,45).map(v=>`'${v}'::uuid`).join(',')}]);`);await authenticate();
+  const args=`'for_you',${-4000000000000000-saved.cursor_serial*256-1},'${saved.ids[0]}',20`;
+  const expected=await rows(`select * from get_feed_before_bounded(${args})`);
+  const refilled=await trackHydration(()=>rows(`select * from get_feed(${args})`));
+  assert.deepEqual(refilled.result,expected);assert.equal(refilled.result.length,20);
+  assert.ok(refilled.windows.length>=3);assert.ok(refilled.windows.every(n=>n<=20));assert.ok(refilled.windows.reduce((a,b)=>a+b,0)<=200);
+ }finally{await exec('rollback;');await authenticate();}
+});
+test('bounded hydration preserves canonical tail refill when final snapshot rows are private',narrowOnly,async()=>{
+ const saved=await freshSnapshot();await exec('begin;');
+ try{
+  await admin();await exec(`update posts set audience='mentioned' where id=any(array[${saved.ids.slice(194,199).map(v=>`'${v}'::uuid`).join(',')}]);`);await authenticate();
+  const args=`'for_you',${-4000000000000000-saved.cursor_serial*256-194},'${saved.ids[193]}',20`;
+  const expected=await rows(`select * from get_feed_before_bounded(${args})`);
+  const actual=await rows(`select * from get_feed(${args})`);
+  assert.deepEqual(actual,expected);assert.equal(actual.length,20);assert.equal(new Set(actual.map(v=>v.post_id)).size,20);
+  assert.ok(actual.some(v=>v.sort_key>-4000000000000000));
+ }finally{await exec('rollback;');await authenticate();}
+});
+
+test('legacy clients stay canonical without queueing and exact capability enables prepared cursors',narrowOnly,async()=>{
+ await admin();await exec('delete from prepared_feed.demand;select configure_prepared_feed_v1(true);');await authenticate();await exec('begin;');
+ try{
+  const canonical=await rows("select * from prepared_feed.canonical('for_you',null,null,20)");
+  for(const info of ['', 'supabase-js/2', 'platinum-cache/10', 'xplatinum-cache/1', 'platinum-cache/1-extra']){
+   await exec(`select set_config('request.headers',jsonb_build_object('x-client-info','${info}')::text,false);`);
+   assert.deepEqual(await rows("select * from get_feed('for_you',null,null,20)"),canonical,info);
+   assert.deepEqual(await rows(`select * from get_feed('for_you',-4000000000000257,'${id(999999)}',20)`),canonical,info);
+  }
+  await admin();assert.equal((await rows('select count(*) n from prepared_feed.demand'))[0].n,0);
+  await authenticate();await exec(`select set_config('request.headers','{"x-client-info":"supabase-js/2,platinum-cache/1,PlatinumCircles-nest-mobile"}',false);`);await rows("select * from get_feed('for_you',null,null,20)");await admin();
+  assert.equal((await rows('select count(*) n from prepared_feed.demand'))[0].n,1);
+  await exec('select drain_prepared_feed_v1(1);');await authenticate();
+  assert.ok((await rows("select sort_key from get_feed('for_you',null,null,20)")).every(r=>r.sort_key<-4000000000000000));
+ }finally{await exec('rollback;');await authenticate();}
 });

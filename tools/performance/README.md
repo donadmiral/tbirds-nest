@@ -19,9 +19,11 @@ The existing `http-load.cjs` is a separate GET-only latency probe. It defaults t
 
 `capacity-foundation.yml` runs the real PostgreSQL 17.11 functions in a disposable 2 CPU / 2 GiB container. The database has no TCP listener or container network. No hosted credentials, URLs, or provider SDK calls are supplied. The workload programs accept only a Unix socket and the explicitly named disposable databases.
 
+The feed fixture also installs the deployed read indexes captured in `production-read-indexes-20261105.json`, including ordered post-media lookup, product lookup and comment previews. `production-read-indexes.sql` reproduces those definitions locally. Each report records the final installed index definitions and source hashes. Earlier failed measurements omitted several of these indexes, so changes in timings cannot be attributed to the ranking change alone. Failed runs now retain their last completed phase and any collected measurements.
+
 | Program | Actual exercise | Gate |
 | --- | --- | --- |
-| `prepared-feed-load.cjs` | 25,000 posts, 16 authenticated viewers, full `get_feed` card hydration, 30 seconds at 20 operations/s, then a 60-second soak at 10 operations/s | All arrivals complete, zero errors/private-row leaks, p95 at most 500 ms, scheduling lag at most 1,000 ms |
+| `prepared-feed-load.cjs` | 25,018 posts including 16 owner-only sentinels, 16 authenticated viewers, full `get_feed` card hydration, 30 seconds at 20 operations/s, then a 60-second soak at 10 operations/s | All arrivals complete, zero errors/private-row leaks, p95 at most 500 ms, scheduling lag at most 1,000 ms |
 | Same feed program | Read while the worker holds a demand-row lock, snapshot renewal during soak, eight simultaneous PostgreSQL reconnects, live hidden-post revocation | Locked-demand read under 500 ms, renewal occurs, reconnects finish under 5 seconds, revoked row absent |
 | `media-admission-load.cjs` | 64 canonical source bindings, 16 competing sessions, four admitted leases, duplicate enrollment, expired lease, emergency stop | At most four simultaneous leases, stale completion rejected, all 64 controlled failure completions accounted for, originals intact |
 | `media-encode-probe.mjs` | Four real eight-second 640×360 encodes, two workers, one FFmpeg thread each | Every HLS variant independently decodes, fallback retains audio, original source unchanged |

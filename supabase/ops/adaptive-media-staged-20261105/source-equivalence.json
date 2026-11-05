@@ -1,0 +1,26 @@
+{
+  "source": "supabase/migrations/20261105044918_adaptive_media_admission_backfill_v2.sql",
+  "sourceSha256": "9c7c06abbb6f5fb840aa99d08c026531e531dd68c576b51a88dd0bd070c40ccb",
+  "stages": [
+    {
+      "file": "01-admission-triggers.sql",
+      "bytes": 1265,
+      "sha256": "43cf3376fee47bfc392a35c9b87e5f57e7445367b0dabc97f2cc327ad655d0a7"
+    },
+    {
+      "file": "02-bounded-backfill.sql",
+      "bytes": 2460,
+      "sha256": "e661052d5c25bf5e27001b2400b788b4470e48ae5eee737bd87792e72b78c2f1"
+    }
+  ],
+  "functions": [
+    {
+      "name": "media_renditions.source_added()",
+      "bodyMd5": "469e118a914394b46b45d62746076465"
+    },
+    {
+      "name": "public.backfill_media_renditions_v2(uuid,integer,boolean)",
+      "bodyMd5": "53df197997ba06f9d2ad197e24027341"
+    }
+  ]
+}

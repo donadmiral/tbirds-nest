@@ -38,7 +38,9 @@ export function publicSnapshotRows(rows: Row[], eligible: Set<string>): Row[] {
       const aspect = ['original', 'square', 'portrait', 'landscape'].includes(item.edit?.aspect) ? item.edit.aspect : undefined;
       const aspectRatio = typeof item.edit?.aspectRatio === 'number' && Number.isFinite(item.edit.aspectRatio)
         && item.edit.aspectRatio >= .25 && item.edit.aspectRatio <= 4 ? item.edit.aspectRatio : undefined;
-      const edit = { ...(aspect ? { aspect } : {}), ...(aspectRatio ? { aspectRatio } : {}) };
+      const rotation = typeof item.edit?.rotation === 'number' && Number.isFinite(item.edit.rotation) ? item.edit.rotation : undefined;
+      const edit = { ...(aspect ? { aspect } : {}), ...(aspectRatio ? { aspectRatio } : {}),
+        ...(rotation !== undefined ? { rotation } : {}) };
       if (!url) {
         const id = text(item.id, 80);
         if (!id) return [];

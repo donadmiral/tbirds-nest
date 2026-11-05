@@ -47,7 +47,11 @@ jobs:
             postgres:17.11 -c listen_addresses='' -c jit=off
           ready=false
           for attempt in $(seq 1 60); do
-            if pg_isready --dbname=postgres; then ready=true; break; fi
+            # Ignore the temporary initdb server, which shuts down before the
+            # final database starts accepting the contract test connections.
+            if docker logs pc-capacity-postgres 2>&1 | grep -F 'PostgreSQL init process complete; ready for start up.' > /dev/null; then
+              if pg_isready --dbname=postgres; then ready=true; break; fi
+            fi
             sleep 1
           done
           test "$ready" = true

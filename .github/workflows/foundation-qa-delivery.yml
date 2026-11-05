@@ -1,6 +1,6 @@
 name: Foundation iPhone QA delivery
 
-# Delivery revision: reserved media frames and late encrypted preview restoration.
+# Delivery revision: reserved media geometry and compatible prepared-feed opt-in.
 # A source-only push runs the shared quality gates without starting another EAS build.
 # workflow_run cannot bootstrap a new workflow living only on this release branch.
 on:

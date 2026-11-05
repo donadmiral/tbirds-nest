@@ -1,0 +1,45 @@
+{
+  "original": {
+    "path": "supabase/migrations/20261105044917_prepared_feed_snapshots.sql",
+    "sha256": "f6efa6982b921d1f8495b82868880d61f52ab15d9b856962329cdb8ac32af8dc",
+    "bytes": 19554
+  },
+  "stages": [
+    {
+      "name": "01_private_foundation.sql",
+      "sha256": "8a432cc07972dde74ad9f0536bc0a639c6441228871b751a23c55ab599b949fc",
+      "bytes": 6096
+    },
+    {
+      "name": "02_private_rank.sql",
+      "sha256": "8295782854d390c0bfb10755f00a8d4a28d05318654446554fa37370d0a8da9f",
+      "bytes": 2715
+    },
+    {
+      "name": "03_private_worker.sql",
+      "sha256": "ae407fed3777ab45a4cebdd3e1e9c0fe156619168a02762ad478624f5568507a",
+      "bytes": 3591
+    },
+    {
+      "name": "04_private_controls.sql",
+      "sha256": "9e2ec96b065cadc42ff0fd68b1e04700e52f1d80d3473ebbff14c56e191fd695",
+      "bytes": 2776
+    },
+    {
+      "name": "05_private_tail.sql",
+      "sha256": "0d98c5f9622f2d14956b589117b8adc8893294f27a75ec63a9a0800bd563f52d",
+      "bytes": 2030
+    },
+    {
+      "name": "06_private_dispatch.sql",
+      "sha256": "011b356f3fd165691c2a0ae50ecb4153e4a5fadd346970d8d776774d8e3e8f54",
+      "bytes": 3993
+    },
+    {
+      "name": "07_activate_contract.sql",
+      "sha256": "2741dc83fb02d12d02e65122b85f864c1e8ce94d087de49c938d18e90a5c49ac",
+      "bytes": 2924
+    }
+  ],
+  "preserved": "Original function bodies byte-identical. Public CREATE headers temporarily use private schema; all functions moved atomically at final activation. Original canonical swap, grants and invalidation triggers activate in one transaction. Private stages deny app and service-role schema, table and function access. All stages retain 3s lock and 30s statement timeouts. Temporary contract metadata is removed at activation."
+}

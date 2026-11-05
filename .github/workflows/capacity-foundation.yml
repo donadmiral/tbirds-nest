@@ -48,7 +48,11 @@ jobs:
             -c max_connections=60 -c shared_buffers=256MB -c work_mem=4MB
           ready=false
           for attempt in $(seq 1 60); do
-            if pg_isready --dbname=postgres; then ready=true; break; fi
+            # The image briefly starts a temporary server during initdb. Wait
+            # for its shutdown before accepting the final server as ready.
+            if docker logs pc-capacity-foundation 2>&1 | grep -F 'PostgreSQL init process complete; ready for start up.' > /dev/null; then
+              if pg_isready --dbname=postgres; then ready=true; break; fi
+            fi
             sleep 1
           done
           test "$ready" = true
@@ -59,7 +63,7 @@ jobs:
       - name: Verify budgets, isolation and actual PostgreSQL contracts
         run: |
           node --test tests/capacity-workload.test.cjs tests/capacity-isolation.test.cjs
-          PGDATABASE=pc_scale_prepared_feed node --test supabase/tests/prepared-feed-db.test.cjs
+          PREPARED_FEED_NARROW=1 PGDATABASE=pc_scale_prepared_feed node --test supabase/tests/prepared-feed-db.test.cjs
           dropdb pc_scale_prepared_feed
           psql --dbname=postgres --command='drop role prepared_feed_reader;'
           PGDATABASE=pc_scale_feed_ties node --test supabase/tests/feed-ties-db.test.cjs
