@@ -52,7 +52,7 @@ python3 - 2>&1 <<'PY' | tee native-compile-logs/postflight.log
 from pathlib import Path
 import hashlib, json, os, subprocess
 sources = [Path('modules/boomerang/ios') / name for name in (
-    'BoomerangModule.swift', 'StoryVideoView.swift', 'StoryVideoComposition.swift', 'ReactVideoComposition.swift')]
+    'BoomerangModule.swift', 'StoryVideoView.swift', 'StoryHLSGradeSurface.swift', 'StoryVideoComposition.swift', 'ReactVideoComposition.swift')]
 objects = {}
 for source in sources:
     matches = list(Path('native-compile-derived/Build/Intermediates.noindex').rglob(source.stem + '.o'))

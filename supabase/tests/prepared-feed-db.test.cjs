@@ -2,7 +2,7 @@ const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const { PGlite } = require('./rpc-authorization/node_modules/@electric-sql/pglite');
 const { LocalPsqlSession } = require('./local-psql-session.cjs');
-const { fixture, migration, sql, id, OWNER, VIEWER } = require('./feed-scale-fixture.cjs');
+const { fixture, migration, sql, id, OWNER, VIEWER, marketFilterPatch } = require('./feed-scale-fixture.cjs');
 let db, real;
 const exec = sql => real ? db.query(sql) : db.exec(sql);
 async function rows(sql) {
@@ -26,6 +26,7 @@ before(async () => {
  db=real?new LocalPsqlSession():new PGlite();
  await exec('drop schema if exists prepared_feed cascade;drop schema if exists feed_ranking cascade;drop schema if exists post_counter_internal cascade;drop schema if exists auth cascade;drop schema public cascade;create schema public;drop role if exists prepared_feed_reader;');
  await exec(fixture);
+ await exec(marketFilterPatch);
  await exec(`create function auth.jwt() returns jsonb language sql stable as $$select coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb$$;
  grant execute on function auth.jwt() to authenticated,anon,service_role;
  update posts set created_at=created_at-interval '1 second' where id='${id(2)}';
@@ -52,6 +53,7 @@ before(async () => {
   await exec(sql('20261105051457_prepared_feed_client_capability_gate.sql'));
   await exec(sql('20261105052419_feed_catalog_point_visibility.sql'));
   await exec(sql('20261105052732_amortized_feed_frontier_scoring.sql'));
+  await exec(sql('20261105155522_prepared_frontier_final_proof.sql'));
   await exec('select configure_indexed_feed_v1(true);');
  }
  await exec(`create function pg_temp.prepared_expected_error(statement text) returns text language plpgsql security invoker as $$
@@ -154,6 +156,55 @@ async function canonicalIds(mode){
  }
  return expected;
 }
+async function boundaryFixture(check, equalScores=false){
+ await admin();await exec('begin;');
+ try{
+  await exec(`truncate posts cascade;delete from follows;
+   insert into posts(id,user_id,content,created_at,likes_count,channel)
+   select ('10000000-0000-4000-8000-'||lpad((970000+n)::text,12,'0'))::uuid,
+    ('10000000-0000-4000-8000-'||lpad((200+n)::text,12,'0'))::uuid,
+    'Boundary proof',now()-interval '1 hour',${equalScores?'1':'n'},'home' from generate_series(1,80)n;`);
+  let definition=(await rows("select pg_get_functiondef('prepared_feed.select_page(text,double precision,uuid,integer)'::regprocedure) definition"))[0].definition;
+  definition=definition.replace('maximum_candidates constant integer:=10000','maximum_candidates constant integer:=64');
+  // Remove only the conservative float padding in this test variant to put
+  // the remaining raw bound exactly on the last selected score.
+  if(equalScores)definition=definition.replaceAll('*(1.0+1e-12)','');
+  await exec(definition);await exec('set role prepared_feed_reader;');
+  await check();
+ }finally{await exec('rollback;');await authenticate();}
+}
+test('final fetched boundary proves exact winners before the canonical fallback',narrowOnly,async()=>{
+ await boundaryFixture(async()=>{
+  const page=(await rows("select prepared_feed.select_page('for_you',null,null,20) result"))[0].result;
+  const expected=(await rows("select prepared_feed.exact_ids('for_you') result"))[0].result.slice(0,20);
+  assert.equal(page.fallback,false);assert.equal(page.candidates,64);
+  assert.deepEqual(page.ids,expected.map(r=>r.id));assert.deepEqual(page.keys,expected.map(r=>r.key));
+ });
+});
+test('an unproven final boundary still falls back without another fetch',narrowOnly,async()=>{
+ await boundaryFixture(async()=>{
+  const page=(await rows("select prepared_feed.select_page('for_you',null,null,80) result"))[0].result;
+  assert.equal(page.fallback,true);assert.equal(page.reason,'proof_budget');assert.equal(page.candidates,64);
+ });
+});
+test('a remaining bound equal to the selected score cannot pass the strict proof',narrowOnly,async()=>{
+ await boundaryFixture(async()=>{
+  const page=(await rows("select prepared_feed.select_page('for_you',null,null,1) result"))[0].result;
+  assert.equal(page.fallback,true);assert.equal(page.reason,'proof_budget');assert.equal(page.candidates,64);
+ },true);
+});
+test('prepared fixture retains the exact hosted marketplace exclusion',narrowOnly,async()=>{
+ await admin();
+ assert.equal((await rows("select md5(prosrc) hash from pg_proc where oid='prepared_feed.exact_ids(text)'::regprocedure"))[0].hash,'87b8bd662fea0977374107296aa01a97');
+ await authenticate();await exec('begin;');
+ try{
+  const target=(await ranked('for_you'))[0].id;
+  await admin();await exec(`insert into post_products(id,post_id,link_url) values('${id(980001)}','${target}','/market/${id(980002)}?from=feed');`);
+  await authenticate();
+  assert.equal((await ranked('for_you')).some(p=>p.id===target),false);
+  assert.deepEqual(await ranked('for_you'),await canonicalIds('for_you'));
+ }finally{await exec('rollback;');await authenticate();}
+});
 test('one narrow200 pass equals canonical pages across all modes and both frontier settings',narrowOnly,async()=>{
  await admin();await exec(`update posts set channel='innovation' where likes_count%3=0;
  insert into trending_snapshot select 'post',id,row_number()over(order by likes_count desc,id)::int from posts where likes_count>10 on conflict do nothing;`);

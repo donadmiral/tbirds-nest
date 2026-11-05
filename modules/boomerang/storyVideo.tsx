@@ -10,6 +10,10 @@ import { storyPhotoColorMatrix, type StoryPhotoLook } from '../../shared/storyCo
 
 const NativeView: any = storyVideoPreviewAvailable ? requireNativeViewManager('Boomerang') : null;
 const nativeWarmPool = storyVideoPreviewAvailable ? requireOptionalNativeModule('Boomerang') as any : null;
+// Keep the new GPU path off in existing releases until its native runtime and
+// visual acceptance evidence has been reviewed. Old installed modules stay safe.
+export const storyHLSGradeAvailable = process.env.EXPO_PUBLIC_IOS_GRADED_HLS === 'true'
+  && storyVideoPreviewAvailable && nativeWarmPool?.storyHLSGradeVersion === 1;
 export function prewarmStoryVideo(uri: string | null | undefined, scope: string | null, expiresAt?: number) {
   if (!scope || !uri || !/^https:\/\//.test(uri) || (expiresAt !== undefined && !Number.isFinite(expiresAt)) || (expiresAt && expiresAt <= Date.now() + 5000)) return;
   // Prewarming is optional. An unavailable or incompatible native bridge must
@@ -72,11 +76,11 @@ export const useStoryVideoPlayer: (source: string | null, setup?: (player: Video
 function NativeStoryVideo({ player, look, onFirstFrameRender, ...props }: any) {
   useSyncExternalStore(player.subscribe, player.snapshot, player.snapshot);
   const matrix = storyPhotoColorMatrix(look);
-  // Apple's AVVideoComposition supports file-based media only. Keep the
-  // original for graded scenes; neutral scenes use the hardware HLS path.
+  // Older binaries use the file-only composition. The explicitly enabled new
+  // module grades decoded HLS frames on the GPU using the same color matrix.
   const neutral = matrix.every((value: number, index: number) => Math.abs(value - ([0, 6, 12, 18].includes(index) ? 1 : 0)) < .000001);
-  const playback = player.props(neutral);
-  return <NativeView {...props} {...playback} matrix={matrix} onPlayback={(event: any) => { if (player.released) return; const value = event.nativeEvent; player.receive(value, playback.uri); if (value.type === 'firstFrame') onFirstFrameRender?.(); }} />;
+  const playback = player.props(neutral || storyHLSGradeAvailable);
+  return <NativeView {...props} {...playback} matrix={matrix} allowsHLSGrade={storyHLSGradeAvailable} onPlayback={(event: any) => { if (player.released) return; const value = event.nativeEvent; player.receive(value, playback.uri); if (value.type === 'firstFrame') onFirstFrameRender?.(); }} />;
 }
 export function StoryVideoView({ look: explicit, contentFit = 'contain', nativeControls: _controls, ...props }: any & { look?: StoryPhotoLook | null }) {
   const inherited = useContext(StoryPhotoLookContext), look = explicit === undefined ? inherited : explicit;

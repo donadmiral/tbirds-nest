@@ -43,4 +43,8 @@ ${sql('20261022211641_feed_mute_feedback.sql')}
 ${sql('20261022211411_feed_snapshot_visibility.sql')}
 `;
 const migration = sql('20261102090625_exact_feed_hydration_and_narrow_ranking.sql');
-module.exports = { ...counters, fixture, migration, captured, sql };
+const marketMigration = sql('20261029074217_home_marketplace_recommendations.sql');
+const marketPatchStart = marketMigration.indexOf('-- Patch the existing visibility-aware feed');
+if (marketPatchStart < 0) throw Error('Missing deployed home marketplace exclusion');
+const marketFilterPatch = marketMigration.slice(marketPatchStart).replace(/\ncommit;\s*$/, '');
+module.exports = { ...counters, fixture, migration, captured, sql, marketFilterPatch };

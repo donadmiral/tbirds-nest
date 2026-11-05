@@ -9,6 +9,7 @@ public class BoomerangModule: Module {
     Name("Boomerang")
 
     Constant("storyVideoVersion") { 1 }
+    Constant("storyHLSGradeVersion") { 1 }
     Constant("storyAudioExportVersion") { 1 }
     Constant("reactVideoVersion") { 1 }
     Constant("reactCutoutVersion") { 1 }
@@ -49,6 +50,7 @@ public class BoomerangModule: Module {
       Prop("seekSeconds") { (view: StoryVideoView, value: Double) in view.seekSeconds = value }
       Prop("seekRevision") { (view: StoryVideoView, value: Int) in view.seekRevision = value }
       Prop("reloadRevision") { (view: StoryVideoView, value: Int) in view.reloadRevision = value }
+      Prop("allowsHLSGrade") { (view: StoryVideoView, value: Bool) in view.allowsHLSGrade = value }
       OnViewDidUpdateProps { (view: StoryVideoView) in view.update() }
     }
 

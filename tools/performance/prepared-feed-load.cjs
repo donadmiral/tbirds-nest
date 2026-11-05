@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const { performance } = require('node:perf_hooks');
 const { createSession, source, manifest, sourceCommit, outputReport } = require('./local-capacity-db.cjs');
 const { runWorkload, distribution } = require('./bounded-workload.cjs');
-const { fixture, id } = require('../../supabase/tests/feed-scale-fixture.cjs');
+const { fixture, id, marketFilterPatch } = require('../../supabase/tests/feed-scale-fixture.cjs');
 const migrations = [
   'supabase/migrations/20261102090625_exact_feed_hydration_and_narrow_ranking.sql',
   'supabase/migrations/20261102092828_indexed_feed_rank_frontier.sql',
@@ -18,6 +18,7 @@ const migrations = [
   'supabase/migrations/20261105051457_prepared_feed_client_capability_gate.sql',
   'supabase/migrations/20261105052419_feed_catalog_point_visibility.sql',
   'supabase/migrations/20261105052732_amortized_feed_frontier_scoring.sql',
+  'supabase/migrations/20261105155522_prepared_frontier_final_proof.sql',
 ];
 const PROFILES = Object.freeze({
   foundation: { actors: 16, posts: 25000, workers: 8, steady: { seconds: 30, rate: 20 }, soak: { seconds: 60, rate: 10 } },
@@ -78,6 +79,7 @@ async function run(output = process.argv[2]) {
     await maintenance.query("set statement_timeout='30s';");
     await admin.query("set client_min_messages='warning';drop schema if exists prepared_feed,feed_ranking,post_counter_internal,auth,public cascade;create schema public");
     await admin.query(fixture);
+    await admin.query(marketFilterPatch);
     await admin.query(`create function auth.jwt() returns jsonb language sql stable as $$select coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb$$;
       grant execute on function auth.jwt() to authenticated,anon,service_role;
       insert into posts(id,user_id,content,body,created_at,likes_count,comments_count,reposts_count,channel)
