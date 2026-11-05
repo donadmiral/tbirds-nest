@@ -55,6 +55,11 @@ private func check(_ condition: @autoclosure () -> Bool, _ text: String) throws 
     try files.createSymbolicLink(at: link, withDestinationURL: root.deletingLastPathComponent())
     try rejected("Symlink-parent destination was accepted") { _ = try transform(source, link.appendingPathComponent("escaped.bin"), key, false) }
     try check(!files.fileExists(atPath: root.deletingLastPathComponent().appendingPathComponent("escaped.bin").path), "Symlink wrote outside cache before rejection")
+    let broken = root.appendingPathComponent("broken-link")
+    let missingOutside = root.deletingLastPathComponent().appendingPathComponent("missing-outside-" + UUID().uuidString)
+    try files.createSymbolicLink(at: broken, withDestinationURL: missingOutside)
+    try rejected("Broken symlink parent was accepted") { _ = try transform(source, broken.appendingPathComponent("escaped.bin"), key, false) }
+    try check(!files.fileExists(atPath: missingOutside.appendingPathComponent("escaped.bin").path), "Broken symlink wrote outside cache")
     results.append("traversal and symlink escape rejected")
     try rejected { _ = try transform(source, opened, "bad-key", false) }
     let large = root.appendingPathComponent("large.bin")
