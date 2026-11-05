@@ -60,8 +60,25 @@ jobs:
           test -d "${ANDROID_HOME:?The runner must provide its Android SDK}"
           test -c /dev/kvm
           sudo chmod a+rw /dev/kvm
-          timeout --signal=TERM --kill-after=10s 300s bash consumer/scripts/quality/install-linux-test-runtime.sh media
-          sudo timeout --signal=TERM --kill-after=10s 180s apt-get install --yes --no-install-recommends libpulse0 xvfb mesa-utils libgl1-mesa-dri libglx-mesa0 libegl-mesa0
+          runtime_sources="$(mktemp -d "$RUNNER_TEMP/platinum-retained-apt.XXXXXX")"
+          trap 'rm -rf "$runtime_sources"' EXIT
+          chmod 755 "$runtime_sources"
+          test -s /usr/share/keyrings/ubuntu-archive-keyring.gpg
+          cat > "$runtime_sources/ubuntu.list" <<'SOURCES'
+          deb [arch=amd64 signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://archive.ubuntu.com/ubuntu noble main restricted universe multiverse
+          deb [arch=amd64 signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://archive.ubuntu.com/ubuntu noble-updates main restricted universe multiverse
+          deb [arch=amd64 signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://security.ubuntu.com/ubuntu noble-security main restricted universe multiverse
+          SOURCES
+          cat > "$runtime_sources/apt.conf" <<CONFIG
+          Dir::Etc::sourcelist "$runtime_sources/ubuntu.list";
+          Dir::Etc::sourceparts "-";
+          Acquire::Retries "1";
+          Acquire::http::Timeout "20";
+          Acquire::https::Timeout "20";
+          APT::Update::Error-Mode "any";
+          CONFIG
+          sudo timeout --signal=TERM --kill-after=10s 180s env "APT_CONFIG=$runtime_sources/apt.conf" apt-get update --error-on=any
+          sudo timeout --signal=TERM --kill-after=10s 180s env "APT_CONFIG=$runtime_sources/apt.conf" apt-get install --yes --no-install-recommends ffmpeg libpulse0 xvfb mesa-utils libgl1-mesa-dri libglx-mesa0 libegl-mesa0
       - name: Install the original checksum-pinned Maestro CLI
         working-directory: application
         run: bash scripts/quality/install-native-ui-tools.sh
