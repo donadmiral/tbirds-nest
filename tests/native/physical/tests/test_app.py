@@ -158,8 +158,10 @@ def run():
         size = command('GET', '/window/rect')
         width, height = int(size['width']), int(size['height'])
         region = {'left': int(width * .1), 'top': int(height * .30), 'width': int(width * .8), 'height': int(height * .48)}
-        # Bring the actual native player into its production visibility threshold.
-        mobile('scrollGesture', dict(region, direction='down', percent=.40))
+        # Match feed-video.yaml: the card is already fully visible at the top.
+        # A fixed scroll can push it behind the header and correctly pause it
+        # below the production row-visibility threshold.
+        identifier('native-feed-video')
         wait_element('accessibility id', 'Native feed video playing', 30)
         record('native-video-playing')
         mobile('scrollGesture', dict(region, direction='down', percent=1.0))
@@ -172,7 +174,7 @@ def run():
             {'type': 'pointerMove', 'duration': 700, 'x': width // 2, 'y': int(height * .85)},
             {'type': 'pointerUp', 'button': 0}]}]})
         text('A quiet morning in the desert. Small moments worth keeping.')
-        mobile('scrollGesture', dict(region, direction='down', percent=.40))
+        identifier('native-feed-video')
         wait_element('accessibility id', 'Native feed video playing', 30)
         record('video-survives-refresh')
         main_tab('main-tab-messages')
