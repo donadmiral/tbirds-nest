@@ -134,17 +134,19 @@ function renderer(Component, props, globals) {
   const api = { hooks, get tree() { return tree; }, nodes() { return treeNodes(tree); }, async flush() { for (let i = 0; i < 20; i++) { if (dirty) { dirty = false; cursor = 0; tree = Component(props); for (const node of treeNodes(tree)) if (node.props?.ref) node.props.ref.current = node.type === 'video' ? globals.video : globals.root; const pending = effects; effects = []; pending.forEach(effect => effect()); } await new Promise(resolve => setImmediate(resolve)); } }, unmount() { slots.forEach(slot => slot?.cleanup?.()); } };
   return api;
 }
-function componentScenario({ limited = true, delayed = false } = {}) {
+function componentScenario({ limited = true, delayed = false, protocol = 'legacy' } = {}) {
   const order = [], originalRequests = [], doc = { ...events(), visibilityState: 'visible', body: { style: {} }, activeElement: null }, win = events(), element = video();
   const dom = { focus() {}, querySelector: () => ({ hidden: false, querySelector: () => element }), querySelectorAll: () => [] };
   let app, auth, adaptiveOptions, resolveAdaptive;
   const player = { closed: 0, close() { this.closed++; }, attach() {} };
   const deps = { 'react/jsx-runtime': jsx, react: new Proxy({}, { get: (_, key) => app.hooks[key] }), 'next/image': { __esModule: true, default: 'img' }, './PrivateCameraGuard': { PrivateCameraGuard: 'PrivateCameraGuard' },
     '@/lib/supabase/client': { createClient: () => ({ auth: { getSession: async () => ({ data: { session: { user: { id: id(8) }, access_token: 'bearer' } }, error: null }), onAuthStateChange(fn) { auth = fn; return { data: { subscription: { unsubscribe() {} } } }; } } }) },
-    '../../shared/privateMedia': { createPrivateViewSession(options) { order.push({ kind: 'view-constructed', requestId: options.requestId }); return { headers: { Authorization: 'Bearer bearer' }, mediaUrl: 'https://private.fixture.test/original', async open() { order.push({ kind: 'view-open', requestId: options.requestId }); return { requestId: options.requestId, mediaType: 'video', expiresAt: new Date(Date.now() + 60000).toISOString(), remaining: 0, watermark: 'private' }; }, async close() { order.push({ kind: 'view-close' }); options.hide(); } }; } },
+    '../../shared/privateMedia': { createPrivateViewSession: viewSession('private') },
+    '../../shared/legacyLimitedMedia': { createLegacyLimitedViewSession: viewSession('legacy') },
     '@/lib/privateAdaptiveVideo': { async openPrivateAdaptiveVideo(options) { adaptiveOptions = options; order.push({ kind: 'hls-open', requestId: options.requestId }); if (delayed) return new Promise(resolve => { resolveAdaptive = resolve; }); return player; } },
   };
-  const globals = { document: doc, window: win, crypto: { randomUUID: () => id(2) }, fetch: async (url, init) => { originalRequests.push({ url, init }); return { ok: true, blob: async () => new Blob(['original']) }; }, Blob, URL: class extends URL { static createObjectURL() { return 'blob:original'; } static revokeObjectURL() {} } };
+  function viewSession(selected) { return options => { order.push({ kind: 'view-constructed', requestId: options.requestId, protocol: selected, endpoint: options.endpoint }); return { headers: { Authorization: 'Bearer bearer' }, mediaUrl: 'https://private.fixture.test/original', async open() { order.push({ kind: 'view-open', requestId: options.requestId }); return { requestId: options.requestId, mediaType: 'video', expiresAt: new Date(Date.now() + 60000).toISOString(), remaining: 0, watermark: 'private' }; }, async close() { order.push({ kind: 'view-close' }); options.hide(); } }; }; }
+  const globals = { process: { env: { ...env, NEXT_PUBLIC_PRIVATE_MEDIA_SESSIONS_ENABLED: protocol === 'private' ? 'true' : 'false' } }, document: doc, window: win, crypto: { randomUUID: () => id(2) }, fetch: async (url, init) => { originalRequests.push({ url, init }); return { ok: true, blob: async () => new Blob(['original']) }; }, Blob, URL: class extends URL { static createObjectURL() { return 'blob:original'; } static revokeObjectURL() {} } };
   const file = limited ? 'web/components/PrivateMediaViewer.tsx' : 'web/components/ChatVideo.tsx';
   const module = load(file, deps, globals);
   const props = limited ? { messageId: id(1), userId: id(8), onClose() {} } : { messageId: id(1), userId: id(8), source: 'https://private.fixture.test/original', onError() {} };
@@ -156,6 +158,8 @@ test('limited viewer consumes once before HLS and reuses that grant for exact or
   const s = componentScenario(); await s.app.flush();
   s.app.nodes().find(n => n.type === 'button' && text(n) === 'Open attachment').props.onClick(); await s.app.flush();
   assert.deepEqual(s.order.map(row => row.kind), ['view-constructed', 'view-open', 'hls-open']);
+  assert.equal(s.order[0].protocol, 'legacy');
+  assert.equal(s.order[0].endpoint, origin + '/functions/v1/chat-media-sign');
   assert.equal(s.order[1].requestId, s.order[2].requestId); assert.equal(s.originalRequests.length, 0);
   const viewer = s.app.nodes().find(n => typeof n.type === 'function' && n.type.name === 'PrivateVideo');
   viewer.props.onFallback({ time: 6, playing: false }); await s.app.flush();
@@ -163,6 +167,14 @@ test('limited viewer consumes once before HLS and reuses that grant for exact or
   const fallback = s.app.nodes().find(n => typeof n.type === 'function' && n.type.name === 'PrivateVideo');
   assert.equal(fallback.props.url, 'blob:original'); assert.equal(fallback.props.resume.time, 6); assert.equal(fallback.props.resume.playing, false);
   assert.equal(s.order.filter(row => row.kind === 'view-open').length, 1); s.app.unmount();
+});
+test('the new private protocol is selected only by its explicit backend flag', async () => {
+  const s = componentScenario({ protocol: 'private' }); await s.app.flush();
+  s.app.nodes().find(n => n.type === 'button' && text(n) === 'Open attachment').props.onClick(); await s.app.flush();
+  assert.equal(s.order[0].protocol, 'private');
+  assert.equal(s.order[0].endpoint, origin + '/functions/v1/private-media-session');
+  assert.equal(s.order.filter(row => row.kind === 'view-open').length, 1);
+  s.app.unmount();
 });
 test('late HLS grant cannot reopen a closed limited viewer', async () => {
   const s = componentScenario({ delayed: true }); await s.app.flush();

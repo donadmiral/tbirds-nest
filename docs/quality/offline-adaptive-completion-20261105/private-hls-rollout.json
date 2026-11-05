@@ -1,0 +1,64 @@
+{
+  "recordedAt": "2026-11-05T17:02:59.445156+00:00",
+  "schemaMigration": "supabase/migrations/20261105155600_private_chat_adaptive_delivery.sql",
+  "migrationSha256": "5b42ffa1cae062948c4cd55c4575325fa3e26c651495a5e2b2b86bc8e0e07b96",
+  "installationDefault": "private_hls.settings.enabled=false",
+  "edge": {
+    "slug": "private-hls",
+    "verifyJwt": false,
+    "entrypoint": "supabase/functions/private-hls/index.ts",
+    "files": {
+      "supabase/functions/private-hls/index.ts": "dc3bed1a0d8a2b2b80e8390f1cabc5c6d4b8b20ad74bffb1d96083c92827ef6b",
+      "supabase/functions/private-hls/handler.ts": "aae4b8a8b6eec6fafd52926f8005f9800fd92a44f8a0d2a561642a5388c09514",
+      "supabase/functions/_shared/serviceRoleFetch.ts": "ace9ffd7da959617a6840f863a04c6b6a8cc79237f33b4dadc52d0af092e09a2",
+      "supabase/functions/_shared/boundedFetch.ts": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147"
+    },
+    "package": "npm:@supabase/supabase-js@2.112.3",
+    "existingServerSecrets": [
+      "SUPABASE_URL",
+      "SUPABASE_ANON_KEY",
+      "SUPABASE_SERVICE_ROLE_KEY"
+    ],
+    "authorization": "getUser plus live auth.sessions, current conversation access, exact source version and rendition lease are rechecked by SQL for every request. Segments reauthorize after SHA-256 validation. No cached authorization."
+  },
+  "worker": "Publish the current worker bundle that accepts only authenticated ordinary/limited chat source claims. Generic content gateway continues to exclude chat-media/chat-files. Existing sandbox concurrency and budgets are unchanged.",
+  "preflight": [
+    "Current production content source_snapshot definition matches the QA private_hls.content_source_snapshot preserved implementation.",
+    "Existing chat locator, original grant and conversation-access functions match the tested QA contracts.",
+    "private_media schema remains absent. Existing legacy limited grants are the supported path.",
+    "Confirm RLS on all private_hls tables, no public/anon/authenticated/service_role table access, explicit authenticated execute only on open/read/close public RPCs.",
+    "Confirm deployed private-hls dependencies/hash, verify_jwt=false, server secrets configured, no private-source bytes or tokens in logs.",
+    "Confirm current worker source and original legacy endpoints chat-media-sign and limited-media-file work before flag activation."
+  ],
+  "activationOrder": [
+    "Apply the additive migration with enabled=false.",
+    "Deploy private-hls Edge and current chat-capable media worker.",
+    "Inspect inert schema, RLS and public function permissions.",
+    "Enable the QA-only backend setting and QA client HLS flags.",
+    "Verify hosted ordinary/legacy-limited canary and decoded native/browser playback, view count, close, background/account switch and expiry.",
+    "Only then coordinate production backend enabled=true and matching verified client release."
+  ],
+  "clientFlags": {
+    "nativeQA": {
+      "EXPO_PUBLIC_PRIVATE_HLS": "true",
+      "EXPO_PUBLIC_PRIVATE_MEDIA_SESSIONS_ENABLED": "false"
+    },
+    "webQA": {
+      "NEXT_PUBLIC_PRIVATE_HLS": "true",
+      "NEXT_PUBLIC_PRIVATE_MEDIA_SESSIONS_ENABLED": "false",
+      "NEXT_PUBLIC_LEGACY_LIMITED_MEDIA_ENABLED": "true after browser gate"
+    },
+    "production": "Remain unchanged until root coordinates deployment against verified gate results."
+  },
+  "rollback": [
+    "Set private_hls.settings.enabled=false. New and existing private HLS reads fail closed.",
+    "Set PRIVATE_HLS client flags false for subsequent web/build release. Set web LEGACY_LIMITED_MEDIA_ENABLED false to hide its new entry point if needed.",
+    "Keep the additive schema and existing chat-media-sign/limited-media-file endpoints. The original limited-view counter and no-store transport remain authoritative.",
+    "Do not restore consumed views, delete rendition rows by hand, enable generic content tokens for chat, or broaden cache eligibility. Let fenced cleanup remove retired derivatives."
+  ],
+  "openGates": [
+    "Cleanup of controlled QA fixture is pending root coordination.",
+    "Actual browser private HLS fixture awaits CI after source publication.",
+    "Native private-HLS header propagation, playback and background/account lifecycle still need a client runtime receipt. Graded public iOS HLS is a separate gate owned by root."
+  ]
+}

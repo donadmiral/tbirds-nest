@@ -1,0 +1,47 @@
+name: Private HLS browser playback
+on:
+  push:
+    branches: ['codex/loading-foundation-20261105']
+    paths:
+      - 'web/components/PrivateMediaViewer.tsx'
+      - 'web/components/ChatVideo.tsx'
+      - 'web/lib/privateAdaptiveVideo.ts'
+      - 'shared/privateAdaptiveMedia.ts'
+      - 'shared/legacyLimitedMedia.ts'
+      - 'web/tests/browser/private-hls-*'
+      - '.github/workflows/private-hls-browser.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: private-hls-browser-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  private-playback:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PRIVATE_HLS_EVIDENCE: /tmp/private-hls-browser-evidence
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci --prefix web --no-fund
+      - name: Install pinned browser and encoding tools
+        run: |
+          timeout --signal=TERM --kill-after=10s 300s bash scripts/quality/install-linux-test-runtime.sh browser-media web/node_modules/playwright/cli.js
+          bash scripts/quality/install-browser-test-runtime.sh "$RUNNER_TEMP/platinum-private-browser"
+      - name: Decode private HLS and enforce existing view ownership
+        run: node web/tests/browser/private-hls-run.cjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: private-hls-browser-playback
+          path: /tmp/private-hls-browser-evidence/
+          if-no-files-found: warn
+          retention-days: 7

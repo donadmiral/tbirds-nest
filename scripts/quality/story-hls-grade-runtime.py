@@ -121,7 +121,7 @@ def matches_orientation(measurement, name):
         {'centerMeanRGB': measurement['bottomRightMeanRGB']}, name)
 
 
-def compositor_screenshot(device, path, timeout=8):
+def compositor_screenshot(device, path, timeout=16):
     """Read this capture's complete PNG even if simctl keeps its output pipe open."""
     path.unlink(missing_ok=True)
     started = time.monotonic()
@@ -236,7 +236,13 @@ def run(args):
                     if phase.get('color') != EXPECTED_PIXELS[name]:
                         raise RuntimeError('Native screenshot expected color differs from independent driver')
                     screenshot = output / (name + '.png')
-                    pixel_deadline = time.monotonic() + 8
+                    # Simulator's compositor can take longer to reconnect after
+                    # a real OS foreground transition. Keep collection inside
+                    # the native harness's existing 20-second acknowledgement
+                    # deadline. This is instrumentation time, not player startup.
+                    # Every capture still requires a new complete PNG, exact
+                    # graded pixels and the independent orientation marker.
+                    pixel_deadline = time.monotonic() + 16
                     measurement, passed, captures = {}, False, []
                     while time.monotonic() < pixel_deadline:
                         measurement, capture = compositor_screenshot(args.device, screenshot,

@@ -7,8 +7,10 @@ import {
   type PrivateGrant,
   type PrivateCloseReason,
 } from "../../shared/privateMedia";
+import { createLegacyLimitedViewSession } from "../../shared/legacyLimitedMedia";
 import { openPrivateAdaptiveVideo, type PrivateAdaptiveVideo, type PrivatePlaybackPosition } from "@/lib/privateAdaptiveVideo";
 import { PrivateCameraGuard } from "./PrivateCameraGuard";
+const PRIVATE_MEDIA_SESSIONS_ENABLED = process.env.NEXT_PUBLIC_PRIVATE_MEDIA_SESSIONS_ENABLED === 'true';
 type Props = {
   messageId: string;
   userId: string;
@@ -80,7 +82,7 @@ function PrivateMediaSession({
     root = useRef<HTMLDivElement>(null),
     objectUrl = useRef<string | null>(null),
     fetchAbort = useRef<AbortController | null>(null),
-    session = useRef<ReturnType<typeof createPrivateViewSession> | null>(null),
+    session = useRef<ReturnType<typeof createPrivateViewSession> | ReturnType<typeof createLegacyLimitedViewSession> | null>(null),
     adaptiveRef = useRef<PrivateAdaptiveVideo | null>(null),
     loadOriginal = useRef<((position?: PrivatePlaybackPosition) => Promise<void>) | null>(null);
   const callbacks = useRef({ onClose, onConsumed });
@@ -210,10 +212,12 @@ function PrivateMediaSession({
         document.visibilityState === "visible";
       if (!current()) return;
       const requestId = crypto.randomUUID();
-      const transport = createPrivateViewSession({
+      // Choose the installed protocol explicitly. An error never switches
+      // protocols or consumes a second view while trying an HLS fallback.
+      const transport = (PRIVATE_MEDIA_SESSIONS_ENABLED ? createPrivateViewSession : createLegacyLimitedViewSession)({
         endpoint:
           process.env.NEXT_PUBLIC_SUPABASE_URL +
-          "/functions/v1/private-media-session",
+          (PRIVATE_MEDIA_SESSIONS_ENABLED ? "/functions/v1/private-media-session" : "/functions/v1/chat-media-sign"),
         token: auth.data.session.access_token,
         apiKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
         messageId,
@@ -290,7 +294,7 @@ function PrivateMediaSession({
       className="fixed inset-0 z-[200] flex flex-col bg-[var(--canvas)] text-ink"
     >
       <header className="flex items-center justify-between p-5">
-        <strong>Private view</strong>
+        <strong>{PRIVATE_MEDIA_SESSIONS_ENABLED ? 'Private view' : 'Limited view'}</strong>
         <button
           onClick={() => {
             close();

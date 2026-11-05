@@ -1,12 +1,22 @@
-name: Physical Android isolated app build
+name: Physical Android QA app build
 on:
   push:
     branches: ['codex/loading-foundation-20261105']
     paths:
       - '.github/workflows/physical-android-build.yml'
       - 'scripts/quality/build-physical-android.sh'
+      - 'scripts/quality/prepare-native-connected.cjs'
+      - 'scripts/quality/native-connected-observation-overlay.cjs'
+      - 'tests/native/connected-*'
       - 'tests/native/physical/**'
+      - 'tests/native/physical-connected/**'
   workflow_dispatch:
+    inputs:
+      backend:
+        description: Disposable QA backend mode
+        type: choice
+        options: [connected, isolated]
+        default: connected
 permissions:
   contents: read
 concurrency:
@@ -22,6 +32,7 @@ jobs:
       EXPO_PUBLIC_APP_ENV: qa
       EXPO_PUBLIC_SUPABASE_URL: https://uaulhuelcfkjwojtymmw.supabase.co
       EXPO_PUBLIC_SUPABASE_ANON_KEY: native-ui-synthetic-no-provider-key
+      PHYSICAL_BACKEND: ${{ inputs.backend || 'connected' }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -36,11 +47,22 @@ jobs:
           echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
           echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
       - run: npm ci --ignore-scripts --no-fund
+      - name: Configure the existing connected QA project
+        if: env.PHYSICAL_BACKEND == 'connected'
+        run: |
+          node <<'JS'
+          const fs = require('node:fs');
+          const env = require('./eas.json').build.preview.env;
+          if (env.EXPO_PUBLIC_APP_ENV !== 'qa' || env.EXPO_PUBLIC_SUPABASE_URL !== 'https://uaulhuelcfkjwojtymmw.supabase.co') throw new Error('Existing QA configuration required');
+          for (const key of ['EXPO_PUBLIC_APP_ENV','EXPO_PUBLIC_SUPABASE_URL','EXPO_PUBLIC_SUPABASE_ANON_KEY','EXPO_PUBLIC_PRIVATE_MEDIA_SESSIONS_ENABLED','EXPO_PUBLIC_ADAPTIVE_MEDIA','EXPO_PUBLIC_PRIVATE_HLS']) {
+            if (typeof env[key] === 'string' && !/[\r\n]/.test(env[key])) fs.appendFileSync(process.env.GITHUB_ENV, key + '=' + env[key] + '\n');
+          }
+          JS
       - run: bash scripts/quality/build-physical-android.sh
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
-          name: physical-android-isolated-app
+          name: physical-android-${{ env.PHYSICAL_BACKEND }}-app
           path: physical-android-build/
           if-no-files-found: ignore
           retention-days: 7

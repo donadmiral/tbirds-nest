@@ -42,7 +42,8 @@ import { navigationMessages, revalidateMessageWindow, type MessageNavigationMemo
 import { profilePath } from "@/lib/profileLookup";
 import workspace from "./MessagesWorkspace.module.css";
 
-const PRIVATE_MEDIA_SESSIONS_ENABLED = process.env.NEXT_PUBLIC_PRIVATE_MEDIA_SESSIONS_ENABLED === 'true';
+const LIMITED_MEDIA_VIEWER_ENABLED = process.env.NEXT_PUBLIC_PRIVATE_MEDIA_SESSIONS_ENABLED === 'true'
+  || process.env.NEXT_PUBLIC_LEGACY_LIMITED_MEDIA_ENABLED === 'true';
 
 const subscribeLocation = (listener: () => void) => { window.addEventListener("popstate", listener); return () => window.removeEventListener("popstate", listener); };
 const debugSnapshot = () => new URLSearchParams(window.location.search).get("debug") === "1";
@@ -976,7 +977,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   }
 
   const messageActions: MessageActions = {
-    openPrivate: message => { if (PRIVATE_MEDIA_SESSIONS_ENABLED && uid && uidRef.current === uid && message.view_limit && message.conversation_id === activeRef.current?.id && message.sender_id !== uid && !viewedPrivateIds.has(message.id)) setPrivateMedia({ id: message.id, userId: uid, conversationId: message.conversation_id, account: accountGeneration.current }); },
+    openPrivate: message => { if (LIMITED_MEDIA_VIEWER_ENABLED && uid && uidRef.current === uid && message.view_limit && message.conversation_id === activeRef.current?.id && message.sender_id !== uid && !viewedPrivateIds.has(message.id)) setPrivateMedia({ id: message.id, userId: uid, conversationId: message.conversation_id, account: accountGeneration.current }); },
     viewedPrivateIds,
     refreshMedia: message => { void runMessageAction(message, async () => {
       const account = accountGeneration.current;
@@ -1246,7 +1247,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
         if(uidRef.current!==uid || activeRef.current?.id!==active?.id)return false;
         return insertMessage(attachmentCardText(card),JSON.stringify(card),'link');
       }}/>}
-      {PRIVATE_MEDIA_SESSIONS_ENABLED && privateMedia && privateMedia.userId === uid && privateMedia.conversationId === active?.id && privateMedia.account === accountVersion && <PrivateMediaViewer key={privateMedia.userId+":"+privateMedia.id} messageId={privateMedia.id} userId={privateMedia.userId}
+      {LIMITED_MEDIA_VIEWER_ENABLED && privateMedia && privateMedia.userId === uid && privateMedia.conversationId === active?.id && privateMedia.account === accountVersion && <PrivateMediaViewer key={privateMedia.userId+":"+privateMedia.id} messageId={privateMedia.id} userId={privateMedia.userId}
         onClose={() => setPrivateMedia(current => current?.id === privateMedia.id && current?.userId === privateMedia.userId && current?.account === privateMedia.account ? null : current)} onConsumed={remaining => { if (remaining <= 0 && privateMedia.account === accountGeneration.current && privateMedia.conversationId === activeRef.current?.id) setViewedPrivateIds(prev => new Set(prev).add(privateMedia.id)); }} />}
       {actionError ? <div role="alert" className="mb-2 text-sm text-danger"><p>{actionError}</p>{attachmentDraft ? <button type="button" disabled={sendingFile} className="mt-1 underline" onClick={() => void attach([attachmentDraft])}>Retry attachment</button> : null}</div> : null}
       {notice ? <p role="status" className="mb-2 text-sm text-ink">{notice}</p> : null}
@@ -1480,7 +1481,7 @@ const BubbleView = memo(function BubbleView({ m, uid, offer, actions, replySourc
           {m.media_type === "payment" || m.payment_id ? (
             <span className={"flex items-center gap-1.5 text-[13px] " + (mine ? "text-white/75" : "text-secondary")}><Wallet size={14} /> Payment · open the Platinum Circles app</span>
           ) : null}
-          {m.view_limit ? PRIVATE_MEDIA_SESSIONS_ENABLED ? <button type="button" disabled={mine || actions.viewedPrivateIds.has(m.id)} onClick={() => actions.openPrivate(m)} className="rounded-lg border border-current/30 p-3 text-sm disabled:opacity-60">{actions.viewedPrivateIds.has(m.id) ? "Viewed" : mine ? "Private attachment" : "Open private attachment"}</button> : <p className="text-sm">Limited-view attachment · Open in phone app</p> : null}
+          {m.view_limit ? LIMITED_MEDIA_VIEWER_ENABLED ? <button type="button" disabled={mine || actions.viewedPrivateIds.has(m.id)} onClick={() => actions.openPrivate(m)} className="rounded-lg border border-current/30 p-3 text-sm disabled:opacity-60">{actions.viewedPrivateIds.has(m.id) ? "Viewed" : mine ? "Private attachment" : "Open private attachment"}</button> : <p className="text-sm">Limited-view attachment · Open in phone app</p> : null}
           {(() => { const card=m.view_limit?null:parseChatAttachmentCard(m.media_url); return card?<div className="my-2 rounded-lg border border-current/30 p-3"><strong>{attachmentCardText(card)}</strong>{attachmentCardLinks(card).map(link=><a key={link.url} href={link.url} target={card.kind==='location'?'_blank':undefined} rel="noopener noreferrer" className="block py-2 underline">{link.label}</a>)}</div>:null; })()}
           {m.shared_post_id ? <SharedPostCard postId={m.shared_post_id} /> : null}
           {!m.view_limit && parseStoryMessageReference(m.media_url) ? <Link href={'/story/' + parseStoryMessageReference(m.media_url)} className="mb-2 block rounded-lg border border-current/30 p-3 text-sm underline">View story</Link> : null}
