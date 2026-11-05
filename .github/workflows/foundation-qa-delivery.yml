@@ -1,6 +1,6 @@
 name: Foundation iPhone QA delivery
 
-# Delivery revision: isolate server operations from the mobile typecheck and complete renderer verification.
+# Delivery revision: retain cached feed views when reconnect activates measured history.
 # A source-only push runs the shared quality gates without starting another EAS build.
 # workflow_run cannot bootstrap a new workflow living only on this release branch.
 on:

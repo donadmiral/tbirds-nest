@@ -7,6 +7,7 @@ import { prepareReactPostSource, assertReactSourceAccess } from '../../services/
 import { ensureCameraPermission, ensureImagePickerLibraryPermission } from '../../services/devicePermissions';
 import { loadConversationTargets } from '../../../shared/conversationTargets';
 import { createFeedTabCache } from '../../../shared/feedTabCache';
+import { FEED_HISTORY_PAGE_ROWS, feedHistoryPages } from '../../../shared/feedHistoryPages';
 import { createNativeSessionHistory } from '../../services/sessionHistory';
 import type { HistoryPage, HistorySnapshot, SessionHistory } from '../../../shared/sessionHistory';
 import { readPostCounters, recordPostShare } from '../../../shared/postCounters';
@@ -318,6 +319,7 @@ export default function FeedScreen({ navigation }: any) {
   const historyRects = useRef(new Map<string, { page: number; y: number; height: number }>());
   const historyGeometryScope = useRef<string | null>(null);
   const historyPageNodes = useRef(new Map<number, View>());
+  const historyPageHeights = useRef(new Map<number, number>());
   const historyRowNodes = useRef(new Map<string, { page: number; node: View }>());
   const historyMeasureGeneration = useRef(0);
   const [historyMeasureEpoch, setHistoryMeasureEpoch] = useState(0);
@@ -587,7 +589,9 @@ export default function FeedScreen({ navigation }: any) {
   const feedMediaScopeRef = useRef<string | null>(null);
   const bindFeedHistory = useCallback((value: SessionHistory<Post> | null) => {
     if (value && !value.available()) value = null;
-    const previous = historyRef.current?.getSnapshot();
+    const previous = historyRef.current?.getSnapshot() ?? {
+      pages: feedHistoryPages(postsRef.current, postsRef.current, null).map(page => ({ ...page, height: historyPageHeights.current.get(page.index) ?? 0 })),
+    };
     const sameScope = historyGeometryScope.current === feedScopeRef.current;
     const stablePages = new Set<number>();
     if (sameScope && value && previous) {
@@ -602,8 +606,9 @@ export default function FeedScreen({ navigation }: any) {
     // React retains these native views on an unchanged refresh, so onLayout
     // does not repeat. Retain their measurements instead of pausing the video.
     for (const [id, rect] of historyRects.current) if (!stablePages.has(rect.page)) historyRects.current.delete(id);
+    for (const index of historyPageHeights.current.keys()) if (!stablePages.has(index)) historyPageHeights.current.delete(index);
     if (!sameScope || !value) { historyPageNodes.current.clear(); historyRowNodes.current.clear(); }
-    historyGeometryScope.current = value ? feedScopeRef.current : null;
+    historyGeometryScope.current = feedScopeRef.current;
     historyMeasureGeneration.current++;
     setHistoryMeasureEpoch(historyMeasureGeneration.current);
     if (!value) { setHistoryWindow(null); return; }
@@ -647,12 +652,12 @@ export default function FeedScreen({ navigation }: any) {
     if (!current() || !historyReady.current) return rows;
     let value = historyRef.current;
     if (!value) {
-      value = createNativeSessionHistory<Post>({ id: row => row.id, current, fetch: async () => [], pageRows: 6 });
+      value = createNativeSessionHistory<Post>({ id: row => row.id, current, fetch: async () => [], pageRows: FEED_HISTORY_PAGE_ROWS });
       try { await value.append(rows); if (!current()) { await value.dispose(); return rows; } bindFeedHistory(value); }
       catch (error) { await value.dispose(); throw error; }
     } else if (preserve) value.replaceHot(rows);
     else {
-      const previous = value, next = createNativeSessionHistory<Post>({ id: row => row.id, current, fetch: async () => [], pageRows: 6 });
+      const previous = value, next = createNativeSessionHistory<Post>({ id: row => row.id, current, fetch: async () => [], pageRows: FEED_HISTORY_PAGE_ROWS });
       try { await next.append(rows); if (!current()) { await next.dispose(); return rows; } }
       catch (error) { await next.dispose(); throw error; }
       value = next; bindFeedHistory(next); void previous.dispose().catch(() => {});
@@ -764,8 +769,6 @@ export default function FeedScreen({ navigation }: any) {
   useEffect(() => { repostedPostsRef.current = repostedPosts; }, [repostedPosts]);
   useEffect(() => { commentPreviewsRef.current = commentPreviews; }, [commentPreviews]);
   useEffect(() => { sharingPostRef.current = sharingPost; }, [sharingPost]);
-
-  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 55 }).current;
 
   const onViewableItemsChanged = useCallback(({ viewableItems }: any) => {
     if (commentsForRef.current) return; // the sheet's post stays the active one until the sheet closes
@@ -1182,7 +1185,9 @@ export default function FeedScreen({ navigation }: any) {
     ++requests.current;
     historyStop.current?.(); historyStop.current = null;
     new Set([historyRef.current, ...feedTabs.snapshot().map(([, tab]) => tab.history)]).forEach(value => { void value?.dispose().catch(() => {}); });
-    historyRef.current = null; historyReady.current = null; historyRects.current.clear(); setHistoryWindow(null);
+    historyRef.current = null; historyReady.current = null; historyRects.current.clear(); historyPageHeights.current.clear();
+    historyGeometryScope.current = null; setHistoryWindow(null);
+    setHistoryMeasureEpoch(++historyMeasureGeneration.current);
     feedTabs.clear();
     feedSnapshots.setAccount(userId);
     const warm = restoreBootFeed(userId, feedModeRef.current);
@@ -2772,25 +2777,14 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
     openComments,
   ]);
 
-  const historyItems = useMemo(() => {
-    if (!historyWindow) return null;
-    const groups = historyWindow.pages.map(page => ({ ...page, rows: [] as Post[] }));
-    const byPost = new Map(historyWindow.pages.flatMap(page => page.rows.map(post => [post.id, page.index] as const)));
-    const byPage = new Map(groups.map(page => [page.index, page]));
-    let last = groups[0]?.index;
-    for (const post of displayPosts) {
-      const page = byPost.get(post.id) ?? last;
-      if (page !== undefined) byPage.get(page)?.rows.push(post);
-      last = page;
-    }
-    return groups;
-  }, [historyWindow, displayPosts]);
+  const historyItems = useMemo(() => feedHistoryPages(posts, displayPosts, historyWindow), [posts, historyWindow, displayPosts]);
   const reportHistoryVisible = useCallback(() => {
-    const snapshot = historyRef.current?.getSnapshot(); if (!snapshot) return;
+    if (historyGeometryScope.current !== feedScopeRef.current) return;
+    const snapshot = historyRef.current?.getSnapshot(), pages = snapshot?.pages ?? historyItems;
     const offset = scrollOffsetRef.current - historyHeaderHeight.current, bottom = offset + historyViewport.current;
-    const tops = new Map<number, number>(); let top = snapshot.before;
-    snapshot.pages.forEach(page => { tops.set(page.index, top); top += page.height; });
-    const pagesByPost = new Map(snapshot.pages.flatMap(page => page.rows.map(post => [post.id, page.index] as const)));
+    const tops = new Map<number, number>(); let top = snapshot?.before ?? 0;
+    pages.forEach(page => { tops.set(page.index, top); top += snapshot ? page.height : historyPageHeights.current.get(page.index) ?? 0; });
+    const pagesByPost = new Map(pages.flatMap(page => page.rows.map(post => [post.id, page.index] as const)));
     const promoted = new Set(promoRowsRef.current.map(post => post.id));
     const visible = displayPosts.filter(post => {
       const rect = historyRects.current.get(post.id); if (!rect || !rect.height) return false;
@@ -2800,19 +2794,20 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
       return Math.max(0, Math.min(start + rect.height, bottom) - Math.max(start, offset)) / rect.height >= .55;
     });
     onViewableItemsChanged({ viewableItems: visible.map(item => ({ item, isViewable: true })) });
-  }, [onViewableItemsChanged, displayPosts]);
+  }, [onViewableItemsChanged, displayPosts, historyItems]);
   const remeasureHistory = useCallback(() => {
     const history = historyRef.current, scope = feedScopeRef.current, generation = historyMeasureGeneration.current;
-    if (!history) return;
+    if (visibleFeedScope !== scope) return;
+    historyGeometryScope.current = scope;
     const current = () => historyRef.current === history && feedScopeRef.current === scope
       && historyMeasureGeneration.current === generation && historyGeometryScope.current === scope;
-    const pages = new Set(history.getSnapshot().pages.map(page => page.index));
+    const pages = new Set((history?.getSnapshot().pages ?? historyItems).map(page => page.index));
     const rows = new Set(displayPosts.map(post => post.id));
     for (const [index, node] of historyPageNodes.current) {
       if (!pages.has(index)) { historyPageNodes.current.delete(index); continue; }
       node.measure((_x, _y, _width, height) => {
         if (!current() || historyPageNodes.current.get(index) !== node) return;
-        history.measure(index, height); reportHistoryVisible();
+        historyPageHeights.current.set(index, height); history?.measure(index, height); reportHistoryVisible();
       });
     }
     for (const [id, entry] of historyRowNodes.current) {
@@ -2826,7 +2821,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
       }, () => {});
     }
     reportHistoryVisible();
-  }, [displayPosts, reportHistoryVisible]);
+  }, [displayPosts, reportHistoryVisible, historyItems, visibleFeedScope]);
   // Changed pages also need a native measurement: a retained child can keep
   // the same frame even when its siblings or logical history have changed.
   useLayoutEffect(() => { remeasureHistory(); }, [historyMeasureEpoch]);
@@ -2835,7 +2830,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
     const current = () => historyRef.current === history && feedScopeRef.current === scope;
     return <View style={{ minHeight: page.height || undefined }}>
     <View collapsable={false} ref={node => { if (node) historyPageNodes.current.set(page.index, node); else historyPageNodes.current.delete(page.index); }}
-      onLayout={event => { if (!current()) return; history?.measure(page.index, event.nativeEvent.layout.height); reportHistoryVisible(); }}
+      onLayout={event => { if (!current()) return; historyGeometryScope.current = scope; historyPageHeights.current.set(page.index, event.nativeEvent.layout.height); history?.measure(page.index, event.nativeEvent.layout.height); reportHistoryVisible(); }}
       style={feedMode === 'discover' ? { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 12, columnGap: 10, rowGap: 10, paddingBottom: 10 } : undefined}>
       {page.rows.map(post => <View key={post._rk ?? post.id} collapsable={false}
         ref={node => { if (node) historyRowNodes.current.set(post.id, { page: page.index, node }); else historyRowNodes.current.delete(post.id); }}
@@ -2902,8 +2897,8 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
           ) : (
             <View style={s.flex} {...tabSwipe.panHandlers}>
               <NewPostsPill count={pendingPostCount} onPress={() => { setRefreshing(true); loadFeed(false); feedListRef.current?.scrollToOffset({ offset: 0, animated: true }); }} />
-            <TapTopFlatList innerRef={feedListRef} key={historyItems ? 'measured-history' : feedMode === 'discover' ? 'discover-grid' : 'feed-list'} numColumns={!historyItems && feedMode === 'discover' ? 2 : 1} columnWrapperStyle={!historyItems && feedMode === 'discover' ? { paddingHorizontal: 12, gap: 10, marginBottom: 10 } : undefined}
-              data={historyItems ?? displayPosts}
+            <TapTopFlatList innerRef={feedListRef} key="measured-history" numColumns={1}
+              data={historyItems}
               onScroll={(event: any) => {
                 scrollOffsetRef.current = event.nativeEvent.contentOffset.y; historyViewport.current = event.nativeEvent.layoutMeasurement.height;
                 handleTabBarScroll(event); reportHistoryVisible();
@@ -2911,25 +2906,23 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
               }}
               onLayout={(event: any) => { historyViewport.current = event.nativeEvent.layout.height; reportHistoryVisible(); }}
               scrollEventThrottle={16}
-              keyExtractor={(p: Post | HistoryPage<Post>) => 'index' in p ? `history:${p.index}` : p._rk ?? p.id}
-              renderItem={historyItems ? renderHistoryPage : renderPost}
+              keyExtractor={(page: HistoryPage<Post>) => `history:${page.index}`}
+              renderItem={renderHistoryPage}
               onEndReached={loadMore}
               onEndReachedThreshold={2}
               ListFooterComponent={<>{historyWindow?.after ? <View pointerEvents="none" style={{ height: historyWindow.after }} /> : null}{loadingMore ? <View style={{ paddingVertical: 24 }}><ActivityIndicator color={NAVY} /></View> : null}</>}
 
               extraData={flatListExtra}
-              initialNumToRender={historyItems ? 20 : 5}
-              maxToRenderPerBatch={historyItems ? 20 : 5}
+              initialNumToRender={historyWindow ? 20 : 1}
+              maxToRenderPerBatch={historyWindow ? 20 : 1}
               // Mount nearby images and covers in their actual image views so
               // protected no-store media is ready without a second cache fetch.
-              windowSize={historyItems ? 101 : dataSaver ? 5 : 7}
+              windowSize={historyWindow ? 101 : dataSaver ? 5 : 7}
               removeClippedSubviews={Platform.OS === 'android'}
               showsVerticalScrollIndicator={false}
               decelerationRate={0.994}
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode="none"
-              onViewableItemsChanged={historyItems ? undefined : onViewableItemsChanged}
-              viewabilityConfig={viewabilityConfig}
               onScrollBeginDrag={() => {
                 Object.keys(singleTapTimers.current).forEach(k => {
                   clearTimeout(singleTapTimers.current[k]);

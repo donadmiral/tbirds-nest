@@ -20,6 +20,8 @@ const previewModule = { exports: {} };
 vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../shared/sharedPostPreview.ts'), 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.CommonJS } }).outputText, { exports: previewModule.exports, module: previewModule });
 const historyModule = { exports: {} };
 vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../shared/sessionHistory.ts'), 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } }).outputText, { exports: historyModule.exports, module: historyModule, AbortController });
+const historyPagesModule = { exports: {} };
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../shared/feedHistoryPages.ts'), 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } }).outputText, { exports: historyPagesModule.exports, module: historyPagesModule });
 
 
 const source = fs.readFileSync(path.join(__dirname, '../src/screens/feed/FeedScreen.tsx'), 'utf8');
@@ -76,7 +78,8 @@ function harness({ previewRows = [], quotedRows = [], heldTable = null, rpc } = 
     feedLiveDeniedAt: { current: {} }, feedLiveAppliedAt: { current: {} },
     feedStampFloor: { current: -1 }, historyRef: { current: null }, historyReady: { current: false },
     historyAlive: { current: true }, historyStop: { current: null }, historyRects: { current: new Map() },
-    historyGeometryScope: { current: null }, historyPageNodes: { current: new Map() }, historyRowNodes: { current: new Map() },
+    historyGeometryScope: { current: null }, historyPageNodes: { current: new Map() }, historyRowNodes: { current: new Map() }, historyPageHeights: { current: new Map() },
+    ...historyPagesModule.exports,
     historyMeasureGeneration: { current: 0 }, setHistoryMeasureEpoch() {},
     setHistoryWindow(value) { historyWindow = value; },
     createNativeSessionHistory: options => historyModule.exports.createSessionHistory({ ...options, namespace: 'feed-fixture-' + historyNumber++,
@@ -87,7 +90,7 @@ function harness({ previewRows = [], quotedRows = [], heldTable = null, rpc } = 
     feedSnapshotFresh, mergeNativeFeedLive,
     postsRef: { current: postState }, promoRowsRef: { current: [] }, realtimeTimerRef: { current: null },
     feedRequestRef: { current: 0 }, feedRefreshRequestRef: { current: null }, resolvedFeedRequestRef: { current: 0 }, pageRequestRef: { current: 0 },
-    feedScopeRef: { current: 'viewer-a:latest:all' }, discoverCatRef: { current: 'all' },
+    feedScopeRef: { current: 'viewer-a:latest:all' }, visibleFeedScope: 'viewer-a:latest:all', discoverCatRef: { current: 'all' },
     feedMediaScopeRef: { current: null }, navigationScope: () => currentUser + ':session-1',
     retainFeedMedia: (_old, incoming) => incoming,
     discoverPageRef: { current: { asOf: '2026-01-01T00:00:00.000Z', offset: 0 } },
@@ -107,7 +110,7 @@ function harness({ previewRows = [], quotedRows = [], heldTable = null, rpc } = 
     withoutPrivateMedia: rows => rows.map(row => ({ ...row, media_url: null,
       post_media: row.post_media?.map(media => ({ ...media, url: null, edit: { ...media.edit, coverUrl: null } })) })),
     hydrateShares() {}, hydrateCollabs() {}, hydratePolls() {}, scorePost: () => 0,
-    setLoading(value) { loading = value; }, setVisibleFeedScope() {}, setRefreshing() {}, setLoadingMore() {}, setFeedError(error) { if (error) errors.push(error); },
+    setLoading(value) { loading = value; }, setVisibleFeedScope(value) { scope.visibleFeedScope = value; }, setRefreshing() {}, setLoadingMore() {}, setFeedError(error) { if (error) errors.push(error); },
     setProfilesMap() {}, setLikedPosts() {}, setBookmarkedPosts() {}, setRepostedPosts() {},
     setLikerNames() {}, setQuotedMap(update) { quotedState = typeof update === 'function' ? update(quotedState) : update; }, setWtfSuggestions() {},
     setPosts(update) { postState = typeof update === 'function' ? update(postState) : update; scope.postsRef.current = postState; },

@@ -1,4 +1,5 @@
 name: Physical Android QA app build
+# Verification revision: preserve the first cached feed tree through online history activation.
 on:
   push:
     branches: ['codex/loading-foundation-20261105']
