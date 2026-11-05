@@ -26,5 +26,6 @@
     "tests/native/flows/memory-capture.yaml": "tests/native/flows/retained-ios-memory-capture.yaml"
   },
   "externalRunnerSha256": "4972f31acaec2df7eb8ee3f7263d859c35de03f6cf4fb4aceee7a331e8ee3b23",
-  "externalHandoffSha256": "50e973418dc8a3f230d603b1f0c13a73dbbdf4eec4980f17b91122b06fc8e29f"
+  "externalHandoffSha256": "50e973418dc8a3f230d603b1f0c13a73dbbdf4eec4980f17b91122b06fc8e29f",
+  "externalAutofillSha256": "ac1782512102e06dbd565686e400076452f0326f5b7a6bba9805f51affe5f316"
 }

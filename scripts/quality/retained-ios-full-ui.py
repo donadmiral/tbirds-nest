@@ -116,6 +116,7 @@ def prepare(application, retained, config):
         checked(relative(ROOT, sources.get(name, name)), expected)
     checked(ROOT / 'scripts/quality/run-retained-ios-flows.sh', config['externalRunnerSha256'])
     checked(ROOT / 'scripts/quality/retained-ios-handoff.py', config['externalHandoffSha256'])
+    checked(ROOT / 'scripts/quality/retained-ios-autofill.py', config['externalAutofillSha256'])
     app = extract_app(retained / 'test-only-binary/qa.app.tar.gz', application / 'retained-app')
     runner, _ = helpers(application, config)
     if runner.binary_digest(app) != config['binarySha256'] or (app / 'main.jsbundle').stat().st_size < 100000:
@@ -171,6 +172,14 @@ def finish(application, retained, config):
         raise ValueError('The single external Simulator handoff did not succeed')
     checked(ROOT / 'scripts/quality/run-retained-ios-flows.sh', config['externalRunnerSha256'])
     checked(ROOT / 'scripts/quality/retained-ios-handoff.py', config['externalHandoffSha256'])
+    checked(ROOT / 'scripts/quality/retained-ios-autofill.py', config['externalAutofillSha256'])
+    autofill = json.loads((output / 'ios-autofill-preflight/result.json').read_text())
+    ctx = autofill.get('context', {})
+    if (autofill.get('passed') is not True or ctx.get('consumerCommit') != os.environ.get('GITHUB_SHA')
+            or ctx.get('workflowRun') != os.environ.get('GITHUB_RUN_ID')
+            or ctx.get('producerCommit') != config['applicationSourceCommit']
+            or ctx.get('producerRun') != str(config['producerRunId'])):
+        raise ValueError('AutoFill source and consumer ownership were not verified')
     source = json.loads((output / 'source.json').read_text())
     for name, expected in {**source['hashes'], **config['sourceTools'], **config['externalFiles']}.items():
         checked(relative(application, name), expected)

@@ -10,6 +10,86 @@ spec = importlib.util.spec_from_file_location('ios_retained', Path(__file__).wit
 ios = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(ios)
 handoff = ios.load_module('handoff', Path(__file__).with_name('retained-ios-handoff.py'))
+autofill = ios.load_module('retained_autofill', Path(__file__).with_name('retained-ios-autofill.py'))
+original_autofill = ios.load_module('original_autofill', Path(__file__).with_name('native-ui-ios-autofill.py'))
+
+
+class RetainedAutofillChecks(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        logs = self.root / 'native-ui-logs'
+        logs.mkdir()
+        hashes = {}
+        for name in original_autofill.BOUND_FILES:
+            path = self.root / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text('pinned ' + name)
+            hashes[name] = ios.digest(path)
+        self.source = {'commit': 'a' * 40, 'workflowRun': '123', 'hashes': hashes}
+        self.source_path = logs / 'source.json'
+        self.source_path.write_text(json.dumps(self.source))
+        self.config = {'applicationSourceCommit': 'a' * 40, 'producerRunId': 123,
+                       'sourceReceiptSha256': ios.digest(self.source_path)}
+        (logs / 'retained-provenance.json').write_text(json.dumps({
+            **self.config, 'consumerCommit': 'b' * 40, 'consumerRunId': '456'}))
+        self.env = {'GITHUB_SHA': 'b' * 40, 'GITHUB_RUN_ID': '456', 'GITHUB_RUN_ATTEMPT': '1',
+                    'CI': 'true', 'PLATINUM_NATIVE_IOS_TARGET': 'arm64-ios26.2',
+                    'EXPO_PUBLIC_APP_ENV': 'qa',
+                    'EXPO_PUBLIC_SUPABASE_URL': 'https://uaulhuelcfkjwojtymmw.supabase.co',
+                    'EXPO_PUBLIC_SUPABASE_ANON_KEY': 'native-ui-synthetic-no-provider-key'}
+
+    def context(self):
+        return autofill.retained_context(self.root, self.env, self.config, original_autofill, 'Darwin', 'arm64')
+
+    def test_source_and_consumer_identities_remain_distinct(self):
+        env_before, source_before = dict(self.env), self.source_path.read_bytes()
+        ctx = self.context()
+        self.assertEqual(ctx['sourceCommit'], 'a' * 40)
+        self.assertEqual(ctx['producerRun'], '123')
+        self.assertEqual(ctx['consumerCommit'], 'b' * 40)
+        self.assertEqual(ctx['workflowRun'], '456')
+        self.assertEqual(ctx['name'], 'Platinum full app UI 456')
+        self.assertEqual(self.env, env_before)
+        self.assertEqual(self.source_path.read_bytes(), source_before)
+
+    def test_changed_source_receipt_is_rejected(self):
+        self.source_path.write_text(self.source_path.read_text() + '\n')
+        with self.assertRaises(ValueError): self.context()
+
+    def test_wrong_producer_is_rejected_even_if_receipt_hash_matches(self):
+        self.source['workflowRun'] = '789'
+        self.source_path.write_text(json.dumps(self.source))
+        self.config['sourceReceiptSha256'] = ios.digest(self.source_path)
+        with self.assertRaisesRegex(original_autofill.PreflightError, 'source_identity_mismatch'):
+            self.context()
+
+    def test_wrong_consumer_is_rejected(self):
+        self.env['GITHUB_RUN_ID'] = '789'
+        with self.assertRaisesRegex(original_autofill.PreflightError, 'consumer_identity_mismatch'):
+            self.context()
+
+    def test_changed_original_helper_is_rejected(self):
+        (self.root / original_autofill.BOUND_FILES[0]).write_text('changed')
+        with self.assertRaisesRegex(original_autofill.PreflightError, 'preflight_source_mismatch'):
+            self.context()
+
+    def test_only_fresh_consumer_device_is_accepted(self):
+        ctx = self.context()
+        device = '12345678-1234-1234-1234-123456789012'
+        runtimes = {'runtimes': [{'identifier': ctx['runtimeIdentifier'], 'isAvailable': True, 'version': '26.2'}]}
+        row = {'udid': device, 'isAvailable': True, 'state': 'Shutdown', 'name': ctx['name'],
+               'deviceTypeIdentifier': ctx['deviceTypeIdentifier']}
+        devices = {'devices': {ctx['runtimeIdentifier']: [row]}}
+        self.assertEqual(original_autofill.verify_identity(ctx, device, runtimes, devices, 'Shutdown')['device'], device)
+        row['name'] = 'Platinum full app UI 123'
+        with self.assertRaisesRegex(original_autofill.PreflightError, 'device_identity_mismatch'):
+            original_autofill.verify_identity(ctx, device, runtimes, devices, 'Shutdown')
+        row['name'] = ctx['name']
+        row['state'] = 'Booted'
+        with self.assertRaisesRegex(original_autofill.PreflightError, 'device_identity_mismatch'):
+            original_autofill.verify_identity(ctx, device, runtimes, devices, 'Shutdown')
 
 
 class HandoffReceiptChecks(unittest.TestCase):
