@@ -1,0 +1,13 @@
+{
+  "source": "0de087f0292df3637d360cce814ab27531c5edde",
+  "workflowRun": 42055512976,
+  "job": 127342716040,
+  "result": "failed before instrumentation execution",
+  "failedTask": ":checkDebugAndroidTestAarMetadata",
+  "observedError": "Configuration :debugAndroidTestRuntimeClasspath contains AndroidX dependencies, but the android.useAndroidX property is not enabled.",
+  "fix": "Added android.useAndroidX=true in standalone harness gradle.properties. Script already bounds Gradle heap to 3g and maximum workers to two.",
+  "productionSourceChanged": false,
+  "runtimeAcceptance": "pending rerun",
+  "physicalDevice": false,
+  "retrySource": "27f920c7eb73ed51a228f0c3a158e342136bafbb"
+}

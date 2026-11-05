@@ -9,6 +9,7 @@ import { useParams } from "next/navigation";
 import { ArrowLeft, BarChart2, Camera, ChevronDown, ChevronUp, HelpCircle, Image as ImageIcon, Plus, Radio, Send, Settings2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { channelAttachmentUrls } from "@/lib/liveChannelMedia";
+import { ChannelVideo } from "@/components/ChannelVideo";
 import { useSocialPages } from "@/lib/useSocialPages";
 import { SocialPageFooter } from "@/components/SocialPageFooter";
 import { withTimeout } from "@/lib/withTimeout";
@@ -463,7 +464,7 @@ function ChannelInner() {
                   <img src={mediaUrls[m.id]} onError={() => void renewMedia(m)} alt="" className="mt-2 max-h-[340px] w-auto max-w-full rounded-lg object-contain" />
                 ) : null}
                 {mediaUrls[m.id] && m.media_type === "video" ? (
-                  <video src={mediaUrls[m.id]} onError={() => void renewMedia(m)} preload="metadata" controls playsInline className="mt-2 max-h-[340px] w-auto max-w-full rounded-lg" />
+                  <ChannelVideo source={mediaUrls[m.id]} onError={() => void renewMedia(m)} />
                 ) : null}
                 {m.media_url && !mediaUrls[m.id] ? <button onClick={() => void renewMedia(m, true)} className="mt-2 text-sm text-muted underline">Attachment unavailable. Retry</button> : null}
                 {poll ? (

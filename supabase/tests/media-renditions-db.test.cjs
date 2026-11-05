@@ -9,9 +9,9 @@ else{
  const assets=[{name:'master.m3u8',mime:'application/vnd.apple.mpegurl',playlist:'#EXTM3U\nr0/index.m3u8\n'},{name:'r0/index.m3u8',mime:'application/vnd.apple.mpegurl',playlist:'#EXTM3U\nseg00000.ts\n#EXT-X-ENDLIST\n'},{name:'r0/seg00000.ts',mime:'video/mp2t'},{name:'fallback.mp4',mime:'video/mp4'}].map(a=>({...a,bytes:100,sha256:'a'.repeat(64)}));
  async function seed(n=0){const f=n?owner+`/source${n}.mp4`:file,e=n?id(20+n):entity,o=n?id(40+n):object;await q(`insert into auth.users(id) values('${owner}') on conflict do nothing;insert into storage.objects(id,bucket_id,name,version,owner_id,metadata) values('${o}','story-media','${f}','source-v1','${owner}','{"size":1000,"eTag":"source-etag"}');insert into stories(id,user_id,media_url) values('${e}','${owner}','https://fixture.test/storage/v1/object/public/story-media/${f}');insert into content_media_bindings(entity_kind,entity_id,bucket_id,object_path,uploader_id) values('story','${e}','story-media','${f}','${owner}')`);}
  async function outputs(j){assert.equal(await v(`select register_media_rendition_assets_v2('${j.job_id}','${j.lease_id}',${j.attempt},$a$${JSON.stringify(assets)}$a$)`),'t');for(const a of assets)await q(`insert into storage.objects(bucket_id,name,version,metadata,user_metadata) values('adaptive-media','${j.output_prefix+a.name}','out-v1','{"size":100,"eTag":"output-etag"}','{"processing_lease_id":"${j.lease_id}","sha256":"${a.sha256}"}')`);}
- before(async()=>{if(process.env.PGDATABASE!=='pc_scale_media_v2')throw new Error('Dedicated pc_scale_media_v2 database required');db=new LocalPsqlSession();await q("set client_min_messages='warning';drop schema if exists media_renditions,media_processing,media_delivery,storage,auth,extensions,public cascade;create schema public");await q(fs.readFileSync(path.join(__dirname,'media-processing-fixture.sql'),'utf8'));await q(fs.readFileSync(path.join(__dirname,'../migrations/20261102071532_durable_media_processing_v1.sql'),'utf8'));await q(fs.readFileSync(path.join(__dirname,'../migrations/20261102090521_adaptive_media_renditions_v2.sql'),'utf8'));await q(fs.readFileSync(path.join(__dirname,'../migrations/20261102100428_media_broker_scoped_credentials_v2.sql'),'utf8'));await q(fs.readFileSync(path.join(__dirname,'../migrations/20261102101149_media_worker_dispatch_v2.sql'),'utf8'));await q(fs.readFileSync(path.join(__dirname,'../migrations/20261105044918_adaptive_media_admission_backfill_v2.sql'),'utf8'));await q(`create function public.resolve_media_delivery(p_token text,p_bucket text,p_path text) returns jsonb language sql as $$ select jsonb_build_object('version',t.object_version) from media_delivery.tickets t where t.token_digest=extensions.digest(p_token,'sha256') and t.bucket_id=p_bucket and t.object_path=p_path and t.expires_at>clock_timestamp() and coalesce(current_setting('fixture.deny_delivery',true),'')<>'true' $$`);await q(fs.readFileSync(path.join(__dirname,'../migrations/20261105152331_adaptive_media_batch_readiness.sql'),'utf8'));});
+ before(async()=>{if(process.env.PGDATABASE!=='pc_scale_media_v2')throw new Error('Dedicated pc_scale_media_v2 database required');db=new LocalPsqlSession();await q("set client_min_messages='warning';drop schema if exists media_renditions,media_processing,media_delivery,live_streams,storage,auth,extensions,public cascade;create schema public");await q(fs.readFileSync(path.join(__dirname,'media-processing-fixture.sql'),'utf8'));await q(fs.readFileSync(path.join(__dirname,'../migrations/20261102071532_durable_media_processing_v1.sql'),'utf8'));await q(fs.readFileSync(path.join(__dirname,'../migrations/20261102090521_adaptive_media_renditions_v2.sql'),'utf8'));await q(fs.readFileSync(path.join(__dirname,'../migrations/20261102100428_media_broker_scoped_credentials_v2.sql'),'utf8'));await q(fs.readFileSync(path.join(__dirname,'../migrations/20261102101149_media_worker_dispatch_v2.sql'),'utf8'));await q(fs.readFileSync(path.join(__dirname,'../migrations/20261105044918_adaptive_media_admission_backfill_v2.sql'),'utf8'));await q(`create function public.resolve_media_delivery(p_token text,p_bucket text,p_path text) returns jsonb language sql as $$ select jsonb_build_object('version',t.object_version) from media_delivery.tickets t where t.token_digest=extensions.digest(p_token,'sha256') and t.bucket_id=p_bucket and t.object_path=p_path and t.expires_at>clock_timestamp() and coalesce(current_setting('fixture.deny_delivery',true),'')<>'true' $$`);await q(fs.readFileSync(path.join(__dirname,'../migrations/20261105152331_adaptive_media_batch_readiness.sql'),'utf8'));await q(fs.readFileSync(path.join(__dirname,'published-clip-renditions-fixture.sql'),'utf8'));await q(fs.readFileSync(path.join(__dirname,'../migrations/20261105153608_published_live_clip_renditions.sql'),'utf8'));});
  after(async()=>db?.close());
- beforeEach(async()=>{await q("reset role;set fixture.deny_delivery='false';set request.jwt.claims='{\"role\":\"service_role\"}';truncate media_renditions.broker_nonces,media_renditions.broker_rates,media_renditions.broker_keys,media_renditions.publications,media_renditions.assets,media_renditions.attempts,media_renditions.jobs,media_processing.variants,media_processing.attempts,media_processing.jobs,media_processing.invalidations,storage.objects,stories,posts,post_media,auth.users,content_media_bindings,media_delivery.tickets;delete from media_renditions.settings;insert into media_renditions.settings(singleton) values(true)");});
+ beforeEach(async()=>{await q("reset role;set fixture.deny_delivery='false';set request.jwt.claims='{\"role\":\"service_role\"}';truncate live_streams.clip_publications,live_streams.clip_jobs,live_streams.clips,live_streams.sessions,channel_messages,media_renditions.broker_nonces,media_renditions.broker_rates,media_renditions.broker_keys,media_renditions.publications,media_renditions.assets,media_renditions.attempts,media_renditions.jobs,media_processing.variants,media_processing.attempts,media_processing.jobs,media_processing.invalidations,storage.objects,stories,posts,post_media,auth.users,content_media_bindings,media_delivery.tickets;delete from media_renditions.settings;insert into media_renditions.settings(singleton) values(true)");});
  test('migration is inert and private tables/bucket remain unavailable to ordinary users',async()=>{await seed();assert.equal(await v('select count(*) from media_renditions.jobs'),0);assert.equal(await claim(),'');for(const role of ['anon','authenticated']){await q('set role '+role);assert.equal(await v("select fixture_fails('select * from media_renditions.jobs')"),'t');assert.equal(await v("select fixture_fails('select claim_media_rendition_v2()')"),'t');assert.equal(await v("select count(*) from storage.buckets where id='adaptive-media'"),0);await q('reset role');}});
  test('canonical admission is idempotent and global leased concurrency holds across connections',async()=>{await q('update media_renditions.settings set admission_enabled=true,worker_enabled=true,concurrency=1');await seed();await seed(1);const a=await v(`select enqueue_media_rendition_v2('${object}','source-v1')`),b=await v(`select enqueue_media_rendition_v2('${object}','source-v1')`);assert.equal(a.job_id,b.job_id);const other=new LocalPsqlSession();await other.query("set request.jwt.claims='{\"role\":\"service_role\"}'");try{await q('begin');assert.ok((await claim()).lease_id);let done=false;const second=other.query('select claim_media_rendition_v2()').then(x=>{done=true;return x;});await new Promise(r=>setTimeout(r,40));assert.equal(done,false);await q('commit');assert.equal(await second,'');}finally{await other.close();}});
  test('real Storage records must match every registered asset before atomic publication',async()=>{await q('update media_renditions.settings set admission_enabled=true,worker_enabled=true');await seed();const j=await claim();await outputs(j);assert.equal(await finish(j),'t');assert.equal(await v('select asset_count from media_renditions.publications'),4);assert.equal(await v(`select version from storage.objects where id='${object}'`),'source-v1');assert.equal(await v(`select fixture_fails($q$update storage.objects set version='overwrite' where name='${j.output_prefix}fallback.mp4'$q$)`),'t');});
@@ -94,6 +94,76 @@ else{
   assert.equal((await v(`select media_playback_readiness_v2('[{"token":"${'f'.repeat(64)}","bucket":"story-media","path":"${file}"}]')`)).items.length,0);
   for(const role of ['anon','authenticated'])assert.equal(await v(`select has_function_privilege('${role}','public.media_playback_readiness_v2(jsonb)','EXECUTE')`),'f');
   for(const value of [null,{},Array.from({length:129},()=>({}))])assert.equal(await v(`select fixture_fails($q$select media_playback_readiness_v2('${JSON.stringify(value)}')$q$)`),'t');
+ });
+
+ const clipCreator=id(91),clipSession=id(92),clipId=id(93),clipLease=id(94),clipJob=id(95),clipPub=id(96),clipObject=id(97),clipPost=id(98);
+ const clipPrefix=`${owner}/${clipSession}/${clipId}/${clipLease}/`,clipPath=clipPrefix+'horizontal.mp4';
+ async function seedClip(){
+  await q(`insert into auth.users(id) values('${owner}'),('${clipCreator}');
+   insert into live_streams.sessions values('${clipSession}','${owner}','public',true);
+   insert into live_streams.clips values('${clipId}','${clipSession}','${owner}','${clipCreator}','${clipLease}','${clipPrefix}',
+    'ready','approved','cleared',1,'["horizontal"]','{"assets":[{"name":"horizontal.mp4","bytes":1000,"sha256":"${'a'.repeat(64)}","content_type":"video/mp4"}]}');
+   insert into live_streams.clip_jobs values('${clipJob}','${clipId}',1,'done','${clipLease}');
+   insert into storage.objects(id,bucket_id,name,version,owner_id,metadata,user_metadata)
+    values('${clipObject}','live-clips','${clipPath}','clip-v1','${clipCreator}','{"size":1000,"mimetype":"video/mp4","eTag":"clip-etag"}',
+     '{"live_clip_id":"${clipId}","live_clip_job_id":"${clipJob}","live_clip_lease_id":"${clipLease}","sha256":"${'a'.repeat(64)}"}');
+   insert into live_streams.clip_publications values('${clipPub}','${clipId}','${owner}','feed','${clipPost}',null,'horizontal','published');
+   insert into posts(id,user_id,media_url) values('${clipPost}','${owner}','https://abcdefghijklmnopqrst.supabase.co/storage/v1/object/public/live-clips/${clipPath}');`);
+ }
+ const clipSnapshot=()=>v(`select media_renditions.source_snapshot('${clipObject}','clip-v1')`);
+ test('published clip admission observes the completed destination and preserves creator versus session-owner provenance',async()=>{
+  await q('update media_renditions.settings set admission_enabled=true,worker_enabled=true');await seedClip();
+  const snapshot=await clipSnapshot();assert.equal(snapshot.owner,clipCreator);assert.equal(snapshot.path,clipPath);
+  assert.equal(await v('select count(*) from media_renditions.jobs'),1);assert.equal(await v('select count(*) from media_processing.jobs'),0);
+  assert.equal(await v(`select media_processing.source_snapshot('${clipObject}','clip-v1')`),'','The v1 admission contract stays unchanged');
+  const j=await claim();assert.equal(j.source_owner,clipCreator);assert.equal(j.source_bucket,'live-clips');assert.equal(j.source_path,clipPath);
+ });
+ test('clip source snapshots reject dangling publications, wrong authors, retired leases, forged metadata and private source streams',async()=>{
+  await seedClip();assert.ok(await clipSnapshot());
+  for(const mutation of [
+   `delete from posts where id='${clipPost}'`,
+   `update posts set user_id='${clipCreator}' where id='${clipPost}'`,
+   `update posts set media_url='https://wrong-origin.test/storage/v1/object/public/live-clips/${clipPath}' where id='${clipPost}'`,
+   "update live_streams.clip_publications set state='revoked'",
+   "update live_streams.clips set state='processing'",
+   "update live_streams.clips set copyright_state='blocked'",
+   "update live_streams.clips set moderation_state='pending'",
+   "update live_streams.clips set formats='[]'",
+   `update live_streams.clips set current_lease='${id(990)}'`,
+   "update live_streams.clip_jobs set revision=2",
+   "update live_streams.sessions set audience='followers'",
+   "update live_streams.sessions set can_create=false",
+   `update auth.users set deleted_at=now() where id='${clipCreator}'`,
+   `update storage.objects set owner_id='${owner}' where id='${clipObject}'`,
+   `update storage.objects set user_metadata=jsonb_set(user_metadata,'{sha256}','"${'b'.repeat(64)}"') where id='${clipObject}'`,
+   `update storage.objects set metadata=jsonb_set(metadata,'{size}','999') where id='${clipObject}'`,
+  ]){await q('begin');try{await q(mutation);assert.equal(await clipSnapshot(),'',mutation);}finally{await q('rollback');}}
+  assert.equal(await v(`select media_renditions.source_snapshot('${clipObject}','old-version')`),'');
+ });
+ test('clip revocation cancels and cleans the old lease while restoration uses a new lease without replenishing retries',async()=>{
+  await q('update media_renditions.settings set admission_enabled=true,worker_enabled=true,delivery_enabled=true');await seedClip();
+  const first=await claim();await outputs(first);await finish(first);
+  await q("update live_streams.clip_publications set state='revoked'");
+  assert.equal(await v('select state from media_renditions.jobs'),'cancelled');assert.equal(await v('select active from media_renditions.publications'),'f');
+  assert.equal(await v('select cleanup_pending from media_renditions.attempts'),'t');
+  await q("update live_streams.clip_publications set state='published'");
+  assert.equal(await v('select state from media_renditions.jobs'),'pending');assert.equal(await v('select retry_budget from media_renditions.jobs'),4);
+  const second=await claim();assert.notEqual(second.lease_id,first.lease_id);assert.equal(second.attempt,2);
+  await outputs(second);assert.equal(await finish(second),'t');assert.equal(await v('select lease_id from media_renditions.publications'),second.lease_id);
+ });
+ test('clip backfill stays bounded and gates remain off until configured',async()=>{
+  await seedClip();assert.equal(await v('select count(*) from media_renditions.jobs'),0);
+  assert.equal((await v('select backfill_media_renditions_v2(null,100,true)')).eligible,1);
+  assert.equal((await v('select backfill_media_renditions_v2(null,100,false)')).state,'disabled');
+  await q('update media_renditions.settings set admission_enabled=true');assert.equal((await v('select backfill_media_renditions_v2(null,100,false)')).admitted,1);
+  for(const role of ['anon','authenticated','service_role'])assert.equal(await v(`select has_function_privilege('${role}','media_renditions.source_snapshot(uuid,text)','EXECUTE')`),'f');
+ });
+ test('provenance-only clip source changes cancel active renditions and schedule cleanup',async()=>{
+  await q('update media_renditions.settings set admission_enabled=true,worker_enabled=true');await seedClip();
+  const j=await claim();await outputs(j);await finish(j);
+  await q(`update storage.objects set user_metadata=jsonb_set(user_metadata,'{live_clip_job_id}','"${id(999)}"') where id='${clipObject}'`);
+  assert.equal(await v('select state from media_renditions.jobs'),'cancelled');assert.equal(await v('select active from media_renditions.publications'),'f');
+  assert.equal(await v('select cleanup_pending from media_renditions.attempts'),'t');assert.equal(await clipSnapshot(),'');
  });
 
 }

@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "sourceCommit": "252368b1495649a464561c583e90e23ffea0f472",
+  "backendSourceCommit": "0de087f0292df3637d360cce814ab27531c5edde",
+  "migration": "20261105152331_adaptive_media_batch_readiness.sql",
+  "functionMd5": "c8783bc2a19fd609200ca47fb0d95d47",
+  "edge": {
+    "name": "content-media-sign",
+    "qaVersion": 6,
+    "productionVersion": 10,
+    "sha256": "c3ae2ca4a128640c715827a2c0d9fe7c04d11b8c35b7c5ab0f4edb9685dd6d39",
+    "verifyJwt": false,
+    "authentication": "existing handler validates user JWT; service metadata RPC remains server-only"
+  },
+  "permissions": {
+    "anonymousExecute": false,
+    "memberExecute": false,
+    "serviceExecute": true
+  },
+  "qaCanary": {
+    "granted": 9,
+    "versioned": 9,
+    "hls_ready": 5,
+    "database_ms": "69.42"
+  },
+  "productionColdCanary": {
+    "granted": 12,
+    "versioned": 12,
+    "hls_ready": 6,
+    "database_ms": "1231.60"
+  },
+  "productionWarmCanary": {
+    "granted": 12,
+    "versioned": 12,
+    "hls_ready": 6,
+    "database_ms": "73.54"
+  },
+  "scope": "Readiness and immutable source-version metadata, not media download timing. Existing authenticated sessions and content used inside rollback transactions. No lasting tickets or content writes.",
+  "fallback": "A metadata request over 500ms returns the original authorized delivery without HLS hints. Production cold function read exceeded this budget; repeat read completed within it."
+}

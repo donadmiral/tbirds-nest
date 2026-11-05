@@ -3,6 +3,8 @@ type Ready = { source: string; hlsUrl: string; sourceVersion: string; expiresAt:
 const ready = new Map<string, { value: Ready | null; until: number }>();
 const pending = new Map<string, { task: Promise<Ready | null>; controller: AbortController; id: object }>();
 let generation = 0;
+// Only immutable rendered clip formats can enter the published-content lane.
+const liveClipPath = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/){4}(?:horizontal|vertical)\.mp4$/;
 
 /** Seeded by the authorized signing response before the first player mounts. */
 export function acceptAdaptiveMedia(grants: Array<{ source: string; hlsUrl: string; sourceVersion: string; expiresAt: number }>): void {
@@ -22,7 +24,7 @@ function validateAdaptiveMedia(source: string, data: any): Ready | null {
     if (!adaptiveProbeUrl(source)) return null;
     const original = new URL(source), u = new URL(data.hlsUrl);
     return data.ready === true && u.protocol === 'https:' && !u.username && !u.password && !u.hash
-      && /^\/playback\/(post-media|story-media)\//.test(u.pathname)
+      && /^\/playback\/(post-media|story-media|live-clips)\//.test(u.pathname)
       && decodeURIComponent(u.pathname) === decodeURIComponent(original.pathname.replace('/functions/v1/media-content/', '/playback/')) + '/master.m3u8'
       && [...u.searchParams.keys()].every(key => key === 'token') && u.searchParams.getAll('token').length === 1 && u.searchParams.get('token') === original.searchParams.get('token')
       && typeof data.sourceVersion === 'string' && data.sourceVersion.length > 0 && data.sourceVersion.length <= 128
@@ -33,7 +35,10 @@ function validateAdaptiveMedia(source: string, data: any): Ready | null {
 export function adaptiveProbeUrl(source: string): string | null {
   try {
     const u = new URL(source);
-    if (u.protocol !== 'https:' || u.username || u.password || !/^\/functions\/v1\/media-content\/(post-media|story-media)\/.+\.(mp4|mov|m4v)$/i.test(u.pathname) || u.searchParams.getAll('token').length !== 1 || !/^[0-9a-f]{64}$/.test(u.searchParams.get('token') || '')) return null;
+    const clip = u.pathname.match(/^\/functions\/v1\/media-content\/live-clips\/(.+)$/);
+    const permitted = /^\/functions\/v1\/media-content\/(post-media|story-media)\/.+\.(mp4|mov|m4v)$/i.test(u.pathname)
+      || !!(clip && liveClipPath.test(clip[1]) && !u.hash && [...u.searchParams.keys()].every(key => key === 'token'));
+    if (u.protocol !== 'https:' || u.username || u.password || !permitted || u.searchParams.getAll('token').length !== 1 || !/^[0-9a-f]{64}$/.test(u.searchParams.get('token') || '')) return null;
     u.searchParams.set('stream', 'check'); return u.href;
   } catch { return null; }
 }

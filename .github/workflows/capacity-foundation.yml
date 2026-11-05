@@ -37,10 +37,14 @@ jobs:
         with:
           node-version: 22
       - name: Install local test dependencies
+        timeout-minutes: 3
         run: |
           sudo apt-get update
-          sudo apt-get install --yes postgresql-client ffmpeg
-          npm ci --prefix supabase/tests/rpc-authorization --no-fund
+          sudo apt-get install --yes postgresql-client
+          if [ "$PC_CAPACITY_PROFILE" = foundation ]; then
+            sudo apt-get install --yes ffmpeg
+            npm ci --prefix supabase/tests/rpc-authorization --no-fund
+          fi
           mkdir -p capacity-results
       - name: Start isolated PostgreSQL without TCP or container networking
         run: |

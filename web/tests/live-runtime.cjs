@@ -1,7 +1,7 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),ts=require('typescript');
-function evaluate(filename,dependencies={}){const module={exports:{}};const code=ts.transpileModule(fs.readFileSync(path.join(__dirname,'..',filename),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;vm.runInNewContext(code,{module,exports:module.exports,require:name=>dependencies[name]||require(name),URL,Date,Map,Math,Set,Promise,JSON,Error,Response,crypto:require('node:crypto').webcrypto});return module.exports;}
+function evaluate(filename,dependencies={}){const module={exports:{}};const code=ts.transpileModule(fs.readFileSync(path.join(__dirname,'..',filename),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;vm.runInNewContext(code,{module,exports:module.exports,require:name=>dependencies[name]||(name==='../../shared/adaptiveMedia'?evaluate('../shared/adaptiveMedia.ts'):require(name)),URL,Date,Map,Math,Set,Promise,JSON,Error,Response,crypto:require('node:crypto').webcrypto});return module.exports;}
 const directory=evaluate('../shared/liveDirectory.ts');
 const api=evaluate('lib/liveApi.ts',{'../../shared/liveDirectory':directory,'./supabase/client':{},'./withTimeout':{withTimeout:work=>Promise.resolve(work)}});
 const id=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;

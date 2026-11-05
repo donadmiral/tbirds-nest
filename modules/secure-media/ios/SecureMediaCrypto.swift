@@ -6,11 +6,29 @@ enum SecureMediaCrypto {
   static func transform(root: URL, input: String, output: String, encodedKey: String, decrypt: Bool) throws -> Int {
       let manager = FileManager.default
       func checked(_ path: String) throws -> URL {
-        guard let url = URL(string: path), url.isFileURL,
-          url.standardizedFileURL.resolvingSymlinksInPath().path.hasPrefix(root.resolvingSymlinksInPath().path + "/") else {
-          throw NSError(domain: "SecureMedia", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid cache path"])
+        func invalid() -> NSError {
+          NSError(domain: "SecureMedia", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid cache path"])
         }
-        return url
+        guard let url = URL(string: path), url.isFileURL else { throw invalid() }
+        // Foundation does not reliably resolve a symlink in an absent file's
+        // parent chain. Resolve the nearest existing ancestor, then append only
+        // normalized missing components and validate the resulting real path.
+        var ancestor = url.standardizedFileURL
+        var missing: [String] = []
+        while !manager.fileExists(atPath: ancestor.path) {
+          let attributes = try? manager.attributesOfItem(atPath: ancestor.path)
+          if attributes?[.type] as? FileAttributeType == .typeSymbolicLink { throw invalid() }
+          guard ancestor.path != "/", !ancestor.lastPathComponent.isEmpty else { throw invalid() }
+          missing.insert(ancestor.lastPathComponent, at: 0)
+          ancestor.deleteLastPathComponent()
+        }
+        let attributes = try manager.attributesOfItem(atPath: ancestor.path)
+        guard attributes[.type] as? FileAttributeType != .typeSymbolicLink else { throw invalid() }
+        var resolved = ancestor.resolvingSymlinksInPath().standardizedFileURL
+        for component in missing { resolved.appendPathComponent(component) }
+        let boundary = root.standardizedFileURL.resolvingSymlinksInPath().path + "/"
+        guard resolved.path.hasPrefix(boundary) else { throw invalid() }
+        return resolved
       }
       let source = try checked(input), destination = try checked(output)
       guard let keyData = Data(base64Encoded: encodedKey), keyData.count == 32,

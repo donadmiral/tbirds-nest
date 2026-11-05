@@ -1,0 +1,46 @@
+name: Physical Android isolated app build
+on:
+  push:
+    branches: ['codex/loading-foundation-20261105']
+    paths:
+      - '.github/workflows/physical-android-build.yml'
+      - 'scripts/quality/build-physical-android.sh'
+      - 'tests/native/physical/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: physical-android-build-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    env:
+      CI: 'true'
+      EXPO_NO_TELEMETRY: '1'
+      EXPO_PUBLIC_APP_ENV: qa
+      EXPO_PUBLIC_SUPABASE_URL: https://uaulhuelcfkjwojtymmw.supabase.co
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: native-ui-synthetic-no-provider-key
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: npm
+      - name: Use Java 17
+        run: |
+          test -n "$JAVA_HOME_17_X64"
+          echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+          echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
+      - run: npm ci --ignore-scripts --no-fund
+      - run: bash scripts/quality/build-physical-android.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: physical-android-isolated-app
+          path: physical-android-build/
+          if-no-files-found: ignore
+          retention-days: 7

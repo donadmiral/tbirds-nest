@@ -19,15 +19,21 @@ private func check(_ condition: @autoclosure () -> Bool, _ text: String) throws 
     func transform(_ from: URL, _ to: URL, _ encodedKey: String, _ decrypt: Bool) throws -> Int {
       try SecureMediaCrypto.transform(root: root, input: from.absoluteString, output: to.absoluteString, encodedKey: encodedKey, decrypt: decrypt)
     }
-    func rejected(_ block: () throws -> Void) throws {
+    func rejected(_ reason: String = "Expected operation to be rejected", _ block: () throws -> Void) throws {
       do { try block() } catch { return }
-      throw Failure.check("Expected operation to be rejected")
+      throw Failure.check(reason)
     }
     let encryptedBytes = try transform(source, sealed, key, false)
     try check(encryptedBytes == original.count + 28, "AES-GCM framing size")
     _ = try transform(sealed, opened, key, true)
     let actual = try Data(contentsOf: opened)
     try check(actual == original, "Roundtrip bytes differ")
+    let nestedSealed = root.appendingPathComponent("nested/encrypted/media.bin")
+    let nestedOpened = root.appendingPathComponent("nested/decrypted/media.bin")
+    _ = try transform(source, nestedSealed, key, false)
+    _ = try transform(nestedSealed, nestedOpened, key, true)
+    let nestedActual = try Data(contentsOf: nestedOpened)
+    try check(nestedActual == original, "Nested missing-parent roundtrip bytes differ")
     results.append("full-resolution roundtrip")
     let second = root.appendingPathComponent("second.bin")
     _ = try transform(source, second, key, false)
@@ -43,10 +49,12 @@ private func check(_ condition: @autoclosure () -> Bool, _ text: String) throws 
     try rejected { _ = try transform(sealed, opened, Data(repeating: 8, count: 32).base64EncodedString(), true) }
     try check(!files.fileExists(atPath: opened.path), "Old account key published plaintext")
     results.append("rotated account key cannot decrypt")
-    try rejected { _ = try transform(source, root.appendingPathComponent("../escape.bin"), key, false) }
+    try rejected("Traversal destination was accepted") { _ = try transform(source, root.appendingPathComponent("../escape.bin"), key, false) }
+    try check(!files.fileExists(atPath: root.deletingLastPathComponent().appendingPathComponent("escape.bin").path), "Traversal wrote outside cache before rejection")
     let link = root.appendingPathComponent("escape-link")
     try files.createSymbolicLink(at: link, withDestinationURL: root.deletingLastPathComponent())
-    try rejected { _ = try transform(source, link.appendingPathComponent("escaped.bin"), key, false) }
+    try rejected("Symlink-parent destination was accepted") { _ = try transform(source, link.appendingPathComponent("escaped.bin"), key, false) }
+    try check(!files.fileExists(atPath: root.deletingLastPathComponent().appendingPathComponent("escaped.bin").path), "Symlink wrote outside cache before rejection")
     results.append("traversal and symlink escape rejected")
     try rejected { _ = try transform(source, opened, "bad-key", false) }
     let large = root.appendingPathComponent("large.bin")

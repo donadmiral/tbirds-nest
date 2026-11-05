@@ -1,5 +1,5 @@
 import {createHash,createHmac,timingSafeEqual} from 'node:crypto';
-import {ASSET,UUID,safePath,objectPath} from './config.mjs';
+import {ASSET,UUID,safePath,liveClipPath,objectPath} from './config.mjs';
 import {validatePlaylist} from './transcode.mjs';
 const headers={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET, HEAD, OPTIONS','Access-Control-Allow-Headers':'Range, If-Range, If-None-Match','Access-Control-Expose-Headers':'Content-Length, Content-Range, Accept-Ranges, ETag','Cache-Control':'private, no-store, max-age=0','CDN-Cache-Control':'no-store','Vercel-CDN-Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff'};
 const digest=v=>createHash('sha256').update(v).digest('hex');
@@ -36,10 +36,11 @@ export function createGateway(api,{cache,secret,publicOrigin,now=Date.now,author
   const error=status=>new Response(null,{status,headers});if(request.method==='OPTIONS')return error(204);if(!['GET','HEAD'].includes(request.method))return error(405);
   const controller=new AbortController();const abort=()=>controller.abort();request.signal?.addEventListener('abort',abort,{once:true});if(request.signal?.aborted)abort();let timer=setTimeout(abort,12000),streaming=false;
   try{
-   const url=new URL(request.url),match=url.pathname.match(/^\/playback\/(post-media|story-media)\/(.+)$/);
+   const url=new URL(request.url),match=url.pathname.match(/^\/playback\/(post-media|story-media|live-clips)\/(.+)$/);
    let source;try{source=match&&decodeURIComponent(match[2].replace(/\/master\.m3u8$/,''));}catch{return error(400);}
    const token=url.searchParams.get('token')||'',name=url.searchParams.get('asset')||'master.m3u8',lease=url.searchParams.get('rendition');
-   if(!match||!safePath(source)||!/^[0-9a-f]{64}$/.test(token)||!ASSET.test(name)||(lease&&!UUID.test(lease)))return error(400);
+   if(!match||!safePath(source)||!/^[0-9a-f]{64}$/.test(token)||!ASSET.test(name)||(lease&&!UUID.test(lease))
+    ||(match[1]==='live-clips'&&(!liveClipPath(source)||url.searchParams.getAll('token').length!==1)))return error(400);
    const bucket=match[1];
    if(name!=='master.m3u8'){
     const expires=Number(url.searchParams.get('expires'));if(!lease||!Number.isSafeInteger(expires)||expires<=now()||!equal(url.searchParams.get('sig'),mac(token,bucket,source,lease,name,expires)))return error(403);

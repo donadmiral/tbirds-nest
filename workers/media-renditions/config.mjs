@@ -1,9 +1,12 @@
 export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const ASSET = /^(master\.m3u8|fallback\.mp4|r[0-3]\/(index\.m3u8|seg[0-9]{5}\.ts))$/;
 export const safePath = p => typeof p === 'string' && p.length <= 1024 && !/[%\\\u0000-\u001f]/.test(p) && p.split('/').every(x=>x && x!=='.' && x!=='..');
+export const liveClipPath = p => typeof p === 'string' && /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/){4}(?:horizontal|vertical)\.mp4$/.test(p);
 export function validateJob(j) {
   if (!j || !['job_id','lease_id','source_id','source_owner'].every(k=>UUID.test(j[k])) || !Number.isInteger(j.attempt) || j.attempt<1 || j.attempt>100
-    || !['post-media','story-media'].includes(j.source_bucket) || !safePath(j.source_path) || !j.source_path.startsWith(j.source_owner+'/')
+    // Clip paths identify the session owner; SQL provenance binds source_owner
+    // to the actual clip creator, who can be an approved guest of that session.
+    || !(j.source_bucket==='live-clips' ? liveClipPath(j.source_path) : ['post-media','story-media'].includes(j.source_bucket)&&safePath(j.source_path)&&j.source_path.startsWith(j.source_owner+'/'))
     || !Number.isSafeInteger(j.source_bytes) || j.source_bytes<1 || j.source_bytes>536870912 || typeof j.source_version!=='string' || !j.source_version || j.source_version.length>128
     || typeof j.source_etag!=='string' || !j.source_etag || j.source_etag.length>256 || /^W\//.test(j.source_etag)
     || j.output_bucket!=='adaptive-media' || j.output_prefix!==`${j.source_owner}/_renditions_v2/${j.job_id}/${j.lease_id}/`
