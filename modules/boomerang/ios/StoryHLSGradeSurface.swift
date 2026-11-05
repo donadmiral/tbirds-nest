@@ -29,7 +29,7 @@ final class StoryHLSGradeSurface: UIView {
   private let output: AVPlayerItemVideoOutput
   private let queue: MTLCommandQueue
   private let context: CIContext
-  private let transform: CGAffineTransform
+  private let sourceTransform: CGAffineTransform
   private let onFirstFrame: () -> Void
   private let onFailure: () -> Void
   private var displayLink: CADisplayLink?
@@ -50,7 +50,7 @@ final class StoryHLSGradeSurface: UIView {
   init?(player: AVPlayer, item: AVPlayerItem, transform: CGAffineTransform,
         onFirstFrame: @escaping () -> Void, onFailure: @escaping () -> Void) {
     guard let renderer = Self.renderer else { return nil }
-    self.player = player; self.item = item; queue = renderer.queue; self.transform = transform
+    self.player = player; self.item = item; queue = renderer.queue; sourceTransform = transform
     self.onFirstFrame = onFirstFrame; self.onFailure = onFailure
     context = renderer.context
     output = AVPlayerItemVideoOutput(pixelBufferAttributes: [
@@ -140,7 +140,7 @@ final class StoryHLSGradeSurface: UIView {
       return
     }
     guard let drawable = metalLayer.nextDrawable(), let command = queue.makeCommandBuffer() else { fail(); return }
-    let source = CIImage(cvPixelBuffer: pixelBuffer).transformed(by: transform)
+    let source = CIImage(cvPixelBuffer: pixelBuffer).transformed(by: sourceTransform)
     guard source.extent.width > 0, source.extent.height > 0 else { fail(); return }
     let target = CGRect(origin: .zero, size: metalLayer.drawableSize)
     let ratio = fit == "cover" ? max(target.width / source.extent.width, target.height / source.extent.height)

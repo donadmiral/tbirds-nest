@@ -3,6 +3,15 @@ name: Bounded capacity foundation
 on:
   push:
     branches: [codex/loading-foundation-20261105]
+    paths:
+      - 'tools/performance/*.cjs'
+      - 'tools/performance/*.mjs'
+      - 'tools/performance/capacity-scenarios.json'
+      - 'supabase/migrations/*feed*.sql'
+      - 'supabase/migrations/*ranking*.sql'
+      - 'supabase/migrations/*counter*.sql'
+      - 'supabase/tests/*feed*.cjs'
+      - 'tests/capacity*.cjs'
   workflow_dispatch:
 
 permissions:

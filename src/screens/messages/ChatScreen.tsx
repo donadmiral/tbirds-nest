@@ -55,6 +55,7 @@ import VoiceNote from '../../components/VoiceNote';
 import { ShareDetailsSheet } from '../../components/messages/ShareDetailsSheet';
 import { CounterOfferDialog } from '../../components/messages/CounterOfferDialog';
 import { parseChatAttachmentCard, attachmentCardText, attachmentCardLinks } from '../../../shared/chatAttachmentCards';
+import { PrivateChatVideo } from "../../components/messages/PrivateChatVideo";
 import { PrivateMediaViewer } from '../../components/messages/PrivateMediaViewer';
 import PaymentBubble, { ChatPayment } from '../../components/PaymentBubble';
 import ChatInfoSections from '../../components/ChatInfoSections';
@@ -594,7 +595,7 @@ export default function ChatScreen() {
   const editPending = useRef(false);
   const pinPending = useRef(false);
   const forwardPending = useRef(false);
-  const [fullscreenVideo, setFullscreenVideo] = useState<string | null>(null);
+  const [fullscreenVideo, setFullscreenVideo] = useState<{ uri: string; messageId: string } | null>(null);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [starredIds, setStarredIds] = useState<Set<string>>(new Set());
   const [savingToDevice, setSavingToDevice] = useState(false);
@@ -2102,7 +2103,7 @@ const pickAndSendDocument = useCallback(async () => {
               ) : null}
               {msg.media_type === 'video' && msg.media_url && !msg.view_limit ? (
                 <TouchableOpacity style={[s.videoThumb, { width: MSG_IMG_MAX_W, height: MSG_VID_H }]}
-                  activeOpacity={0.85} onPress={() => setFullscreenVideo(msg.media_url!)}
+                  activeOpacity={0.85} onPress={() => setFullscreenVideo({ uri: msg.media_url!, messageId: msg.id })}
                   onLongPress={() => setSelectedMsg(msg)}>
                   {msg.thumbnail_url ? (
                     <ExpoImage source={{ uri: msg.thumbnail_url }} style={StyleSheet.absoluteFillObject} contentFit="cover" />
@@ -2214,7 +2215,7 @@ const pickAndSendDocument = useCallback(async () => {
               setShowInfoModal(false);
               setTimeout(() => {
                 if(scope !== attachmentScopeRef.current || !mountedRef.current) return;
-                if (m.media_type === 'video') setFullscreenVideo(m.media_url);
+                if (m.media_type === 'video') setFullscreenVideo({ uri: m.media_url, messageId: m.id });
                 else setFullscreenImg(m.media_url);
               }, 250);
             }}>
@@ -3034,7 +3035,7 @@ const pickAndSendDocument = useCallback(async () => {
         const scope=attachmentScope; if(attachmentScopeRef.current!==scope || useAuthStore.getState().session?.user.id !== session?.user.id)return false;
         return doSend(attachmentCardText(card),JSON.stringify(card),'link');
       }}/>}
-      {privateMedia && privateMedia.userId === session?.user.id && privateMedia.scope === attachmentScope && <PrivateMediaViewer key={privateMedia.userId+':'+privateMedia.id} messageId={privateMedia.id} userId={privateMedia.userId}
+      {focused && privateMedia && privateMedia.userId === session?.user.id && privateMedia.scope === attachmentScope && <PrivateMediaViewer key={privateMedia.userId+':'+privateMedia.id} messageId={privateMedia.id} userId={privateMedia.userId}
         onClose={() => setPrivateMedia(current => current?.id === privateMedia.id && current?.userId === privateMedia.userId && current?.scope === privateMedia.scope ? null : current)} onConsumed={remaining => { if (remaining <= 0 && attachmentScopeRef.current === privateMedia.scope) setViewedOutIds(prev => new Set(prev).add(privateMedia.id)); }} />}
       <Modal visible={!!fullscreenImg} transparent animationType="fade" onRequestClose={() => setFullscreenImg(null)}>
         <View style={s.fullscreenRoot}>
@@ -3080,14 +3081,14 @@ const pickAndSendDocument = useCallback(async () => {
           <TouchableOpacity style={s.fullscreenClose} onPress={() => setFullscreenVideo(null)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
             <Feather name="x" size={24} color="#FFF" />
           </TouchableOpacity>
-          {fullscreenVideo && <VideoPlayer uri={fullscreenVideo} width={SCREEN_W} height={SCREEN_W * 0.75} fullscreen />}
+          {fullscreenVideo && session?.user.id && <PrivateChatVideo key={fullscreenVideo.messageId} messageId={fullscreenVideo.messageId} userId={session.user.id} uri={fullscreenVideo.uri} active={focused} style={{ width: SCREEN_W, flex: 1 }} onClose={() => setFullscreenVideo(null)} />}
           {fullscreenVideo && (
             <View style={s.fullscreenActions}>
-              <TouchableOpacity style={s.fsActionBtn} onPress={() => saveMediaToDevice(fullscreenVideo, 'video')} disabled={savingToDevice} activeOpacity={0.7}>
+              <TouchableOpacity style={s.fsActionBtn} onPress={() => saveMediaToDevice(fullscreenVideo.uri, 'video')} disabled={savingToDevice} activeOpacity={0.7}>
                 {savingToDevice ? <ActivityIndicator color="#FFF" size={14} /> : <Feather name="download" size={16} color="#FFF" />}
                 <Text style={s.fsActionTxt}>{savingToDevice ? 'Saving...' : 'Save'}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={s.fsActionBtn} onPress={() => Share.share({ message: fullscreenVideo })} activeOpacity={0.7}>
+              <TouchableOpacity style={s.fsActionBtn} onPress={() => Share.share({ message: fullscreenVideo.uri })} activeOpacity={0.7}>
                 <Feather name="share" size={16} color="#FFF" />
                 <Text style={s.fsActionTxt}>Share</Text>
               </TouchableOpacity>

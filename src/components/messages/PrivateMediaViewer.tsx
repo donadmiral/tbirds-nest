@@ -11,7 +11,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { VideoView, useVideoPlayer } from "expo-video";
+import { PrivateChatVideo } from "./PrivateChatVideo";
 import * as Capture from "expo-screen-capture";
 import * as Crypto from "expo-crypto";
 import { SafeAreaView } from "../SafeArea";
@@ -33,68 +33,6 @@ type Props = {
   onClose: () => void;
   onConsumed?: (remaining: number) => void;
 };
-function ProtectedVideo({
-  uri,
-  headers,
-  onError,
-}: {
-  uri: string;
-  headers: Record<string, string>;
-  onError: () => void;
-}) {
-  const [playing, setPlaying] = useState(true);
-  const player = useVideoPlayer({ uri, headers, useCaching: false }, (p) => {
-    p.loop = false;
-    p.play();
-  });
-  useEffect(() => {
-    const status = player.addListener("statusChange", (s) => {
-      if (s.status === "error") onError();
-    });
-    const playback = player.addListener("playingChange", (s) =>
-      setPlaying(s.isPlaying),
-    );
-    return () => {
-      status.remove();
-      playback.remove();
-    };
-  }, [player, onError]);
-  return (
-    <>
-      <VideoView
-        player={player}
-        style={StyleSheet.absoluteFill}
-        contentFit="contain"
-        nativeControls={false}
-        allowsPictureInPicture={false}
-        surfaceType="textureView"
-      />
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={
-          playing ? "Pause private video" : "Play private video"
-        }
-        onPress={() => {
-          if (playing) player.pause();
-          else {
-            if (player.currentTime >= player.duration) player.currentTime = 0;
-            player.play();
-          }
-        }}
-        style={{
-          position: "absolute",
-          bottom: 24,
-          alignSelf: "center",
-          padding: 14,
-          borderRadius: 24,
-          backgroundColor: "rgba(0,0,0,0.7)",
-        }}
-      >
-        <Text style={{ color: "#fff" }}>{playing ? "Pause" : "Play"}</Text>
-      </Pressable>
-    </>
-  );
-}
 export function PrivateMediaViewer(props: Props) {
   return (
     <PrivateMediaSession
@@ -119,6 +57,7 @@ function PrivateMediaSession({
   const [grant, setGrant] = useState<PrivateGrant | null>(null);
   const [ready, setReady] = useState(false);
   const content = useRef<View>(null);
+  const stopVideo = useRef<(() => void) | null>(null);
   const live = useRef(true),
     terminal = useRef(false),
     session = useRef<ReturnType<typeof createPrivateViewSession> | ReturnType<typeof createLegacyLimitedViewSession> | null>(null),
@@ -136,6 +75,7 @@ function PrivateMediaSession({
   const close = useCallback(
     (reason: PrivateCloseReason = "closed") => {
       terminal.current = true;
+      stopVideo.current?.();
       setReady(false);
       void session.current?.close(reason);
       hide();
@@ -156,6 +96,7 @@ function PrivateMediaSession({
     return () => {
       live.current = false;
       terminal.current = true;
+      stopVideo.current?.();
       void session.current?.close("closed");
       release.current?.();
       release.current = null;
@@ -360,7 +301,15 @@ function PrivateMediaSession({
             style={{ flex: 1, backgroundColor: "#000" }}
           >
             {grant.mediaType === "video" ? (
-              <ProtectedVideo
+              <PrivateChatVideo
+                messageId={messageId}
+                userId={userId}
+                requestId={grant.requestId}
+                expiresAt={Date.parse(grant.expiresAt)}
+                privateControls
+                style={StyleSheet.absoluteFill}
+                onClose={close}
+                onStopReady={stop => { stopVideo.current = stop; }}
                 uri={session.current.mediaUrl}
                 headers={session.current.headers}
                 onError={mediaError}

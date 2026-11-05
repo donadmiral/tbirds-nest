@@ -7,6 +7,7 @@ import {
   type PrivateGrant,
   type PrivateCloseReason,
 } from "../../shared/privateMedia";
+import { openPrivateAdaptiveVideo, type PrivateAdaptiveVideo, type PrivatePlaybackPosition } from "@/lib/privateAdaptiveVideo";
 import { PrivateCameraGuard } from "./PrivateCameraGuard";
 type Props = {
   messageId: string;
@@ -14,41 +15,48 @@ type Props = {
   onClose: () => void;
   onConsumed?: (remaining: number) => void;
 };
-function PrivateVideo({ url, onError }: { url: string; onError: () => void }) {
-  const video = useRef<HTMLVideoElement>(null);
+function PrivateVideo({ url, adaptive, resume, onFallback, onError }: {
+  url: string | null; adaptive: PrivateAdaptiveVideo | null; resume: PrivatePlaybackPosition;
+  onFallback: (position: PrivatePlaybackPosition) => void; onError: () => void;
+}) {
+  const video = useRef<HTMLVideoElement>(null), wantsPlay = useRef(true);
+  const callbacks = useRef({ onFallback, onError });
+  useLayoutEffect(() => { callbacks.current = { onFallback, onError }; }, [onFallback, onError]);
   const [playing, setPlaying] = useState(false);
-  return (
-    <>
-      <video
-        ref={video}
-        src={url}
-        autoPlay
-        playsInline
-        controls={false}
-        disablePictureInPicture
-        disableRemotePlayback
-        className="h-full w-full object-contain"
-        onPlay={() => setPlaying(true)}
-        onPause={() => setPlaying(false)}
-        onEnded={() => setPlaying(false)}
-        onError={onError}
-      />
-      <button
-        className="absolute bottom-6 left-1/2 -translate-x-1/2 rounded-full bg-black/75 px-5 py-3 text-white"
-        onClick={() => {
-          const v = video.current;
-          if (!v) return;
-          if (playing) v.pause();
-          else {
-            if (v.ended) v.currentTime = 0;
-            void v.play().catch(() => setPlaying(false));
-          }
-        }}
-      >
-        {playing ? "Pause" : "Play"} video
-      </button>
-    </>
-  );
+  useEffect(() => {
+    const element = video.current;
+    if (!element) return;
+    if (adaptive) {
+      adaptive.attach(element, {
+        onFallback: position => callbacks.current.onFallback(position),
+        onExpired: () => callbacks.current.onError(), shouldPlay: () => wantsPlay.current,
+      });
+      // The containing private session owns terminal close. Effect replay must
+      // not consume/close an active grant before the view can display it.
+      return;
+    }
+    if (!url) return;
+    const loaded = () => {
+      if (resume.time > 0) element.currentTime = Math.min(resume.time, element.duration || resume.time);
+      wantsPlay.current = resume.playing;
+      if (resume.playing) void element.play().catch(() => setPlaying(false));
+    };
+    element.addEventListener('loadedmetadata', loaded, { once: true });
+    element.src = url; element.load();
+    return () => { element.removeEventListener('loadedmetadata', loaded); element.pause(); element.removeAttribute('src'); element.load(); };
+  }, [url, adaptive, resume]);
+  return <>
+    <video ref={video} playsInline controls={false} preload="none" disablePictureInPicture disableRemotePlayback
+      className="h-full w-full object-contain" onPlay={() => { wantsPlay.current = true; setPlaying(true); }}
+      onPause={() => { wantsPlay.current = false; setPlaying(false); }} onEnded={() => { wantsPlay.current = false; setPlaying(false); }}
+      onError={() => { if (!adaptive) callbacks.current.onError(); }} />
+    <button className="absolute bottom-6 left-1/2 -translate-x-1/2 rounded-full bg-black/75 px-5 py-3 text-white" onClick={() => {
+      const element = video.current;
+      if (!element) return;
+      if (playing) { wantsPlay.current = false; element.pause(); }
+      else { wantsPlay.current = true; if (element.ended) element.currentTime = 0; void element.play().catch(() => setPlaying(false)); }
+    }}>{playing ? "Pause" : "Play"} video</button>
+  </>;
 }
 export function PrivateMediaViewer(props: Props) {
   return (
@@ -72,7 +80,9 @@ function PrivateMediaSession({
     root = useRef<HTMLDivElement>(null),
     objectUrl = useRef<string | null>(null),
     fetchAbort = useRef<AbortController | null>(null),
-    session = useRef<ReturnType<typeof createPrivateViewSession> | null>(null);
+    session = useRef<ReturnType<typeof createPrivateViewSession> | null>(null),
+    adaptiveRef = useRef<PrivateAdaptiveVideo | null>(null),
+    loadOriginal = useRef<((position?: PrivatePlaybackPosition) => Promise<void>) | null>(null);
   const callbacks = useRef({ onClose, onConsumed });
   useLayoutEffect(() => { callbacks.current = { onClose, onConsumed }; }, [onClose, onConsumed]);
   const [phase, setPhase] = useState<
@@ -82,6 +92,8 @@ function PrivateMediaSession({
     [guardReady, setGuardReady] = useState(false),
     [grant, setGrant] = useState<PrivateGrant | null>(null),
     [url, setUrl] = useState<string | null>(null),
+    [adaptive, setAdaptive] = useState<PrivateAdaptiveVideo | null>(null),
+    [resume, setResume] = useState<PrivatePlaybackPosition>({ time: 0, playing: true }),
     [error, setError] = useState<string | null>(null);
   const hide = useCallback(() => {
     const element = root.current?.querySelector<HTMLElement>(
@@ -91,12 +103,15 @@ function PrivateMediaSession({
       element.hidden = true;
       element.querySelector("video")?.pause();
     }
+    adaptiveRef.current?.close(); adaptiveRef.current = null;
+    loadOriginal.current = null;
     fetchAbort.current?.abort();
     if (objectUrl.current) {
       URL.revokeObjectURL(objectUrl.current);
       objectUrl.current = null;
     }
     if (live.current) {
+      setAdaptive(null);
       setUrl(null);
       setGrant(null);
       setPhase("closed");
@@ -194,6 +209,7 @@ function PrivateMediaSession({
         currentUser.current === userId &&
         document.visibilityState === "visible";
       if (!current()) return;
+      const requestId = crypto.randomUUID();
       const transport = createPrivateViewSession({
         endpoint:
           process.env.NEXT_PUBLIC_SUPABASE_URL +
@@ -201,7 +217,7 @@ function PrivateMediaSession({
         token: auth.data.session.access_token,
         apiKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
         messageId,
-        requestId: crypto.randomUUID(),
+        requestId,
         fetch,
         current,
         hide,
@@ -211,23 +227,34 @@ function PrivateMediaSession({
       if (!value || !current()) return;
       callbacks.current.onConsumed?.(value.remaining);
       setGrant(value);
-      const abort = new AbortController();
-      fetchAbort.current = abort;
-      const response = await fetch(transport.mediaUrl, {
-        headers: transport.headers,
-        cache: "no-store",
-        signal: abort.signal,
-      });
-      if (!response.ok) throw Error("This attachment is no longer available.");
-      const blob = await response.blob();
-      if (!current() || Date.parse(value.expiresAt) <= Date.now()) {
-        close("expired");
-        return;
+      const original = async (position: PrivatePlaybackPosition = { time: 0, playing: true }) => {
+        if (!current()) return;
+        adaptiveRef.current?.close(); adaptiveRef.current = null;
+        setAdaptive(null); setPhase("opening");
+        const abort = new AbortController();
+        fetchAbort.current?.abort(); fetchAbort.current = abort;
+        try {
+          const response = await fetch(transport.mediaUrl, { headers: transport.headers, cache: "no-store", signal: abort.signal });
+          if (!response.ok) throw Error("This attachment is no longer available.");
+          const blob = await response.blob();
+          if (!current() || abort.signal.aborted || Date.parse(value.expiresAt) <= Date.now()) {
+            if (current()) close("expired");
+            return;
+          }
+          const temporary = URL.createObjectURL(blob);
+          if (objectUrl.current) URL.revokeObjectURL(objectUrl.current);
+          objectUrl.current = temporary; setResume(position); setUrl(temporary); setPhase("viewing");
+        } catch (e) {
+          if (current() && !abort.signal.aborted) { setError(e instanceof Error ? e.message : "Could not open attachment."); close("error"); }
+        }
+      };
+      loadOriginal.current = original;
+      if (value.mediaType === 'video') {
+        const prepared = await openPrivateAdaptiveVideo({ token: auth.data.session.access_token, messageId, requestId, current }).catch(() => null);
+        if (!current()) { prepared?.close(); return; }
+        if (prepared) { adaptiveRef.current = prepared; setAdaptive(prepared); setPhase("viewing"); return; }
       }
-      const temporary = URL.createObjectURL(blob);
-      objectUrl.current = temporary;
-      setUrl(temporary);
-      setPhase("viewing");
+      await original();
     } catch (e) {
       if (live.current && !terminal.current) {
         setError(e instanceof Error ? e.message : "Could not open attachment.");
@@ -312,7 +339,7 @@ function PrivateMediaSession({
           </button>
         </div>
       )}
-      {phase === "viewing" && grant && url && (
+      {phase === "viewing" && grant && (url || adaptive) && (
         <div
           data-private-content
           className="relative min-h-0 flex-1 select-none overflow-hidden bg-black"
@@ -320,10 +347,10 @@ function PrivateMediaSession({
           onDragStart={(e) => e.preventDefault()}
         >
           {grant.mediaType === "video" ? (
-            <PrivateVideo url={url} onError={() => close("error")} />
+            <PrivateVideo url={url} adaptive={adaptive} resume={resume} onFallback={position => { void loadOriginal.current?.(position); }} onError={() => close("error")} />
           ) : (
             <NextImage unoptimized width={1200} height={1200}
-              src={url}
+              src={url!}
               alt="Private attachment"
               draggable={false}
               className="h-full w-full object-contain"

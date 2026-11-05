@@ -18,6 +18,7 @@ import { GroupCallBar } from "@/components/GroupCallBar";
 import { ShareDetails } from "@/components/ShareDetails";
 import { parseChatAttachmentCard, attachmentCardText, attachmentCardLinks } from "../../shared/chatAttachmentCards";
 import { PrivateMediaViewer } from "@/components/PrivateMediaViewer";
+import { ChatVideo } from "@/components/ChatVideo";
 import { SharedPostCard } from "@/components/SharedPostCard";
 import { RelativeTime } from "@/components/RelativeTime";
 import { MESSAGE_PAGE_SIZE, olderMessageFilter, mergeMessagePage, type MessageCursor } from "../../shared/messageHistory";
@@ -1489,7 +1490,7 @@ const BubbleView = memo(function BubbleView({ m, uid, offer, actions, replySourc
             <NextImage key={m.id + ':' + m.media_url} unoptimized width={768} height={768} src={m.media_url} onError={renewMedia} alt="Shared image" role="button" tabIndex={0} onClick={() => window.dispatchEvent(new CustomEvent("pc-view-media", { detail: { url: m.media_url } }))} onKeyDown={(e) => { if (e.key === "Enter") window.dispatchEvent(new CustomEvent("pc-view-media", { detail: { url: m.media_url } })); }} className="mb-1 max-h-72 cursor-zoom-in rounded-lg object-contain" />
           ) : null}
           {!m.view_limit && m.media_type === "video" && m.media_url ? (
-            <video key={m.id + ':' + m.media_url} src={m.media_url} poster={m.thumbnail_url || undefined} onError={renewMedia} controls preload="metadata" className="mb-1 max-h-72 rounded-lg" />
+            <ChatVideo key={m.id + ':' + m.media_url} messageId={m.id} userId={uid} source={m.media_url} poster={m.thumbnail_url || undefined} onError={renewMedia} />
           ) : null}
           {!m.view_limit && (m.media_type === "audio" || m.media_type === "voice") && m.media_url ? (
             <audio key={m.id + ':' + m.media_url} onError={renewMedia} controls preload="metadata" className="mb-1 w-[240px] max-w-full"><source src={m.media_url} type={/\.(m4a|mp4)(\?|$)/i.test(m.media_url) ? "audio/mp4" : /\.webm(\?|$)/i.test(m.media_url) ? "audio/webm" : undefined} /><a href={m.media_url} target="_blank" rel="noopener noreferrer" className="underline">Voice message</a></audio>
