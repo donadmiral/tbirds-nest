@@ -7,6 +7,7 @@ import { postTrimWindow } from '../../shared/postMediaEditing';
 import { sharedPostFrame } from "../../shared/storyPresentation";
 import type { StoryTextSticker } from "@/lib/stories";
 import { StoryPixelGrade } from './StoryPixelGrade';
+import { attachAdaptiveVideo } from '@/lib/adaptiveVideo';
 
 /** Media URLs have already passed the story/post authorization hydrator. */
 export function SharedPostStory({ sticker, paused, preview = false }: { sticker: StoryTextSticker; paused: boolean; preview?: boolean }) {
@@ -15,8 +16,24 @@ export function SharedPostStory({ sticker, paused, preview = false }: { sticker:
   const [stage, setStage] = useState({ width: 390, height: 693 });
   const [size, setSize] = useState({ width: sticker.postMediaWidth, height: sticker.postMediaHeight });
   const [muted, setMuted] = useState(true);
+  const pausedNow = useRef(paused);
+  pausedNow.current = paused;
   const isVideo = sticker.postMediaType === "video";
   const playback = useMemo(()=>normalizePostPlayback(sticker.postMediaPlayback),[sticker.postMediaPlayback]);
+  useEffect(() => {
+    const element = video.current, source = sticker.postMediaUrl;
+    if (!element || !isVideo || !source) return;
+    const attachment = attachAdaptiveVideo(element, source, { shouldPlay: () => !pausedNow.current && !document.hidden && document.documentElement.dataset.platinumCallActive !== "true" });
+    const recover = () => attachment.recover();
+    element.addEventListener("error", recover);
+    return () => {
+      element.removeEventListener("error", recover);
+      attachment.dispose();
+      element.pause();
+      element.removeAttribute("src");
+      element.load();
+    };
+  }, [isVideo, sticker.postMediaUrl]);
   useEffect(()=>{if(video.current)applyPostPlayback(video.current,playback);},[playback,sticker.postMediaUrl]);
   useEffect(() => {
     const parent = preview ? ref.current?.closest('[data-story-stage]') : ref.current?.parentElement;
@@ -36,8 +53,8 @@ export function SharedPostStory({ sticker, paused, preview = false }: { sticker:
   useEffect(() => {
     const el = video.current; if (!el) return;
     const sync = () => { if (paused || document.hidden || document.documentElement.dataset.platinumCallActive === "true") el.pause(); else void el.play().catch(() => {}); };
-    sync(); document.addEventListener("visibilitychange", sync);
-    return () => document.removeEventListener("visibilitychange", sync);
+    sync(); document.addEventListener("visibilitychange", sync); el.addEventListener("canplay", sync);
+    return () => { document.removeEventListener("visibilitychange", sync); el.removeEventListener("canplay", sync); };
   }, [paused, sticker.postMediaUrl]);
   const frame = sharedPostFrame({ stageWidth: stage.width, stageHeight: stage.height, mediaWidth: size.width, mediaHeight: size.height, caption: sticker.postText, title: sticker.postArticleTitle, hasMedia: !!sticker.postMediaUrl });
   const top = Math.max(92 + frame.height / 2, Math.min(sticker.ny * stage.height, stage.height - 78 - frame.height / 2));
@@ -50,7 +67,7 @@ export function SharedPostStory({ sticker, paused, preview = false }: { sticker:
     </Link> : null}
     {sticker.postMediaUrl ? <div className="relative overflow-hidden rounded-2xl bg-black/10" style={{ height: frame.mediaHeight }}>
       <Link href={href} aria-label="Open shared post" className="block h-full w-full">
-        {isVideo ? <video ref={video} src={sticker.postMediaUrl} playsInline muted={muted||playback.muted} loop preload="metadata" onLoadedMetadata={e => {const element=e.currentTarget;applyPostPlayback(element,playback);const window=postTrimWindow(element.duration,playback.trimStart,playback.trimEnd);element.currentTime=window.start;setSize({ width: element.videoWidth, height: element.videoHeight });}} onTimeUpdate={e=>{const element=e.currentTarget,window=postTrimWindow(element.duration,playback.trimStart,playback.trimEnd);if(window.duration&&(element.currentTime<window.start||element.currentTime>=window.end))element.currentTime=window.start;}} className="h-full w-full object-contain" /> :
+        {isVideo ? <video ref={video} playsInline muted={muted||playback.muted} loop preload="metadata" onLoadedMetadata={e => {const element=e.currentTarget;applyPostPlayback(element,playback);const window=postTrimWindow(element.duration,playback.trimStart,playback.trimEnd);element.currentTime=window.start;setSize({ width: element.videoWidth, height: element.videoHeight });}} onTimeUpdate={e=>{const element=e.currentTarget,window=postTrimWindow(element.duration,playback.trimStart,playback.trimEnd);if(window.duration&&(element.currentTime<window.start||element.currentTime>=window.end))element.currentTime=window.start;}} className="h-full w-full object-contain" /> :
           // eslint-disable-next-line @next/next/no-img-element
           <StoryPixelGrade className="h-full w-full"><img src={sticker.postMediaUrl} alt="Shared post" onLoad={e => setSize({ width: e.currentTarget.naturalWidth, height: e.currentTarget.naturalHeight })} className="h-full w-full object-contain" /></StoryPixelGrade>}
       </Link>
