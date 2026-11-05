@@ -71,8 +71,9 @@ export function can(role: StudioRole | null, action: keyof typeof ROLE_CAN) {
 
 const sb = () => createClient();
 
-export async function studioMe(): Promise<StudioMe | null> {
-  const { data, error } = await sb().rpc("studio_me");
+export async function studioMe(signal?: AbortSignal): Promise<StudioMe | null> {
+  const request = sb().rpc("studio_me");
+  const { data, error } = await (signal ? request.abortSignal(signal) : request);
   if (error) throw error;
   return data as StudioMe;
 }

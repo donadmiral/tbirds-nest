@@ -94,6 +94,9 @@ export function useWordPreferences(field: "hidden_words" | "muted_words") {
       const session = await withTimeout(supabase.auth.getSession());
       const signedIn = session.data.session;
       if (!current() || session.error || !signedIn?.access_token || signedIn.user.id !== uid || navigationSessionIdentity(signedIn) !== approved.identity) throw new Error("Your account changed. Reopen these settings.");
+      // An interrupted write may still commit. Drop the prior feed policy
+      // before dispatch so returning Home always reads the saved mute list.
+      if (field === "muted_words") store.cache.remove(approved.scope, "home:personal");
       dispatched = true;
       const result = await withTimeout(supabase.from("profiles").update({ [field]: next }).eq("id", uid)
         .setHeader("Authorization", `Bearer ${signedIn.access_token}`).abortSignal(controller.signal));

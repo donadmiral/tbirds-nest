@@ -76,13 +76,13 @@ test('expired, signed and opaque avatar locators are omitted without changing ca
 function component(h, options = {}) {
   const icon = () => React.createElement('i');
   const Link = ({ href, children, prefetch, ...props }) => React.createElement('a', { href, ...props, 'data-prefetch': String(prefetch) }, children);
-  return load('web/components/NavigationLoading.tsx', {
+  return load(options.file || 'web/components/NavigationLoading.tsx', {
     react: options.react || React, 'react/jsx-runtime': require('react/jsx-runtime'), 'next/link': { default: Link }, 'next/image': { default: ({ unoptimized, ...props }) => React.createElement('img', { ...props, 'data-unoptimized': String(unoptimized) }) },
     'next/navigation': { usePathname: () => options.path || '/jobs' }, 'lucide-react': new Proxy({}, { get: () => icon }),
     '@/lib/navigationCache': { getNavigationStore: () => h.store }, '@/lib/navigationChromeMemory': api, '@/lib/navigation': navigation,
-    './NavigationActions': { NAV_ICONS: new Proxy({}, { get: () => icon }) }, './Wordmark': { Wordmark: () => 'Platinum Circles' },
+    './NavigationActions': { NAV_ICONS: new Proxy({}, { get: () => icon }) }, './Wordmark': { Wordmark: () => 'Platinum Circles' }, './LiveIcon': { LiveIcon: icon },
     './NavigationChrome.module.css': { default: new Proxy({}, { get: (_, key) => key }) },
-  }, { localStorage: { getItem: () => options.collapsed ? '1' : null } });
+  }, { localStorage: { getItem: () => options.collapsed ? '1' : null }, ...options.globals });
 }
 test('actual passive fallback has usable links and a status but no editable controls, legacy chrome hooks or global layers', () => {
   const h = fixture(); api.rememberNavigationChrome(h.store, h.session, identity);
@@ -124,4 +124,46 @@ test('actual verified guest recorder clears stale chrome but a late clear cannot
   RememberNavigationChrome({ identity: null }); h.change({ owner: 'A', scope: '3:A', revision: 3 });
   api.rememberNavigationChrome(h.store, h.session, { ...identity, name: 'New session' }); effect();
   assert.equal(api.readNavigationChrome(h.store, h.session, '/jobs').name, 'New session');
+});
+
+test('verified pending profile chrome keeps navigation usable without mounting page content, data hooks or editable controls', () => {
+  const h = fixture(); api.rememberNavigationChrome(h.store, h.session, identity);
+  const { PendingAppNavigation, PendingAppTopBar } = component(h, { file: 'web/components/PendingAppChrome.tsx' });
+  const html = renderToStaticMarkup(React.createElement(React.Fragment, null,
+    React.createElement(PendingAppNavigation, { ownerId: 'A' }), React.createElement(PendingAppTopBar, { ownerId: 'A' })));
+  assert.match(html, /Alice/); assert.match(html, /href="\/alice"/); assert.match(html, /href="\/studio"/);
+  assert.match(html, /data-navigation-profile="pending"/); assert.match(html, /class="topbar"/); assert.match(html, /class="sidebar"/);
+  assert.doesNotMatch(html, /<(main|input|textarea|button)|WebCallLayer|ScrollMemory|GlobalMediaLightbox/);
+  assert.doesNotMatch(html, /data-prefetch="(true|undefined)"/);
+});
+
+test('pending profile chrome requires the verified server owner and the exact live session before reusing identity', () => {
+  for (const change of [{}, { initialized: false }, { changed: true }, { scope: '2:A', revision: 2 }, { owner: 'B', scope: '2:B', revision: 2 }]) {
+    const h = fixture(); api.rememberNavigationChrome(h.store, h.session, identity); h.change(change);
+    const { PendingAppNavigation, PendingAppTopBar } = component(h, { file: 'web/components/PendingAppChrome.tsx' });
+    const ownerId = Object.keys(change).length ? 'A' : 'B';
+    const html = renderToStaticMarkup(React.createElement(React.Fragment, null,
+      React.createElement(PendingAppNavigation, { ownerId }), React.createElement(PendingAppTopBar, { ownerId })));
+    assert.doesNotMatch(html, /Alice|alice|avatars\/A/);
+    assert.match(html, /href="\/home"/); assert.match(html, /href="\/settings\/username"/);
+  }
+});
+
+test('pending profile navigation restores the shared collapsed geometry during the layout commit', () => {
+  const h = fixture(), slots = [], effects = [], classes = new Set(), listeners = new Map(); let cursor = 0;
+  const hooks = {
+    useState(initial) { const i = cursor++; if (!(i in slots)) slots[i] = typeof initial === 'function' ? initial() : initial; return [slots[i], next => { slots[i] = next; }]; },
+    useSyncExternalStore(_subscribe, snapshot) { return snapshot(); },
+    useLayoutEffect(effect) { effects.push(effect); },
+    useEffect() { assert.fail('Geometry must settle during layout, before the browser paints'); },
+  };
+  const { PendingAppNavigation } = component(h, { file: 'web/components/PendingAppChrome.tsx', collapsed: true, react: hooks, globals: {
+    window: { addEventListener: (name, callback) => listeners.set(name, callback), removeEventListener: name => listeners.delete(name) },
+    document: { documentElement: { classList: { toggle(name, value) { if (value) classes.add(name); else classes.delete(name); }, remove: name => classes.delete(name) } } },
+  } });
+  PendingAppNavigation({ ownerId: 'A' }); const cleanup = effects.shift()();
+  assert.equal(classes.has('nav-collapsed'), true); assert.equal(listeners.has('storage'), true);
+  cursor = 0; const html = renderToStaticMarkup(PendingAppNavigation({ ownerId: 'A' }));
+  assert.match(html, /class="sidebar collapsed"/);
+  cleanup(); assert.equal(classes.has('nav-collapsed'), false); assert.equal(listeners.size, 0);
 });
