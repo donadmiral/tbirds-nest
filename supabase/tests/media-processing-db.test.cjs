@@ -153,8 +153,12 @@ else {
   let pending;
   try{
    await other.query(`select 1 from media_processing.jobs where id='${j.job_id}' for update`);
-   let settled=false;pending=query('select reconcile_media_processing_v1(100)').then(x=>{settled=true;return x;});
-   await new Promise(r=>setTimeout(r,35));assert.equal(settled,true);assert.equal(await pending,'0');
+   pending=query('select reconcile_media_processing_v1(100)');
+   // Keep the writer lock held until reconciliation has returned. A fixed
+   // 35 ms sleep measures runner scheduling rather than SKIP LOCKED behavior.
+   let timeout;
+   try{assert.equal(await Promise.race([pending,new Promise((_,reject)=>{timeout=setTimeout(()=>reject(new Error('Reconciliation waited for the writer-held job')),2000);})]),'0');}
+   finally{clearTimeout(timeout);}
    assert.equal(await val('select count(*) from media_processing.invalidations where cursor is null'),1);
    await other.query(`update stories set media_url='https://fixture.test/removed.mp4' where id='${entity}'`);
    await other.query('commit');assert.equal(await val('select reconcile_media_processing_v1(100)'),1);
