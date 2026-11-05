@@ -91,7 +91,12 @@ def run():
             return
         message = command('GET', '/element/' + notification + '/text')
         assert message == 'Allow Platinum QA to send you notifications?', message
-        click(wait_element('id', 'com.android.permissioncontroller:id/permission_deny_button', 5))
+        # Android uses a distinct second-denial button after the first denial.
+        try:
+            denial = wait_element('id', 'com.android.permissioncontroller:id/permission_deny_button', 2)
+        except AssertionError:
+            denial = wait_element('id', 'com.android.permissioncontroller:id/permission_deny_and_dont_ask_again_button', 5)
+        click(denial)
 
     def snapshot(name):
         (OUTPUT / (name + '.png')).write_bytes(base64.b64decode(command('GET', '/screenshot')))

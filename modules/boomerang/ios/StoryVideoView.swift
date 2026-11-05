@@ -81,6 +81,8 @@ final class StoryVideoView: ExpoView {
   private var gradeSurface: StoryHLSGradeSurface?
   private var sourceTransform = CGAffineTransform.identity
   private var gradeOutputFailed = false
+  private var preparingHLS = false
+  private var hlsReadinessStarted = false
   private var appliedSeek = -1
   private var initialSeekCompleted = false
   private var firstFrameReported = false
@@ -133,6 +135,9 @@ final class StoryVideoView: ExpoView {
     playerLayer.videoGravity = fit == "cover" ? .resizeAspectFill : .resizeAspect
     player.isMuted = muted; player.volume = Float(max(0, min(1, volume.isFinite ? volume : 1)))
     if loadedURI != uri || loadedRevision != reloadRevision { load() }
+    // A stream obtains tracks and duration through its ready player item.
+    // Keep its ungraded layer and trim frame hidden during that preparation.
+    if preparingHLS { return }
     if renderedMatrix != matrix, let item = player.currentItem { applyGrade(item) }
     player.currentItem?.audioTimePitchAlgorithm = preservesPitch ? .spectral : .varispeed
     if appliedSeek != seekRevision, seekSeconds.isFinite, player.currentItem?.status == .readyToPlay {
@@ -209,10 +214,49 @@ final class StoryVideoView: ExpoView {
     playerLayer.isHidden = true
     onPlayback(["type": "statusChange", "status": "error", "error": "This video needs its original playback format."])
   }
+  private func loadHLS(_ asset: AVURLAsset, expected: Int) {
+    preparingHLS = true; hlsReadinessStarted = false; playerLayer.isHidden = true
+    let item = AVPlayerItem(asset: asset)
+    item.preferredForwardBufferDuration = 3
+    // Observe before association. AVPlayer starts resolving HLS media when it
+    // receives the item, so AVAsset's earlier empty tracks are not a failure.
+    itemStatus = item.observe(\.status, options: [.initial, .new]) { @Sendable [weak self] _, _ in
+      DispatchQueue.main.async {
+        guard let self, expected == self.generation, self.player.currentItem === item else { return }
+        if item.status == .failed {
+          self.onPlayback(["type": "statusChange", "status": "error", "error": item.error?.localizedDescription ?? "This video could not play."])
+        } else if item.status == .readyToPlay, !self.hlsReadinessStarted {
+          self.hlsReadinessStarted = true
+          self.loadTask = Task { @MainActor [weak self] in
+            do {
+              let track = item.tracks.compactMap { $0.assetTrack }.first { $0.mediaType == .video }
+              let transform: CGAffineTransform
+              if let track { transform = try await track.load(.preferredTransform) }
+              else { transform = .identity }
+              guard !Task.isCancelled, let self, expected == self.generation, self.player.currentItem === item else { return }
+              let duration = item.duration.seconds
+              guard duration.isFinite, duration > 0 else {
+                self.onPlayback(["type": "statusChange", "status": "error", "error": "This video could not be read."]); return
+              }
+              self.sourceTransform = transform; self.preparingHLS = false
+              self.applyGrade(item)
+              guard !self.gradeOutputFailed else { return }
+              self.onPlayback(["type": "statusChange", "status": "readyToPlay", "duration": duration])
+              self.update()
+            } catch {
+              guard !Task.isCancelled, let self, expected == self.generation, self.player.currentItem === item else { return }
+              self.onPlayback(["type": "statusChange", "status": "error", "error": error.localizedDescription])
+            }
+          }
+        }
+      }
+    }
+    player.replaceCurrentItem(with: item)
+  }
   private func load() {
     generation += 1; let expected = generation
     loadedURI = uri; loadedRevision = reloadRevision; appliedSeek = -1; renderedMatrix = []; loadTask?.cancel()
-    initialSeekCompleted = false; firstFrameReported = false
+    initialSeekCompleted = false; firstFrameReported = false; preparingHLS = false; hlsReadinessStarted = false
     player.pause(); clearGradeSurface(); sourceTransform = .identity; gradeOutputFailed = false; playerLayer.isHidden = false
     displayStatus = nil; playerLayer.player = nil; itemStatus = nil; player.replaceCurrentItem(with: nil)
     loadedAsset?.cancelLoading(); loadedAsset = nil
@@ -226,22 +270,19 @@ final class StoryVideoView: ExpoView {
     }
     let asset = StoryVideoWarmPool.take(uri) ?? AVURLAsset(url: url)
     loadedAsset = asset
-    let needsHLSTransform = url.pathExtension.lowercased() == "m3u8" && allowsHLSGrade
+    if url.pathExtension.lowercased() == "m3u8" { loadHLS(asset, expected: expected); return }
     loadTask = Task { [weak self] in
       do {
         async let playableLoad = asset.load(.isPlayable)
         async let durationLoad = asset.load(.duration)
         async let tracksLoad = asset.loadTracks(withMediaType: .video)
         let (playable, duration, tracks) = try await (playableLoad, durationLoad, tracksLoad)
-        let transform: CGAffineTransform
-        if needsHLSTransform, let track = tracks.first { transform = try await track.load(.preferredTransform) }
-        else { transform = .identity }
         guard !Task.isCancelled else { return }
         await MainActor.run {
           guard let self, expected == self.generation else { return }
           guard playable, !tracks.isEmpty, duration.seconds.isFinite, duration.seconds > 0 else { self.onPlayback(["type": "statusChange", "status": "error", "error": "This video could not be read."]); return }
           let item = AVPlayerItem(asset: asset)
-          self.sourceTransform = transform
+          self.sourceTransform = .identity
           item.preferredForwardBufferDuration = 3
           self.applyGrade(item)
           guard !self.gradeOutputFailed else { return }

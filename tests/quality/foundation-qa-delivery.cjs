@@ -5,6 +5,7 @@ const path = require('node:path');
 const YAML = require('yaml');
 const root = path.resolve(__dirname, '../..');
 const read = name => fs.readFileSync(path.join(root, name), 'utf8');
+const vm = require('node:vm');
 
 test('foundation QA delivery is deliberately triggered only by a trusted branch workflow change', () => {
  const workflow = YAML.parse(read('.github/workflows/foundation-qa-delivery.yml'));
@@ -21,6 +22,33 @@ test('foundation QA delivery is deliberately triggered only by a trusted branch 
  assert.ok(build); assert.equal(build.env.EXPO_TOKEN, '${{ secrets.EXPO_TOKEN }}');
  assert.equal(build.env.GITHUB_TOKEN, '${{ github.token }}');
  assert.ok(!job.steps.some(step => step['continue-on-error']));
+});
+
+async function releaseGates(responses) {
+ const source = read('tools/build-live-qa.mjs');
+ const prefix = source.slice(0, source.indexOf("assert.ok(process.env.EXPO_TOKEN")).replace(/^import .*;\n/gm, '');
+ let clock = 0, calls = 0;
+ const value = await vm.runInNewContext('(async()=>{' + prefix + '\nreturn {qualityRun,hlsRun};})()', {
+  assert, AbortSignal, Date: { now: () => clock }, console: { log() {} },
+  process: { env: { GITHUB_SHA: 'a'.repeat(40), GITHUB_REPOSITORY: 'donadmiral/tbirds-nest', GITHUB_TOKEN: 'synthetic-read-token' } },
+  fetch: async () => ({ ok: true, json: async () => ({ workflow_runs: responses[Math.min(calls++, responses.length - 1)] }) }),
+  setTimeout: (callback, delay) => { clock += delay; queueMicrotask(callback); },
+ });
+ return { ...value, calls };
+}
+const workflowRun = (id, path, extra = {}) => ({ id, path: '.github/workflows/' + path, head_sha: 'a'.repeat(40),
+ status: 'completed', conclusion: 'success', html_url: 'https://github.com/donadmiral/tbirds-nest/actions/runs/' + id, ...extra });
+
+test('delivery waits for current-source HLS pixels and rejects failed or unrelated renderer evidence', async () => {
+ const quality = workflowRun(1, 'typecheck.yml');
+ const hls = workflowRun(2, 'ios-graded-hls-runtime.yml');
+ await assert.rejects(releaseGates([[quality, { ...hls, conclusion: 'failure' }]]), /iOS graded HLS runtime must pass/);
+ await assert.rejects(releaseGates([[quality, { ...hls, head_sha: 'b'.repeat(40) }]]), /gates are still pending/);
+ const waiting = await releaseGates([[quality, { ...hls, status: 'in_progress', conclusion: null }], [quality, hls]]);
+ assert.equal(waiting.calls, 2); assert.equal(waiting.hlsRun.id, 2);
+ await assert.rejects(releaseGates([[quality, hls, { ...hls, id: 3, conclusion: 'failure' }]]), /iOS graded HLS runtime must pass/);
+ const renderer = YAML.parse(read('.github/workflows/ios-graded-hls-runtime.yml'));
+ assert.ok(renderer.on.push.paths.includes('.github/workflows/foundation-qa-delivery.yml'));
 });
 test('foundation delivery retains exact-source quality and existing remote iOS versioning gates', () => {
  const quality = YAML.parse(read('.github/workflows/typecheck.yml'));

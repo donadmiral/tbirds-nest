@@ -1,6 +1,6 @@
 name: Foundation iPhone QA delivery
 
-# Delivery revision: enable verified QA private HLS with encrypted originals and graded playback.
+# Delivery revision: wait for ready HLS items and require the actual renderer gate before building.
 # A source-only push runs the shared quality gates without starting another EAS build.
 # workflow_run cannot bootstrap a new workflow living only on this release branch.
 on:
@@ -35,7 +35,7 @@ jobs:
         run: |
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           git diff --exit-code
-      - name: Build or resume after same-source Type and quality gates pass
+      - name: Build or resume after same-source quality and iOS HLS runtime gates pass
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           GITHUB_TOKEN: ${{ github.token }}

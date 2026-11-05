@@ -12,6 +12,7 @@ on:
       - 'scripts/quality/story-hls-grade-runtime.py'
       - 'scripts/quality/test-ios-story-hls-grade.sh'
       - '.github/workflows/ios-graded-hls-runtime.yml'
+      - '.github/workflows/foundation-qa-delivery.yml'
   workflow_dispatch:
 
 permissions:

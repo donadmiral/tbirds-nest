@@ -6,8 +6,9 @@ assert.match(sha||'',/^[a-f0-9]{40}$/);
 assert.equal(process.env.GITHUB_REPOSITORY,'donadmiral/tbirds-nest');
 assert.ok(process.env.GITHUB_TOKEN,'The CI read token is required to verify the release gates');
 const qualityDeadline=Date.now()+15*60*1000;
-let qualityRun;
-while(!qualityRun){
+let qualityRun,hlsRun;
+while(!qualityRun||!hlsRun){
+  qualityRun=undefined;hlsRun=undefined;
   const response=await fetch(`https://api.github.com/repos/donadmiral/tbirds-nest/actions/runs?head_sha=${sha}&event=push&per_page=100`,{
     headers:{Authorization:`Bearer ${process.env.GITHUB_TOKEN}`,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'},
     signal:AbortSignal.timeout(15000),
@@ -19,12 +20,19 @@ while(!qualityRun){
   if(candidate?.status==='completed'){
     assert.equal(candidate.conclusion,'success',`Type and quality gates must pass: ${candidate.html_url}`);
     qualityRun=candidate;
-  }else{
-    assert.ok(Date.now()<qualityDeadline,'Type and quality gates are still pending. No QA build was submitted.');
+  }
+  const hlsCandidate=result.workflow_runs?.filter(run=>run.head_sha===sha&&run.path==='.github/workflows/ios-graded-hls-runtime.yml')
+    .sort((a,b)=>b.id-a.id)[0];
+  if(hlsCandidate?.status==='completed'){
+    assert.equal(hlsCandidate.conclusion,'success',`iOS graded HLS runtime must pass: ${hlsCandidate.html_url}`);
+    hlsRun=hlsCandidate;
+  }
+  if(!qualityRun||!hlsRun){
+    assert.ok(Date.now()<qualityDeadline,'Quality or iOS HLS runtime gates are still pending. No QA build was submitted.');
     await new Promise(resolve=>setTimeout(resolve,20000));
   }
 }
-console.log(`Required quality gates passed: ${qualityRun.html_url}`);
+console.log(`Required quality gates passed: ${qualityRun.html_url}; ${hlsRun.html_url}`);
 assert.ok(process.env.EXPO_TOKEN,'EXPO_TOKEN must be provided by the CI secret store');
 const profile=JSON.parse(fs.readFileSync('eas.json','utf8')).build.preview;
 const app=JSON.parse(fs.readFileSync('app.json','utf8')).expo;
@@ -42,5 +50,5 @@ fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,`\nQA build: ${url}\nSource: $
 const deadline=Date.now()+22*60*1000;
 while(build.status!=='FINISHED'){assert.ok(active.has(build.status),`Build failed: ${url}`);assert.ok(Date.now()<deadline,`Build pending: ${url}`);await new Promise(r=>setTimeout(r,20000));build=run(['build:view',build.id,'--json']);assert.ok(same(build));}
 assert.ok(typeof build.artifacts?.buildUrl==='string');
-const receipt={status:'FINISHED',source:sha,qualityRunId:qualityRun.id,buildId:build.id,installPage:url,buildNumber:build.appBuildVersion};
+const receipt={status:'FINISHED',source:sha,qualityRunId:qualityRun.id,gradedHLSRunId:hlsRun.id,buildId:build.id,installPage:url,buildNumber:build.appBuildVersion};
 console.log(JSON.stringify(receipt));fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,`\nReady to install: ${url}\n${JSON.stringify(receipt)}\n`);
