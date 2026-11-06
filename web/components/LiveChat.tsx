@@ -28,9 +28,15 @@ export function LiveChat({client,detail,ownerId,onRefresh,onPatch,onInteraction,
     let connection=0,alive=true,subscribedBefore=false,channel:ReturnType<LiveClient['channel']>|null=null,control:ReturnType<LiveClient['channel']>|null=null,poll:ReturnType<typeof setTimeout>|undefined,topicRefresh:ReturnType<typeof setTimeout>|undefined;
     // Missed moderation events make old history unverified. Retire reads, not pending commands.
     const discardHistory=()=>{history.current.revision++;history.current.refreshAfterGap=true;setMessages([]);setCursor(null);setLoading(false);};
-    const stopPoll=()=>{clearTimeout(poll);poll=undefined;};
-    // Without a socket the room is not silent. Read the canonical history every twelve seconds so replies keep appearing; sends already work over REST.
-    const schedulePoll=(delay:number)=>{stopPoll();poll=setTimeout(()=>{poll=undefined;if(!alive||!channel||document.visibilityState==='hidden')return;void load();schedulePoll(12000);},delay);};
+    let polling=false,pollEpoch=0;
+    const stopPoll=()=>{pollEpoch++;polling=false;clearTimeout(poll);poll=undefined;};
+    // Spread recovery reads across the room. A slow fetch must finish before its next poll.
+    const schedulePoll=(first:number)=>{
+      if(polling)return;polling=true;const epoch=++pollEpoch;
+      const active=()=>epoch===pollEpoch&&alive&&!!channel&&document.visibilityState!=='hidden';
+      const queue=(base:number)=>{poll=setTimeout(async()=>{if(!active())return;try{await load();}finally{if(active())queue(12000);}},base+Math.floor(Math.random()*base));};
+      queue(first);
+    };
     // A removal or block aimed at someone else rotates the chat topic for everyone. The control event names only that person, so re-read the detail
     // (spread over a moment so a whole audience does not read at once) and follow the new topic instead of staying on the retired one.
     const access=({payload}:{payload:unknown})=>{if(!record(payload))return;if(payload.user_id===ownerId){setMessages([]);setPinned(null);onRefresh();}else if(typeof payload.chat_topic==='string')onPatch(payload);else{clearTimeout(topicRefresh);topicRefresh=setTimeout(()=>{if(alive)onRefresh();},Math.random()*1500);}};
@@ -48,7 +54,7 @@ export function LiveChat({client,detail,ownerId,onRefresh,onPatch,onInteraction,
       .on('broadcast',{event:'session'},guard(({payload})=>onPatch(payload)))
       .on('broadcast',{event:'access_changed'},guard(access))
       .on('broadcast',{event:'warning'},guard(({payload})=>{if(record(payload))setError(String(payload.reason||'This stream is under review.').slice(0,500));}))
-      .subscribe(status=>{if(!alive||serial!==connection)return;setConnected(status==='SUBSCRIBED');if(status==='SUBSCRIBED'){stopPoll();if(subscribedBefore||history.current.refreshAfterGap){if(!history.current.refreshAfterGap)discardHistory();history.current.refreshAfterGap=false;void load();onRefresh();}else void load();subscribedBefore=true;}else{discardHistory();schedulePoll(3000);}});
+      .subscribe(status=>{if(!alive||serial!==connection)return;setConnected(status==='SUBSCRIBED');if(status==='SUBSCRIBED'){stopPoll();if(subscribedBefore||history.current.refreshAfterGap){if(!history.current.refreshAfterGap)discardHistory();history.current.refreshAfterGap=false;void load();onRefresh();}else void load();subscribedBefore=true;}else if(!polling){discardHistory();schedulePoll(3000);}});
       control=client.channel('live-control:'+detail.session.id,{config:{private:true}}).on('broadcast',{event:'session'},guard(({payload})=>onPatch(payload))).on('broadcast',{event:'access_changed'},guard(access)).subscribe();
     };
     const leave=()=>{connection++;stopPoll();discardHistory();if(channel){void client.removeChannel(channel);channel=null;}if(control){void client.removeChannel(control);control=null;}setConnected(false);};

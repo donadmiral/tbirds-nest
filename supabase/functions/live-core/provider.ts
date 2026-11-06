@@ -1,6 +1,6 @@
 // Daily REST contract verified against the official HLS, room, VCS and webhook
 // docs on 2026-11-02. No viewer joins the private production room.
-export type LiveScene = { preset: 'host' | 'grid' | 'interview' | 'game' | 'screen'; participant_id?: string; participant_ids?: string[]; orientation?: 'portrait' | 'landscape'; automatic?: boolean };
+export type LiveScene = { preset: 'host' | 'grid' | 'interview' | 'game' | 'screen'; participant_id?: string; participant_ids?: string[]; orientation?: 'portrait' | 'landscape'; automatic?: boolean; connection_ids?: string[] };
 export type StageIdentity = { provider_identity: string; user_id: string; role: string };
 export type Presence = { id: string; userId: string; mtgSessionId?: string };
 export type ProviderContext = {
@@ -22,8 +22,15 @@ export function validScene(value: unknown): value is LiveScene {
     && (s.participant_id === undefined || validUuid(s.participant_id))
     && (s.participant_ids === undefined || Array.isArray(s.participant_ids) && s.participant_ids.length <= 12 && s.participant_ids.every(validUuid))
     && (s.automatic === undefined || typeof s.automatic === 'boolean')
+    && (s.connection_ids === undefined || (s.automatic === true && Array.isArray(s.connection_ids)
+      && s.connection_ids.length > 0 && s.connection_ids.length <= 12 && s.connection_ids.every(validUuid)
+      && new Set(s.connection_ids.map(id => id.toLowerCase())).size === s.connection_ids.length
+      && (s.preset === 'host' && s.connection_ids.length === 1 && validUuid(s.participant_id)
+        || s.preset === 'interview' && s.connection_ids.length === 2 && validUuid(s.participant_id)
+        || s.preset === 'grid' && s.connection_ids.length >= 3 && s.participant_ids?.length === s.connection_ids.length
+          && new Set(s.participant_ids).size === s.participant_ids.length)))
     && (s.orientation === undefined || s.orientation === 'portrait' || s.orientation === 'landscape')
-    && Object.keys(s).every(k => ['preset','participant_id','participant_ids','orientation','automatic'].includes(k));
+    && Object.keys(s).every(k => ['preset','participant_id','participant_ids','orientation','automatic','connection_ids'].includes(k));
 }
 export function liveOutputSize(context: ProviderContext) {
   return context.output_orientation === 'portrait' ? { width: 1080, height: 1920 } : { width: 1920, height: 1080 };
@@ -79,9 +86,33 @@ export function buildLiveLayout(scene: LiveScene, context: ProviderContext, pres
   const resolve = (id: string) => allowed.find(p => p.userId === id || p.id === id);
   let selected: Presence[];
   if (scene.automatic === true) {
-    if (!host) throw new Error('SOURCE_NOT_CONNECTED');
+    if (context.role !== 'host') throw new Error('ACCESS_DENIED');
+    if (!host) throw new Error(!start && scene.connection_ids ? 'STAGE_CONNECTION_CHANGED' : 'SOURCE_NOT_CONNECTED');
     const guests = new Set(context.allowed_participants.filter(p => p.role === 'guest').map(p => p.provider_identity));
     selected = [host, ...allowed.filter(p => p.id !== host.id && guests.has(p.userId)).sort((a,b) => a.userId.localeCompare(b.userId))];
+    // The caller cannot select a source by sending a connection ID. Build the
+    // roster from current server authority, then verify the host observed it.
+    // During an overlap wait for one connection per host/guest, never broadcast both.
+    const connections = scene.connection_ids;
+    if (connections) {
+      const identities = scene.preset === 'host' ? [scene.participant_id] :
+        scene.preset === 'interview' ? [host.userId, scene.participant_id] : scene.participant_ids;
+      if (!identities || identities.length !== connections.length || !identities.every(validUuid)) throw new Error('INVALID_SCENE');
+      const matches = (person: Presence, i: number) =>
+        person.id.toLowerCase() === connections[i]?.toLowerCase() && person.userId.toLowerCase() === identities[i]?.toLowerCase();
+      const hosts = allowed.filter(p => hostIdentities.has(p.userId));
+      if (hosts.length !== 1 || selected.length !== connections.length
+        || new Set(selected.map(p => p.userId)).size !== selected.length || !selected.every(matches)) {
+        if (!start) throw new Error('STAGE_CONNECTION_CHANGED');
+        // Start already owns a broadcast reservation. Start safely with the
+        // verified host and only guests whose exact connection both sides see.
+        // The caller will synchronize the full scene once the stream is live.
+        const safeHost = hosts.find(p => matches(p,0)) ?? (hosts.length === 1 ? hosts[0] : null);
+        if (!safeHost) throw new Error('SOURCE_NOT_CONNECTED');
+        selected = [safeHost, ...selected.filter(p => guests.has(p.userId)
+          && matches(p,identities.indexOf(p.userId)) && selected.filter(other=>other.userId===p.userId).length===1)];
+      }
+    }
     scene = { ...scene, preset: selected.length === 1 ? 'host' : selected.length === 2 ? 'interview' : 'grid' };
   } else if (scene.preset === 'host') {
     const target = scene.participant_id ? resolve(scene.participant_id) : host;

@@ -2,7 +2,7 @@ const state=()=> (window as any).__liveStart;
 export default {createCallObject(){
  state().dailyCreated=(state().dailyCreated||0)+1;
  const handlers=new Map<string,Function[]>();let stream:MediaStream|null=null,draw:number|undefined;
- const participant:any={local:true,user_id:'11111111-1111-4111-8111-111111111111',session_id:'local',user_name:'Synthetic host',tracks:{audio:{state:'off'},video:{state:'off'},screenAudio:{state:'off'},screenVideo:{state:'off'}}};
+ const participant:any={local:true,user_id:'11111111-1111-4111-8111-111111111111',session_id:'21111111-1111-4111-8111-111111111111',user_name:'Synthetic host',tracks:{audio:{state:'off'},video:{state:'off'},screenAudio:{state:'off'},screenVideo:{state:'off'}}};
  const fire=(name:string,event?:unknown)=>handlers.get(name)?.forEach(fn=>fn(event));
  state().emitDaily=fire;
  const call:any={on(name:string,fn:Function){handlers.set(name,[...(handlers.get(name)||[]),fn]);return call;},participants(){return {local:participant};},async join(){fire('participant-joined');},async setLocalVideo(enabled:boolean){

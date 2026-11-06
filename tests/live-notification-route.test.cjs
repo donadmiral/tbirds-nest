@@ -17,3 +17,12 @@ test('Live response is account-bound and duplicate delivery is consumed once',as
 test('Navigator sends Live alerts to the actual session, not a generic notification list',()=>{
  const nav=fs.readFileSync('src/navigation/AppNavigator.tsx','utf8');assert.match(nav,/case 'live_stream':[\s\S]*?navigate\('LiveSession', \{ sessionId: data\.live_session_id \}\)/);assert.match(nav,/<RootStack\.Screen name="LiveSession"/);
 });
+test('guest decision is account-bound, routes only to the room, and ignores injected URLs, stage flags and unrelated targets',()=>{
+ for(const kind of ['guest_accepted','guest_declined']){
+  const data=notificationTapData({type:'live_stream',kind,live_session_id:id,recipient_id:user,screen:'LiveStage',join:true,url:'https://evil.invalid'});
+  assert.deepEqual(Object.keys(data).sort(),['live_session_id','recipient_id','type']);assert.equal(data.live_session_id,id);
+ }
+ const mod={exports:{}};vm.runInNewContext(ts.transpileModule(fs.readFileSync('web/lib/notificationRouting.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,{module:mod,exports:mod.exports});
+ assert.equal(mod.exports.notificationHref({type:'live_stream',data:{live_session_id:id,post_id:user,screen:'studio'}}),'/live/'+id);
+ assert.equal(mod.exports.notificationHref({type:'live_stream',data:{live_session_id:'https://example.invalid/',sessionId:id},actor_username:'target'}),'/notifications');
+});

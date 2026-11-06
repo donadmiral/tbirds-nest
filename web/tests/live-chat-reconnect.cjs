@@ -82,7 +82,7 @@ function harness({ initialPin = null, actualParent = false, blocked = [] } = {})
     '@/lib/supabase/client': { createClient: () => client }, '@/lib/navigationCache': { getNavigationStore: () => navigation }, '@/lib/liveApi': api,
     '../../shared/liveDirectory': directory, './LiveIcon': { LiveIcon: 'LiveIcon' }, './LivePlaybackProvider': { LivePlayerSlot: 'LivePlayerSlot', useLivePlayback: () => playback },
     './LiveGuestRequests': { LiveGuestRequests: 'LiveGuestRequests' },
-    './LiveChat': { LiveChat: 'ActualChatSlot' }, './LiveStudio': { LiveStudio: 'LiveStudio' }, './LiveInteractions': { LiveInteractions: 'LiveInteractions', LiveAnalyticsPanel: 'LiveAnalyticsPanel' },
+    './LiveChat': { LiveChat: 'ActualChatSlot' }, './LiveHostFollow':{LiveHostFollow:'LiveHostFollow'}, './LiveStudio': { LiveStudio: 'LiveStudio' }, './LiveInteractions': { LiveInteractions: 'LiveInteractions', LiveAnalyticsPanel: 'LiveAnalyticsPanel' },
     '@/lib/liveInteractions': { parseLiveInteractions: () => null },
   }, { window: { location: { search: '' } }, URLSearchParams }).LiveSessionView : null;
   const renderParent = () => {

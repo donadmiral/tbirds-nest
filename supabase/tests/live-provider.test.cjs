@@ -7,7 +7,7 @@ function load(file, imports = {}) {
   vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../functions', file), 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText, { module, exports: module.exports, Request, Response, Headers, URL, AbortSignal, TextEncoder, TextDecoder,
-    Uint8Array, Date, crypto: webcrypto, atob, btoa, require(name) { if (name in imports) return imports[name]; throw Error(name); } });
+    Uint8Array, Date, Error, crypto: webcrypto, atob, btoa, require(name) { if (name in imports) return imports[name]; throw Error(name); } });
   return module.exports;
 }
 const p = load('live-core/provider.ts');
@@ -557,4 +557,59 @@ test('inspection times out an unresponsive provider without changing maintenance
   assert.equal(aborted, true); assert.equal(result.status, 200); assert.equal(result.data.ok, true);
   assert.deepEqual(result.data.provider_inspection, { ok: false, error: 'PROVIDER_INSPECTION_UNAVAILABLE' });
   assert.equal(h.calls.filter(call => call.name === 'finish_live_worker_tick_v1').length, 1);
+});
+
+test('fresh guest connection must match current provider presence and server roles before either camera or sound goes on air',()=>{
+ const updated={...present[1],id:id(52)}, scene={preset:'interview',automatic:true,participant_id:guestIdentity,connection_ids:[present[0].id,updated.id]};
+ const current=[updated,present[2],present[0]];
+ assert.deepEqual(plain(p.buildLiveLayout(scene,context,current,false).layout.participants),
+   {video:[id(31),id(52)],audio:[id(31),id(52)]});
+ for(const rows of [present,[...present,updated],[updated,present[2]]]){
+   assert.throws(()=>p.buildLiveLayout(scene,context,rows,false),/STAGE_CONNECTION_CHANGED/);
+ }
+ assert.throws(()=>p.buildLiveLayout(scene,{...context,allowed_participants:context.allowed_participants.map(m=>m.role==='guest'?{...m,role:'camera'}:m)},current,false),/STAGE_CONNECTION_CHANGED/);
+ assert.throws(()=>p.buildLiveLayout(scene,{...context,role:'producer'},current,false),/ACCESS_DENIED/);
+ for(const connections of [[],[id(31),id(31)],['local'],[true],Array.from({length:13},(_,n)=>id(n))]){
+   assert.equal(p.validScene({...scene,connection_ids:connections}),false);
+ }
+ assert.equal(p.validScene({...scene,automatic:false}),false);
+});
+
+test('starting during a guest connection switch safely starts the verified host, then accepts only the fresh guest update',()=>{
+ const wanted={preset:'interview',participant_id:guestIdentity,automatic:true,connection_ids:[id(31),id(53)]};
+ const start=p.buildLiveLayout(wanted,context,present,true);
+ assert.deepEqual(plain(start.layout.participants),{video:[id(31)],audio:[id(31)]});
+ assert.throws(()=>p.buildLiveLayout(wanted,context,present,false),/STAGE_CONNECTION_CHANGED/);
+ const fresh=p.buildLiveLayout(wanted,context,[present[0],{...present[1],id:id(53)}],false);
+ assert.deepEqual(plain(fresh.layout.participants),{video:[id(31),id(53)],audio:[id(31),id(53)]});
+});
+
+test('HTTP control reports only proven connection mismatches as retriable; stale scene never reaches Daily',async()=>{
+ const scene={preset:'interview',participant_id:guestIdentity,automatic:true,connection_ids:[id(31),id(53)]};
+ const token='header.'+Buffer.from(JSON.stringify({sub:host,session_id:id(80)})).toString('base64url')+'.signature';
+ const caller={auth:{getUser:async()=>({data:{user:{id:host}},error:null})},rpc:async()=>({data:{operation_id:id(82),status:'queued'},error:null})};
+ const room={privacy:'private',url:'https://example.daily.co/'+context.room_name,config:{max_participants:12,streaming_endpoints:p.hlsEndpoints(config,context)}};
+ for(const [action,roster,wantedStatus,confirmed] of [
+   ['scene',present,409,null],['start',present,200,false],['start',[present[0],{...present[1],id:id(53)}],200,true],
+   ['scene',[present[0],{...present[1],id:id(53)}],200,null]
+ ]){
+   const sends=[],finishes=[];
+   const ctx={...context,action,lease_id:id(81),payload:{scene}};
+   const handler=createLiveHandler('control',{caller:()=>caller,config,now:()=>now,service:{rpc:async(name,args)=>{
+     if(name==='live_finish_control'){finishes.push(args);return {data:{ok:args.p_accepted},error:null};}
+     return {data:ctx,error:null};
+   }},fetch:async(url,init={})=>{
+     if(url.includes('/presence?'))return Response.json({total_count:roster.length,data:roster});
+     if(url.includes('/live-streaming/')){sends.push(JSON.parse(init.body));return Response.json({status:'sent'});}
+     return Response.json(room);
+   }});
+   const res=await handler(new Request('https://synthetic.invalid/control',{method:'POST',headers:{Authorization:'Bearer '+token},body:JSON.stringify({sessionId:session,action,requestId:id(82),scene})}));
+   assert.equal(res.status,wantedStatus);const body=await res.json();assert.equal(finishes.length,1);
+   if(wantedStatus===409){assert.deepEqual(body,{error:'STAGE_CONNECTION_CHANGED'});assert.equal(sends.length,0);assert.equal(finishes[0].p_accepted,false);}
+   else{assert.equal(sends.length,1);assert.equal(finishes[0].p_accepted,true);
+     assert.equal(body.scene_connections_confirmed??null,confirmed);
+     const expected=confirmed===false?[id(31)]:scene.connection_ids;
+     assert.deepEqual(sends[0].layout.participants,{audio:expected,video:expected});
+   }
+ }
 });

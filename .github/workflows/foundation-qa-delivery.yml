@@ -1,6 +1,6 @@
 name: Foundation iPhone and Android QA delivery
 
-# Delivery revision: show the protected generated poster and playable representation for enrolled legacy media.
+# Delivery revision: include Live room reactions, moderated chat, follow controls, off-screen guest decisions and returning guest cameras.
 # Both device builds require the web gate with its shared React test renderer installed.
 # A source-only push runs the shared quality gates without starting another EAS build.
 # workflow_run cannot bootstrap a new workflow living only on this release branch.

@@ -38,7 +38,14 @@ export async function liveRpc(name: string, args: LiveObject): Promise<LiveObjec
 
 export async function liveFunction(name: string, body: LiveObject): Promise<LiveObject> {
   const { data, error } = await profileRead(supabase.functions.invoke(name, { body }), 25000);
-  if (error) throw new Error(liveError(error));
+  if (error) {
+    // Only this pre-dispatch refusal is safe to retry as a new operation.
+    if (name === 'live-control' && liveObject(error) && error.context instanceof Response && error.context.status === 409) {
+      const detail = await error.context.clone().json().catch(() => null);
+      if (liveObject(detail) && detail.error === 'STAGE_CONNECTION_CHANGED') throw new Error('STAGE_CONNECTION_CHANGED');
+    }
+    throw new Error(liveError(error));
+  }
   if (!liveObject(data) || data.error) throw new Error(liveError(data));
   return data;
 }

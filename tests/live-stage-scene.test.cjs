@@ -67,7 +67,7 @@ test('departures update the canonical scene, while reorders and track events do 
 });
 test('automatic scenes select the expected actual viewer video and audio allowlists', () => {
   for (const participants of [[host], [host, guest], [member(3), guest, host]]) {
-    const context = { host_id: uuid(900), max_stage_members: 12, allowed_participants: participants.map(p => ({
+    const context = { role:'host',host_id: uuid(900), max_stage_members: 12, allowed_participants: participants.map(p => ({
       provider_identity: p.user_id, user_id: p === host ? uuid(900) : p.user_id, role: p === host ? 'host' : 'guest',
     })) };
     const presence = participants.map(p => ({ id: p.session_id, userId: p.user_id }));

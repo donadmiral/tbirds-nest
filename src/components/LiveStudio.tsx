@@ -15,7 +15,7 @@ import { useAuthStore } from '../stores/authStore';
 import { registerLiveStageRelease, releaseLiveStageMedia } from '../services/liveMediaSession';
 import { settleCallOperation } from '../services/nativeCallRecovery';
 import { useLiveStudioEvents } from '../hooks/useLiveStudioEvents';
-import { automaticLiveStageScene, stableLiveStageSceneKey, LIVE_STAGE_SCENE_SETTLE_MS } from '../../shared/liveStageScene';
+import { automaticLiveStagePlan, stageConnectionChanged, STAGE_CONNECTION_RETRY_MESSAGE, stableLiveStageSceneKey, LIVE_STAGE_SCENE_SETTLE_MS } from '../../shared/liveStageScene';
 import { liveStudioPresentation, type PendingLiveControl } from '../../shared/liveSetup';
 
 export function LiveStudio({ sessionId, canControl, streamState, onChanged, autoPreview = false, immersive = false, headerHeight = 0, keyboardVisible = false, autoDirect = false, automaticGuestIds = [], children, onGuests, onMore, onParticipantCount, onLeaveStage }: { sessionId: string; onLeaveStage?: () => void; autoPreview?: boolean; canControl: boolean; streamState: string; onChanged(): void; immersive?: boolean; headerHeight?: number; keyboardVisible?: boolean; autoDirect?: boolean; automaticGuestIds?: readonly string[]; children?: React.ReactNode; onGuests?(): void; onMore?(): void; onParticipantCount?(count: number): void }) {
@@ -27,7 +27,7 @@ export function LiveStudio({ sessionId, canControl, streamState, onChanged, auto
   const [participants, setParticipants] = useState<DailyParticipant[]>([]), [joined, setJoined] = useState(false);
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [sharing, setSharing] = useState(false), [canShare, setCanShare] = useState(false);
   const [automatic, setAutomatic] = useState(true), [sceneSyncFailed, setSceneSyncFailed] = useState(false), [sceneRevision, setSceneRevision] = useState(0);
-  const appliedScene = useRef(''), blockedScene = useRef(''), sceneRequest = useRef<{key:string;id:string}|null>(null);
+  const connectionRetry = useRef(''), appliedScene = useRef(''), blockedScene = useRef(''), sceneRequest = useRef<{key:string;id:string}|null>(null);
   const [preset, setPreset] = useState('host'), [selected, setSelected] = useState<string[]>([]);
   const [toolsOpen, setToolsOpen] = useState(false), autoPreviewUsed = useRef(false);
   const afterToolsClose = useRef<(() => void) | null>(null);
@@ -42,7 +42,7 @@ export function LiveStudio({ sessionId, canControl, streamState, onChanged, auto
   const stopping=useRef<Promise<void>|null>(null),unregister=useRef<(()=>void)|null>(null);
   const stop = useCallback(():Promise<void> => {
     if(stopping.current)return stopping.current;
-    generation.current++;rosterKey.current='';appliedScene.current='';blockedScene.current='';sceneRequest.current=null;setSceneSyncFailed(false);const previous = call.current; call.current = null;
+    generation.current++;rosterKey.current='';connectionRetry.current='';request.current=null;appliedScene.current='';blockedScene.current='';sceneRequest.current=null;setSceneSyncFailed(false);const previous = call.current; call.current = null;
     setJoined(false); setParticipants([]);onParticipantCount?.(0); setSharing(false); setCanShare(false);
     if(!previous)return Promise.resolve();
     const release=unregister.current;unregister.current=null;
@@ -73,7 +73,7 @@ export function LiveStudio({ sessionId, canControl, streamState, onChanged, auto
         if (version !== generation.current || call.current !== instance) return;
         const rows = Object.values(instance.participants()).slice(0, grant.maxMembers);
         setParticipants(rows);
-        const nextRoster=rows.map(p=>p.user_id||p.session_id).sort().join(':');
+        const nextRoster=rows.map(p=>p.session_id+':'+(p.user_id||'')).sort().join('|');
         if(nextRoster!==rosterKey.current){rosterKey.current=nextRoster;onParticipantCount?.(rows.length);onChanged();}
         const local = rows.find(p => p.local);
         if (local?.user_id) setSelected(current => current.length ? current : [local.user_id!]);
@@ -98,25 +98,26 @@ export function LiveStudio({ sessionId, canControl, streamState, onChanged, auto
   useEffect(() => {
     if (autoPreview && !autoPreviewUsed.current) { autoPreviewUsed.current = true; void preview(); }
   }, [autoPreview]);
-  const automaticScene = autoDirect ? automaticLiveStageScene({participants:participants.filter(p=>p.local||automaticGuestIds.includes(p.user_id||'')),allowedGuestIds:automaticGuestIds,hostUserId:participants.find(p=>p.local)?.user_id || '',maxMembers:12,manualPreset:automatic?null:preset}) : null;
+  const automaticScene = autoDirect ? automaticLiveStagePlan({participants:participants.filter(p=>p.local||automaticGuestIds.includes(p.user_id||'')),allowedGuestIds:automaticGuestIds,hostUserId:participants.find(p=>p.local)?.user_id || '',maxMembers:12,manualPreset:automatic?null:preset}) : null;
   const automaticKey = automaticScene ? stableLiveStageSceneKey(automaticScene) + (immersive?':portrait':':landscape') : '';
-  const automaticPlan = useRef({key:automaticKey,enabled:automatic&&autoDirect&&joined&&streamState==='live'});
-  automaticPlan.current={key:automaticKey,enabled:automatic&&autoDirect&&joined&&streamState==='live'};
+  const automaticPlan = useRef({key:automaticKey,enabled:canControl&&automatic&&autoDirect&&joined&&pendingControl!=='stop'&&streamState==='live'});
+  automaticPlan.current={key:automaticKey,enabled:canControl&&automatic&&autoDirect&&joined&&pendingControl!=='stop'&&streamState==='live'};
   const selectPreset = (value: string) => { automaticPlan.current.enabled=false;setAutomatic(false);setPreset(value); };
   const sendControl = async (action: 'start' | 'stop' | 'scene') => {
-    if (mutation.current) return;
+    if (mutation.current || !canControl || (action!=='stop' && autoDirect && automatic && !automaticScene)) return;
+    const version = generation.current;
     mutation.current = true; setBusy(true); setError('');
     const scene: LiveObject = { ...(automaticScene || {preset,...(preset === 'grid' ? {participant_ids:selected} : selected[0] ? {participant_id:selected[0]} : {})}), ...(immersive ? {orientation:'portrait'} : {}) };
-    const signature = JSON.stringify([sessionId, action, scene]);
+    const signature = JSON.stringify([sessionId, action, action==='stop'?null:scene]);
     if (request.current?.signature !== signature) request.current = { signature, id: liveRequestId() };
-    try { await liveControl(sessionId, action, request.current.id, action === 'stop' ? undefined : scene); request.current = null; if (action !== 'scene') setPendingControl(action); if(action==='start'||action==='scene'){appliedScene.current=automaticKey;blockedScene.current='';setSceneSyncFailed(false);} onChanged(); }
-    catch (reason) { setError(reason instanceof Error ? reason.message : 'The broadcast control was not confirmed.'); }
+    try { const result=await liveControl(sessionId, action, request.current.id, action === 'stop' ? undefined : scene); if(version!==generation.current)return;request.current = null;connectionRetry.current=''; if (action !== 'scene') setPendingControl(action); if(action==='start'||action==='scene'){appliedScene.current=action==='start'&&automaticScene&&result.scene_connections_confirmed!==true?'':automaticKey;blockedScene.current='';setSceneSyncFailed(false);} onChanged(); }
+    catch (reason) { if(version!==generation.current)return;const changed=stageConnectionChanged(reason);if(changed)request.current=null;setError(changed?STAGE_CONNECTION_RETRY_MESSAGE:reason instanceof Error ? reason.message : 'The broadcast control was not confirmed.'); }
     finally { mutation.current = false; setBusy(false); }
   };
   // The active host publishes the same cameras to viewers that appear in the
   // studio. Coalesce participant bursts and keep failed retries explicit.
   useEffect(() => {
-    if (!autoDirect || !automatic || !automaticScene || !joined || streamState !== 'live' || pendingControl === 'stop' || busy || !automaticKey || appliedScene.current === automaticKey || blockedScene.current === automaticKey) return;
+    if (!canControl || !autoDirect || !automatic || !automaticScene || !joined || streamState !== 'live' || pendingControl === 'stop' || busy || !automaticKey || appliedScene.current === automaticKey || blockedScene.current === automaticKey) return;
     const version = generation.current;
     const scene: LiveObject = {...automaticScene,...(immersive?{orientation:'portrait'}:{})};
     const key = automaticKey;
@@ -126,14 +127,19 @@ export function LiveStudio({ sessionId, canControl, streamState, onChanged, auto
       if(sceneRequest.current?.key!==key)sceneRequest.current={key,id:liveRequestId()};
       void liveControl(sessionId,'scene',sceneRequest.current.id,scene).then(()=>{
         if(version!==generation.current)return;
-        appliedScene.current=key;blockedScene.current='';sceneRequest.current=null;setError('');onChanged();
+        appliedScene.current=key;blockedScene.current='';connectionRetry.current='';sceneRequest.current=null;setError('');onChanged();
       }).catch(reason=>{
         if(version!==generation.current)return;
-        blockedScene.current=key;setSceneSyncFailed(true);setError(reason instanceof Error?reason.message:'The guest layout could not update. Retry the layout.');
+        const changed=stageConnectionChanged(reason);
+        if(changed)sceneRequest.current=null;
+        if(changed&&connectionRetry.current!==key){
+          connectionRetry.current=key;setSceneRevision(v=>v+1);return;
+        }
+        blockedScene.current=key;setSceneSyncFailed(true);setError(changed?STAGE_CONNECTION_RETRY_MESSAGE:reason instanceof Error?reason.message:'The guest layout could not update. Retry the layout.');
       }).finally(()=>{mutation.current=false;setBusy(false);});
     },LIVE_STAGE_SCENE_SETTLE_MS);
     return()=>clearTimeout(timer);
-  },[automaticKey,automatic,autoDirect,joined,streamState,pendingControl,busy,sceneRevision,sessionId,immersive]);
+  },[automaticKey,automatic,canControl,autoDirect,joined,streamState,pendingControl,busy,sceneRevision,sessionId,immersive]);
   const media = async (action: 'audio' | 'video' | 'flip' | 'share') => {
     const instance = call.current; if (!instance || !joined) return;
     setError('');
@@ -147,7 +153,7 @@ export function LiveStudio({ sessionId, canControl, streamState, onChanged, auto
   const button = (title: string, action: () => void, disabled = busy) => <TouchableOpacity key={title} accessibilityRole="button" disabled={disabled} onPress={action} style={[s.button, { backgroundColor: t.surface.sunken, opacity: disabled ? 0.5 : 1 }]}><Text style={{ color: t.ink.primary, fontWeight: '600', fontSize: 13 }}>{title}</Text></TouchableOpacity>;
   const live = ['live', 'starting', 'reconnecting', 'ending'].includes(streamState);
   const local = participants.find(p => p.local);
-  const blocked = busy || !selected.length || (!local?.audio && !local?.video && !sharing) || ['starting','ending','ended','cancelled'].includes(streamState);
+  const blocked = busy || (autoDirect && automatic && !automaticScene) || !selected.length || (!local?.audio && !local?.video && !sharing) || ['starting','ending','ended','cancelled'].includes(streamState);
   const endBroadcast = () => Alert.alert('End this live?', 'Viewers will stop receiving live video.', [{ text: 'Keep streaming', style: 'cancel' }, { text: 'End live', style: 'destructive', onPress: () => void sendControl('stop') }]);
   const mediaButton = (label: string, icon: React.ComponentProps<typeof Feather>['name'], action: () => void) => <TouchableOpacity accessibilityRole="button" accessibilityLabel={label} disabled={busy} onPress={action} style={[s.mediaButton, { backgroundColor: t.surface.sunken, opacity: busy ? 0.5 : 1 }]}><Feather name={icon} size={21} color={t.ink.primary}/><Text style={{color:t.ink.secondary,fontSize:11,textAlign:'center'}}>{label}</Text></TouchableOpacity>;
   const overlayButton = (label: string, icon: React.ComponentProps<typeof Feather>['name'], action: () => void) => <TouchableOpacity key={label} accessibilityRole="button" accessibilityLabel={label} disabled={busy} onPress={action} style={[s.overlayButton, { opacity: busy ? .5 : 1 }]}><Feather name={icon} size={23} color="#fff" /></TouchableOpacity>;

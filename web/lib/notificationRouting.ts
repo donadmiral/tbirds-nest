@@ -17,6 +17,10 @@ export function conversationHref(id: string, context: string | null) {
 
 export function notificationHref(notification: NotificationDestination): string {
   const value = (key: string) => notificationValue(notification, key);
+  if (notification.type === "live_stream") {
+    const id = notification.data?.live_session_id ?? notification.data?.sessionId;
+    return typeof id==="string" && /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id) ? "/live/"+id : "/notifications";
+  }
   if (notification.type === "market_order") {
     const listing = value("listing_id");
     return listing && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(listing) ? "/market/" + listing : "/notifications";

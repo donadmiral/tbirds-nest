@@ -25,6 +25,7 @@ import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { useFocusEffect } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { hydratePostMedia, hydrateStoryMedia, withoutPrivateMedia } from '../../services/contentMedia';
+import { liveNotificationSessionId } from '../../../shared/notificationTap';
 import { orderTimeout } from '../../../shared/orderRequest';
 import { isReadAccessDenied } from '../../../shared/readContinuity';
 import { createInboxRefreshQueue } from '../../../shared/inboxRefreshQueue';
@@ -129,6 +130,7 @@ function quote(s?: string | null): string {
 }
 
 function lineFor(n: Notif): { lead: string; rest: string } {
+  if (n.type === 'live_stream') return { lead:n.message||'Live update',rest:'' };
   if (n.type === 'system') return { lead: 'System', rest: ' · ' + (n.message || 'System alert') };
   const name = n.actor_name || 'Someone';
   const others = n.others_count;
@@ -447,6 +449,11 @@ export default function NotificationsScreen({ navigation }: any) {
     }
 
     const d = n.data || {};
+    if(n.type==='live_stream'){
+      const sessionId=liveNotificationSessionId(n.type,d);
+      if(sessionId)navigation.navigate('LiveSession',{sessionId});
+      return;
+    }
     if (n.post_id || d.post_id) {
       navigation.navigate('Post', { postId: n.post_id || d.post_id, commentId: d.comment_id });
     } else if (n.type === 'story_mention' && d.story_id && n.actor_id) {

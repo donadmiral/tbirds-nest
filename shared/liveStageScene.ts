@@ -3,6 +3,8 @@ export type LiveStageScene = {
   participant_id?: string;
   participant_ids?: string[];
   automatic?: true;
+  /** Daily connection IDs in host-first, then approved identity order. */
+  connection_ids?: string[];
 };
 
 export type LiveStageParticipant = { session_id: string; user_id?: string | null };
@@ -43,10 +45,33 @@ export function automaticLiveStageScene({ participants, hostUserId, allowedGuest
   return { preset: 'grid', participant_ids: ids, automatic: true };
 }
 
+/** Never guess which connection a returning guest owns during an overlap. */
+export function automaticLiveStagePlan(input: Parameters<typeof automaticLiveStageScene>[0]): LiveStageScene | null {
+  const scene = automaticLiveStageScene(input);
+  if (!scene) return null;
+  const host = providerId(input.hostUserId)!;
+  const identities = scene.participant_ids ?? (scene.preset === 'interview' ? [host, scene.participant_id!] : [host]);
+  const connections: string[] = [];
+  for (const id of identities) {
+    const sessions = new Set(input.participants.filter(p => providerId(p.user_id) === id).map(p => providerId(p.session_id)));
+    if (sessions.size !== 1) return null;
+    const [session] = sessions;
+    if (!session || connections.includes(session)) return null;
+    connections.push(session);
+  }
+  return { ...scene, connection_ids: connections };
+}
+
 export function stableLiveStageSceneKey(scene: LiveStageScene | null): string {
   if (!scene) return '';
   return JSON.stringify({ preset: scene.preset,
     ...(scene.automatic ? { automatic: true } : {}),
+    ...(scene.connection_ids ? { connection_ids: scene.connection_ids } : {}),
     ...(scene.participant_id ? { participant_id: scene.participant_id } : {}),
     ...(scene.participant_ids ? { participant_ids: scene.participant_ids } : {}) });
 }
+
+export function stageConnectionChanged(error: unknown): boolean {
+  return !!error && typeof error === 'object' && 'message' in error && error.message === 'STAGE_CONNECTION_CHANGED';
+}
+export const STAGE_CONNECTION_RETRY_MESSAGE = 'A camera is reconnecting. Retry the layout once the stage settles.';

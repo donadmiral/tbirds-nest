@@ -22,7 +22,7 @@ before(async()=>{
  await loadDeployedMediaBaseline(db);await db.exec('alter table auth.users add column if not exists is_anonymous boolean default false');
  // Match the already deployed trigger search path from database_access_hardening.
  await db.exec("alter function public.stamp_notification_account_type() set search_path=pg_catalog,public,extensions,pg_temp");
- for(const n of ['20261103000609_live_portable_control_plane','20261103002858_live_interactivity','20261104022616_live_viewer_presence','20261104052000_live_cancel_stage_cleanup','20261104054700_live_terminal_eject_acknowledgement','20261104175749_live_guest_requests','20261104180010_live_portrait_broadcast','20261104180300_live_approved_guest_sources','20261104180638_live_detail_orientation','20261106031000_live_guest_leave_and_removal'])await db.exec(await source(`supabase/migrations/${n}.sql`));
+ for(const n of ['20261103000609_live_portable_control_plane','20261103002858_live_interactivity','20261104022616_live_viewer_presence','20261104052000_live_cancel_stage_cleanup','20261104054700_live_terminal_eject_acknowledgement','20261104175749_live_guest_requests','20261104180010_live_portrait_broadcast','20261104180300_live_approved_guest_sources','20261104180638_live_detail_orientation','20261106031000_live_guest_leave_and_removal','20261106182541_live_guest_decision_notifications','20261106182835_live_host_follow_desired_state'])await db.exec(await source(`supabase/migrations/${n}.sql`));
  for(const name of names){await db.query('insert into auth.users(id,email) values($1,$2)',[actors[name],name+'@example.test']);
   await db.query("insert into public.profiles(id,username,email,full_name,profile_visibility,account_type) values($1,$2,$3,$2,'public','personal') on conflict(id) do update set username=excluded.username,profile_visibility='public'",[actors[name],name,name+'@example.test']);
   await db.query("insert into auth.sessions(id,user_id,aal) values($1,$2,'aal1')",[sessions[name],actors[name]]);}
@@ -200,4 +200,42 @@ test('removing a guest who is on air frees the published layout and revokes the 
  assert.equal(await value("select count(*) from live_streams.provider_outbox where session_id=$1 and action='eject' and provider_identity=$2",[id,identity]),1);
  assert.equal(await value("select count(*) from live_streams.provider_outbox where session_id=$1 and action='stop'",[id]),0);
  assert.equal(await value('select state from live_streams.sessions where id=$1',[id]),'live');
+});
+
+test('guest approvals and declines persist exactly once without titles, messages, credentials or stage authority in their payload',async()=>{
+ const id=await create(),req=randomUUID(),key=randomUUID();
+ const alerts=()=>db.query("select recipient_id,actor_id,message,data from public.notifications where type='live_stream' and data->>'live_session_id'=$1",[id]).then(x=>x.rows);
+ await command('viewer','request_join',id,{},req);assert.deepEqual(await alerts(),[]);
+ await command('host','accept_join_request',id,{user_id:actors.viewer},key);await command('host','accept_join_request',id,{user_id:actors.viewer},key);
+ const [saved]=await alerts();assert.equal((await alerts()).length,1);assert.equal(saved.actor_id,null);assert.equal(saved.recipient_id,actors.viewer);
+ assert.deepEqual(saved.data,{kind:'guest_accepted',live_session_id:id,recipient_id:actors.viewer});assert.match(saved.message,/accepted/);
+ const retry=randomUUID();await command('other','request_join',id);await command('host','decline_join_request',id,{user_id:actors.other},retry);await command('host','decline_join_request',id,{user_id:actors.other},retry);
+ const rows=await alerts();assert.equal(rows.length,2);assert.equal(rows.find(r=>r.recipient_id===actors.other).data.kind,'guest_declined');assert.equal((await detail('other',id)).role,'viewer');
+});
+test('withdrawn requests and silenced, restricted or no-longer-visible requesters never receive decision notifications',async()=>{
+ const id=await create();
+ await db.query("update public.profiles set notif_prefs='{\"updates\":false}' where id=$1",[actors.viewer]);await command('viewer','request_join',id);await command('host','accept_join_request',id,{user_id:actors.viewer});
+ await command('other','request_join',id);await command('other','cancel_join_request',id);
+ await command('blocked','request_join',id);await db.query('insert into public.blocked_users(blocker_id,blocked_id) values($1,$2)',[actors.host,actors.blocked]);await command('host','decline_join_request',id,{user_id:actors.blocked});
+ await command('muted','request_join',id);await db.query('insert into public.user_restrictions(restrictor_id,restricted_id) values($1,$2)',[actors.muted,actors.host]);await command('host','decline_join_request',id,{user_id:actors.muted});
+ assert.equal(await value("select count(*) from public.notifications where type='live_stream' and data->>'live_session_id'=$1",[id]),0);
+});
+test('live follow desired state never toggles on replay; private host remains a request and unfollow removes both',async()=>{
+ const id=await create();const follow=(wanted,target=actors.host)=>as('authenticated','viewer','select public.set_live_host_follow_v1($1,$2,$3)',[id,target,wanted]);
+ await assert.rejects(follow(true,actors.other),/LIVE_NOT_AVAILABLE/);
+ assert.deepEqual(await follow(true),{state:'following'});assert.deepEqual(await follow(true),{state:'following'});
+ assert.equal(await value('select count(*) from public.follows where follower_id=$1 and following_id=$2',[actors.viewer,actors.host]),1);
+ assert.deepEqual(await follow(false),{state:'none'});assert.deepEqual(await follow(false),{state:'none'});
+ await db.query("update public.profiles set profile_visibility='private' where id=$1",[actors.host]);
+ assert.deepEqual(await follow(true),{state:'requested'});assert.deepEqual(await follow(true),{state:'requested'});
+ assert.equal(await value('select count(*) from public.follows where follower_id=$1 and following_id=$2',[actors.viewer,actors.host]),0);
+ assert.equal(await value("select count(*) from public.follow_requests where requester_id=$1 and target_id=$2 and status='pending'",[actors.viewer,actors.host]),1);
+ assert.deepEqual(await follow(false),{state:'none'});assert.equal(await value('select count(*) from public.follow_requests where requester_id=$1 and target_id=$2',[actors.viewer,actors.host]),0);
+});
+test('room follow rejects self, both block directions, removed access and expired sessions',async()=>{
+ const id=await create();const f=(who='viewer')=>as('authenticated',who,'select public.set_live_host_follow_v1($1,$2,true)',[id,actors.host]);await assert.rejects(f('host'),/INVALID_FOLLOW_TARGET/);
+ for(const [a,b] of [[actors.host,actors.viewer],[actors.viewer,actors.host]]){await db.query('insert into public.blocked_users(blocker_id,blocked_id) values($1,$2)',[a,b]);await assert.rejects(f(),/LIVE_NOT_AVAILABLE/);await db.query('delete from public.blocked_users where blocker_id=$1 and blocked_id=$2',[a,b]);}
+ await db.query("update live_streams.sessions set audience='invite' where id=$1",[id]);await assert.rejects(f(),/LIVE_NOT_AVAILABLE/);
+ await db.query("update live_streams.sessions set audience='public' where id=$1",[id]);await db.query('delete from auth.sessions where id=$1',[sessions.viewer]);await assert.rejects(f(),/AUTH_REQUIRED/);
+ assert.equal(await value("select has_function_privilege('anon','public.set_live_host_follow_v1(uuid,uuid,boolean)','execute')"),false);
 });

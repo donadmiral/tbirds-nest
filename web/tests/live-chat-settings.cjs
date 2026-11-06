@@ -96,7 +96,7 @@ function harness(role = 'host') {
     './LiveIcon': { LiveIcon: 'LiveIcon' },
     './LivePlaybackProvider': { LivePlayerSlot: 'LivePlayerSlot', useLivePlayback: () => playback },
     './LiveGuestRequests': { LiveGuestRequests: 'LiveGuestRequests' },
-    './LiveChat': { LiveChat: 'LiveChat' }, './LiveStudio': { LiveStudio: 'LiveStudio' },
+    './LiveChat': { LiveChat: 'LiveChat' }, './LiveHostFollow':{LiveHostFollow:'LiveHostFollow'}, './LiveStudio': { LiveStudio: 'LiveStudio' },
     './LiveInteractions': { LiveInteractions: 'LiveInteractions', LiveAnalyticsPanel: 'LiveAnalyticsPanel' },
     '@/lib/liveInteractions': { parseLiveInteractions() { throw Error('No synthetic interaction event was delivered.'); } },
   };
@@ -267,4 +267,10 @@ test('a database permission denial also tears down the protected studio',async()
 test('overlapping detail refreshes coalesce into one final authoritative read',async()=>{
   const h=harness();await h.ready();h.refresh();h.refresh();h.refresh();await h.flush();assert.equal(h.reads.length,2);
   h.reads[1].resolve(detail());await h.flush();assert.equal(h.reads.length,3);h.reads[2].resolve(detail({chat_mode:'closed'}));await h.flush();settings(h,{mode:'closed'});
+});
+
+test('web moderator can preserve or select the same ten-second setting as a phone',async()=>{
+ const h=harness();await h.ready({slow_mode_seconds:10});assert.equal(h.selector('Slow mode').props.value,'10');
+ const options=nodes(h.selector('Slow mode')).filter(n=>n.type==='option').map(n=>n.props.value);assert.deepEqual(options,['0','5','10','15','30']);
+ assert.equal(h.choose('Slow mode','10'),true);assert.deepEqual(h.commands[0].payload,{slow_mode_seconds:10});
 });

@@ -53,7 +53,7 @@ function harness({ guests = [], trustedGuestIds = guests.map(p => p.user_id), st
     '../services/liveService': { liveStage: async () => ({ maxMembers: 12, canScreenShare: true, roomUrl: 'https://room.invalid', token: 'fixture' }),
       liveRequestId: () => uuid(++requestId + 1000), liveControl: (...args) => {
         activeControls++; maxActiveControls = Math.max(maxActiveControls, activeControls);
-        return new Promise((resolve, reject) => commands.push({ args, resolve(value = {}) { activeControls--; resolve(value); }, reject(reason) { activeControls--; reject(reason); } }));
+        return new Promise((resolve, reject) => commands.push({ args, resolve(value = {ok:true,scene_connections_confirmed:true}) { activeControls--; resolve(value); }, reject(reason) { activeControls--; reject(reason); } }));
       } },
     './RemoteCallMedia': { RemoteCallMedia: 'RemoteCallMedia' }, '../contexts/CallContext': { useCallContext: () => ({ callState: 'idle' }) },
     '../contexts/LivePlaybackContext': { useLivePlayback: () => ({ close() {} }) }, '../stores/authStore': { useAuthStore: fn => fn({ profile: { id: uuid(900) } }) },
@@ -108,7 +108,7 @@ test('native start command immediately broadcasts an already connected guest', a
   const h = harness({ guests: [participant(2)], state: 'backstage' }); await h.start();
   assert.equal(h.commands.length, 0); await h.click('Go live');
   assert.equal(h.commands[0].args[1], 'start');
-  assert.deepEqual(plain(h.commands[0].args[3]), { preset: 'interview', participant_id: uuid(2), automatic: true, orientation: 'portrait' });
+  assert.deepEqual(plain(h.commands[0].args[3]), { preset: 'interview', participant_id: uuid(2), automatic: true, connection_ids:[uuid(101),uuid(102)], orientation: 'portrait' });
   h.commands[0].resolve(); await h.settle(); await h.setState('live'); await h.tick();
   assert.equal(h.commands.length, 1, 'confirmed start is not resent as an identical scene');
 });
@@ -119,7 +119,7 @@ test('guest joining while a scene is in flight is sent once after that command s
   assert.equal(h.commands.length, 1);
   h.commands[0].resolve(); await h.settle(); await h.tick();
   assert.equal(h.commands.length, 2);
-  assert.deepEqual(plain(h.commands[1].args[3]), { preset: 'grid', participant_ids: [uuid(1), uuid(2), uuid(3)], automatic: true, orientation: 'portrait' });
+  assert.deepEqual(plain(h.commands[1].args[3]), { preset: 'grid', participant_ids: [uuid(1), uuid(2), uuid(3)], automatic: true, connection_ids:[uuid(101),uuid(102),uuid(103)], orientation: 'portrait' });
   assert.equal(h.maxConcurrent(), 1);
   h.commands[1].resolve(); await h.settle();
   await h.emit([participant(3), { ...participant(1, true), audio: true }, participant(2)]); await h.tick();
@@ -145,10 +145,10 @@ test('choosing a featured camera suspends automatic mode before applying the sou
 test('room staff and unapproved participants stay out of automatic viewer scenes', async () => {
   const h = harness({ guests: [participant(2), participant(3), participant(4)], trustedGuestIds: [uuid(2)] });
   await h.start(); await h.tick();
-  assert.deepEqual(plain(h.commands[0].args[3]), { preset: 'interview', participant_id: uuid(2), automatic: true, orientation: 'portrait' });
+  assert.deepEqual(plain(h.commands[0].args[3]), { preset: 'interview', participant_id: uuid(2), automatic: true, connection_ids:[uuid(101),uuid(102)], orientation: 'portrait' });
   h.commands[0].resolve(); await h.settle();
   await h.emit([participant(1, true), participant(3), participant(4)], []); await h.tick();
-  assert.deepEqual(plain(h.commands[1].args[3]), { preset: 'host', participant_id: uuid(1), automatic: true, orientation: 'portrait' });
+  assert.deepEqual(plain(h.commands[1].args[3]), { preset: 'host', participant_id: uuid(1), automatic: true, connection_ids:[uuid(101)], orientation: 'portrait' });
   h.commands[1].resolve(); await h.settle();
 });
 
@@ -166,4 +166,38 @@ test('unmount removes pending scene work and a non-host never auto-directs the s
   await h.unmount(); await h.tick(); assert.equal(h.commands.length, 0);
   const producer = harness({ autoDirect: false, guests: [participant(2)] }); await producer.start(); await producer.tick();
   assert.equal(producer.commands.length, 0);
+});
+
+test('returning native guest changes the live connection once, even across an overlap', async () => {
+  const host=participant(1,true), guest=participant(2), back={...guest,session_id:uuid(202)};
+  const h=harness({guests:[guest]});await h.start();await h.tick();
+  assert.deepEqual(plain(h.commands[0].args[3].connection_ids),[uuid(101),uuid(102)]);
+  await h.emit([host,guest,back]);await h.tick();assert.equal(h.commands.length,1);
+  await h.emit([back,host]);await h.tick();assert.equal(h.commands.length,1);
+  h.commands[0].resolve();await h.settle();await h.tick();
+  assert.deepEqual(plain(h.commands[1].args[3].connection_ids),[uuid(101),uuid(202)]);
+  assert.notEqual(h.commands[0].args[2],h.commands[1].args[2]);
+  h.commands[1].resolve();await h.settle();
+  await h.emit([host,{...back,audio:true}]);await h.tick();assert.equal(h.commands.length,2);
+  await h.emit([back,host],[]);await h.tick();
+  assert.deepEqual(plain(h.commands[2].args[3].connection_ids),[uuid(101)]);
+  h.commands[2].resolve();await h.settle();await h.unmount();
+});
+
+test('native retries known unsent layout once with fresh ID, then leaves retries to the host', async () => {
+  const h=harness({guests:[participant(2)]});await h.start();await h.tick();
+  h.commands[0].reject(new Error('STAGE_CONNECTION_CHANGED'));await h.settle();await h.tick();
+  assert.equal(h.commands.length,2);assert.notEqual(h.commands[0].args[2],h.commands[1].args[2]);
+  h.commands[1].reject(new Error('STAGE_CONNECTION_CHANGED'));await h.settle();await h.tick();
+  assert.equal(h.commands.length,2);await h.click('Retry guest layout');await h.tick();assert.equal(h.commands.length,3);
+  assert.notEqual(h.commands[1].args[2],h.commands[2].args[2]);
+  h.commands[2].resolve();await h.settle();await h.unmount();
+});
+
+test('after a safe host-only start during reconnect, native reapplies the guest when Live confirms',async()=>{
+ const h=harness({state:'backstage',guests:[participant(2)]});await h.start();await h.click('Go live');
+ h.commands[0].resolve({ok:true,scene_connections_confirmed:false});await h.settle();await h.tick();assert.equal(h.commands.length,1);
+ await h.setState('live');await h.tick();assert.equal(h.commands[1].args[1],'scene');
+ assert.deepEqual(plain(h.commands[1].args[3].connection_ids),[uuid(101),uuid(102)]);
+ h.commands[1].resolve();await h.settle();await h.unmount();
 });

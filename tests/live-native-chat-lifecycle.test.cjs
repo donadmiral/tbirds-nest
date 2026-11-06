@@ -234,7 +234,7 @@ test('immersive chat shows replies over the video and keeps actual send/reaction
   assert.ok(nodes(app.render()).some(node=>node.props?.testID==='live-overlay-chat'));
   assert.equal(app.list().props.style.height,166);
   app.list().props.renderItem({item:app.list().props.data[0]}).props.onPress();
-  app.alerts[0][2].find(action=>action.text==='Reply').onPress();
+  app.button('Reply').props.onPress();
   assert.equal(app.input().props.value,'@guest ');
   app.input().props.onChangeText('@guest Hello');
   nodes(app.render()).find(node=>node.props?.accessibilityLabel==='Send comment').props.onPress();await app.settle();
@@ -263,8 +263,9 @@ test('a native reply shows at once from the command result and its echo does not
 
 test('native viewers see reactions from others and admin warnings', async () => {
   const app = harness({ overlay: true }); await app.start();
-  app.emit('reaction', { id: id(5), reaction: 'fire' }); assert.match(words(app.render()), /🔥/);
-  app.fire(); assert.doesNotMatch(words(app.render()), /🔥/);
+  const received=()=>nodes(app.render()).find(node=>node.props?.testID==='live-received-reaction');
+  app.emit('reaction', { id: id(5), reaction: 'fire' }); assert.equal(words(received()),'🔥');
+  app.fire(); assert.equal(received(),undefined);
   app.emit('warning', { reason: 'Keep it respectful.' }); assert.match(words(app.render()), /Keep it respectful\./);
   const full = harness(); await full.start(); full.emit('reaction', { id: id(6), reaction: 'applause' }); assert.match(words(full.render()), /👏/);
 });
@@ -319,4 +320,34 @@ test('native live messages and pins from people this viewer blocked are not show
   app.emit('message', message(1, { user_id: id(960) })); assert.equal(app.list().props.data.length, 0);
   app.emit('pin', { message: message(2, { user_id: id(960) }) }); assert.equal(app.props.pinned, null);
   app.emit('message', message(3, { user_id: id(961) })); assert.equal(app.list().props.data.length, 1);
+});
+
+test('immersive viewers send all reactions, report a selected message, and cannot unpin',async()=>{
+  const app=harness({overlay:true});app.props.canModerate=false;await app.start();
+  app.emit('message',message(1));
+  for(const [label,kind] of [['Heart','heart'],['Applause','applause'],['Fire','fire']]){
+    nodes(app.render()).find(n=>n.props?.accessibilityLabel===label).props.onPress();await app.settle();
+    assert.equal(app.commands.at(-1)[0],'reaction');assert.equal(app.commands.at(-1)[2].reaction,kind);
+  }
+  app.list().props.renderItem({item:app.list().props.data[0]}).props.onPress();
+  assert.equal(app.button('Unpin message'),undefined);app.button('Report message').props.onPress();
+  assert.equal(app.button('Submit report').props.disabled,true);
+  nodes(app.render()).find(n=>n.props?.accessibilityLabel==='Reason for reporting this message').props.onChangeText('  Harassment  ');
+  app.button('Submit report').props.onPress();await app.settle();
+  assert.equal(app.commands.at(-1)[0],'report');assert.deepEqual({...app.commands.at(-1)[2]},{message_id:id(1),reason:'Harassment'});
+  assert.match(words(app.render()),/Report sent/);
+});
+test('moderators can explicitly clear a pinned message in the immersive room',async()=>{
+ const app=harness({overlay:true});app.props.canModerate=true;app.props.pinned=message(2);await app.start();
+ app.button('Unpin message').props.onPress();await app.settle();
+ assert.equal(app.commands[0][0],'pin');assert.deepEqual({...app.commands[0][2]},{message_id:null});
+});
+
+test('an unresolved outage read gets no overlapping poll and cannot rearm after the socket returns',async()=>{
+ const app=harness();await app.start();app.pages[0].resolve({items:[],next_cursor:null});await app.settle();
+ const ch=app.channels[0];ch.status('CLOSED');const first=[...app.timers.values()].map(x=>x.delay);assert.ok(first.some(n=>n>=3000&&n<6000));
+ ch.status('CHANNEL_ERROR');app.fire();assert.equal(app.pages.length,2);
+ ch.status('TIMED_OUT');app.fire();assert.equal(app.pages.length,2);
+ ch.status('SUBSCRIBED');assert.equal(app.pages.length,3);
+ app.pages[1].resolve({items:[],next_cursor:null});await app.settle();app.fire();assert.equal(app.pages.length,3);
 });

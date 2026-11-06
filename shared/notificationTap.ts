@@ -21,6 +21,13 @@ export function notificationUuid(value: unknown): value is string {
   return typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 }
 
+/** Open the room as a viewer. A notification is never a stage grant or a camera command. */
+export function liveNotificationSessionId(type:unknown, raw:unknown):string|null {
+  if(type!=='live_stream'||!raw||typeof raw!=='object'||Array.isArray(raw))return null;
+  const data=raw as Record<string,unknown>,id=data.live_session_id??data.sessionId;
+  return notificationUuid(id)?id:null;
+}
+
 export function notificationTapData(value: unknown): NotificationTapData | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
   const raw = value as Record<string, unknown>;
@@ -31,8 +38,8 @@ export function notificationTapData(value: unknown): NotificationTapData | null 
     if (notificationUuid(raw[key])) data[key] = raw[key];
   }
   if (raw.type === 'live_stream') {
-    const liveId = raw.live_session_id ?? raw.sessionId;
-    if (notificationUuid(liveId)) data.live_session_id = liveId;
+    const liveId=liveNotificationSessionId(raw.type,raw);
+    if(liveId)data.live_session_id=liveId;
   }
   const callId = raw.call_id ?? raw.callId;
   if (notificationUuid(callId)) data.call_id = callId;

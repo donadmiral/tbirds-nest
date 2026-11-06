@@ -84,6 +84,7 @@ function errorResponse(error:unknown){
   if(/AUTH_REQUIRED|ACTIVE_SESSION|JWT/.test(message))return json(401,{error:'AUTH_REQUIRED'});
   if(/ACCESS_DENIED|ADMIN_ACCESS|LIVE_NOT_AVAILABLE/.test(message))return json(403,{error:'LIVE_NOT_AVAILABLE'});
   if(/TOO_LARGE/.test(message))return json(413,{error:'REQUEST_TOO_LARGE'});
+  if(message==='STAGE_CONNECTION_CHANGED')return json(409,{error:'STAGE_CONNECTION_CHANGED'});
   if(/INVALID_|SELECT_STAGE|SOURCE_NOT|SyntaxError/.test(message)||error instanceof SyntaxError)return json(400,{error:'INVALID_REQUEST'});
   if(/RATE_LIMIT|CAPACITY_REACHED/.test(message))return json(429,{error:'RATE_LIMIT'});
   if(/STATE_CONFLICT|CONTROL_IN_PROGRESS|IDEMPOTENCY/.test(message))return json(409,{error:'STATE_CONFLICT'});
@@ -190,7 +191,7 @@ export function createLiveHandler(mode:Mode,deps:LiveDependencies){
    const context=await rpc<ProviderContext>(deps.service,'live_service_context',{p_session_id:sessionId,p_actor_id:actor.userId,p_auth_session_id:actor.sessionId,p_purpose:'control',p_operation_id:prepared.operation_id});
    if(context.completed)return json(200,context.result);
    if(!context.lease_id||!context.action)throw new Error('INVALID_SERVICE_RESPONSE');
-   let published:unknown[]=[];
+   let published:{session_id:string;provider_identity:string}[]=[];
    try{
     let payload:Record<string,unknown>={instanceId:context.instance_id};
     if(context.action!=='stop'){
@@ -213,6 +214,10 @@ export function createLiveHandler(mode:Mode,deps:LiveDependencies){
     const finished=await rpc(deps.service,'live_finish_control',{p_operation_id:prepared.operation_id,p_lease_id:context.lease_id,p_accepted:true,p_error:null,p_published:published});
     // 'starting'/'ending' are deliberate. Only the signed provider event may
     // confirm the media has actually started or stopped.
+    const requested = context.payload?.scene.connection_ids;
+    if (context.action === 'start' && requested && object(finished)) {
+      return json(200,{...finished,scene_connections_confirmed:requested.length===published.length && published.every((p,i)=>p.session_id.toLowerCase()===requested[i].toLowerCase())});
+    }
     return json(200,finished);
    }catch(error){
     await rpc(deps.service,'live_finish_control',{p_operation_id:prepared.operation_id,p_lease_id:context.lease_id,p_accepted:false,p_error:error instanceof Error?error.message:'PROVIDER_OPERATION_UNCONFIRMED',p_published:[]}).catch(()=>undefined);

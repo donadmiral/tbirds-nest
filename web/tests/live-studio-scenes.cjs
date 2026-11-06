@@ -6,7 +6,7 @@ const load=file=>{const exports={};vm.runInNewContext(compile(file),{exports});r
 const scenes=load('../shared/liveStageScene.ts'),directory=load('../shared/liveDirectory.ts');
 const nodes=n=>!n||typeof n!=='object'?[]:Array.isArray(n)?n.flatMap(nodes):[n,...nodes(n.props?.children)];
 const text=n=>typeof n==='string'?n:Array.isArray(n)?n.map(text).join(''):text(n?.props?.children??'');
-const participant=(n,local=false)=>({session_id:`peer-${n}`,user_id:id(n),user_name:`Guest${n}`,local,tracks:Object.fromEntries(['video','audio','screenVideo','screenAudio'].map(key=>[key,{state:key==='video'?'playable':'off'}]))});
+const participant=(n,local=false)=>({session_id:id(n+100),user_id:id(n),user_name:`Guest${n}`,local,tracks:Object.fromEntries(['video','audio','screenVideo','screenAudio'].map(key=>[key,{state:key==='video'?'playable':'off'}]))});
 function harness(initial={}){let refreshResult=true;let cursor=0,dirty=true,tree,serial=0;const slots=[],effects=[],timers=new Map(),commands=[],events={};let people=[participant(1,true)],detail={session:{id:id(90),state:'backstage'},role:'host',capabilities:{multi_camera:true,broadcast:true},members:[],stage:{limit:12},stage_guest_identities:[id(2),id(3),id(4)],...initial};
  const same=(a,b)=>a&&b&&a.length===b.length&&a.every((v,i)=>Object.is(v,b[i]));
  const react={useState(value){const i=cursor++;if(!(i in slots))slots[i]=value;return[slots[i],next=>{slots[i]=typeof next==='function'?next(slots[i]):next;dirty=true;}];},useRef(value){return slots[cursor++]??={current:value};},useEffect(fn,deps){const i=cursor++;if(!slots[i]||!same(slots[i].deps,deps)){const old=slots[i];slots[i]={deps};effects.push(()=>{old?.cleanup?.();slots[i].cleanup=fn();});}}};
@@ -19,41 +19,68 @@ function harness(initial={}){let refreshResult=true;let cursor=0,dirty=true,tree
  return{commands,flush,select(label){return nodes(tree).find(node=>node.type==='select'&&node.props['aria-label']===label);},async choose(label,value){const select=this.select(label);assert.ok(select);if(!select.props.disabled)select.props.onChange({target:{value}});await flush();},async update(value){detail={...detail,...value};dirty=true;await flush();},setRefreshResult(value){refreshResult=value;},disabled(label){return nodes(tree).find(n=>n.type==='button'&&text(n)===label)?.props.disabled;},async click(label){const button=nodes(tree).find(n=>n.type==='button'&&text(n)===label);assert.ok(button,label);assert.ok(!button.props.disabled,label);button.props.onClick();await flush();},async people(rows){people=rows;events['participant-updated']?.();await flush();},async state(value){detail={...detail,session:{...detail.session,state:value}};dirty=true;await flush();},async tick(){const pending=[...timers.values()];timers.clear();pending.forEach(t=>t.fn());await flush();},get timers(){return timers.size;},get tree(){return tree;},captureTimer(){return [...timers.values()][0]?.fn;},cleanup(){slots.forEach(slot=>slot?.cleanup?.());}};
 }
 test('actual web studio starts with connected guests and updates audience scenes once per membership change',async()=>{
- const h=harness();await h.flush();await h.click('Preview camera');await h.people([participant(1,true),participant(2)]);await h.click('Go live');assert.equal(h.commands.length,1);assert.equal(h.commands[0].body.scene.preset,'interview');assert.equal(h.commands[0].body.scene.participant_id,id(2));h.commands[0].resolve({ok:true});await h.flush();await h.state('live');assert.equal(h.timers,0);
+ const h=harness();await h.flush();await h.click('Preview camera');await h.people([participant(1,true),participant(2)]);await h.click('Go live');assert.equal(h.commands.length,1);assert.equal(h.commands[0].body.scene.preset,'interview');assert.equal(h.commands[0].body.scene.participant_id,id(2));h.commands[0].resolve({ok:true,scene_connections_confirmed:true});await h.flush();await h.state('live');assert.equal(h.timers,0);
  await h.people([participant(1,true),participant(2),participant(3)]);await h.people([participant(3),participant(1,true),participant(2),participant(4)]);await h.tick();assert.equal(h.commands.length,2);assert.equal(h.commands[1].body.scene.preset,'grid');assert.deepEqual(Array.from(h.commands[1].body.scene.participant_ids),[id(1),id(2),id(3),id(4)]);
- await h.people([participant(1,true),participant(2)]);h.commands[1].resolve({ok:true});await h.flush();await h.tick();assert.equal(h.commands.length,3);assert.equal(h.commands[2].body.scene.preset,'interview');h.commands[2].resolve({ok:true});await h.flush();await h.people([participant(2),participant(1,true)]);await h.tick();assert.equal(h.commands.length,3);h.cleanup();
+ await h.people([participant(1,true),participant(2)]);h.commands[1].resolve({ok:true,scene_connections_confirmed:true});await h.flush();await h.tick();assert.equal(h.commands.length,3);assert.equal(h.commands[2].body.scene.preset,'interview');h.commands[2].resolve({ok:true,scene_connections_confirmed:true});await h.flush();await h.people([participant(2),participant(1,true)]);await h.tick();assert.equal(h.commands.length,3);h.cleanup();
 });
 test('manual screen scenes remain selected when guests change until Automatic guests is explicitly restored',async()=>{
- const h=harness();await h.flush();await h.click('Preview camera');await h.click('Go live');h.commands[0].resolve({ok:true});await h.flush();await h.state('live');await h.click('Screen');await h.people([participant(1,true),participant(2)]);await h.tick();assert.equal(h.commands.length,1);await h.click('Apply scene');assert.equal(h.commands[1].body.scene.preset,'screen');h.commands[1].resolve({ok:true});await h.flush();await h.click('Automatic guests');await h.tick();assert.equal(h.commands[2].body.scene.preset,'interview');h.commands[2].resolve({ok:true});await h.flush();h.cleanup();
+ const h=harness();await h.flush();await h.click('Preview camera');await h.click('Go live');h.commands[0].resolve({ok:true,scene_connections_confirmed:true});await h.flush();await h.state('live');await h.click('Screen');await h.people([participant(1,true),participant(2)]);await h.tick();assert.equal(h.commands.length,1);await h.click('Apply scene');assert.equal(h.commands[1].body.scene.preset,'screen');h.commands[1].resolve({ok:true,scene_connections_confirmed:true});await h.flush();await h.click('Automatic guests');await h.tick();assert.equal(h.commands[2].body.scene.preset,'interview');h.commands[2].resolve({ok:true,scene_connections_confirmed:true});await h.flush();h.cleanup();
 });
 
 test('stopping the broadcast prevents automatic scene changes while the provider confirms the end',async()=>{
- const h=harness();await h.flush();await h.click('Preview camera');await h.click('Go live');h.commands[0].resolve({ok:true});await h.flush();await h.state('live');await h.click('End broadcast');await h.people([participant(1,true),participant(2)]);h.commands[1].resolve({ok:true});await h.flush();await h.tick();assert.equal(h.commands.length,2);assert.equal(h.commands[1].body.action,'stop');h.cleanup();
+ const h=harness();await h.flush();await h.click('Preview camera');await h.click('Go live');h.commands[0].resolve({ok:true,scene_connections_confirmed:true});await h.flush();await h.state('live');await h.click('End broadcast');await h.people([participant(1,true),participant(2)]);h.commands[1].resolve({ok:true,scene_connections_confirmed:true});await h.flush();await h.tick();assert.equal(h.commands.length,2);assert.equal(h.commands[1].body.action,'stop');h.cleanup();
 });
 test('an already queued scene callback cannot override a later manual selection or leave',async()=>{
- const h=harness();await h.flush();await h.click('Preview camera');await h.click('Go live');h.commands[0].resolve({ok:true});await h.flush();await h.state('live');await h.people([participant(1,true),participant(2)]);const callback=h.captureTimer();assert.ok(callback);await h.click('Screen');callback();await h.flush();assert.equal(h.commands.length,1);await h.click('Leave studio');callback();await h.flush();assert.equal(h.commands.length,1);h.cleanup();
+ const h=harness();await h.flush();await h.click('Preview camera');await h.click('Go live');h.commands[0].resolve({ok:true,scene_connections_confirmed:true});await h.flush();await h.state('live');await h.people([participant(1,true),participant(2)]);const callback=h.captureTimer();assert.ok(callback);await h.click('Screen');callback();await h.flush();assert.equal(h.commands.length,1);await h.click('Leave studio');callback();await h.flush();assert.equal(h.commands.length,1);h.cleanup();
 });
 
 test('connected production staff stay backstage while only accepted guests enter automatic video and audio scenes',async()=>{
- const h=harness();await h.flush();await h.click('Preview camera');await h.people([participant(1,true),participant(2),participant(50),participant(51)]);await h.click('Go live');const scene=h.commands[0].body.scene;assert.equal(scene.automatic,true);assert.equal(scene.preset,'interview');assert.equal(scene.participant_id,id(2));assert.ok(!JSON.stringify(scene).includes(id(50)));assert.ok(!JSON.stringify(scene).includes(id(51)));h.commands[0].resolve({ok:true});await h.flush();h.cleanup();
+ const h=harness();await h.flush();await h.click('Preview camera');await h.people([participant(1,true),participant(2),participant(50),participant(51)]);await h.click('Go live');const scene=h.commands[0].body.scene;assert.equal(scene.automatic,true);assert.equal(scene.preset,'interview');assert.equal(scene.participant_id,id(2));assert.ok(!JSON.stringify(scene).includes(id(50)));assert.ok(!JSON.stringify(scene).includes(id(51)));h.commands[0].resolve({ok:true,scene_connections_confirmed:true});await h.flush();h.cleanup();
 });
 
 test('a failed membership access refresh blocks automatic broadcast start until an explicit successful retry',async()=>{
- const h=harness();h.setRefreshResult(false);await h.flush();await h.click('Preview camera');assert.equal(h.disabled('Go live'),true);assert.equal(h.commands.length,0);h.setRefreshResult(true);await h.click('Refresh stage access');assert.equal(h.disabled('Go live'),false);await h.click('Go live');assert.equal(h.commands.length,1);h.commands[0].resolve({ok:true});await h.flush();h.cleanup();
+ const h=harness();h.setRefreshResult(false);await h.flush();await h.click('Preview camera');assert.equal(h.disabled('Go live'),true);assert.equal(h.commands.length,0);h.setRefreshResult(true);await h.click('Refresh stage access');assert.equal(h.disabled('Go live'),false);await h.click('Go live');assert.equal(h.commands.length,1);h.commands[0].resolve({ok:true,scene_connections_confirmed:true});await h.flush();h.cleanup();
 });
 
 test('broadcast format defaults to landscape and sends the selected portrait on start and subsequent scenes',async()=>{
- const h=harness();await h.flush();assert.equal(h.select('Broadcast format').props.value,'landscape');assert.equal(h.select('Broadcast format').props.disabled,false);await h.choose('Broadcast format','portrait');await h.click('Preview camera');await h.click('Go live');assert.equal(h.commands[0].body.scene.orientation,'portrait');assert.equal(h.select('Broadcast format').props.disabled,true);h.commands[0].resolve({ok:true});await h.flush();await h.state('live');await h.update({output_orientation:'portrait'});await h.choose('Broadcast format','landscape');assert.equal(h.select('Broadcast format').props.value,'portrait');await h.people([participant(1,true),participant(2)]);await h.tick();assert.equal(h.commands[1].body.scene.orientation,'portrait');h.commands[1].resolve({ok:true});await h.flush();h.cleanup();
+ const h=harness();await h.flush();assert.equal(h.select('Broadcast format').props.value,'landscape');assert.equal(h.select('Broadcast format').props.disabled,false);await h.choose('Broadcast format','portrait');await h.click('Preview camera');await h.click('Go live');assert.equal(h.commands[0].body.scene.orientation,'portrait');assert.equal(h.select('Broadcast format').props.disabled,true);h.commands[0].resolve({ok:true,scene_connections_confirmed:true});await h.flush();await h.state('live');await h.update({output_orientation:'portrait'});await h.choose('Broadcast format','landscape');assert.equal(h.select('Broadcast format').props.value,'portrait');await h.people([participant(1,true),participant(2)]);await h.tick();assert.equal(h.commands[1].body.scene.orientation,'portrait');h.commands[1].resolve({ok:true,scene_connections_confirmed:true});await h.flush();h.cleanup();
 });
 test('a reconnected studio restores the persisted portrait format before any new scene command',async()=>{
- const h=harness({output_orientation:'portrait',session:{id:id(90),state:'live',started_at:'2026-11-04T12:00:00Z'}});await h.flush();assert.equal(h.select('Broadcast format').props.value,'portrait');assert.equal(h.select('Broadcast format').props.disabled,true);await h.click('Preview camera');await h.tick();assert.equal(h.commands[0].body.action,'scene');assert.equal(h.commands[0].body.scene.orientation,'portrait');h.commands[0].resolve({ok:true});await h.flush();h.cleanup();
+ const h=harness({output_orientation:'portrait',session:{id:id(90),state:'live',started_at:'2026-11-04T12:00:00Z'}});await h.flush();assert.equal(h.select('Broadcast format').props.value,'portrait');assert.equal(h.select('Broadcast format').props.disabled,true);await h.click('Preview camera');await h.tick();assert.equal(h.commands[0].body.action,'scene');assert.equal(h.commands[0].body.scene.orientation,'portrait');h.commands[0].resolve({ok:true,scene_connections_confirmed:true});await h.flush();h.cleanup();
 });
 
 test('automatic guest scenes wait for a live stream, and a failed scene offers a retry instead of staying stale',async()=>{
- const h=harness();await h.flush();await h.click('Preview camera');await h.click('Go live');h.commands[0].resolve({ok:true});await h.flush();await h.state('reconnecting');
+ const h=harness();await h.flush();await h.click('Preview camera');await h.click('Go live');h.commands[0].resolve({ok:true,scene_connections_confirmed:true});await h.flush();await h.state('reconnecting');
  await h.people([participant(1,true),participant(2)]);await h.tick();assert.equal(h.commands.length,1,'The server refuses scenes while reconnecting, so none is sent');
  await h.state('live');await h.tick();assert.equal(h.commands.length,2);assert.equal(h.commands[1].body.scene.preset,'interview');
  h.commands[1].reject(Error('STATE_CONFLICT'));await h.flush();await h.tick();assert.equal(h.commands.length,2,'A failed automatic scene is not retried blindly');
  assert.match(text(h.tree),/STATE_CONFLICT/);await h.click('Retry guest layout');await h.tick();assert.equal(h.commands.length,3);assert.equal(h.commands[2].body.scene.preset,'interview');assert.equal(h.commands[2].body.scene.participant_id,id(2));
- h.commands[2].resolve({ok:true});await h.flush();assert.doesNotMatch(text(h.tree),/Retry guest layout/,'The retry control goes away once the scene is accepted');h.cleanup();
+ h.commands[2].resolve({ok:true,scene_connections_confirmed:true});await h.flush();assert.doesNotMatch(text(h.tree),/Retry guest layout/,'The retry control goes away once the scene is accepted');h.cleanup();
+});
+
+test('a returning web guest is rebound to the new Daily connection without replaying any layout on track updates',async()=>{
+ const h=harness(), host=participant(1,true),guest=participant(2),back={...guest,session_id:id(202)};
+ await h.flush();await h.click('Preview camera');await h.people([host,guest]);await h.click('Go live');
+ assert.deepEqual(Array.from(h.commands[0].body.scene.connection_ids),[id(101),id(102)]);
+ h.commands[0].resolve({ok:true,scene_connections_confirmed:true});await h.flush();await h.state('live');
+ await h.people([host,guest,back]);await h.tick();assert.equal(h.commands.length,1);
+ await h.people([back,host]);await h.tick();assert.equal(h.commands.length,2);
+ assert.deepEqual(Array.from(h.commands[1].body.scene.connection_ids),[id(101),id(202)]);
+ h.commands[1].reject(Error('STAGE_CONNECTION_CHANGED'));await h.flush();await h.tick();
+ assert.equal(h.commands.length,3);assert.notEqual(h.commands[1].body.requestId,h.commands[2].body.requestId);
+ h.commands[2].reject(Error('STAGE_CONNECTION_CHANGED'));await h.flush();await h.tick();assert.equal(h.commands.length,3);
+ await h.click('Retry guest layout');await h.tick();assert.notEqual(h.commands[2].body.requestId,h.commands[3].body.requestId);
+ const command=h.commands[3];command.reject(Error('TIMEOUT'));await h.flush();await h.tick();assert.equal(h.commands.length,4);
+ await h.click('Retry guest layout');await h.tick();assert.equal(h.commands[4].body.requestId,command.body.requestId);
+ h.commands[4].resolve({ok:true,scene_connections_confirmed:true});await h.flush();await h.people([host,{...back,user_name:'Updated name'}]);await h.tick();assert.equal(h.commands.length,5);
+ await h.update({stage_guest_identities:[]});await h.tick();assert.deepEqual(Array.from(h.commands[5].body.scene.connection_ids),[id(101)]);
+ h.commands[5].resolve({ok:true,scene_connections_confirmed:true});await h.flush();h.cleanup();
+});
+
+test('a replayed start receipt without confirmed source IDs resynchronizes the web scene after going live',async()=>{
+ const h=harness();await h.flush();await h.click('Preview camera');await h.people([participant(1,true),participant(2)]);await h.click('Go live');
+ h.commands[0].resolve({ok:true});await h.flush();await h.tick();assert.equal(h.commands.length,1);
+ await h.state('live');await h.tick();assert.equal(h.commands[1].body.action,'scene');
+ assert.deepEqual(Array.from(h.commands[1].body.scene.connection_ids),[id(101),id(102)]);
+ h.commands[1].resolve({ok:true});await h.flush();h.cleanup();
 });

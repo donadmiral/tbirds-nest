@@ -29,7 +29,7 @@ function harness(role='viewer', platform='ios') {
   const component=compile('src/screens/feed/LiveSessionScreen.tsx',{
     react,'react/jsx-runtime':runtime,'react-native':rn,'@react-navigation/native':{useFocusEffect(){}},'expo-video':{VideoView:'VideoView'},'expo-linear-gradient':{LinearGradient:'LinearGradient'},'@expo/vector-icons':{Feather:'Feather'},
     '../../components/SafeArea':{SafeAreaView:'SafeAreaView',useSafeAreaInsets:()=>({top:54,bottom:34,left:0,right:0})},'../../theme/useTheme':{useTheme:()=>({t:{ink:{primary:'#111',secondary:'#666',muted:'#888'},surface:{raised:'#fff',sunken:'#eee'}}})},'../../stores/authStore':{useAuthStore:read=>read({profile:{id:id(2)}})},'../../contexts/LivePlaybackContext':{useLivePlayback:()=>playback},
-    '../../components/LiveStudio':{LiveStudio:'LiveStudio'},'../../components/LiveUi':{LiveIcon:'LiveIcon'},'../../components/LiveChat':{LiveChat:'LiveChat'},'../../components/LiveInteractions':{LiveInteractions:'LiveInteractions',LiveAnalytics:'LiveAnalytics'},
+    '../../components/LiveHostFollow':{LiveHostFollow:'LiveHostFollow'}, '../../components/LiveStudio':{LiveStudio:'LiveStudio'},'../../components/LiveUi':{LiveIcon:'LiveIcon'},'../../components/LiveChat':{LiveChat:'LiveChat'},'../../components/LiveInteractions':{LiveInteractions:'LiveInteractions',LiveAnalytics:'LiveAnalytics'},
     '../../services/liveService':{liveObject:object,liveText:value=>typeof value==='string'?value:'',liveRows:(value,limit)=>Array.isArray(value)?value.slice(0,limit):[],loadLiveSession:async()=>{if(loadFailure)throw new Error(loadFailure);return current;},liveRequestId:()=>id(99),liveCommand:async(...args)=>{commands.push(args);return {ok:true};}},'../../../shared/liveDirectory':directory,
     '../../services/supabase':{supabase:{channel(){const handlers={};const channel={handlers,on(_kind,filter,cb){handlers[filter.event]=cb;return channel;},subscribe(){return channel;}};channels.push(channel);return channel;},removeChannel:async()=>{}}},'../../utils/profileRead':{},
   }).default;
@@ -226,4 +226,12 @@ test('a declined viewer is told so, a viewer the server will not queue sees no r
   const studio=nodes(guest.render()).find(node=>node.type==='LiveStudio');assert.equal(studio,undefined,'The guest is not in the studio yet');
   guest.button('Join live camera').props.onPress();
   const opened=nodes(guest.render()).find(node=>node.type==='LiveStudio');assert.equal(typeof opened.props.onLeaveStage,'function','Leaving the camera from the studio also gives up the seat');
+});
+
+test('ordinary native moderator sheet supports audience and each independent slow mode',async()=>{
+ const app=harness('moderator');await app.start();app.by('accessibilityLabel','More live tools').props.onPress();app.button('Chat settings').props.onPress();
+ for(const [label,payload] of [['Followers only',{chat_mode:'followers'}],['Open chat',{chat_mode:'open'}],...[0,5,10,15,30].map(v=>[v?v+' second slow mode':'Normal chat',{slow_mode_seconds:v}])]){
+   const control=app.button(label);assert.ok(control,label);control.props.onPress();await app.settle();await app.settle();
+   assert.equal(app.commands.at(-1)[0],'chat_settings');assert.deepEqual({...app.commands.at(-1)[2]},payload);
+ }
 });
