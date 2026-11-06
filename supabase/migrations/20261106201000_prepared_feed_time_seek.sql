@@ -19,6 +19,7 @@ declare
  predicate constant text := $predicate$         and (time_cursors[chosen] is null or (c.created_at,c.post_id)<(time_cursors[chosen],time_ids[chosen]))$predicate$;
  continuation constant text := '         and (c.created_at,c.post_id)<(time_cursors[chosen],time_ids[chosen])';
  replacement text;
+ body text;
 begin
  select prosrc into strict original from pg_proc where oid=selector and not prosecdef and provolatile='s'
    and proconfig=array['search_path=""']::text[];
@@ -28,7 +29,16 @@ begin
  end if;
  replacement := '     if time_cursors[chosen] is null then'||chr(10)||replace(batch,predicate,'')||
    chr(10)||'     else'||chr(10)||replace(batch,predicate,continuation)||chr(10)||'     end if;';
- execute replace(pg_get_functiondef(selector),original,replace(original,batch,replacement));
+ body := replace(original,batch,replacement);
+ -- A 200-winner refresh often walks thousands of IDs. Amortize the ordered
+ -- index lookups and deduplication, then return to 64 near the existing proof
+ -- boundary. The last iteration can still add at most 128 candidates.
+ body := replace(body,' score_at integer:=200;',' fetch_size integer; score_at integer:=200;');
+ body := replace(body,'   if mass_cursors[chosen] is null then',
+   '   fetch_size:=least(256,greatest(64,(maximum_candidates-coalesce(cardinality(candidates),0))/2));'||chr(10)||
+   '   if mass_cursors[chosen] is null then');
+ body := replace(replace(body,' limit 64',' limit fetch_size'),'n<64','n<fetch_size');
+ execute replace(pg_get_functiondef(selector),original,body);
 end $migration$;
 
 -- On a large catalog a generic plan can intersect a whole timestamp range
