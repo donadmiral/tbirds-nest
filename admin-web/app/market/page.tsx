@@ -1,3 +1,4 @@
+import { isOrderId } from '@/lib/marketOrders';
 import { requestTime } from '@/lib/requestTime';
 import Link from 'next/link';
 import { requireDesk } from '@/lib/adminAuth';
@@ -30,7 +31,9 @@ const STATUS_TONE: Record<string, Tone> = { available: 'ok', active: 'ok', sold:
 function title(s: string) { return (s || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()); }
 function money(n: number, currency?: unknown) { return (String(currency || '').trim() || 'Currency not recorded') + ' ' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
-export default async function MarketPage() {
+export default async function MarketPage({ searchParams }: {
+  searchParams: Promise<{ q?: string; before?: string; id?: string }>;
+}) {
   const admin = await requireDesk('/market');
   const svc = serviceClient();
 
@@ -39,14 +42,23 @@ export default async function MarketPage() {
   const from14 = new Date(now - 14 * 86400000).toISOString();
   const days30 = Array.from({ length: 30 }, (_, i) => new Date(now - (29 - i) * 86400000).toISOString().slice(0, 10));
 
-  const [listRes, totalRes, reportRes] = await Promise.all([
-    svc.from('marketplace_listings').select('*').order('created_at', { ascending: false }).limit(250),
-    svc.from('marketplace_listings').select('id', { count: 'exact', head: true }),
-    svc.from('listing_reports').select('id, listing_id, reason, status').limit(1000),
+  const params = await searchParams;
+  const search = typeof params.q === 'string' ? params.q.trim() : '';
+  const before = typeof params.before === 'string' && /^\d{4}-\d\d-\d\dT/.test(params.before)
+    && Number.isFinite(Date.parse(params.before)) && typeof params.id === 'string' && isOrderId(params.id) ? params.before : null;
+  const invalid = search.length > 100 || (search.length > 0 && search.length < 3);
+  const [listRes, totalRes] = await Promise.all([
+    invalid ? Promise.resolve({data: [], error: null}) : svc.rpc('admin_market_catalog_page_v1', {
+      p_before: before, p_id: before ? params.id : null, p_search: search,
+    }),
+    svc.from('marketplace_listings').select('id', { count: 'estimated', head: true }),
   ]);
-
-  if (listRes.error || totalRes.error || reportRes.error) throw new Error('Marketplace records could not be loaded. Please retry.');
-  const listings = (listRes.data ?? []) as Record<string, unknown>[];
+  if (listRes.error || totalRes.error) throw new Error('Marketplace records could not be loaded. Please retry.');
+  type Listing = Record<string, unknown> & { id: string; created_at: string; _report_summary: { open: number; total: number; reasons: string[] } };
+  const page = (listRes.data ?? []) as Listing[];
+  const listings = page.slice(0, 100);
+  const last = listings.at(-1);
+  const next = page.length > 100 && last ? '/market?' + new URLSearchParams({ q: search, before: last.created_at, id: last.id }) : null;
   const urlMap = await resolveMedia(listings.map(l => pickMedia(l)));
 
   const uids = Array.from(new Set(listings.map(l => String(l.seller_id || '')).filter(Boolean)));
@@ -56,14 +68,7 @@ export default async function MarketPage() {
     (data ?? []).forEach((p: { id: string; full_name: string | null; username: string | null; avatar_url: string | null; location: string | null; is_verified: boolean }) => { people[p.id] = p; });
   }
 
-  const reports = (reportRes.data ?? []) as { id: string; listing_id: string; reason: string; status: string }[];
-  const reportsByListing: Record<string, { open: number; total: number; reasons: string[] }> = {};
-  reports.forEach(r => {
-    const e = reportsByListing[r.listing_id] = reportsByListing[r.listing_id] || { open: 0, total: 0, reasons: [] };
-    e.total += 1;
-    if (r.status === 'open') e.open += 1;
-    if (r.reason) e.reasons.push(r.reason);
-  });
+  const reportsByListing = Object.fromEntries(listings.map(l => [l.id, l._report_summary]));
 
   const priceOf = (l: Record<string, unknown>) => Number(l.price) || 0;
   const statusOf = (l: Record<string, unknown>) => String(l.status || 'unknown').toLowerCase();
@@ -93,11 +98,11 @@ export default async function MarketPage() {
     .map((k, i) => ({ label: title(k), value: catCount[k], color: SERIES[i % SERIES.length] }));
 
   const cards = [
-    { label: 'Listings on file', value: fmt(totalRes.count ?? listings.length), note: 'All marketplace listings', icon: IC.bag, color: 'var(--c1)', spark },
+    { label: 'Estimated listings on file', value: totalRes.count === null ? 'Unavailable' : fmt(totalRes.count), note: 'Across the marketplace', icon: IC.bag, color: 'var(--c1)', spark },
     { label: 'Listed this week', value: fmt(new7), delta: d7.text, deltaTone: d7.tone, note: 'within the loaded listing sample', icon: IC.bag, color: 'var(--c2)', spark: spark.slice(-14) },
-    { label: 'Available listings', value: fmt(available.length), note: 'in the newest 250 listings', icon: IC.money, color: 'var(--c3)' },
-    { label: 'Marked sold', value: fmt(sold.length), note: 'in the newest 250 listings', icon: IC.check, color: 'var(--c6)' },
-    { label: 'Carrying reports', value: fmt(flagged), note: fmt(sellers) + ' sellers on the market', icon: IC.flag, color: 'var(--c5)' },
+    { label: 'Available listings', value: fmt(available.length), note: 'on this page', icon: IC.money, color: 'var(--c3)' },
+    { label: 'Marked sold', value: fmt(sold.length), note: 'on this page', icon: IC.check, color: 'var(--c6)' },
+    { label: 'Carrying reports', value: fmt(flagged), note: fmt(sellers) + ' sellers on this page', icon: IC.flag, color: 'var(--c5)' },
   ];
 
   const rows: DeskRow[] = listings.map(l => {
@@ -127,7 +132,7 @@ export default async function MarketPage() {
       const v = l[k];
       if (v !== undefined && v !== null && String(v).trim() !== '') fields.push({ label: title(k), value: String(v) });
     });
-    if (rep) fields.push({ label: 'Reports', value: rep.open + ' open of ' + rep.total + ' total' });
+    if (rep?.total) fields.push({ label: 'Reports', value: rep.open + ' open of ' + rep.total + ' total' });
 
     return {
       id,
@@ -164,7 +169,7 @@ export default async function MarketPage() {
         fields,
         body: [
           ...(desc ? [{ label: 'Description', text: desc }] : []),
-          ...(rep && rep.reasons.length ? [{ label: 'Why it was reported', text: Array.from(new Set(rep.reasons)).join('\n') }] : []),
+          ...(rep && rep.reasons.length ? [{ label: 'Recent report reasons', text: Array.from(new Set(rep.reasons)).join('\n') }] : []),
         ],
         links: [
           { label: 'Open seller', href: '/users/' + sid },
@@ -185,10 +190,19 @@ export default async function MarketPage() {
   ];
 
   return (
-    <Shell admin={admin} active="/market" title="Market" sub="Review the newest listings, their sellers and loaded reports. Removing a listing takes it off the market everywhere.">
+    <Shell admin={admin} active="/market" title="Market" sub="Review marketplace listings, sellers and reports. Removing a listing takes it off the market everywhere.">
       <Link href="/market/reviews" className="mr-5 mb-4 inline-block underline">Review reported seller ratings</Link>
       <Link href="/market/orders" className="mb-4 inline-block underline">Investigate orders, returns and disputes</Link>
-      <p className="mb-4 text-sm text-[var(--txt-muted)]">Listing analysis below covers the newest 250 listings. Prices are listing values, not settled revenue. Open order investigations for verified payment and fulfillment records.</p>
+      <p className="mb-4 text-sm text-[var(--txt-muted)]">The charts and status counts cover this page. Prices are asking prices.</p>
+      <form action="/market" className="mb-4 flex items-center gap-3">
+        <label>Find a listing <input name="q" type="search" defaultValue={search} minLength={3} maxLength={100} placeholder="Title or listing ID" /></label>
+        <button type="submit" className="underline">Search all listings</button>
+      </form>
+      {invalid && <p role="alert">Enter between 3 and 100 characters.</p>}
+      <nav aria-label="Listing pages" className="mb-4 flex gap-4">
+        {before && <Link className="underline" href={'/market?' + new URLSearchParams({ q: search })}>Newest results</Link>}
+        {next && <Link className="underline" href={next}>Older results</Link>}
+      </nav>
       <StatStrip cards={cards} />
 
       <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_336px]">
@@ -202,7 +216,7 @@ export default async function MarketPage() {
               { key: 'status', label: 'Status', options: Array.from(new Set(listings.map(l => title(statusOf(l))))) },
               { key: 'category', label: 'Category', options: Object.keys(catCount).map(title).slice(0, 12) },
             ]}
-            searchHint="Search listings, sellers, categories"
+            searchHint="Filter this page by listing, seller or category"
             detailTitle="Listing details"
             minWidth={960}
             pageSize={12}
