@@ -15,7 +15,27 @@ const ticketKeys=['p_token','p_bucket','p_path'];
 const rendition=a=>ticket(a)&&typeof a.p_source_version==='string'&&a.p_source_version.length>0&&a.p_source_version.length<=128&&ASSET.test(a.p_name||'master.m3u8')&&(!a.p_lease_id||UUID.test(a.p_lease_id));
 const renditionKeys=[...ticketKeys,'p_source_version','p_name','p_lease_id'];
 const manifest=a=>Array.isArray(a)&&a.length>=4&&a.length<=2048&&a.every(x=>exact(x,['name','bytes','sha256','mime','playlist'])&&ASSET.test(x.name)&&integer(x.bytes,1,536870912)&&HASH.test(x.sha256)&&['video/mp4','video/mp2t','application/vnd.apple.mpegurl'].includes(x.mime)&&(!x.playlist||typeof x.playlist==='string'&&x.playlist.length<=65536));
+const posterPath=value=>{if(typeof value!=='string')return false;const p=value.split('/');return p.length===5&&UUID.test(p[0])&&p[1]==='_renditions_v2'&&UUID.test(p[2])&&UUID.test(p[3])&&p[4]==='fallback.mp4';};
+function strictPoster(value){
+ // Only a bounded baseline JPEG from the encoder. Nothing from its payload is logged.
+ if(typeof value!=='string'||value.length>87384||value.length<88||value.length%4!==0||!/^[A-Za-z0-9+/]+={0,2}$/.test(value))return null;
+ const raw=atob(value);if(raw.length>65536||raw.length<64||btoa(raw)!==value)return null;
+ const bytes=Uint8Array.from(raw,c=>c.charCodeAt(0)),u16=i=>(bytes[i]<<8)|bytes[i+1];
+ if(u16(0)!==0xffd8||u16(bytes.length-2)!==0xffd9)return null;
+ let frame=false;
+ for(let i=2;i+4<bytes.length;){
+  if(bytes[i]!==255)return null;const code=bytes[i+1],len=u16(i+2);
+  if(len<2||i+2+len>bytes.length-2)return null;
+  if(code===0xc0){if(frame||len!==17||bytes[i+4]!==8||!integer(u16(i+5),2,640)||!integer(u16(i+7),2,640)||bytes[i+9]!==3)return null;frame=true;}
+  else if(code===0xda)return frame&&len===12?bytes:null;
+  else if(![0xdb,0xc4,0xdd,0xe0,0xfe].includes(code))return null;
+  i+=2+len;
+ }
+ return null;
+}
 const definitions={
+ poster_claim:{role:'worker',keys:[],valid:()=>true},
+ poster_finish:{role:'worker',keys:['p_lease','p_media','p_jpeg','p_sha256'],valid:a=>UUID.test(a.p_lease)&&UUID.test(a.p_media)&&HASH.test(a.p_sha256)&&typeof a.p_jpeg==='string'&&a.p_jpeg.length<=87384},
  claim:{role:'worker',rpc:'claim_media_rendition_v2',keys:['p_worker_max_bytes'],valid:a=>integer(a.p_worker_max_bytes,1,536870912)},
  check:{role:'worker',rpc:'check_media_rendition_v2',keys:proofKeys,valid:proof},
  register:{role:'worker',rpc:'register_media_rendition_assets_v2',keys:[...proofKeys,'p_assets'],valid:a=>proof(a)&&manifest(a.p_assets)},
@@ -64,6 +84,22 @@ export function createMediaBroker({rpc,storage,base,now=Date.now}){
    const role=await rpc('authorize_media_broker_v2',{p_key_id:authorization[1],p_token_hash:hash,p_request_id:requestId,p_issued_at:issued},controller.signal);
    if(role==='rate_limited')return reply(429,{error:'rate_limited'});
    if(role!==operation.role)return reply(403,{error:'forbidden'});
+   if(body.action==='poster_claim'){
+    const d=await rpc('claim_post_poster_v1',{},controller.signal);if(d===null)return reply(200,{data:null});
+    if(!d||!['none','fade'].includes(d.filter_id)||!UUID.test(d.lease)||!UUID.test(d.media_id)||d.bucket!=='adaptive-media'||!posterPath(d.path)||!integer(d.bytes,1,33554432)||!HASH.test(d.sha256)
+      ||typeof d.version!=='string'||!d.version||d.version.length>128||typeof d.etag!=='string'||!d.etag||d.etag.length>256||/[\s"\\]/.test(d.etag)||d.etag.startsWith('W/'))throw new Error('invalid_poster_descriptor');
+    const {lease,media_id,bucket,path,version,etag,bytes,sha256,filter_id}=d;
+    const url=await storage.downloadURL(bucket,path,90,controller.signal);
+    const signed=new URL(signedURL(url,'sign',bucket,path));if(signed.username||signed.password||signed.hash||signed.searchParams.getAll('token').length!==1||[...signed.searchParams.keys()].some(k=>k!=='token'))throw new Error('invalid_storage_response');
+    return reply(200,{data:{lease,media_id,bucket,path,version,etag,bytes,sha256,filter_id,url:signed.href}});
+   }
+   if(body.action==='poster_finish'){
+    let bytes;try{bytes=strictPoster(args.p_jpeg);}catch{return reply(400,{error:'invalid_poster'});}
+    if(!bytes)return reply(400,{error:'invalid_poster'});
+    const sha=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),x=>x.toString(16).padStart(2,'0')).join('');
+    if(sha!==args.p_sha256)return reply(400,{error:'invalid_poster'});
+    return reply(200,{data:(await rpc('finish_post_poster_v1',args,controller.signal))===true});
+   }
    if(operation.rpc)return reply(200,{data:await rpc(operation.rpc,args,controller.signal)});
    if(body.action==='source'||body.action==='upload'){
     const descriptor=await rpc('media_rendition_transfer_v2',args,controller.signal);

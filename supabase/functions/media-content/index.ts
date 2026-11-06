@@ -1,11 +1,11 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.112.3';
 import { createMediaContentHandler } from './handler.ts';
-import { serviceRoleFetch } from '../_shared/serviceRoleFetch.ts';
+import { createProofTransport, type ProofBudget } from './proofTransport.ts';
 import { adaptiveRedirect } from './adaptive.ts';
 const base = Deno.env.get('SUPABASE_URL')!;
 const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const backendFetch = serviceRoleFetch(fetch, serviceKey);
-const client = createClient(base, serviceKey, { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: backendFetch } });
+const proofTransport = createProofTransport(fetch,serviceKey);
+const client = createClient(base, serviceKey, { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: proofTransport.fetch } });
 // Streaming has the handler's startup/read-idle deadlines. Do not give an
 // entire long-lived media response the short database request timeout.
 const mediaFetch: typeof fetch = (input, init) => {
@@ -14,16 +14,16 @@ const mediaFetch: typeof fetch = (input, init) => {
   return fetch(input, { ...init, headers });
 };
 const originalHandler = createMediaContentHandler({ base, serviceKey, fetch: mediaFetch,
-  async resolve(token, bucket, path, signal) {
-    const { data, error } = await client.rpc('resolve_media_delivery', { p_token: token, p_bucket: bucket, p_path: path }).abortSignal(signal);
-    if (error) throw new Error('Media authorization unavailable');
-    return data;
+  async resolve(token,bucket,path,signal,stage,budget) {
+    return proofTransport.run(stage,budget,signal,attempt => client.rpc('resolve_media_delivery',{p_token:token,p_bucket:bucket,p_path:path}).abortSignal(attempt));
+  },
+  async readRepresentation(token,bucket,path,version,kind,signal){
+    const {data,error}=await client.rpc('read_post_representation_v1',{p_token:token,p_bucket:bucket,p_path:path,p_source_version:version,p_kind:kind}).abortSignal(signal);
+    if(error)throw Error('Media representation unavailable');return data;
   },
   ...(Deno.env.get('MEDIA_VARIANT_DELIVERY') === 'true' ? {
-    async resolveVariant(token: string, bucket: string, path: string, version: string, signal: AbortSignal) {
-      const { data, error } = await client.rpc('resolve_media_variant_for_ticket_v1', { p_token: token, p_bucket: bucket, p_path: path, p_source_version: version }).abortSignal(signal);
-      if (error) throw new Error('Media variant lookup unavailable');
-      return data;
+    async resolveVariant(token:string,bucket:string,path:string,version:string,signal:AbortSignal,stage:'variant_selection'|'variant_revalidation',budget:ProofBudget) {
+      return proofTransport.run(stage,budget,signal,attempt => client.rpc('resolve_media_variant_for_ticket_v1',{p_token:token,p_bucket:bucket,p_path:path,p_source_version:version}).abortSignal(attempt));
     },
   } : {}),
   diagnostic(event) {
