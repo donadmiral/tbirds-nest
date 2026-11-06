@@ -36,7 +36,7 @@ function load(file, imports, context = {}) {
   assert.equal((built.diagnostics || []).filter(d => d.category === ts.DiagnosticCategory.Error).length, 0, file);
   vm.runInNewContext(built.outputText, { module, exports: module.exports, console, URL, Response, Date, Promise, Error,
     setTimeout, clearTimeout, crypto: require('node:crypto').webcrypto, ...context,
-    require(name) { assert.ok(name in imports, 'Unexpected import ' + name); return imports[name]; } });
+    require(name) { if (name === '../../shared/liveReactionSummary') return require('../../shared/liveReactionSummary.ts'); assert.ok(name in imports, 'Unexpected import ' + name); return imports[name]; } });
   return module.exports;
 }
 function nodes(value) { if (!value || typeof value !== 'object') return []; if (Array.isArray(value)) return value.flatMap(nodes); return [value, ...nodes(value.props?.children)]; }

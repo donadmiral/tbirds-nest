@@ -33,7 +33,7 @@ function load(file, imports, runtime = {}, context = {}) {
   assert.equal((built.diagnostics || []).filter(d => d.category === ts.DiagnosticCategory.Error).length, 0, file);
   vm.runInNewContext(built.outputText, { module, exports: module.exports, console, URL, Date, Promise, Error, setTimeout, clearTimeout,
     crypto: { randomUUID: () => 'request-' + (++requestSequence) }, document: { visibilityState: 'visible', addEventListener() {}, removeEventListener() {} }, ...context,
-    require(name) { if (name === 'react/jsx-runtime') return runtime; if (name in imports) return imports[name]; throw Error('Unexpected import ' + name + ' in ' + file); },
+    require(name) { if (name === '../../shared/liveReactionSummary') return require('../shared/liveReactionSummary.ts'); if (name === 'react/jsx-runtime') return runtime; if (name in imports) return imports[name]; throw Error('Unexpected import ' + name + ' in ' + file); },
   });
   return module.exports;
 }

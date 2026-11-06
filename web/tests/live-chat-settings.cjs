@@ -74,6 +74,7 @@ function harness(role = 'host') {
   vm.runInNewContext(directorySource, { module: directory, exports: directory.exports });
   const jsx = (type, props) => ({ type, props });
   const imports = {
+    '../../shared/liveReactionSummary': require('../../shared/liveReactionSummary.ts'),
     react, 'react/jsx-runtime': { jsx, jsxs: jsx, Fragment: 'Fragment' },
     'next/link': { __esModule: true, default: 'Link' },
     'lucide-react': new Proxy({}, { get: (_target, key) => key }),
