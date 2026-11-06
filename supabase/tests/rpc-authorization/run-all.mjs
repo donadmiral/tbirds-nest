@@ -19,6 +19,7 @@ await import('./test-pending-migration-chain.mjs');
 // These suites own node:test lifecycle hooks and full synthetic databases.
 // Keep each process isolated so one suite cannot alter another suite's hooks.
 for (const {script, env = {}} of [
+  {script: './test-admin-market-catalog-page.mjs'},
   {script: './test-production-rollout-chain.mjs'},
   {script: './test-parity-release-chain.mjs'},
   {script: './test-app-quality-hiring-chain.mjs'},
