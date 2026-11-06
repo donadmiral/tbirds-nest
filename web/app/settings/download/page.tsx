@@ -1,13 +1,15 @@
 "use client";
-// Download your data: one JSON of everything on the account.
 import { useEffect, useRef, useState } from "react";
 
+import { readWithDeadline } from "../../../../shared/readDeadline";
+import { archiveStatusMessage, getArchive } from "../../../../shared/accountArchive";
 import { Download } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 export default function DownloadPage() {
   const [supabase] = useState(createClient);
   const [busy, setBusy] = useState(false);
+  const [readyArchive, setReadyArchive] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const guard = useRef({ alive: true, generation: 0, owner: null as string | null, busy: false });
   useEffect(() => {
@@ -20,12 +22,13 @@ export default function DownloadPage() {
         guard.current.generation++;
         guard.current.busy = false;
         setBusy(false);
+        setReadyArchive(null);
         setMsg(null);
       }
     });
     return () => { state.alive = false; state.generation++; subscription.unsubscribe(); };
   }, [supabase]);
-  const run = async () => {
+  const run = async (large = false) => {
     if (guard.current.busy) return;
     guard.current.busy = true;
     let generation = guard.current.generation;
@@ -38,10 +41,18 @@ export default function DownloadPage() {
       if (guard.current.owner && guard.current.owner !== owner) throw new Error("Your account changed. Please retry.");
       guard.current.owner = owner;
       generation = guard.current.generation;
+      const prepareLarge = async () => {
+        const manifest = await getArchive((name, args) => readWithDeadline(supabase.rpc(name, args)), owner);
+        if (!guard.current.alive || generation !== guard.current.generation || guard.current.owner !== owner) return;
+        setReadyArchive(manifest.status === "ready" ? manifest.id : null);
+        setMsg(manifest.status === "ready" ? "Your large archive is ready to download." : archiveStatusMessage(manifest));
+      };
+      if (large) { await prepareLarge(); return; }
       const { data, error } = await supabase.functions.invoke("export-my-data", { body: {} });
       if (!guard.current.alive || generation !== guard.current.generation || guard.current.owner !== owner) return;
       if (error) {
         const detail = await error.context?.json?.().catch(() => null);
+        if (detail?.code === "EXPORT_TOO_LARGE") { await prepareLarge(); return; }
         throw new Error(detail?.error || "Your archive could not be prepared. Please retry.");
       }
       if (data?.export_status !== "complete" || data?.account?.id !== owner) {
@@ -62,7 +73,9 @@ export default function DownloadPage() {
     <div className="mx-auto max-w-[640px] px-4 py-6">
       <h1 className="mt-4 flex items-center gap-2 font-display text-[24px] font-bold text-ink"><Download size={22} className="text-accent" /> Download your data</h1>
       <p className="mt-1 text-[13.5px] text-ink/60">One file with your profile, posts, comments, likes, saves, follows, stories, the messages you sent, listings, applications and support tickets. Only you can request it, and only for your own account.</p>
-      <button type="button" onClick={run} disabled={busy} className="mt-5 rounded-full bg-ink px-5 py-2.5 text-[14px] font-bold text-white hover:opacity-90 disabled:opacity-50">{busy ? "Preparing" : "Download"}</button>
+      <button type="button" onClick={() => void run()} disabled={busy} className="mt-5 rounded-full bg-ink px-5 py-2.5 text-[14px] font-bold text-white hover:opacity-90 disabled:opacity-50">{busy ? "Preparing" : "Download"}</button>
+      <button type="button" onClick={() => void run(true)} disabled={busy} className="ml-3 text-[14px] font-semibold text-accent disabled:opacity-50">Prepare or check large archive</button>
+      {readyArchive ? <a className="mt-3 block text-accent underline" href={`/api/account-archive/${readyArchive}`} download>Download large archive (JSON Lines)</a> : null}
       {msg ? <p role="status" className="mt-3 text-[13px] text-ink/70">{msg}</p> : null}
     </div>
   );
