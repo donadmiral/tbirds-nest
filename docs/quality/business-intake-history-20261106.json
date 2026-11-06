@@ -1,0 +1,34 @@
+{
+  "verified_on_utc": "2026-11-06",
+  "scope": "Admin Businesses desk decision history",
+  "migration": "20261106233940_business_decision_history.sql",
+  "page_size": 25,
+  "lookahead": 1,
+  "local": {
+    "test": "node --test admin-web/tests/business-decision-history.cjs",
+    "test_dependency": "Install the lockfile in supabase/tests/rpc-authorization before running.",
+    "passed": 2,
+    "admin_typescript": "passed"
+  },
+  "hosted_qa": {
+    "index_valid": true,
+    "service_role_read": true,
+    "fixture_transaction": "rolled back",
+    "rows_read": 75,
+    "distinct_rows": 75,
+    "undated_rows": 30,
+    "rows_in_adjacent_microsecond": 14,
+    "tied_page_boundary": true,
+    "undated_page_boundary": true,
+    "anon_denied": true,
+    "authenticated_denied": true,
+    "fixture_rows_remaining": 0
+  },
+  "production": {
+    "index_valid": true,
+    "service_role_first_page_count_matches_source": true,
+    "anon_denied": true,
+    "authenticated_denied": true,
+    "post_migration_checks": "Read-only transactions on existing rows."
+  }
+}
