@@ -13,6 +13,8 @@ import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { useUploadPreview } from '../../hooks/useUploadPreview';
 import { uploadMedia } from '../../services/mediaService';
+import * as VideoThumbnails from 'expo-video-thumbnails';
+import { preparePlannedMedia } from '../../../shared/plannedMedia';
 import { CATEGORIES } from '../../constants/categories';
 import { useStudioLive } from '../../hooks/useStudioLive';
 import { useStudioResource } from '../../hooks/useStudioResource';
@@ -360,8 +362,14 @@ function PlannerSeg({ canPublish, meId }: { canPublish: boolean; meId: string | 
       const a = result.assets[0];
       const isVideo = a.type === 'video';
       const ext = ((a.fileName || a.uri).split('.').pop()?.split('?')[0] || (isVideo ? 'mp4' : 'jpg')).toLowerCase().replace('jpeg', 'jpg');
-      const { url } = await uploadMedia('post-media', meId, { uri: a.uri, kind: isVideo ? 'video' : 'image', ext, mimeType: a.mimeType || (isVideo ? 'video/mp4' : (ext === 'png' ? 'image/png' : 'image/jpeg')), width: a.width, height: a.height, base64: null } as any, {});
-      if (current()) setMedia(m => [...m, { url, media_type: isVideo ? 'video' : 'image', width: a.width, height: a.height }].slice(0, 4));
+      const item = await preparePlannedMedia(isVideo, async () => (await uploadMedia('post-media', meId, {
+        uri: a.uri, kind: isVideo ? 'video' : 'image', ext, mimeType: a.mimeType || (isVideo ? 'video/mp4' : (ext === 'png' ? 'image/png' : 'image/jpeg')), width: a.width, height: a.height,
+      })).url, async () => {
+        const cover = await VideoThumbnails.getThumbnailAsync(a.uri, { time: 0, quality: 0.9 });
+        if (!current()) throw new Error('The media selection has changed.');
+        return (await uploadMedia('post-media', meId, { uri: cover.uri, kind: 'image', ext: 'jpg', mimeType: 'image/jpeg' })).url;
+      }, current);
+      if (current()) setMedia(m => [...m, { ...item, width: a.width, height: a.height }].slice(0, 4));
     } catch (e: any) { if (current()) Alert.alert('Upload failed', e?.message || 'Please try again.'); }
     finally { working.current = false; if (mounted.current) setBusy(false); }
   };

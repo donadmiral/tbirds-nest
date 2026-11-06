@@ -18,7 +18,7 @@ export function attachAdaptiveVideo(video: HTMLVideoElement, source: string, opt
     hls?.destroy(); hls = null; adaptive = false; selected = true; selectedSource = source;
     if (resumeListener) video.removeEventListener('loadedmetadata', resumeListener);
     if (resume) {
-      resumeListener = () => { resumeListener = null; void Promise.resolve().then(() => { if (disposed) return; if (at > 0) video.currentTime = Math.min(at, video.duration || at); if (playing) void video.play().catch(() => {}); }); };
+      resumeListener = () => { resumeListener = null; void Promise.resolve().then(() => { if (disposed) return; if (at > 0) video.currentTime = Math.min(at, video.duration || at); if (playing && (options.shouldPlay?.() ?? true)) void video.play().catch(() => {}); }); };
       video.addEventListener('loadedmetadata', resumeListener, { once: true });
     }
     if (video.getAttribute('src') !== source) { video.src = source; video.load(); }

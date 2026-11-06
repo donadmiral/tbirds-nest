@@ -106,6 +106,9 @@ jobs:
       - name: Exercise prepared feed media and shared-post source changes
         if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
         run: node web/tests/browser/media-readiness-run.cjs
+      - name: Decode actual Discover video frames and check saved data preferences
+        working-directory: web
+        run: node tests/browser/discover-frame-run.cjs
       - name: Exercise Live playback, interactions, clipping and sharing
         if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
         run: node web/tests/browser/live-run.cjs

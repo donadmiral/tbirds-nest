@@ -11,6 +11,7 @@ import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import { createVideoFrameCache, frameKey, IDLE, type FrameState } from './videoFrameCache';
 import { dataSaverEnabled } from './mediaPrefs';
 import { getNavigationStore } from './navigationCache';
+import { isContentCapability } from '../../shared/contentMedia';
 
 const MAX_WIDTH = 640, TIMEOUT = 12_000;
 export const DEFAULT_MOMENT = 0.8;
@@ -70,10 +71,19 @@ export function getVideoFrameCache() {
 }
 
 /** The frame for a video URL, requested once the caller passes a URL; null until then, and never under data saver. */
-export function useVideoFrame(url: string | null | undefined, at: number = DEFAULT_MOMENT): FrameState {
+export function useVideoFrame(url: string | null | undefined, at: number = DEFAULT_MOMENT, sourceVersion?: string): FrameState {
   const store = getVideoFrameCache();
-  const key = url ? frameKey(url, process.env.NEXT_PUBLIC_SUPABASE_URL ?? '') : null;
-  const [saver, setSaver] = useState(false);
+  const navigation = getNavigationStore();
+  const session = useSyncExternalStore(navigation.subscribe, navigation.getSnapshot, navigation.getServerSnapshot);
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
+  const [origin, setOrigin] = useState({ url, scope: session.scope, pending: !session.initialized });
+  const grant = origin.url !== url || (origin.pending && session.initialized && !session.changed)
+    ? { url, scope: session.scope, pending: !session.initialized } : origin;
+  if (grant !== origin) setOrigin(grant);
+  const protectedSource = !!url && isContentCapability(url, base);
+  const allowed = !!url && (!protectedSource || (!!session.scope && grant.scope === session.scope));
+  const key = allowed && url ? JSON.stringify([protectedSource && !sourceVersion ? url : frameKey(url, base), sourceVersion ?? '', at]) : null;
+  const [saver, setSaver] = useState(dataSaverEnabled);
   useEffect(() => {
     const read = () => setSaver(dataSaverEnabled());
     read(); window.addEventListener('pc-media-preferences', read);
@@ -83,6 +93,6 @@ export function useVideoFrame(url: string | null | undefined, at: number = DEFAU
   const read = useCallback(() => (store && key ? store.peek(key) : IDLE), [store, key]);
   const snapshot = useSyncExternalStore(subscribe, read, () => IDLE);
   // asked again when the store forgets the frame (another person signed in), not while it loads or has recently failed
-  useEffect(() => { if (store && key && url && !saver && snapshot.state === 'idle') store.request(key, url, at); }, [store, key, url, at, saver, snapshot.state]);
+  useEffect(() => { if (store && key && url && !saver && !dataSaverEnabled() && snapshot.state === 'idle') store.request(key, url, at); }, [store, key, url, at, saver, snapshot.state]);
   return snapshot;
 }

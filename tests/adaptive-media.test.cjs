@@ -72,3 +72,12 @@ test('adaptive discovery accepts the Supabase relay path with identical capabili
  }
  assert.equal(adaptiveRedirect(new Request(relay.replace('/media-content/','/unrelated/media-content/')+'&stream=check'),'https://media.fixture.test').status,400);
 });
+
+test('a fallback awaiting metadata respects a newer pause',async()=>{
+ const ready={knownAdaptiveMedia:()=>({hlsUrl:hls}),resolveAdaptiveMedia:async()=>null};
+ const {attachAdaptiveVideo}=load('web/lib/adaptiveVideo.ts',{'../../shared/adaptiveMedia':ready},{NEXT_PUBLIC_ADAPTIVE_MEDIA:'true'});
+ let wantsPlay=true; const v=video(),a=attachAdaptiveVideo(v,source,{shouldPlay:()=>wantsPlay});
+ await turn(); v.currentTime=12; assert.equal(a.recover(),true);
+ wantsPlay=false; v.listeners.get('loadedmetadata')(); await turn();
+ assert.equal(v.paused,true); assert.equal(v.currentTime,12); a.dispose();
+});

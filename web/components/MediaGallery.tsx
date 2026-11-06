@@ -33,7 +33,7 @@ function publicImageLoader({ src, width }: { src: string; width: number }) {
   return displayImageUrl(src, Math.min(width, 1440))!;
 }
 
-type MediaItem = { id: string; url: string; media_type: string | null; width?: number | null; height?: number | null; alt_text?: string | null; is_sensitive?: boolean | null; edit?: PostMediaEditRecipe | null; _startupPreview?: boolean; _startupMediaType?: string; _previewObject?: string };
+type MediaItem = { id: string; url: string; _sourceVersion?: string; media_type: string | null; width?: number | null; height?: number | null; alt_text?: string | null; is_sensitive?: boolean | null; edit?: PostMediaEditRecipe | null; _startupPreview?: boolean; _startupMediaType?: string; _previewObject?: string };
 
 // post_media.edit recipes come from a small authorized side query when older feed rows omit them.
 // Legacy media carries a placeholder id; only real media ids are ever sent to the media tables.
@@ -501,7 +501,7 @@ function PostMediaGallery({ media, postId, viewsCount, post, fullFrame = false, 
         >
           {item.media_type === "video" ? (
             <div style={contentDims ? { width: contentDims.w + "px", height: contentDims.h + "px" } : { width: "100%" }}>
-              <div className="relative h-full w-full overflow-hidden"><VideoPlayer src={item.url} postId={postId} viewsCount={viewsCount} poster={preview?.uri}
+              <div className="relative h-full w-full overflow-hidden"><VideoPlayer src={item.url} mediaId={item.id} sourceVersion={item._sourceVersion} postId={postId} viewsCount={viewsCount} poster={preview?.uri}
                 fullFrame={(fullFrame || !declared) && !explicitFrame}
                 width={known?.w} height={known?.h}
                 onDims={(w, h) => measure(item.id, w, h)}
@@ -616,7 +616,7 @@ function PostMediaGallery({ media, postId, viewsCount, post, fullFrame = false, 
             ) : null}
             {media[lightbox].media_type === "video" ? (
               <div className={"h-full min-h-0 w-full px-2" + (mobileComments ? " max-lg:h-[40vh]" : "")} onClick={(e) => e.stopPropagation()}>
-                <VideoPlayer src={media[lightbox].url} postId={postId} viewsCount={viewsCount} immersive
+                <VideoPlayer src={media[lightbox].url} mediaId={media[lightbox].id} sourceVersion={media[lightbox]._sourceVersion} postId={postId} viewsCount={viewsCount} immersive
                   width={trueDims[media[lightbox].id]?.w ?? media[lightbox].width ?? undefined}
                   height={trueDims[media[lightbox].id]?.h ?? media[lightbox].height ?? undefined}
                   edit={editOf(media[lightbox])} soundtrack={readSoundtrack(editOf(media[0])?.soundtrack)} mediaOverlay={<EditPlanes e={editOf(media[lightbox])} />}

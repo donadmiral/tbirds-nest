@@ -32,6 +32,7 @@ const event = (key, selector = '') => ({ key, defaultPrevented: false, target: {
 
 function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, duration = 100, preview = null } = {}) {
   let currentHooks, ioCallback, warmCallback;
+  const feedObservers = new Map();
   const listeners = new Map();
   const add = (type, callback) => { const set = listeners.get(type) || new Set(); set.add(callback); listeners.set(type, set); };
   const remove = (type, callback) => listeners.get(type)?.delete(callback);
@@ -51,6 +52,8 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
     if (name === 'react/jsx-runtime') return runtime;
     if (name === 'next/image') return {__esModule:true,default:'img'};
     if (name === '@/lib/videoFrames') return { useVideoFrame: () => ({ state: 'idle', src: null }) };
+    if (name.includes('shared/imageDisplayIdentity')) return moduleFor(compile('../shared/imageDisplayIdentity.ts'));
+    if (name === './contentMedia') return moduleFor(compile('../shared/contentMedia.ts'));
     if (name === '@/lib/videoPlayback') return helper;
     if (name === '@/lib/videoReadiness') return preloadModule;
     if (name === '@/lib/adaptiveVideo') return moduleFor(compile('lib/adaptiveVideo.ts'));
@@ -78,8 +81,8 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
   };
   function moduleFor(code) {
     const module = { exports: {} };
-    vm.runInNewContext(code, { module, exports: module.exports, require: requireModule, window, document, process: { env: { NEXT_PUBLIC_ADAPTIVE_MEDIA: 'false' } }, crypto: { randomUUID: () => 'test-session' },
-      IntersectionObserver: class { constructor(callback, options) { if (options?.rootMargin) warmCallback = callback; else ioCallback = callback; } observe() {} disconnect() {} },
+    vm.runInNewContext(code, { module, exports: module.exports, require: requireModule, window, document, URL, process: { env: { NEXT_PUBLIC_ADAPTIVE_MEDIA: 'false', NEXT_PUBLIC_SUPABASE_URL: 'https://media.example' } }, crypto: { randomUUID: () => 'test-session' },
+      IntersectionObserver: class { constructor(callback, options) { if (options?.rootMargin) warmCallback = callback; else this.callback = ioCallback = callback; } observe(node) {this.node=node; if(this.callback) feedObservers.set(node,this.callback);} disconnect() {if(feedObservers.get(this.node)===this.callback)feedObservers.delete(this.node);} },
       ResizeObserver: class { observe() {} disconnect() {} }, setTimeout: (...args) => { const timer = setTimeout(...args); timer.unref(); return timer; }, clearTimeout });
     return module.exports;
   }
@@ -125,7 +128,7 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
       render() {
         currentHooks = hooks; cursor = 0;
         if (kind === 'gallery') { tree = gallery.MediaGallery(props); while (typeof tree?.type === 'function') tree = tree.type(tree.props); }
-        else { const outer = module.VideoPlayer(props); tree = typeof outer.type === 'function' ? outer.type(outer.props) : outer; }
+        else { const outer = module.VideoPlayer(props); screen.mediaKey = outer.key; tree = typeof outer.type === 'function' ? outer.type(outer.props) : outer; }
         const nodes = allNodes(tree);
         if (kind === 'gallery') {
           const hasInline = nodes.some(node => (node.type === 'NestedVideoPlayer' && !node.props.immersive) || (node.type === 'img' && node.props.role === 'button'));
@@ -149,6 +152,7 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
         if (video && Object.hasOwn(video.props, 'src')) { if (video.props.src) element.src = video.props.src; else element.removeAttribute('src'); }
         const pending = effects; effects = []; pending.forEach(fn => fn());
       },
+      intersect(ratio) { feedObservers.get(wrapper)?.([{intersectionRatio:ratio}]); this.render(); },
       find(predicate) { return allNodes(tree).find(predicate); },
       label(label) { return this.find(node => node.props?.['aria-label'] === label); },
       click(label) { const node = this.label(label) || this.find(n => n.type === 'button' && nodeText(n) === label); assert.ok(node, 'Missing control: ' + label); const result = node.props.onClick({ stopPropagation() {} }); this.render(); return result; },
@@ -657,4 +661,50 @@ test('dimension-only video placeholders reserve the eventual video frame without
     screen.update({ media: [{ id: 'one', url: 'video.mp4', media_type: 'video', width, height, edit }] });
     assert.equal(box().props.style.height, reserved); assert.ok(screen.find(node => node.type === 'NestedVideoPlayer')); screen.unmount();
   }
+});
+
+test('viewport changes do not interrupt a watched card, and explicit Pause survives reentry', () => {
+  const screen = scenario().mount();
+  screen.intersect(0.7); screen.videoEvent('onPlaying');
+  const calls = screen.element.playCalls;
+  for (const ratio of [0.59,0.61,0.3,0.7]) screen.intersect(ratio);
+  assert.equal(screen.element.paused, false); assert.equal(screen.element.playCalls, calls);
+  screen.click('Pause video'); screen.intersect(0); screen.intersect(1);
+  assert.equal(screen.element.paused, true); assert.equal(screen.element.playCalls, calls);
+  screen.click('Play video'); assert.equal(screen.element.paused, false); screen.unmount();
+});
+test('an adjacent feed card cannot interrupt the current video and receives the free slot when it leaves', async () => {
+  const s=scenario(), watching=s.mount(), next=s.mount({src:'next.mp4',postId:'next'});
+  watching.click('Play video'); next.intersect(0.9);
+  assert.equal(watching.element.paused,false); assert.equal(next.element.playCalls,0);
+  watching.intersect(0); await flush(next);
+  assert.equal(watching.element.paused,true); assert.equal(next.element.paused,false);
+  watching.unmount(); next.unmount();
+});
+test('Discover playback follows the selected slide, not a feed observer or a late trim recipe', () => {
+  const s=scenario(), player=s.mount({immersive:true}); player.render();
+  const starts=player.element.playCalls;
+  player.intersect(0.35); player.update({edit:{trimStart:1,trimEnd:40}});
+  assert.equal(player.element.paused,false); assert.equal(player.element.playCalls,starts);
+  player.videoEvent('onPlaying'); player.click('Pause video');
+  player.update({allowPlayback:false}); player.update({allowPlayback:true});
+  assert.equal(player.element.paused,true); assert.equal(player.element.playCalls,starts);
+  player.unmount();
+});
+test('a renewed grant keeps the source and position while watching, then recovers with the latest grant', () => {
+  const cap=n=>'https://media.example/functions/v1/media-content/post-media/testing/video.mp4?token='+n.repeat(64);
+  const player=scenario().mount({src:cap('a'),mediaId:'media',sourceVersion:'v1',immersive:true}); player.render();
+  const key=player.mediaKey, loads=player.element.loadCalls, starts=player.element.playCalls;
+  player.element.currentTime=12; player.videoEvent('onTimeUpdate');
+  player.update({src:cap('b')}); assert.equal(player.mediaKey,key);
+  assert.equal(player.element.src,cap('a')); assert.equal(player.element.loadCalls,loads);
+  assert.equal(player.element.paused,false); assert.equal(player.element.playCalls,starts); assert.equal(player.element.currentTime,12);
+  player.videoEvent('onError'); player.render(); player.videoEvent('onLoadedMetadata');
+  assert.equal(player.element.src,cap('b')); assert.equal(player.element.paused,false); assert.equal(player.element.currentTime,12);
+  player.update({src:cap('c'),sourceVersion:'v2'}); assert.notEqual(player.mediaKey,key); player.unmount();
+});
+test('a completed video stays stopped on the next observer callback', () => {
+  const player=scenario().mount(); player.intersect(1); player.videoEvent('onEnded');
+  const starts=player.element.playCalls; player.intersect(0.5); player.intersect(1);
+  assert.equal(player.element.playCalls,starts); assert.equal(player.element.paused,true); player.unmount();
 });

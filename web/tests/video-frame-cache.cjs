@@ -31,8 +31,9 @@ test('a frame is keyed by the media object, never by the token that granted it',
   assert.equal(frameKey(delivered('a/b.mp4', 'a'), base), 'post-media/a/b.mp4');
   assert.equal(frameKey(delivered('a/b.mp4', 'b'), base), frameKey(delivered('a/b.mp4', 'a'), base), 'a re-signed capability finds the same frame');
   assert.equal(frameKey(signed('a/b.mp4', 'x.y.z'), base), 'post-media/a/b.mp4');
-  assert.equal(frameKey('https://elsewhere.test/clip.mp4?x=1#t=2', base), 'https://elsewhere.test/clip.mp4', 'another origin is keyed without its query');
-  assert.equal(frameKey(base + '/x.mp4?t=1', ''), base + '/x.mp4');
+  assert.notEqual(frameKey('https://elsewhere.test/clip?id=1', base), frameKey('https://elsewhere.test/clip?id=2', base), 'query parameters can select different videos');
+  assert.equal(frameKey('https://elsewhere.test/clip.mp4?x=1#t=2', base), 'https://elsewhere.test/clip.mp4?x=1');
+  assert.equal(frameKey(base + '/x.mp4?t=1', ''), base + '/x.mp4?t=1');
 });
 
 test('a request decodes once, tells every listener, and leaves a ready or loading frame alone', async () => {
@@ -78,6 +79,19 @@ test('a change of person forgets every frame and abandons decoding under way', a
   assert.equal(h.cache.peek('k'), IDLE, 'a frame from before the change is discarded');
   h.cache.request('k', 'u', 0.8); assert.equal(h.captures.length, 2, 'decoding starts afresh for the new person');
   off();
+});
+
+test('a still-mounted tile is notified when its failed decode can retry', async () => {
+  const h = harness({retryAfterMs: 10});
+  let notified;
+  const retryReady = new Promise(resolve => { notified = resolve; });
+  const off = h.cache.subscribe('retry', () => { if (h.cache.peek('retry') === IDLE) notified(); });
+  h.cache.request('retry', 'url', 0);
+  h.captures[0].reject(new Error('temporary failure'));
+  await retryReady;
+  h.cache.request('retry', 'renewed-url', 0);
+  assert.deepEqual(h.captures.map(x => x.url), ['url', 'renewed-url']);
+  off(); h.cache.reset();
 });
 
 test('the store stays bounded, evicting the oldest frame nobody is showing first', async () => {

@@ -53,7 +53,7 @@ function fixture({ responses = {}, pathname = '/studio' } = {}) {
     '@/components/NavigationLink': { NavigationLink: 'NavigationLink' }, '@/components/VerifiedBadge': { VerifiedBadge: 'VerifiedBadge' },
     '@/components/StudioSideRail': { StudioSideRail: 'StudioSideRail' }, '@/components/StudioRailPortal': { STUDIO_RAIL_SLOT: 'studio-rail' },
     '@/app/studio/LoadError': { StudioLoadError: 'StudioLoadError' }, '@/components/StudioDialog': { StudioDialog: 'StudioDialog' },
-    '@/lib/supabase/client': { createClient: () => client }, '@/lib/media': {}, '../../shared/studioDraftRetry': {},
+    '@/lib/supabase/client': { createClient: () => client }, '@/lib/media': {}, '../../shared/studioDraftRetry': {}, '../../shared/plannedMedia': {},
   };
   function load(file) {
     if (modules.has(file)) return modules.get(file).exports;

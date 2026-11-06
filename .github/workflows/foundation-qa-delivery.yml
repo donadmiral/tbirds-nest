@@ -1,6 +1,6 @@
-name: Foundation iPhone QA delivery
+name: Foundation iPhone and Android QA delivery
 
-# Delivery revision: retain cached feed views when reconnect activates measured history.
+# Delivery revision: verified Discover frames, Studio covers and live participation.
 # A source-only push runs the shared quality gates without starting another EAS build.
 # workflow_run cannot bootstrap a new workflow living only on this release branch.
 on:
@@ -19,8 +19,13 @@ concurrency:
 jobs:
   qa-build:
     if: github.repository == 'donadmiral/tbirds-nest' && github.event_name == 'push' && github.ref == 'refs/heads/codex/loading-foundation-20261105'
+    name: Internal QA build (${{ matrix.platform }})
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ios, android]
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 65
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -37,6 +42,7 @@ jobs:
           git diff --exit-code
       - name: Build or resume after same-source quality and iOS HLS runtime gates pass
         env:
+          QA_BUILD_PLATFORM: ${{ matrix.platform }}
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           GITHUB_TOKEN: ${{ github.token }}
           EXPO_PUBLIC_APP_ENV: qa

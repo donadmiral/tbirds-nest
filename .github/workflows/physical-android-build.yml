@@ -1,5 +1,5 @@
 name: Physical Android QA app build
-# Verification revision: preserve the first cached feed tree through online history activation.
+# Verification revision: Discover video frames, scheduled video covers and live participation.
 on:
   push:
     branches: ['codex/loading-foundation-20261105']

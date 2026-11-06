@@ -29,7 +29,7 @@ function VideoTileFrame({ media }: { media: FeedRow["media"][number] }) {
   const cover = media.edit?.coverUrl || media.edit?.thumbnail || null; // a live clip published to the feed names its poster `thumbnail`
   const [failedCover, setFailedCover] = useState<string | null>(null);
   if (cover && failedCover !== cover) return <img key={cover} src={cover} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" onError={() => setFailedCover(cover)} />;
-  return <VideoFrame url={media.url} at={media.edit?.coverAt ?? media.edit?.trimStart ?? undefined} className="h-full w-full object-cover" fallback={<span className="flex h-full items-center justify-center gap-2 text-muted"><Play size={20} />Video</span>} />;
+  return <VideoFrame url={media.url} sourceVersion={media._sourceVersion} at={media.edit?.coverAt ?? media.edit?.trimStart ?? undefined} className="h-full w-full object-cover" fallback={<span className="flex h-full items-center justify-center gap-2 text-muted"><Play size={20} />Video</span>} />;
 }
 
 // Inline, because a tile that fails to clamp turns the grid into one column of

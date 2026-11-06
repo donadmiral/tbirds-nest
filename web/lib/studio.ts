@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { checkUploadableBytes } from "@/lib/media";
 import { saveStudioDraft } from "../../shared/studioDraftRetry";
+import { preparePlannedMedia } from "../../shared/plannedMedia";
 import { capturePostCover } from "@/lib/videoCover";
 
 export type StudioRole = "owner" | "admin" | "editor" | "recruiter" | "support";
@@ -123,27 +124,20 @@ export async function uploadStudioMedia(file: File): Promise<ScheduledPost["medi
   const path = base + "." + ext;
   const bad = await checkUploadableBytes(file);
   if (bad) throw new Error(bad);
-  const up = await s.storage.from("post-media").upload(path, file, { contentType: file.type || "application/octet-stream" });
-  if (up.error) throw up.error;
-  const url = s.storage.from("post-media").getPublicUrl(path).data.publicUrl;
-  if (!file.type.startsWith("video")) return { url, media_type: "image" };
-  // A planned video carries a real first frame, the same way a composed post
-  // does, so Discover tiles, feed cards and the phone show a picture instead
-  // of a placeholder. A browser that cannot decode this file still schedules
-  // it; the clients then draw a frame at view time.
-  const edit = await captureStudioCover(s, file, base);
-  return edit ? { url, media_type: "video", edit } : { url, media_type: "video" };
+  return preparePlannedMedia(file.type.startsWith("video"), async () => {
+    const up = await s.storage.from("post-media").upload(path, file, { contentType: file.type || "application/octet-stream" });
+    if (up.error) throw up.error;
+    return s.storage.from("post-media").getPublicUrl(path).data.publicUrl;
+  }, () => captureStudioCover(s, file, base));
 }
-async function captureStudioCover(s: ReturnType<typeof sb>, file: File, base: string): Promise<{ coverUrl: string; coverAt: number } | null> {
+async function captureStudioCover(s: ReturnType<typeof sb>, file: File, base: string): Promise<string> {
   const preview = URL.createObjectURL(file);
   try {
     const cover = await capturePostCover(preview, 0);
     const coverPath = base + "_cover.jpg";
     const up = await s.storage.from("post-media").upload(coverPath, cover, { contentType: "image/jpeg", upsert: false });
-    if (up.error) return null;
-    return { coverUrl: s.storage.from("post-media").getPublicUrl(coverPath).data.publicUrl, coverAt: 0 };
-  } catch {
-    return null;
+    if (up.error) throw new Error("The video cover could not upload. Please retry.");
+    return s.storage.from("post-media").getPublicUrl(coverPath).data.publicUrl;
   } finally {
     URL.revokeObjectURL(preview);
   }

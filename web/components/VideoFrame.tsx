@@ -8,7 +8,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useVideoFrame } from '@/lib/videoFrames';
 
-export function VideoFrame({ url, at, className, alt = '', fallback }: { url: string; at?: number | null; className?: string; alt?: string; fallback: ReactNode }) {
+export function VideoFrame({ url, at, sourceVersion, className, alt = '', fallback }: { url: string; at?: number | null; sourceVersion?: string; className?: string; alt?: string; fallback: ReactNode }) {
   const anchor = useRef<HTMLSpanElement>(null);
   const [near, setNear] = useState(false);
   useEffect(() => {
@@ -19,7 +19,7 @@ export function VideoFrame({ url, at, className, alt = '', fallback }: { url: st
     observer.observe(node);
     return () => observer.disconnect();
   }, [near]);
-  const frame = useVideoFrame(near ? url : null, at ?? undefined);
+  const frame = useVideoFrame(near ? url : null, at ?? undefined, sourceVersion);
   if (frame.src) return <img src={frame.src} alt={alt} decoding="async" draggable={false} className={className} data-video-frame="ready" />;
   return <span ref={anchor} className="block h-full w-full" data-video-frame={near ? frame.state : 'idle'}>{fallback}</span>;
 }

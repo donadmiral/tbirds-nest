@@ -12,6 +12,7 @@ export type FeedRow = {
   body: string | null;
   media_url: string | null;
   media: {
+    _sourceVersion?: string;
     id: string;
     url: string;
     media_type: string | null;
