@@ -157,11 +157,15 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: admin-web/package-lock.json
+          cache-dependency-path: |
+            admin-web/package-lock.json
+            supabase/tests/rpc-authorization/package-lock.json
       - run: npm ci
         working-directory: admin-web
       - run: npx tsc --noEmit
         working-directory: admin-web
+      - name: Install isolated database for staff report tests
+        run: npm ci --prefix supabase/tests/rpc-authorization
       - name: Test operations quality regressions
         run: node --test --test-concurrency=2 tests/*.cjs
         working-directory: admin-web

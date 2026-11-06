@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
 const ts = require('typescript');
+const nativePublicationUpload = require('./fixtures/native-publication-upload.cjs');
 const root = path.resolve(__dirname, '../..');
 function compile(source) { return ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText; }
 const sound = {exports:{}};
@@ -46,15 +47,7 @@ function publicationFixture({failTable,loseTable,failUpload=0,switchOnTable,musi
    feedListRef:{current:null},Keyboard:{dismiss(){}},loadFeed(){},Alert:{alert:(...args)=>alerts.push(args)},
    setTimeout:()=>1,clearTimeout(){},
  };
- // Execute the same upload adapter as the screen with a small local fixture file.
- const modules = {
-   'expo-file-system': { File: class { size = 128; } }, 'expo/fetch': {},
-   './resumableUpload': { STORAGE_CHUNK_BYTES: 6 * 1024 * 1024 },
-   './supabase': { SUPABASE_URL: context.process.env.EXPO_PUBLIC_SUPABASE_URL, SUPABASE_ANON_KEY: 'anon' },
- };
- const transport = { ...context, exports: {}, require: name => modules[name] };
- vm.runInNewContext(compile(fs.readFileSync(path.join(root,'src/services/uploadNativeFile.ts'),'utf8')), transport);
- context.uploadNativeFile = transport.exports.uploadNativeFile;
+ context.uploadNativeFile = nativePublicationUpload(context);
  for(const name of ['setPostConfirmed','setPostProgress','setComposerReview','setSelectedComposerMedia','setPosting','setPublicationLocked','setMusicOpen','setComposerOpen','setComposerText','setComposerMedia','setComposerSoundtrack','setExclusivePost','setComposerProducts','setInnovationPost','setPostAudience','setCommentPolicy','setComposerSensitive','setCollabPicks','setPollOpts','setPollDays','setQuotingPost','setThreadingPost'])context[name]=()=>{};
  vm.runInNewContext(compile(text.slice(start,end)+'\nthis.publish=createPost;'),context);
  return{context,rows,calls,alerts,uploads,restoreOwner(){owner='owner';},switchAuthor(){author='business';}};
