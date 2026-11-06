@@ -7,18 +7,32 @@ else{
  const reserve=n=>v(`select reserve_media_sandbox_v1('${id(n)}',repeat('a',64))`);
  const attach=n=>v(`select attach_media_sandbox_v1('${id(n)}','sbx_fixture_${n}12','cmd_fixture_${n}12')`);
  const finish=n=>v(`select finish_media_sandbox_v1('${id(n)}','sbx_fixture_${n}12',0)`);
- async function queue(){await q(`insert into media_renditions.jobs(source_id,source_version,source_bucket,source_path,source_owner,source_bytes,source_etag,source_mime) values('${id(90)}','v1','post-media','${id(91)}/fixture.mov','${id(91)}',536371200,'fixture','video/quicktime')`);}
+ async function queue(n=90){await q(`insert into media_renditions.jobs(source_id,source_version,source_bucket,source_path,source_owner,source_bytes,source_etag,source_mime) values('${id(n)}','v1','post-media','${id(91)}/fixture.mov','${id(91)}',536371200,'fixture','video/quicktime')`);}
  before(async()=>{
   if(process.env.PGDATABASE!=='pc_scale_media_sandbox')throw Error('Dedicated pc_scale_media_sandbox database required');db=new LocalPsqlSession();
   await q("set client_min_messages='warning';drop schema if exists media_renditions,media_processing,media_delivery,storage,auth,extensions,public cascade;create schema public");
-  for(const file of ['media-processing-fixture.sql','../migrations/20261102071532_durable_media_processing_v1.sql','../migrations/20261102090521_adaptive_media_renditions_v2.sql','../migrations/20261102100428_media_broker_scoped_credentials_v2.sql','../migrations/20261102174937_bounded_media_sandbox_dispatch_v1.sql','../migrations/20261105045037_media_sandbox_production_budget_bounds_v1.sql'])await q(fs.readFileSync(path.join(__dirname,file),'utf8'));
+  for(const file of ['media-processing-fixture.sql','../migrations/20261102071532_durable_media_processing_v1.sql','../migrations/20261102090521_adaptive_media_renditions_v2.sql','../migrations/20261102100428_media_broker_scoped_credentials_v2.sql','../migrations/20261102174937_bounded_media_sandbox_dispatch_v1.sql','../migrations/20261105045037_media_sandbox_production_budget_bounds_v1.sql','../migrations/20261106225000_bounded_parallel_encoder_slots.sql'])await q(fs.readFileSync(path.join(__dirname,file),'utf8'));
  });
  after(async()=>db?.close());
- beforeEach(async()=>{await q("reset role;set request.jwt.claims='{\"role\":\"service_role\"}';truncate media_renditions.sandbox_runs,media_renditions.sandbox_usage,media_renditions.publications,media_renditions.assets,media_renditions.attempts,media_renditions.jobs;update media_renditions.sandbox_settings set enabled=false,daily_wall_seconds=1560,monthly_wall_seconds=6240,daily_cpu_seconds=3120,monthly_cpu_seconds=12480;update media_renditions.settings set worker_enabled=false,maintenance_enabled=false,emergency_revoke=false,input_max_bytes=536870912");});
+ beforeEach(async()=>{await q("reset role;set request.jwt.claims='{\"role\":\"service_role\"}';truncate media_renditions.sandbox_runs,media_renditions.sandbox_usage,media_renditions.publications,media_renditions.assets,media_renditions.attempts,media_renditions.jobs;update media_renditions.sandbox_settings set enabled=false,max_parallel_runs=1,daily_wall_seconds=1560,monthly_wall_seconds=6240,daily_cpu_seconds=3120,monthly_cpu_seconds=12480;update media_renditions.settings set worker_enabled=false,maintenance_enabled=false,emergency_revoke=false,input_max_bytes=536870912");});
  test('inert install and private table / public RPC ACLs fail closed',async()=>{
   await queue();assert.equal(await reserve(1),'');assert.equal((await v('select media_sandbox_status_v1()')).enabled,false);
   for(const role of ['anon','authenticated'])for(const fn of ['reserve_media_sandbox_v1(uuid,text)','attach_media_sandbox_v1(uuid,text,text)','pending_media_sandboxes_v1()','finish_media_sandbox_v1(uuid,text,integer)','media_sandbox_status_v1()'])assert.equal(await v(`select has_function_privilege('${role}','public.${fn}','EXECUTE')`),'f');
   for(const role of ['anon','authenticated','service_role'])assert.equal(await v(`select has_table_privilege('${role}','media_renditions.sandbox_runs','SELECT')`),'f');
+ });
+ test('a burst earns a second slot only with independent demand and remaining budget',async()=>{
+  await q('update media_renditions.sandbox_settings set enabled=true,max_parallel_runs=2;update media_renditions.settings set worker_enabled=true,concurrency=2');
+  await queue();assert.ok((await reserve(1)).id);assert.equal(await reserve(2),'');
+  await queue(92);await queue(93);
+  const other=new LocalPsqlSession();try{
+   await other.query("set request.jwt.claims='{\"role\":\"service_role\"}'");
+   const attempts=await Promise.all([q(`select reserve_media_sandbox_v1('${id(2)}',repeat('a',64))`),other.query(`select reserve_media_sandbox_v1('${id(3)}',repeat('a',64))`)]);
+   assert.equal(attempts.filter(Boolean).length,1);
+  }finally{await other.close();}
+  assert.equal((await v('select media_sandbox_status_v1()')).active_reservations,2);
+  assert.equal(await v("select creations from media_renditions.sandbox_usage where period='day'"),2);
+  assert.equal(await attach(1),'t');assert.equal(await finish(1),'t');
+  assert.equal(await reserve(4),'','the daily compute budget is still exhausted after freeing a slot');
  });
  test('enabled dispatcher with no queue reserves no resources or budget',async()=>{await q('update media_renditions.sandbox_settings set enabled=true;update media_renditions.settings set worker_enabled=true');assert.equal(await reserve(1),'');assert.equal(await v('select count(*) from media_renditions.sandbox_usage'),0);});
  test('atomic global reservation enforces one VM across concurrent connections',async()=>{
