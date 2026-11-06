@@ -14,6 +14,7 @@ import { authorId as currentAuthorId } from '../../stores/actorStore';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 
+import { MAX_LISTING_PHOTOS } from '../../../shared/listingPhotos';
 import { marketService, MARKET_CATEGORIES, MARKET_CONDITIONS, ListingCurrency } from '../../services/marketService';
 import { pickFromLibrary, uploadBatch, PickedMedia } from '../../services/mediaService';
 import { useAuthStore } from '../../stores/authStore';
@@ -27,7 +28,6 @@ const GRAY_500 = '#6B7280';
 const GRAY_900 = '#111827';
 const RED = '#DC2626';
 
-const MAX_IMAGES = 10;
 const STEPS = ['Photos', 'Details', 'Meetup', 'Preview'];
 
 export default function CreateListingScreen({ navigation }: any) {
@@ -65,8 +65,8 @@ export default function CreateListingScreen({ navigation }: any) {
   }, [step, media.length, titleOk, priceOk, condition, cityOk]);
 
   const addPhotos = async () => {
-    const picked = await pickFromLibrary({ multiple: true, selectionLimit: MAX_IMAGES - media.length });
-    if (picked?.length) setMedia(prev => [...prev, ...picked].slice(0, MAX_IMAGES));
+    const picked = await pickFromLibrary({ multiple: true, selectionLimit: MAX_LISTING_PHOTOS - media.length });
+    if (picked?.length) setMedia(prev => [...prev, ...picked].slice(0, MAX_LISTING_PHOTOS));
   };
 
   const next = () => {
@@ -169,7 +169,7 @@ export default function CreateListingScreen({ navigation }: any) {
 
           {step === 0 && (
             <>
-              <Text style={s.lead}>Add up to {MAX_IMAGES} photos. The first one is your cover.</Text>
+              <Text style={s.lead}>Add up to {MAX_LISTING_PHOTOS} photos. The first one is your cover.</Text>
               <View style={s.grid}>
                 {media.map((m, i) => (
                   <View key={m.uri + i} style={s.tile}>
@@ -180,7 +180,7 @@ export default function CreateListingScreen({ navigation }: any) {
                     </TouchableOpacity>
                   </View>
                 ))}
-                {media.length < MAX_IMAGES && (
+                {media.length < MAX_LISTING_PHOTOS && (
                   <TouchableOpacity style={[s.tile, s.tileAdd]} onPress={addPhotos} activeOpacity={0.7}>
                     <Feather name="plus" size={26} color={getTheme().ink.secondary} />
                   </TouchableOpacity>

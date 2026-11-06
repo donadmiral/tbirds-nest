@@ -66,3 +66,38 @@ export function sendOutboxMessage(client: Parameters<typeof deliverMessage>[0] &
   inFlight.set(name, attempt);
   return attempt;
 }
+
+// A reconnect is often shared by many clients. Spread replay starts and keep
+// at most one 20-message batch in flight. A transient send holds its place.
+export function createOutboxReplay(options: {
+  pending: () => OutboxMessage[];
+  active: () => boolean;
+  deliver: (message: OutboxMessage) => Promise<MessageDelivery['status'] | undefined>;
+}) {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let running = false, disposed = false, failures = 0;
+  function wake() {
+    if (disposed || running || timer !== undefined || !options.active() || !options.pending().length) return;
+    const base = Math.min(20_000, 500 * 2 ** failures);
+    timer = setTimeout(() => { timer = undefined; void drain(); }, base * (0.5 + Math.random()));
+  }
+  async function drain() {
+    running = true;
+    try {
+      for (const message of options.pending().slice(0, 20)) {
+        if (disposed || !options.active()) break;
+        if (await options.deliver(message) === 'pending') {
+          failures = Math.min(6, failures + 1);
+          break;
+        }
+        failures = 0;
+      }
+    } catch {
+      failures = Math.min(6, failures + 1);
+    } finally {
+      running = false;
+      wake();
+    }
+  }
+  return { wake, dispose() { disposed = true; clearTimeout(timer); } };
+}

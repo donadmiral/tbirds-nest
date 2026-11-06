@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { ImagePlus, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { MARKET_CATEGORIES, MARKET_CONDITIONS } from "@/lib/market";
+import { MAX_LISTING_PHOTOS } from "../../../../shared/listingPhotos";
 import { withTimeout } from "@/lib/withTimeout";
 
 const inputCls = "rounded-md bg-surface px-4 py-3 text-[14px] text-ink placeholder:text-muted outline-none focus:bg-surface-elevated";
@@ -35,8 +36,13 @@ export default function CreateListingPage() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const submitting = useRef(false);
+  const previewUrls = useRef(new Set<string>());
   const mounted = useRef(true);
-  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+  useEffect(() => {
+    mounted.current = true;
+    const urls = previewUrls.current;
+    return () => { mounted.current = false; urls.forEach(url => URL.revokeObjectURL(url)); urls.clear(); };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -50,9 +56,12 @@ export default function CreateListingPage() {
   function addFiles(list: FileList | null) {
     if (!list) return;
     const next = [...photos];
-    Array.from(list).slice(0, 8 - next.length).forEach((f) => {
-      if (f.type.startsWith("image/")) next.push({ file: f, preview: URL.createObjectURL(f) });
-    });
+    const images = Array.from(list).filter(f => f.type.startsWith("image/"));
+    for (const file of images.slice(0, MAX_LISTING_PHOTOS - next.length)) {
+      const preview = URL.createObjectURL(file);
+      previewUrls.current.add(preview);
+      next.push({ file, preview });
+    }
     setPhotos(next);
   }
 
@@ -165,18 +174,22 @@ export default function CreateListingPage() {
           <span key={i} className="relative">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={p.preview} alt="" className="h-24 w-24 rounded-md object-cover" />
-            <button onClick={() => setPhotos(photos.filter((_, x) => x !== i))} className="absolute -right-1.5 -top-1.5 rounded-full bg-ink p-0.5 text-ink/70 hover:text-ink">
+            <button aria-label={`Remove photo ${i + 1}`} onClick={() => {
+              URL.revokeObjectURL(p.preview);
+              previewUrls.current.delete(p.preview);
+              setPhotos(photos.filter((_, x) => x !== i));
+            }} className="absolute -right-1.5 -top-1.5 rounded-full bg-ink p-0.5 text-ink/70 hover:text-ink">
               <X size={14} />
             </button>
           </span>
         ))}
-        {photos.length < 8 ? (
+        {photos.length < MAX_LISTING_PHOTOS ? (
           <button onClick={() => fileRef.current?.click()} className="flex h-24 w-24 flex-col items-center justify-center gap-1 rounded-md border border-dashed border-ink/20 text-muted hover:border-pearl hover:text-accent">
             <ImagePlus size={20} />
             <span className="text-[11px]">Add photos</span>
           </button>
         ) : null}
-        <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => addFiles(e.target.files)} />
+        <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => { addFiles(e.target.files); e.target.value = ""; }} />
       </div>
 
       <div className="mt-4 flex flex-col gap-3">
