@@ -441,7 +441,7 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
         </div>
       ) : null}
 
-      {error && posts.length > 0 ? <div role="status" className="mb-3 flex items-center justify-between gap-3 rounded-xl bg-surface px-4 py-3 text-sm"><span>{error}</span><button className="font-semibold" onClick={() => load(false, true)}>Retry</button></div> : null}
+      {error && posts.length > 0 ? <div role="status" data-feed-refresh-error className="fixed bottom-24 left-1/2 z-30 flex w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center justify-between gap-3 rounded-xl border border-ink/10 bg-surface px-4 py-3 text-sm shadow-md md:bottom-6"><span>{error}</span><button className="font-semibold" onClick={() => load(false, true)}>Retry</button></div> : null}
       {loading && posts.length === 0 ? (
         <div>
           <Skeleton />

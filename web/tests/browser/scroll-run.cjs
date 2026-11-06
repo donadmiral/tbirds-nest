@@ -169,6 +169,18 @@ async function main() {
       await assertGeometry('failed metadata renewal', before, await geometry(page, 1));
       await page.evaluate(() => window.__scrollFixture.failRecipeReads(false));
     });
+    await check('A warm refresh error and its Retry do not move any feed card', async () => {
+      const before = await geometry(page, 1);
+      await page.evaluate(() => { window.__scrollFixture.failRefresh(true); window.dispatchEvent(new Event('pc-refresh-feed')); });
+      const notice = page.locator('[data-feed-refresh-error]');
+      await notice.waitFor({state:'visible'});
+      await assertGeometry('warm refresh error', before, await geometry(page, 1));
+      await page.evaluate(() => window.__scrollFixture.failRefresh(false));
+      await notice.getByRole('button', {name:'Retry'}).click();
+      await notice.waitFor({state:'detached'});
+      await assertGeometry('warm refresh recovery', before, await geometry(page, 1));
+    });
+
     await check('Mouse wheel follows native distance without acceleration or reverse jumps', async () => {
       await wheel(page, 'detented wheel', 120, 8, 4);
       await wheel(page, 'rapid wheel', 360, 8, 2);

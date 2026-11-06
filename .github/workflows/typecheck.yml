@@ -173,7 +173,13 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: web/package-lock.json
+          cache-dependency-path: |
+            package-lock.json
+            web/package-lock.json
+      # The feed continuity test mounts React with the matching reconciler
+      # resolved from the root lockfile. Each Actions job checks out a clean tree.
+      - name: Install root test renderer
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm ci
         working-directory: web
       - run: npx tsc --noEmit

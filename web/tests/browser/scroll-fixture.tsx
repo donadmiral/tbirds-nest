@@ -50,7 +50,7 @@ async function readAsyncBlock(kind: AsyncKind, data: unknown) {
   read.finished = true;
   return { data, error: null };
 }
-let holdPage = true, holdRefresh = false;
+let holdPage = true, holdRefresh = false, failRefresh = false;
 let releaseRecipe!: () => void;
 const recipeReady = new Promise<void>(resolve => { releaseRecipe = resolve; });
 let failRecipes = false;
@@ -117,6 +117,7 @@ synthetic.rpc = (name, args = {}) => {
       signal?.addEventListener('abort', release, { once: true });
       if (signal?.aborted) release();
     });
+    if (!cursor && failRefresh && !signal?.aborted) { request.finished = true; return { data: null, error: { message: 'Synthetic feed refresh unavailable' } }; }
     request.finished = true; request.aborted = !!signal?.aborted;
     if (request.aborted) return { data: null, error: { message: 'Synthetic request cancelled' } };
     const offset = cursor ? rows.findIndex(row => row.post_id === cursor) + 1 : 0;
@@ -160,6 +161,7 @@ const scrollFixture = {
   },
   releaseLegacyGrant() { grantHold?.release(); grantHold = null; },
   setQuoteMode(mode: typeof quoteMode) { quoteMode = mode; },
+  failRefresh(value:boolean) { failRefresh = value; },
   holdRefresh() { holdRefresh = true; },
   release() { holdPage = false; holdRefresh = false; for (const release of [...pending]) release(); },
 };

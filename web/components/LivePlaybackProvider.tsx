@@ -31,7 +31,24 @@ export function LivePlaybackProvider({children}:{children:React.ReactNode}) {
   const video=useRef<HTMLVideoElement>(null),host=useRef<HTMLDivElement>(null),hls=useRef<Hls|null>(null),target=useRef<{id:string;node:HTMLElement}|null>(null),activeRef=useRef(active),generation=useRef(0);
   activeRef.current=active;
   const pendingSeek=useRef<number|null>(null);
-  const startedPlayback=useRef(false),startupDeadline=useRef(0),swapping=useRef(false),tokenRef=useRef<string|null>(null),grantExpiry=useRef(0),mediaRef=useRef<LivePlayback|null>(null),accessToken=useRef<string|null>(null);
+  const startedPlayback=useRef(false),startupDeadline=useRef(0),tokenRef=useRef<string|null>(null),grantExpiry=useRef(0),mediaRef=useRef<LivePlayback|null>(null),accessToken=useRef<string|null>(null);
+  const wantsPlay=useRef(false),expectedPause=useRef<HTMLVideoElement|null>(null),engineHealthy=useRef(false);
+  const eligible=useCallback((element:HTMLVideoElement)=>element===video.current && !!activeRef.current
+    && activeRef.current.scope===navigation.getSnapshot().scope && Date.now()<grantExpiry.current
+    && (document.visibilityState==='visible'||document.pictureInPictureElement===element),[navigation]);
+  const requestPlay=useCallback((element:HTMLVideoElement)=>{
+    if(!wantsPlay.current||!eligible(element))return;
+    const version=generation.current;
+    void element.play().catch(()=>{
+      if(version!==generation.current||!eligible(element)||!wantsPlay.current)return;
+      wantsPlay.current=false;setStatus('ready');setWatching(false);
+    });
+  },[eligible]);
+  const suspend=useCallback(()=>{
+    wantsPlay.current=false;setWatching(false);
+    video.current?.pause();
+    if(mediaRef.current)setStatus(startedPlayback.current?'paused':'ready');
+  },[]);
   const presence=useLiveViewerPresence({client,sessionId:media?.live?active?.session.id??null:null,identityScope:identity.scope,active:watching&&visiblePlayback&&!error&&active?.scope===identity.scope,createPlaybackId:()=>crypto.randomUUID()});
   useEffect(()=>{let alive=true;void client.auth.getSession().then(({data})=>{if(alive)accessToken.current=data.session?.access_token??null;}).catch(()=>undefined);const {data}=client.auth.onAuthStateChange((_event,session)=>{accessToken.current=session?.access_token??null;});return()=>{alive=false;data.subscription.unsubscribe();};},[client]);
   useEffect(()=>{
@@ -41,11 +58,12 @@ export function LivePlaybackProvider({children}:{children:React.ReactNode}) {
   },[presence]);
   useEffect(()=>{
     const element=video.current;
-    const update=()=>setVisiblePlayback(document.visibilityState==='visible'||!!element&&document.pictureInPictureElement===element);
+    const update=()=>{const visible=document.visibilityState==='visible'||!!element&&document.pictureInPictureElement===element;
+      setVisiblePlayback(visible);if(!visible)suspend();};
     update();document.addEventListener('visibilitychange',update);element?.addEventListener('enterpictureinpicture',update);element?.addEventListener('leavepictureinpicture',update);
     return()=>{document.removeEventListener('visibilitychange',update);element?.removeEventListener('enterpictureinpicture',update);element?.removeEventListener('leavepictureinpicture',update);};
-  },[active?.session.id]);
-  const close=useCallback(()=>{generation.current++;pendingSeek.current=null;swapping.current=false;mediaRef.current=null;tokenRef.current=null;video.current?.pause();hls.current?.destroy();hls.current=null;setActive(null);setMedia(null);setStatus('idle');setError(null);setNotice('');setTime(0);setDuration(0);setWatching(false);setStarted(false);},[]);
+  },[active?.session.id,suspend]);
+  const close=useCallback(()=>{generation.current++;activeRef.current=null;wantsPlay.current=false;expectedPause.current=null;engineHealthy.current=false;grantExpiry.current=0;pendingSeek.current=null;mediaRef.current=null;tokenRef.current=null;video.current?.pause();hls.current?.destroy();hls.current=null;setActive(null);setMedia(null);setStatus('idle');setError(null);setNotice('');setTime(0);setDuration(0);setWatching(false);setStarted(false);},[]);
   useEffect(()=>{if(active && active.scope!==identity.scope)close();},[active,identity.scope,close]);
   const measure=useCallback(()=>{
     const entry=target.current;
@@ -65,8 +83,8 @@ export function LivePlaybackProvider({children}:{children:React.ReactNode}) {
   useEffect(()=>{
     if(!active || active.scope!==identity.scope)return;
     let alive=true,inFlight=false,failures=0,timer:ReturnType<typeof setTimeout>|undefined;
-    const version=++generation.current;startedPlayback.current=false;startupDeadline.current=0;swapping.current=false;mediaRef.current=null;tokenRef.current=null;grantExpiry.current=0;setStatus('loading');setError(null);setMedia(null);setWatching(false);setStarted(false);
-    const schedule=(delay:number)=>{clearTimeout(timer);timer=setTimeout(()=>{if(document.visibilityState==='visible'||document.pictureInPictureElement)void load();},delay);};
+    const version=++generation.current;startedPlayback.current=false;startupDeadline.current=0;mediaRef.current=null;tokenRef.current=null;grantExpiry.current=0;setStatus('loading');setError(null);setMedia(null);setWatching(false);setStarted(false);
+    const schedule=(delay:number)=>{clearTimeout(timer);timer=setTimeout(()=>{if(document.visibilityState==='visible'||(video.current&&document.pictureInPictureElement===video.current))void load();},delay);};
     const load=async()=>{
       if(!alive || version!==generation.current||inFlight)return;
       inFlight=true;clearTimeout(timer);
@@ -76,10 +94,15 @@ export function LivePlaybackProvider({children}:{children:React.ReactNode}) {
         if(!startupDeadline.current)startupDeadline.current=Date.now()+45000;
         failures=0;grantExpiry.current=Date.parse(value.expires_at);tokenRef.current=livePlaybackToken(value.url);
         const previous=mediaRef.current,element=video.current;mediaRef.current=value;
-        // A renewed capability for a stream that is playing is handed to the running engine through its loader; nothing is torn down and the viewer
-        // never notices. The first grant, a paused player, a delivery change or a native (Safari) engine still builds the player from the new URL.
-        const keepEngine=!!previous&&!!element&&!element.paused&&element.dataset.livePlaybackEngine==='mse'&&sameLiveStream(previous.url,value.url);
-        if(!keepEngine){swapping.current=!!previous&&!!element&&!element.paused;setMedia(value);}
+        // Pausing does not detach a healthy MSE engine. Its loaders read the new token on
+        // each request. Native HLS still needs a new URL; pause the element exactly once
+        // ourselves so that a later user pause is never swallowed by a broad swap flag.
+        const keepEngine=!!previous&&!!element&&!!hls.current&&engineHealthy.current&&previous.live===value.live
+          &&Date.parse(previous.expires_at)>Date.now()&&element.dataset.livePlaybackEngine==='mse'&&sameLiveStream(previous.url,value.url);
+        if(!keepEngine){
+          if(previous&&element&&!element.paused&&wantsPlay.current){expectedPause.current=element;element.pause();}
+          setMedia(value);
+        }
         setError(null);
         schedule(Math.max(5000,Math.min(90000,grantExpiry.current-Date.now()-20000-Math.random()*5000)));
       }catch(e){
@@ -87,27 +110,35 @@ export function LivePlaybackProvider({children}:{children:React.ReactNode}) {
         const remaining=grantExpiry.current-Date.now();
         // The grant in use still works. Keep playing and ask again before it runs out; the viewer sees nothing unless the stream really stops.
         if(mediaRef.current&&remaining>8000){failures++;schedule(Math.max(2000,Math.min(remaining-6000,5000*failures))+Math.random()*1000);return;}
-        setError(liveError(e));setStatus('error');setWatching(false);video.current?.pause();hls.current?.stopLoad();
+        grantExpiry.current=0;wantsPlay.current=false;engineHealthy.current=false;setError(liveError(e));setStatus('error');setWatching(false);video.current?.pause();hls.current?.stopLoad();
       }finally{inFlight=false;}
     };
-    const visible=()=>{if(document.visibilityState==='visible'){clearTimeout(timer);void load();}else if(!document.pictureInPictureElement){clearTimeout(timer);video.current?.pause();}};
+    const visible=()=>{if(document.visibilityState==='visible'){clearTimeout(timer);void load();}else if(!video.current||document.pictureInPictureElement!==video.current){clearTimeout(timer);suspend();}};
     void load();document.addEventListener('visibilitychange',visible);
     return()=>{alive=false;clearTimeout(timer);document.removeEventListener('visibilitychange',visible);};
-  },[active?.session.id,active?.scope,identity.scope,client,retry]);
+  },[active?.session.id,active?.scope,identity.scope,client,retry,suspend]);
   useEffect(()=>{
     const element=video.current;if(!element||!media)return;
-    let alive=true,nativeRetries=0,recoveryTimer:ReturnType<typeof setTimeout>|undefined;const before=element.currentTime,wasPlaying=!element.paused;
-    const canWarmUp=()=>alive&&media.live&&!startedPlayback.current&&navigator.onLine!==false&&Date.now()<Math.min(startupDeadline.current,grantExpiry.current-5000);
+    let alive=true,nativeRetries=0,recoveryTimer:ReturnType<typeof setTimeout>|undefined;const before=element.currentTime,version=generation.current;
+    const current=()=>alive&&version===generation.current&&video.current===element&&!!activeRef.current&&activeRef.current.scope===navigation.getSnapshot().scope;
+    const canWarmUp=()=>current()&&eligible(element)&&wantsPlay.current&&media.live&&!startedPlayback.current&&navigator.onLine!==false&&Date.now()<Math.min(startupDeadline.current,grantExpiry.current-5000);
     const retryEarlyObject:NonNullable<RetryConfig['shouldRetry']>=(config,count,_timeout,response,retry)=>retry||!!(config&&count<config.maxNumRetry&&canWarmUp()&&(response?.code===403||response?.code===404));
     const nativeError=()=>{
+      if(!current()||!wantsPlay.current)return;
       if(element.dataset.livePlaybackEngine==='native'&&nativeRetries<6&&canWarmUp()){
         nativeRetries++;setStatus('loading');setError(null);
-        clearTimeout(recoveryTimer);recoveryTimer=setTimeout(()=>{if(!alive)return;if(!canWarmUp()){swapping.current=false;setWatching(false);setError('The stream could not play. Retry to reconnect.');setStatus('error');return;}element.load();void element.play().catch(()=>undefined);},Math.min(6000,1000*2**(nativeRetries-1))+Math.random()*500);
+        clearTimeout(recoveryTimer);recoveryTimer=setTimeout(()=>{if(!current()||!wantsPlay.current||!eligible(element))return;if(!canWarmUp()){setWatching(false);setError('The stream could not play. Retry to reconnect.');setStatus('error');return;}element.load();requestPlay(element);},Math.min(6000,1000*2**(nativeRetries-1))+Math.random()*500);
         return;
       }
-      swapping.current=false;setWatching(false);setError('The stream could not play. Retry to reconnect.');setStatus('error');
+      setWatching(false);setError('The stream could not play. Retry to reconnect.');setStatus('error');
     };
-    const restore=()=>{if(!alive)return;const position=pendingSeek.current??before;pendingSeek.current=null;if(!media.live&&position>0&&Number.isFinite(element.duration))element.currentTime=Math.min(position,element.duration);if(wasPlaying||before===0)void element.play().catch(()=>{if(alive){swapping.current=false;setStatus('ready');setWatching(false);}});else swapping.current=false;};
+    const restore=()=>{
+      if(!current())return;
+      const position=pendingSeek.current??before;pendingSeek.current=null;
+      if(!media.live&&position>0&&Number.isFinite(element.duration))element.currentTime=Math.min(position,element.duration);
+      if(wantsPlay.current&&eligible(element))requestPlay(element);
+      else {if(!startedPlayback.current)setStatus('ready');}
+    };
     // Register before attaching a source so a cached manifest cannot race this listener.
     element.addEventListener('loadedmetadata',restore,{once:true});
     element.addEventListener('error',nativeError);
@@ -116,7 +147,7 @@ export function LivePlaybackProvider({children}:{children:React.ReactNode}) {
       hls.current?.destroy();hls.current=null;
       // Some Chromium builds report native HLS support but fail before loading
       // a rendition. Prefer the tested MSE pipeline; retain native-only Safari.
-      const {default:HlsPlayer}=await import('hls.js');if(!alive)return;
+      const {default:HlsPlayer}=await import('hls.js');if(!current())return;
       if(HlsPlayer.isSupported()){
         element.dataset.livePlaybackEngine='mse';
         // Daily publishes the master before the first rendition. S3 returns 403
@@ -126,13 +157,14 @@ export function LivePlaybackProvider({children}:{children:React.ReactNode}) {
         // Every playlist and segment request carries the newest capability, so a renewed grant never needs a new engine.
         const Base=HlsPlayer.DefaultConfig.loader;
         class RenewingLoader extends Base{load(context:LoaderContext,config:LoaderConfiguration,callbacks:LoaderCallbacks<LoaderContext>){context.url=renewLivePlaybackUrl(context.url,tokenRef.current);super.load(context,config,callbacks);}}
-        const engine=new HlsPlayer({enableWorker:true,lowLatencyMode:true,maxBufferLength:20,maxMaxBufferLength:30,backBufferLength:15,manifestLoadPolicy:{default:startupPolicy},playlistLoadPolicy:{default:startupPolicy},fragLoadingMaxRetry:2,pLoader:RenewingLoader as unknown as PlaylistLoaderConstructor,fLoader:RenewingLoader as unknown as FragmentLoaderConstructor});hls.current=engine;
+        const engine=new HlsPlayer({enableWorker:true,lowLatencyMode:true,maxBufferLength:20,maxMaxBufferLength:30,backBufferLength:15,manifestLoadPolicy:{default:startupPolicy},playlistLoadPolicy:{default:startupPolicy},fragLoadingMaxRetry:2,pLoader:RenewingLoader as unknown as PlaylistLoaderConstructor,fLoader:RenewingLoader as unknown as FragmentLoaderConstructor});hls.current=engine;engineHealthy.current=true;
         engine.on(HlsPlayer.Events.ERROR,(_event,detail)=>{
-          if(!alive)return;
+          if(!current())return;
           // Only an enumerated error category, never a signed URL or provider payload.
           element.dataset.livePlaybackFailure=String(detail.details).replace(/[^a-zA-Z0-9_-]/g,'').slice(0,80);
           if(!detail.fatal)return;
-          swapping.current=false;setWatching(false);setError('Playback stopped. Retry to reconnect to the stream.');setStatus('error');engine.stopLoad();
+          engineHealthy.current=false;wantsPlay.current=false;
+          setWatching(false);setError('Playback stopped. Retry to reconnect to the stream.');setStatus('error');engine.stopLoad();
         });
         engine.loadSource(media.url);engine.attachMedia(element);
       }else if(element.canPlayType('application/vnd.apple.mpegurl')){
@@ -144,11 +176,13 @@ export function LivePlaybackProvider({children}:{children:React.ReactNode}) {
     };
     void attach().catch(()=>{if(alive){setError('The video player could not load. Retry to reconnect.');setStatus('error');}});
     return()=>{alive=false;clearTimeout(recoveryTimer);element.removeEventListener('loadedmetadata',restore);element.removeEventListener('error',nativeError);hls.current?.destroy();hls.current=null;};
-  },[media]);
+  },[media,eligible,navigation,requestPlay]);
   useEffect(()=>()=>{video.current?.pause();hls.current?.destroy();},[]);
   const open=useCallback((session:LiveSession,startAt?:number)=>{
     if(!identity.scope)return;
-    if(activeRef.current?.session.id!==session.id)pendingSeek.current=null;
+    if(activeRef.current?.session.id!==session.id||activeRef.current.scope!==identity.scope){
+      generation.current++;grantExpiry.current=0;engineHealthy.current=false;pendingSeek.current=null;wantsPlay.current=true;expectedPause.current=null;
+    }
     if(startAt!==undefined&&Number.isFinite(startAt))pendingSeek.current=Math.max(0,startAt);
     setDock(false);
     setActive(previous=>previous?.session.id===session.id&&previous.scope===identity.scope?{...previous,session}:{session,scope:identity.scope});
@@ -159,10 +193,15 @@ export function LivePlaybackProvider({children}:{children:React.ReactNode}) {
   const floating=dock||!rect||rect.bottom<60||rect.top>windowHeight();
   const style:CSSProperties=floating?{position:'fixed',right:16,bottom:90,width:'min(360px, calc(100vw - 32px))',zIndex:70}:{position:'fixed',left:rect!.left,top:rect!.top,width:rect!.width,height:rect!.height,zIndex:25};
   return <Context.Provider value={value}>{children}{active&&active.scope===identity.scope?<div ref={host} style={style} className="overflow-hidden rounded-2xl border border-white/10 bg-black shadow-lg" data-live-player data-floating={floating}>
-    <div className="relative aspect-video h-full max-h-full"><video ref={video} controls playsInline autoPlay preload="metadata" poster={media?.poster_url||undefined} className="h-full w-full bg-black object-contain" aria-label={active.session.title} onTimeUpdate={e=>{const next=Math.floor(e.currentTarget.currentTime*10)/10;setTime(previous=>Math.floor(previous)===Math.floor(next)?previous:next);}} onDurationChange={e=>setDuration(Number.isFinite(e.currentTarget.duration)?e.currentTarget.duration:0)} onPlaying={()=>{startedPlayback.current=true;swapping.current=false;setStarted(true);setStatus('playing');setWatching(true);setError(null);}} onWaiting={()=>setStatus('buffering')} onPause={()=>{if(swapping.current)return;setStatus('paused');setWatching(false);}}>
+    <div className="relative aspect-video h-full max-h-full"><video key={JSON.stringify([active.scope,active.session.id])} ref={video} controls playsInline preload="metadata" poster={media?.poster_url||undefined} className="h-full w-full bg-black object-contain" aria-label={active.session.title} onTimeUpdate={e=>{const next=Math.floor(e.currentTarget.currentTime*10)/10;setTime(previous=>Math.floor(previous)===Math.floor(next)?previous:next);}} onDurationChange={e=>setDuration(Number.isFinite(e.currentTarget.duration)?e.currentTarget.duration:0)} onPlay={event=>{const element=event.currentTarget;if(!eligible(element)){element.pause();return;}if(!element.paused)wantsPlay.current=true;}}
+      onPlaying={event=>{const element=event.currentTarget;if(!eligible(element)||element.paused||!wantsPlay.current){element.pause();return;}expectedPause.current=null;startedPlayback.current=true;setStarted(true);setStatus('playing');setWatching(true);setError(null);}}
+      onWaiting={()=>{if(wantsPlay.current)setStatus('buffering');}}
+      onPause={event=>{if(event.currentTarget!==video.current||!activeRef.current||!grantExpiry.current)return;
+        if(expectedPause.current===event.currentTarget){expectedPause.current=null;return;}
+        wantsPlay.current=false;setStatus(startedPlayback.current?'paused':'ready');setWatching(false);}}>
       {media?.tracks.map(track=><track key={track.src} kind="subtitles" src={track.src} srcLang={track.language} label={track.label}/>)}
     </video>
-    {!media||error||!started||status==='ready'?<div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 p-5 text-center text-white"><p role={error?'alert':'status'} className="text-sm">{error||(!media?'Connecting to stream…':status==='ready'?'Press play to start the stream.':'Starting the stream…')}</p>{error?<button type="button" onClick={()=>setRetry(n=>n+1)} className="mt-4 min-h-11 rounded-full bg-white px-5 text-sm font-semibold text-black">Retry playback</button>:status==='ready'?<button type="button" onClick={()=>void video.current?.play().catch(()=>undefined)} className="mt-4 min-h-11 rounded-full bg-white px-5 text-sm font-semibold text-black">Play</button>:null}</div>:null}
+    {!media||error||!started||status==='ready'?<div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 p-5 text-center text-white"><p role={error?'alert':'status'} className="text-sm">{error||(!media?'Connecting to stream…':status==='ready'?'Press play to start the stream.':'Starting the stream…')}</p>{error?<button type="button" onClick={()=>{wantsPlay.current=true;setRetry(n=>n+1);}} className="mt-4 min-h-11 rounded-full bg-white px-5 text-sm font-semibold text-black">Retry playback</button>:status==='ready'?<button type="button" onClick={()=>{wantsPlay.current=true;if(video.current)requestPlay(video.current);}} className="mt-4 min-h-11 rounded-full bg-white px-5 text-sm font-semibold text-black">Play</button>:null}</div>:null}
     {notice?<p role="status" className="absolute inset-x-3 bottom-12 rounded-lg bg-black/85 p-2 text-xs text-white">{notice}<button type="button" aria-label="Dismiss playback message" onClick={()=>setNotice('')} className="ml-2 px-2">×</button></p>:null}
     <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-2 bg-gradient-to-b from-black/80 to-transparent p-2 text-white"><Link href={'/live/'+active.session.id} onClick={()=>{setDock(false);setTimeout(measure,0);}} className="min-w-0 truncate rounded px-2 py-2 text-sm font-semibold">{active.session.title}</Link><div className="flex shrink-0 gap-1">
       <button type="button" title="Picture in Picture" aria-label="Picture in Picture" onClick={async()=>{try{if(!video.current?.requestPictureInPicture||!document.pictureInPictureEnabled)throw Error();await video.current.requestPictureInPicture();}catch{setNotice('Picture in Picture is unavailable in this browser. Use Minimize to keep watching here.');}}} className="grid h-9 w-9 place-items-center rounded-lg bg-black/40"><PictureInPicture2 size={17}/></button>

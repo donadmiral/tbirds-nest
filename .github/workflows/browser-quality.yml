@@ -107,6 +107,9 @@ jobs:
         if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
         run: node web/tests/browser/media-readiness-run.cjs
       - name: Decode actual Discover video frames and check saved data preferences
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
+        env:
+          DISCOVER_FRAME_EVIDENCE: /tmp/platinum-browser-evidence/discover-frames
         working-directory: web
         run: node tests/browser/discover-frame-run.cjs
       - name: Exercise Live playback, interactions, clipping and sharing

@@ -40,9 +40,9 @@ function harness({ live = true, tokens = true, mse = true } = {}) {
     constructor(config) { this.config = config; this.destroyed = false; engines.push(this); }
     on() {} loadSource(url) { this.source = url; } attachMedia() {} destroy() { this.destroyed = true; } stopLoad() {}
   }
-  const element = { paused: true, currentTime: 0, duration: NaN, readyState: 0, dataset: {}, src: '', playRejects: false,
+  const element = { paused: true, currentTime: 0, duration: NaN, readyState: 0, dataset: {}, src: '', playCalls:0, loads:0, playRejects: false,
     addEventListener(name, fn) { listeners.set(name, fn); }, removeEventListener(name) { listeners.delete(name); },
-    async play() { if (element.playRejects) throw Error('NotAllowedError'); element.paused = false; }, pause() { element.paused = true; }, canPlayType: () => mse ? '' : 'maybe', load() {} };
+    async play() { element.playCalls++; if (element.playRejects) throw Error('NotAllowedError'); element.paused = false; }, pause() { element.paused = true; }, canPlayType: () => mse ? '' : 'maybe', load() {element.loads++;} };
   const document = { visibilityState: 'visible', pictureInPictureElement: null, pictureInPictureEnabled: false, documentElement: {}, addEventListener(name, fn) { docListeners.set(name, fn); }, removeEventListener(name) { docListeners.delete(name); } };
   const window = { innerHeight: 800, addEventListener(name, fn) { windowListeners.set(name, fn); }, removeEventListener(name) { windowListeners.delete(name); } };
   class Clock extends Date { static now() { return now; } }
@@ -64,7 +64,13 @@ function harness({ live = true, tokens = true, mse = true } = {}) {
   return { element, engines, loads, timers, fetches, renewal, leave, settle, get view() { return view; }, get presence() { return presence; }, get grants() { return grants; },
     async open() { await settle(); view.open({ id: 'session-1', title: 'Live', state: live ? 'live' : 'ended', host: {} }); await settle(); },
     async metadata() { listeners.get('loadedmetadata')(); await settle(); await new Promise(resolve => setImmediate(resolve)); await settle(); },
-    async playing() { video().props.onPlaying(); await settle(); }, async waiting() { video().props.onWaiting(); await settle(); }, async pause() { element.paused = true; video().props.onPause(); await settle(); },
+    async playing() { video().props.onPlaying({currentTarget:element}); await settle(); }, async waiting() { video().props.onWaiting(); await settle(); }, async pause() { element.paused = true; video().props.onPause({currentTarget:element}); await settle(); },
+    async manualPlay(){element.paused=false;video().props.onPlay({currentTarget:element});await settle();},
+    async nativeError(){listeners.get('error')();await settle();},
+    async hidden(value){document.visibilityState=value?'hidden':'visible';docListeners.get('visibilitychange')?.();await settle();},
+    async close(){view.close();await settle();},
+    savedMetadata(){return listeners.get('loadedmetadata');},
+    hasDomAutoplay(){return !!video().props.autoPlay;},
     deny(message) { denial = message; }, allow() { denial = null; },
     timer(min, max) { return [...timers].find(([, t]) => t.delay >= min && t.delay <= max) || null; },
     async fire(entry) { assert.ok(entry, 'Expected a scheduled timer'); timers.delete(entry[0]); now = Math.max(now, entry[1].at); entry[1].fn(); await settle(); },
@@ -101,7 +107,7 @@ test('a rebuffer or a grant renewal keeps the viewer counted and the engine runn
   assert.equal(app.loads.at(-1), 'https://cdn.live.test/_live/cap-2/session-1/r0/seg-9.ts', 'Requests carry the renewed capability');
   assert.equal(app.presence.active, true);
   await app.pause(); assert.equal(app.presence.active, false);
-  await app.fire(app.timer(60000, 95000)); assert.equal(app.engines.length, 2, 'A paused player is rebuilt from the new grant, as before');
+  await app.fire(app.timer(60000, 95000)); assert.equal(app.engines.length, 1, 'A healthy paused MSE engine keeps its buffer'); assert.equal(app.element.paused,true);
 });
 
 test('a failed renewal keeps the stream playing while its grant is valid, retries, and only fails once the grant is gone', async () => {
@@ -141,4 +147,32 @@ test('an unsigned public grant renews without rebuilding, while a native engine 
   native.element.paused = true; await native.metadata(); await native.playing();
   assert.equal(native.presence.active, true);
   await native.pause(); assert.equal(native.presence.active, false);
+});
+
+test('pausing a native stream at time zero survives token renewal and late metadata',async()=>{
+  const app=harness({mse:false});await app.open();assert.equal(app.hasDomAutoplay(),false);
+  await app.metadata();await app.playing();await app.pause();const plays=app.element.playCalls;
+  assert.equal(app.element.currentTime,0);await app.fire(app.timer(60000,95000));await app.metadata();
+  assert.match(app.element.src,/cap-2/);assert.equal(app.element.playCalls,plays);assert.equal(app.element.paused,true);assert.equal(app.presence.active,false);
+});
+test('pausing, hiding or closing before native startup retry or metadata cannot start playback',async()=>{
+  for(const action of ['pause','hide','close']){
+    const app=harness({mse:false});await app.open();await app.nativeError();
+    const retry=app.timer(1000,1600),late=app.savedMetadata();assert.ok(retry);
+    if(action==='pause')await app.pause();else if(action==='hide')await app.hidden(true);else await app.close();
+    await app.fire(retry);late();await app.settle();
+    assert.equal(app.element.playCalls,0,action);assert.equal(app.presence.active,false,action);
+  }
+});
+test('metadata delivered after grant expiry cannot start a stale stream',async()=>{
+  const app=harness();await app.open();app.advance(121000);await app.metadata();
+  assert.equal(app.element.playCalls,0);assert.equal(app.presence.active,false);
+});
+
+test('only the one programmatic native swap pause is ignored; a later control pause wins before metadata',async()=>{
+  const app=harness({mse:false});await app.open();await app.metadata();await app.playing();
+  await app.fire(app.timer(60000,95000));await app.pause();assert.equal(app.presence.active,true);
+  await app.manualPlay();await app.pause();assert.equal(app.presence.active,false);
+  const starts=app.element.playCalls;await app.metadata();assert.equal(app.element.playCalls,starts);
+  assert.equal(app.element.paused,true);
 });
