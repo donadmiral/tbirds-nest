@@ -1,0 +1,145 @@
+{
+  "kind": "isolated SQL cardinality benchmark",
+  "engine": "PGlite 0.5.10, single connection",
+  "timings_ms": {
+    "load_release_schema": 3874,
+    "populate_synthetic_identities": 8223,
+    "admit_1000th": 23,
+    "refuse_1001st": 8,
+    "populate_presence": 8439,
+    "count_and_cleanup_all_1000": 471,
+    "second_prune_and_skip_recent": 3,
+    "all_counts_repeated_unchanged": 344,
+    "authenticated_heartbeat_checks": 585,
+    "disconnect_burst_drain": 1118,
+    "independent_prune_same_burst": 238
+  },
+  "sql_sources": {
+    "20261103000609_live_portable_control_plane": "3a26cbe1ef492639d46ad8b449a97b54d409c1214a7e8dc2119bda4e2328448f",
+    "20261103002858_live_interactivity": "128b789123e16420cdc4d4ce7e3e67019a72dbe6aca17596e28ca0bf0d5bf63b",
+    "20261104022616_live_viewer_presence": "135a30aef5b620df92eaa2475e549dc16239f6977af9cafa6866948d388eb625",
+    "20261104052000_live_cancel_stage_cleanup": "d109be21991c8a568c3472b00755b777ee9309ecf815ebf0419a8cc02ec03965",
+    "20261104054700_live_terminal_eject_acknowledgement": "07016d9d1dc97d43654c6df8bdbcf04d2d8be2c8148b379d6bcc36e7cdef5e60",
+    "20261104175749_live_guest_requests": "1ff9cd85dcc2da14d118ce99316638dd8a5bafa9752bd527577f33b62af04832",
+    "20261104180010_live_portrait_broadcast": "8000b270943125ff11ea079ccebc57adaa410bec0faf125a6ddea110c5569dd3",
+    "20261104180300_live_approved_guest_sources": "dd3987ec04840bbf3ba616b87ef12c9d87c6eb816a9d3536654d4d0252370284",
+    "20261104180638_live_detail_orientation": "5a96c1c0511ef51f003ac72ba9c89c5544b2064bc4078e0d6e69f656b1b92704",
+    "20261106030500_live_viewer_counts_job": "cea1f06ab014c76e2a0f14af30e5c9f39dd3472d27bf2b1e4f3283fd6a779d51",
+    "20261106181400_live_viewer_lease_pruning": "d61cd8d35bfa4699e401cbfb4995729ba5cabc5d2521eca5850cc36e87428860"
+  },
+  "observations": {
+    "admission": {
+      "limit": 1000,
+      "preexisting": 999,
+      "accepted": 1,
+      "overflow": "BROADCAST_CAPACITY_REACHED",
+      "overflow_state": "backstage",
+      "active_rooms": 1000
+    },
+    "counts": {
+      "active_unique_audience": 199900,
+      "large_room": 100000,
+      "other_rooms": 999,
+      "each_other_room": 100,
+      "total_seeded_leases": 201949,
+      "duplicate_tabs": 1024,
+      "expired_tabs": 1024,
+      "host_preview_excluded": 1,
+      "first": {
+        "changed": 1000,
+        "measured": 1000,
+        "expired_pruned": 1000
+      },
+      "second": {
+        "changed": 0,
+        "measured": 0,
+        "expired_pruned": 24
+      },
+      "remeasure": {
+        "changed": 0,
+        "measured": 1000,
+        "expired_pruned": 0
+      }
+    },
+    "heartbeat": {
+      "renew": {
+        "n": 96,
+        "p50_ms": 0.76,
+        "p95_ms": 1.06,
+        "max_ms": 4.94
+      },
+      "coalesced": {
+        "n": 96,
+        "p50_ms": 0.63,
+        "p95_ms": 0.94,
+        "max_ms": 2.32
+      },
+      "open_tab": {
+        "n": 96,
+        "p50_ms": 0.72,
+        "p95_ms": 1.19,
+        "max_ms": 3.47
+      },
+      "close_tab": {
+        "n": 96,
+        "p50_ms": 0.45,
+        "p95_ms": 0.8,
+        "max_ms": 1.3
+      }
+    },
+    "disconnect_burst": {
+      "expired": 101025,
+      "large_room_count_after_first_pass": 0,
+      "remaining_audience": 99900,
+      "prunes_per_pass": 1000,
+      "immediate_passes": 102,
+      "total_pruned": 101025,
+      "first_ms": 280.62,
+      "all_passes": {
+        "n": 102,
+        "p50_ms": 8.21,
+        "p95_ms": 10.42,
+        "max_ms": 280.62
+      },
+      "wal_bytes": 12757536
+    },
+    "candidate_cleanup": {
+      "restored_identical_expired_rows": 101025,
+      "max_rows": 5000,
+      "cron_seconds": 10,
+      "total_pruned": 101025,
+      "independent_transactions": 21,
+      "transaction_ms": {
+        "n": 21,
+        "p50_ms": 11.09,
+        "p95_ms": 14.71,
+        "max_ms": 15.94
+      },
+      "wal_bytes": 11625416,
+      "remaining_fresh": 99900,
+      "visible_counts_unchanged": true,
+      "wal_scope": "Whole isolated instance LSN delta, after fixture restore, no external traffic. Original includes its count updates; candidate includes only deletes."
+    }
+  },
+  "postgres_version": "18.6",
+  "sql_function_hashes": [
+    {
+      "proname": "prepare_control",
+      "md5": "13bf8e8ef41c65059ce209398a61b61e"
+    },
+    {
+      "proname": "prune_expired_viewer_leases",
+      "md5": "8a5e2f61f6b2f93e9a0b71ffde94b697"
+    },
+    {
+      "proname": "refresh_viewer_counts",
+      "md5": "af68ca99a573274396aece79df60d5b4"
+    }
+  ],
+  "limits": [
+    "Single local PostgreSQL WASM engine. No concurrent connections, managed hardware, CDN, broadcaster, playback, heartbeat arrival rate, Realtime transport or end-to-end latency was tested.",
+    "Fixture inserted 999 preexisting active rooms. Two sequential authenticated admission attempts used the real baseline start RPC. A simulated state transition represents provider acknowledgement.",
+    "Production rollout and admission limits are unchanged. Milliseconds are observations on this runner, not service-level guarantees."
+  ],
+  "passed": true
+}

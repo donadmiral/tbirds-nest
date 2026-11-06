@@ -1,0 +1,11 @@
+{
+  "scope": "Isolated Node execution of exact edge authorization code, fake key-value store and clock. Sequential logical requests, no hosted users, no media transfer, no throughput certification.",
+  "code_sha256": "df2b04ffb122915ac939b7703c9944471feb2fdae66d5a9ec2bd4d57aa428ddf",
+  "rooms": 1000,
+  "logicalViewerRoomAttendances": 199900,
+  "featuredRoomViewers": 100000,
+  "authorizedManifestAndSegmentRequests": 399800,
+  "distinctAuthorizedObjectPaths": 2000,
+  "expiredOrCrossRoomDenied": 2000,
+  "elapsedMs": 3408
+}

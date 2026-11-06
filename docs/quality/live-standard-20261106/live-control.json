@@ -1,0 +1,53 @@
+{
+  "source": "a4ddec096a1fa18abc2aaa351f38bcc9417d3963",
+  "webAndPhoneSource": "6c5ca49f36aef0dfd9323251d320562e7dec9974",
+  "function": "live-control",
+  "bundleSha256": "8778b103ca926c4e8a23348965a711f0fdbc5dc5c2226907d9651392e5bc2960",
+  "gatewayVerifyJwt": false,
+  "authBoundary": "unchanged in-function Supabase user, role, lease and session checks",
+  "filesByteMatched": 8,
+  "qa": {
+    "version": 15,
+    "status": "ACTIVE",
+    "unauthenticatedControlHttp": 401
+  },
+  "production": {
+    "version": 13,
+    "status": "ACTIVE",
+    "malformedControlHttp": 400,
+    "unauthenticatedControlHttp": 401
+  },
+  "qualification": {
+    "runId": 42277296138,
+    "jobId": 128096809795,
+    "conclusion": "success",
+    "errors": 0,
+    "actors": "three synthetic QA actors in separate browsers",
+    "firstRemoteGuest": {
+      "width": 960,
+      "height": 540,
+      "timeSeconds": 5.868,
+      "liveVideoTracks": 1
+    },
+    "returningGuest": {
+      "sameIdentity": true,
+      "sameHostConnection": true,
+      "differentGuestConnection": true,
+      "differentRequest": true,
+      "acceptedStatus": 200,
+      "remoteVideoTimeAdvancedMoreThanSeconds": 0.5,
+      "widthAndHeightPositive": true
+    },
+    "followerDecodedProtectedHlsAudioAndVideo": true,
+    "repeatedDesiredFollowDidNotToggle": true,
+    "offRoomGuestDecisionPersistedOnce": true,
+    "removedGuestDeniedFreshAdmission": true,
+    "publishedClipDecodedByFollower": true,
+    "cleanupConfirmed": true,
+    "remainingFixtureUsers": 0,
+    "activeFixtureRooms": 0,
+    "approvalExpired": "2026-11-06T19:16:45Z",
+    "physicalDeviceTest": false
+  },
+  "productionBroadcastCreated": false
+}

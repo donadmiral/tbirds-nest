@@ -1,0 +1,61 @@
+name: Isolated Live room SQL benchmark
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/live-sql-scale.yml'
+      - 'supabase/tests/rpc-authorization/measure-live-scale.mjs'
+      - 'supabase/migrations/*live*presence*.sql'
+      - 'supabase/migrations/*live*viewer*count*.sql'
+      - 'supabase/migrations/*live*admission*.sql'
+      - 'supabase/migrations/*live*lease*prun*.sql'
+      - 'supabase/migrations/*live*capacity*.sql'
+      - 'supabase/tests/rpc-authorization/package-lock.json'
+      - 'tools/performance/live-edge-cardinality.cjs'
+      - 'tools/performance/live-standard.cjs'
+      - 'tools/performance/live-capacity-stages.json'
+      - 'infrastructure/live/viewer-request.js'
+  push:
+    branches: [codex/loading-foundation-20261105, master]
+    paths:
+      - '.github/workflows/live-sql-scale.yml'
+      - 'supabase/tests/rpc-authorization/measure-live-scale.mjs'
+      - 'supabase/migrations/*live*presence*.sql'
+      - 'supabase/migrations/*live*viewer*count*.sql'
+      - 'supabase/migrations/*live*admission*.sql'
+      - 'supabase/migrations/*live*lease*prun*.sql'
+      - 'supabase/migrations/*live*capacity*.sql'
+      - 'supabase/tests/rpc-authorization/package-lock.json'
+      - 'tools/performance/live-edge-cardinality.cjs'
+      - 'tools/performance/live-standard.cjs'
+      - 'tools/performance/live-capacity-stages.json'
+      - 'infrastructure/live/viewer-request.js'
+permissions:
+  contents: read
+jobs:
+  measured-rooms:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.22.2
+          cache: npm
+          cache-dependency-path: supabase/tests/rpc-authorization/package-lock.json
+      - name: Install the pinned isolated database
+        run: npm ci --prefix supabase/tests/rpc-authorization --ignore-scripts --no-audit --no-fund
+      - name: Measure SQL counts, cleanup, admission and heartbeat actions
+        run: node supabase/tests/rpc-authorization/measure-live-scale.mjs /tmp/live-sql-scale.json
+      - name: Check CDN authorization at the modeled audience cardinality
+        run: node tools/performance/live-edge-cardinality.cjs > /tmp/live-edge-cardinality.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: isolated-live-sql-scale
+          path: |
+            /tmp/live-sql-scale.json
+            /tmp/live-edge-cardinality.json
+          if-no-files-found: error
+          retention-days: 14

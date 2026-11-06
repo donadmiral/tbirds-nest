@@ -1,0 +1,41 @@
+{
+  "date": "2026-11-06",
+  "standard": {
+    "broadcasts": 1000,
+    "one_event_viewers": 100000,
+    "other_live_rooms": 999,
+    "assumed_viewers_per_other_room": 100,
+    "simultaneous_viewer_room_attendances": 199900
+  },
+  "database_installation": {
+    "qa_and_production_verified": true,
+    "admission_currently_configured": 10,
+    "certified_promotions": 0,
+    "promotion_trigger_md5": "97cb8264bdbf844d309b1ec86b981f15",
+    "authenticated_and_service_roles_cannot_attest": true,
+    "hosted_qa_denied_unqualified_25_and_direct_1000": true
+  },
+  "cdn": {
+    "production_distribution_confirmed": true,
+    "aws_default_transfer_gbps": 150,
+    "applied_bandwidth_not_returned_by_service_quotas": true,
+    "requested_gbps": 720,
+    "status_at_submission": "PENDING",
+    "reservation_or_paid_plan_purchase": false,
+    "latest_observed_status": "CASE_OPENED",
+    "provider_approved": false
+  },
+  "daily": {
+    "concurrent_output_quota_confirmed_for_target": false
+  },
+  "realtime": {
+    "target_connection_and_message_quotas_confirmed": false,
+    "managed_limits_not_exposed_by_customer_database_catalog": true
+  },
+  "geo_provider_load": {
+    "final_tier_executed": false,
+    "soak_hours": 0,
+    "approved_test_spend": null
+  },
+  "method": "Read-only lookup on production distribution's owner, service quota history, project settings and operator privileges; AWS accepted a quota request. No owner email, credentials, playback paths or customer data included."
+}
