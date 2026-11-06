@@ -1,0 +1,97 @@
+{
+  "repository": "donadmiral/tbirds-nest",
+  "head_sha": "e9d040ec2654c482b07315e08d2f9c59923b97dc",
+  "observed_at": "2026-11-06T17:30:15Z",
+  "summary": "Both workflows completed successfully. 8 of 8 jobs passed.",
+  "workflows": [
+    {
+      "id": 42260545183,
+      "name": "Browser interaction and video gates",
+      "status": "completed",
+      "conclusion": "success",
+      "workflow_id": 401237884,
+      "head_sha": "e9d040ec2654c482b07315e08d2f9c59923b97dc",
+      "html_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/42260545183",
+      "jobs": [
+        {
+          "id": 128039020896,
+          "name": "Decoded Discover frames and protected video fallbacks",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/42260545183/job/128039020896"
+        },
+        {
+          "id": 128039021416,
+          "name": "Connected app, Studio, admin and encoded movies",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/42260545183/job/128039021416"
+        }
+      ]
+    },
+    {
+      "id": 42260545326,
+      "name": "Type and quality gates",
+      "status": "completed",
+      "conclusion": "success",
+      "workflow_id": 345679496,
+      "head_sha": "e9d040ec2654c482b07315e08d2f9c59923b97dc",
+      "html_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/42260545326",
+      "jobs": [
+        {
+          "id": 128039021717,
+          "name": "Operations app",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/42260545326/job/128039021717"
+        },
+        {
+          "id": 128039021890,
+          "name": "Link preview Edge TLS",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/42260545326/job/128039021890"
+        },
+        {
+          "id": 128039021947,
+          "name": "Web app",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/42260545326/job/128039021947"
+        },
+        {
+          "id": 128039021948,
+          "name": "Live workers, finite launcher and infrastructure",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/42260545326/job/128039021948"
+        },
+        {
+          "id": 128039022020,
+          "name": "Phone app",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/42260545326/job/128039022020"
+        },
+        {
+          "id": 128039022038,
+          "name": "Isolated PostgreSQL 17 concurrency contracts",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/42260545326/job/128039022038"
+        }
+      ]
+    }
+  ],
+  "separate_vercel_status": {
+    "project": "admin-web",
+    "deployment_id": "dpl_48ubQHRWQWw5TsS4mtGRydQN6jZy",
+    "environment": "automatic branch preview",
+    "target": null,
+    "state": "ERROR",
+    "command": "npm run build",
+    "reason": "Build preflight found required Supabase configuration missing in this preview. No configuration values are included.",
+    "canonical_platinum_web_commit_status": "success",
+    "canonical_platinum_admin_commit_status": "success"
+  }
+}

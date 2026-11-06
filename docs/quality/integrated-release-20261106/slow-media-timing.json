@@ -1,0 +1,35 @@
+{
+  "utc_window": "2026-11-06T17:19:47.030Z to 2026-11-06T17:23:41.000Z",
+  "method": "Read-only projection of existing function edge and stage diagnostics. Association uses isolate, timestamps within 35 ms and unique scoped ready events. Raw capability, paths and request identifiers omitted.",
+  "events": [
+    {
+      "utc": "17:20:31.283",
+      "http": 206,
+      "function_ms": 3742,
+      "advertised_bytes": 8983741,
+      "corresponding_ready_ms": 3647,
+      "initial_proof_ms": 1383,
+      "storage_headers_ms": 725,
+      "final_proof_ms": 1539,
+      "first_byte_ms": 0,
+      "retries": 0
+    },
+    {
+      "utc": "17:23:21.918",
+      "http": 206,
+      "function_ms": 11988,
+      "advertised_bytes": 7804093,
+      "corresponding_ready_ms": 11718,
+      "initial_proof_ms": 936,
+      "storage_headers_ms": 629,
+      "final_proof_ms": 10150,
+      "first_proof_attempt_headers_wait_ms": 8003,
+      "final_proof_retry_headers_ms": 2147,
+      "final_proof_retry_body_ms": 0,
+      "final_proof_retry_http": 200,
+      "first_byte_ms": 0,
+      "retries": 1
+    }
+  ],
+  "interpretation": "The slow start was recovered by the single shared retry after final proof transport timed out in the response headers phase. No SQL execution timeout, ETag mismatch, client-side transfer duration, or general service-level objective is established."
+}

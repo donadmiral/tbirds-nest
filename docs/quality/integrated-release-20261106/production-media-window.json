@@ -1,0 +1,78 @@
+{
+  "utc_window": {
+    "from": "2026-11-06T17:19:47.030Z",
+    "to": "2026-11-06T17:23:41.000Z"
+  },
+  "web": {
+    "canonical_alias": "platinumcircles.app",
+    "www_alias": "www.platinumcircles.app",
+    "deployment": "dpl_7efmeDUu1kvVmhjTeYMqmSboZC2b",
+    "source_commit": "e9d040ec2654c482b07315e08d2f9c59923b97dc",
+    "state": "READY",
+    "target": "production",
+    "web_runtime_error_groups_found": 0,
+    "deployment_runtime_log_levels_reported": [],
+    "all_web_cdn_request_counts": null
+  },
+  "media": {
+    "service": "media-content",
+    "version": 12,
+    "requests": 10,
+    "status_counts": {
+      "200": 6,
+      "206": 4
+    },
+    "range_or_image_gets": [
+      {
+        "version": 12,
+        "rendition": "compatible",
+        "method": "GET",
+        "status": 206,
+        "mime": "mp4",
+        "requests": 2,
+        "min_ms": 3742,
+        "max_ms": 11988
+      },
+      {
+        "version": 12,
+        "rendition": "original",
+        "method": "GET",
+        "status": 200,
+        "mime": "jpeg",
+        "requests": 4,
+        "min_ms": 1741,
+        "max_ms": 5554
+      },
+      {
+        "version": 12,
+        "rendition": "original",
+        "method": "GET",
+        "status": 206,
+        "mime": "mp4",
+        "requests": 2,
+        "min_ms": 4949,
+        "max_ms": 4994
+      },
+      {
+        "version": 12,
+        "rendition": "poster",
+        "method": "GET",
+        "status": 200,
+        "mime": "jpeg",
+        "requests": 2,
+        "min_ms": 1071,
+        "max_ms": 4104
+      }
+    ],
+    "latency_metric": "Supabase function execution time, not total browser playback or page time."
+  },
+  "signed_in_browser_observation": {
+    "provenance": "Release lead's separate production browser verification",
+    "compatible_clip_completed": true,
+    "approx_duration_seconds": 31,
+    "decoded_width": 720,
+    "decoded_height": 1280,
+    "media_error": null
+  },
+  "scope": "Aggregate traffic is not attributed to any user. Visible function invocations are not unique plays. No Vercel application errors were reported. Complete Vercel CDN HTTP counts were unavailable in this query."
+}

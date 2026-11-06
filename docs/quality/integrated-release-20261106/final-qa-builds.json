@@ -1,0 +1,48 @@
+{
+  "source": "6f50ffa4852d46aa1e84d206ca9917c130ed5414",
+  "workflowUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/42257382810",
+  "attempt": 1,
+  "ios": {
+    "status": "FINISHED",
+    "platform": "IOS",
+    "source": "6f50ffa4852d46aa1e84d206ca9917c130ed5414",
+    "qualityRunId": 42257382917,
+    "gradedHLSRunId": 42257382795,
+    "buildId": "81e7e3ad-992f-456b-b136-f78f58f8836e",
+    "installPage": "https://expo.dev/accounts/donadmiral/projects/platinum-circles/builds/81e7e3ad-992f-456b-b136-f78f58f8836e",
+    "buildNumber": "40",
+    "jobId": 128028078577,
+    "finishedReceiptAt": "2026-11-06T17:15:30.2411446Z"
+  },
+  "android": {
+    "status": "FINISHED",
+    "platform": "ANDROID",
+    "source": "6f50ffa4852d46aa1e84d206ca9917c130ed5414",
+    "qualityRunId": 42257382917,
+    "gradedHLSRunId": 42257382795,
+    "buildId": "e570851b-0490-47e5-a142-1e1337844dc6",
+    "installPage": "https://expo.dev/accounts/donadmiral/projects/platinum-circles/builds/e570851b-0490-47e5-a142-1e1337844dc6",
+    "buildNumber": "9",
+    "jobId": 128028079058,
+    "finishedReceiptAt": "2026-11-06T17:37:33.7823969Z",
+    "packageType": "APK (EAS preview profile)",
+    "physicalDiagnosticFixture": false
+  },
+  "hls": {
+    "workflowRun": 42257382795,
+    "attempt": 1,
+    "jobId": 128028077803,
+    "artifactId": 13524345632,
+    "artifactSha256": "cc9a1ccb2abad30ce0c61753a5ea6de23933a15467c4bb63d399bb0cf354c81c",
+    "runtimeCasesPassed": 8,
+    "compositorPixelCheckpoints": 9,
+    "manifestRequests": 19,
+    "segmentRequests": 149,
+    "nativeBackgroundAndSameProcessResume": true
+  },
+  "quality": {
+    "workflowRun": 42257382917,
+    "conclusion": "success"
+  },
+  "scope": "Normal internal EAS QA device previews. Metadata and install artifact presence verified. No store submission, physical install or device runtime acceptance."
+}

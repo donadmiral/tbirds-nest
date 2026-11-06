@@ -1,0 +1,64 @@
+{
+  "observed_date_utc": "2026-11-06",
+  "environment": "production",
+  "browser": "Signed-in cloud Chrome",
+  "page": "https://platinumcircles.app/discover",
+  "web_source": "e9d040ec2654c482b07315e08d2f9c59923b97dc",
+  "deployment": "dpl_7efmeDUu1kvVmhjTeYMqmSboZC2b",
+  "media_content_version": 12,
+  "videos_filter": {
+    "total": 5,
+    "with_decoded_image": 5,
+    "plain_video_placeholders": 0,
+    "visible_frame_dimensions_after_closing_player": [
+      [
+        360,
+        640
+      ],
+      [
+        360,
+        640
+      ],
+      [
+        1080,
+        1920
+      ],
+      [
+        360,
+        640
+      ],
+      [
+        1440,
+        1920
+      ]
+    ],
+    "source_counts": {
+      "browser_decoded_still": 2,
+      "existing_cover": 2,
+      "protected_generated_still": 1
+    }
+  },
+  "previously_failing_clip": {
+    "before": {
+      "decoded_width": 0,
+      "decoded_height": 0,
+      "stalled_seconds": 9.146
+    },
+    "after": {
+      "decoded_width": 720,
+      "decoded_height": 1280,
+      "selected_compatible": true,
+      "ended_naturally_seconds": 31.364667,
+      "error": null
+    },
+    "replay": {
+      "playing_at_seconds": 15.540748,
+      "manual_pause_seconds": 20.884332,
+      "later_observed_seconds": 20.884332,
+      "later_paused": true,
+      "later_ended": false,
+      "error": null
+    }
+  },
+  "scope": "Real production playback of this clip and the five displayed video cards. No capability URLs, media bytes, user identifiers or private screenshots included."
+}

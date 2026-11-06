@@ -1,0 +1,70 @@
+{
+  "verified_utc": "2026-11-06 17:05:57 UTC",
+  "source_commit": "d1812454eb7d3e11bb484ad345b6cae46385e81e",
+  "migration_sha256": "da45c9c919c4af97024ea5d0e3642216a8b7e30585fabb6d863779f90373d509",
+  "method": "Metadata-only, rolled-back service-context checks. No user impersonation. The database compared and hashed JPEG bytes internally. No media bytes, capability URLs, object locators or sessions are included.",
+  "qa": {
+    "catalog": {
+      "migration_receipts": 1,
+      "access": {
+        "owner": "postgres",
+        "source_md5": "e8ecbbb4058739062cd4eb8cce4733e2",
+        "anon_execute": false,
+        "service_execute": true,
+        "security_definer": true,
+        "search_path_fixed": true,
+        "authenticated_execute": false
+      }
+    },
+    "fixture": {
+      "role_checked": true,
+      "poster_source_matches": true,
+      "poster_lease_matches": true,
+      "jpeg_bytes": 20934,
+      "jpeg_size_matches": true,
+      "jpeg_width": 640,
+      "jpeg_height": 360,
+      "jpeg_hash_matches": true,
+      "metadata_omits_pixels": true,
+      "video_matches": true,
+      "video_bytes": 937496,
+      "wrong_post_refused": true,
+      "raw_derived_bucket_refused": true,
+      "unbound_path_refused": true,
+      "wrong_kind_refused": true
+    }
+  },
+  "production": {
+    "catalog": {
+      "migration_receipts": 1,
+      "access": {
+        "owner": "postgres",
+        "source_md5": "e8ecbbb4058739062cd4eb8cce4733e2",
+        "anon_execute": false,
+        "service_execute": true,
+        "security_definer": true,
+        "search_path_fixed": true,
+        "authenticated_execute": false
+      }
+    },
+    "eligible_post": {
+      "role_checked": true,
+      "poster_source_matches": true,
+      "poster_lease_matches": true,
+      "jpeg_bytes": 10985,
+      "jpeg_size_matches": true,
+      "jpeg_width": 360,
+      "jpeg_height": 640,
+      "jpeg_hash_matches": true,
+      "metadata_omits_pixels": true,
+      "video_matches": true,
+      "video_bytes": 8983741,
+      "wrong_post_refused": true,
+      "raw_derived_bucket_refused": true,
+      "unbound_path_refused": true,
+      "wrong_kind_refused": true
+    }
+  },
+  "local_checks": "Admin TypeScript, 57 focused tests, then final 30/30 proxy checks including staff account, session, role and assurance revocation. PostgreSQL role and binding test passed; suites overlap.",
+  "scope": "Current operator proof and existing bound-content proof before and after the protected read; metadata verification does not imply a real signed-in staff browser session."
+}
