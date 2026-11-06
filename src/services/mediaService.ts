@@ -1,9 +1,10 @@
+import { uploadNativeFile } from './uploadNativeFile';
 import { ensureCameraPermission, ensureImagePickerLibraryPermission } from './devicePermissions';
 // src/services/mediaService.ts
 import * as ImagePicker from 'expo-image-picker';
 import { useSettingsStore } from '../stores/settingsStore';
 import * as VideoThumbnails from 'expo-video-thumbnails';
-import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from './supabase';
+import { supabase, SUPABASE_URL } from './supabase';
 
 import { resolveTrueMeta } from '../utils/sniffMedia';
 import { ensureUploadSafe } from '../utils/uploadSafe';
@@ -64,9 +65,17 @@ function safeExt(uri: string, fallback: string): string {
   return raw === 'jpeg' ? 'jpg' : raw;
 }
 
-async function getAuthToken(): Promise<string> {
-  const { data } = await supabase.auth.getSession();
-  return data?.session?.access_token || SUPABASE_ANON_KEY;
+async function uploadCredentials() {
+  const { data, error } = await supabase.auth.getSession();
+  const owner = data.session?.user.id;
+  if (error || !owner) throw new Error('Sign in to upload your file.');
+  return async () => {
+    const { data, error } = await supabase.auth.getSession();
+    if (error || !data.session?.access_token || data.session.user.id !== owner) {
+      throw new Error('Return to the account that started this upload.');
+    }
+    return data.session.access_token;
+  };
 }
 
 export async function pickFromLibrary(opts?: {
@@ -164,14 +173,25 @@ export async function pickFromCamera(opts?: {
   };
 }
 
+type MediaOptions = { pathPrefix?: string; filename?: string };
+
 export async function uploadMedia(
   bucket: Bucket,
   userId: string,
   media: PickedMedia,
-  opts?: { pathPrefix?: string; filename?: string }
+  opts?: MediaOptions
+): Promise<UploadResult> {
+  return uploadMediaForAccount(await uploadCredentials(), bucket, userId, media, opts);
+}
+
+async function uploadMediaForAccount(
+  token: () => Promise<string>,
+  bucket: Bucket,
+  userId: string,
+  media: PickedMedia,
+  opts?: MediaOptions
 ): Promise<UploadResult> {
   if (!userId) throw new Error('uploadMedia: userId is required');
-
   const safe = (media.kind === 'image' || media.kind === 'video')
     ? await ensureUploadSafe(media.uri, media.kind, media.ext)
     : { uri: media.uri, ext: media.ext, mime: media.mimeType };
@@ -182,34 +202,12 @@ export async function uploadMedia(
     ? `${opts.pathPrefix}/${userId}/${filename}`
     : `${userId}/${filename}`;
 
-  const token = await getAuthToken();
-  const formData = new FormData();
-  formData.append('file', {
-    uri: safe.uri,
-    type: safe.mime,
-    name: filename,
-  } as any);
+  await uploadNativeFile({
+    uri: safe.uri, bucket, path, mime: safe.mime, filename, token,
+    upsert: !['post-media', 'story-media', 'media', 'chat-media', 'chat-files', 'channel-media'].includes(bucket),
+  });
 
-  const res = await fetch(
-    `${SUPABASE_URL}/storage/v1/object/${bucket}/${path}`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        apikey: SUPABASE_ANON_KEY,
-        'x-upsert': ['post-media', 'story-media', 'media', 'chat-media', 'chat-files', 'channel-media'].includes(bucket) ? 'false' : 'true',
-      },
-      body: formData,
-    }
-  );
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    const message = (err as any)?.error || (err as any)?.message || `HTTP ${res.status}`;
-    console.log('[mediaService.upload]', bucket, path, res.status, message);
-    throw new Error(`Upload failed (${bucket}): ${message}`);
-  }
-
+  await token();
   // Cache-bust. Forces RN Image loader to fetch fresh bytes, avoids blank
   // renders from stale or partial cache entries.
   const canonical = `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${path}`;
@@ -226,16 +224,18 @@ export async function uploadBatch(
   uploaded: UploadResult[];
   failed: { index: number; error: string }[];
 }> {
+  const token = await uploadCredentials();
   const uploaded: UploadResult[] = [];
   const failed: { index: number; error: string }[] = [];
   for (let i = 0; i < items.length; i++) {
     try {
-      const r = await uploadMedia(bucket, userId, items[i], opts);
+      const r = await uploadMediaForAccount(token, bucket, userId, items[i], opts);
       uploaded.push(r);
     } catch (e: any) {
       failed.push({ index: i, error: e?.message ?? 'Upload failed' });
     }
   }
+  await token();
   return { uploaded, failed };
 }
 
@@ -255,34 +255,14 @@ export async function uploadDocument(
 
   const safeName = asset.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
   const path = `${userId}/${Date.now()}_${encodeURIComponent(safeName)}`;
-  const token = await getAuthToken();
+  const token = await uploadCredentials();
 
-  const formData = new FormData();
-  formData.append('file', {
-    uri: asset.uri,
-    type: 'application/octet-stream',
-    name: asset.name,
-  } as any);
+  await uploadNativeFile({
+    uri: asset.uri, bucket: 'chat-files', path, mime: 'application/octet-stream',
+    filename: asset.name, upsert: false, token,
+  });
 
-  const res = await fetch(
-    `${SUPABASE_URL}/storage/v1/object/chat-files/${path}`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        apikey: SUPABASE_ANON_KEY,
-        'x-upsert': 'false',
-      },
-      body: formData,
-    }
-  );
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    const message = (err as any)?.error || (err as any)?.message || `HTTP ${res.status}`;
-    throw new Error(`Document upload failed: ${message}`);
-  }
-
+  await token();
   return {
     url: `${SUPABASE_URL}/storage/v1/object/public/chat-files/${path}`,
     path,

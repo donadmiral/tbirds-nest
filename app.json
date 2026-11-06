@@ -94,6 +94,7 @@
         }
       ],
       "./plugins/withMedia3Compatibility",
+      "./plugins/withLargeFileReads",
       [
         "expo-av",
         {

@@ -277,6 +277,7 @@ function safeExtFromUri(uri: string, fallback: string): string {
 }
 
 import { resolveTrueMeta } from '../utils/sniffMedia';
+import { uploadNativeFile } from './uploadNativeFile';
 import { ensureUploadSafe } from '../utils/uploadSafe';
 
 function resolveMediaMeta(
@@ -402,7 +403,6 @@ export async function uploadAndCreateStory(params: {
   if (mediaType !== 'text' && !localUri) throw new Error('localUri required for image/video');
 
   const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL as string;
-  const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY as string;
   const cache = params.uploadCache ?? new Map();
   const jobs: (() => Promise<void>)[] = [];
   // Never mutate the draft. Local URIs remain available for preview/retry, but
@@ -427,31 +427,19 @@ export async function uploadAndCreateStory(params: {
       uploadUri = safe.uri; ext = safe.ext; mime = safe.mime;
       actualKind = safe.kind ?? trueMeta.kind;
     }
-    await publication.check();
-    const { data, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || data.session?.user.id !== userId || !data.session?.access_token) throw new Error('Sign in again to upload this story. Your draft is kept.');
     const name = `${userId}/${Date.now()}_${Math.random().toString(36).slice(2, 10)}_${role}.${ext}`;
-    const form = new FormData();
-    form.append('file', { uri: uploadUri, type: mime, name: `${role}.${ext}` } as any);
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 120000);
-    try {
-      const response = await fetch(`${supabaseUrl}/storage/v1/object/story-media/${name}`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${data.session.access_token}`, apikey: supabaseKey, 'x-upsert': 'false' },
-        body: form,
-        signal: controller.signal,
-      });
-      if (!response.ok) throw new Error(`Could not upload ${role.replace(/_/g, ' ')} (${response.status}). Retry to finish sharing your story.`);
-      const asset = { url: `${supabaseUrl}/storage/v1/object/public/story-media/${name}`, kind: actualKind };
-      cache.set(cacheKey, asset);
-      return asset;
-    } catch (error: any) {
-      if (controller.signal.aborted) throw new Error(`Uploading ${role.replace(/_/g, ' ')} timed out. Your draft is kept. Please retry.`);
-      throw error;
-    } finally {
-      clearTimeout(timer);
-    }
+    await uploadNativeFile({
+      uri: uploadUri, bucket: 'story-media', path: name, mime, filename: `${role}.${ext}`, upsert: false,
+      token: async () => {
+        await publication.check();
+        const { data, error } = await supabase.auth.getSession();
+        if (error || data.session?.user.id !== userId || !data.session?.access_token) throw new Error('Sign in again to upload this story. Your draft is kept.');
+        return data.session.access_token;
+      },
+    });
+    const asset = { url: `${supabaseUrl}/storage/v1/object/public/story-media/${name}`, kind: actualKind };
+    cache.set(cacheKey, asset);
+    return asset;
   };
 
   const inFlight = new Map<string, Promise<{ url: string; kind: StoryMediaType }>>();
