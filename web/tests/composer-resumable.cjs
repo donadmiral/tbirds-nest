@@ -5,11 +5,11 @@ const vm = require('node:vm');
 const path = require('node:path');
 const ts = require('typescript');
 const exportsUnderTest = {};
-const source = fs.readFileSync(path.resolve(__dirname, '../lib/composerResumable.ts'),'utf8');
+const source = fs.readFileSync(path.resolve(__dirname, '../lib/resumableAttachment.ts'),'utf8');
 vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText,{
   exports:exportsUnderTest, crypto:require('node:crypto').webcrypto, URL, fetch, btoa, TextEncoder, AbortSignal,
 });
-const {createComposerUpload,COMPOSER_CHUNK_BYTES:CHUNK,matchesUpload} = exportsUnderTest;
+const {createResumableUpload,ATTACHMENT_CHUNK_BYTES:CHUNK,matchesUpload} = exportsUnderTest;
 const base = 'https://abcdefghijklmnopqrst.supabase.co';
 const endpoint = 'https://abcdefghijklmnopqrst.storage.supabase.co/storage/v1/upload/resumable';
 const pathName = 'alice/fixed_0.mp4';
@@ -28,7 +28,7 @@ function fixture(options={}) {
     }
     if(r.method === 'POST'){
       const meta=Object.fromEntries(r['Upload-Metadata'].split(',').map(x=>{const [k,v]=x.split(' ');return [k,Buffer.from(v,'base64').toString('utf8')];}));
-      assert.equal(meta.bucketName,'post-media'); assert.equal(meta.objectName,pathName);
+      assert.equal(meta.bucketName, options.bucket || 'post-media'); assert.equal(meta.objectName,pathName);
       assert.equal(meta.contentType,'video/mp4');nonce=JSON.parse(meta.metadata).uploadNonce;
       assert.equal(r['Upload-Length'],String(size));
       return reply(201,{Location:endpoint+'/opaque'});
@@ -39,7 +39,7 @@ function fixture(options={}) {
     pos+=r.size;if(pos===size)confirmed=true;
     return reply(204,{'Upload-Offset':String(pos)});
   }
-  const run=createComposerUpload({projectUrl:base,anonKey:'test-key',owner:'alice',path:pathName,file,transport,
+  const run=createResumableUpload({projectUrl:base,anonKey:'test-key',bucket:options.bucket || 'post-media',owner:'alice',path:pathName,file,transport,
     token:async refresh=>{if(owner!=='alice')throw Error('account changed');if(refresh)access='b';return access;},
     confirm:async n=>matchesUpload(confirmed?{name:pathName,size,metadata:{uploadNonce:nonce}}:null,pathName,size,n)});
   return {run,log,size};
@@ -70,7 +70,7 @@ test('refuses foreign and non-TUS upload locations before forwarding credentials
     await assert.rejects(f.run(),/unexpected upload destination/);assert.equal(f.log.length,1);
   }
   for(const path of ['bob/file','alice/../bob/file','alice/encoded%2Fpath']) {
-    assert.throws(()=>createComposerUpload({owner:'alice',path,projectUrl:base}),/destination/);
+    assert.throws(()=>createResumableUpload({bucket:'post-media',owner:'alice',path,projectUrl:base}),/destination/);
   }
 });
 test('refreshes a 401 once without changing offset and stops if account changes',async()=>{
@@ -94,4 +94,12 @@ test('expired resource restarts at the same object name and mismatched offsets f
   assert.equal(creates.length,2);assert.equal(creates[0]['Upload-Metadata'],creates[1]['Upload-Metadata']);
   const bad=fixture({request:r=>r.method==='PATCH'?reply(204,{'Upload-Offset':'0'}):undefined});
   await assert.rejects(bad.run(),/interrupted/);
+});
+
+test('ordinary chat uploads use only their selected private bucket, guarded paths do not enter this transport',async()=>{
+  for (const bucket of ['chat-files','chat-media']) { const f=fixture({bucket}); await f.run(); }
+  for (const path of ['alice/guarded/asset','alice/private/asset','bob/file']) {
+    assert.throws(()=>createResumableUpload({owner:'alice',path,projectUrl:base,bucket:'chat-media'}),/destination/);
+  }
+  assert.throws(()=>createResumableUpload({owner:'alice',path:pathName,projectUrl:base,bucket:'private-media'}),/destination/);
 });

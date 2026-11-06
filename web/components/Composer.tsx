@@ -1,5 +1,5 @@
 "use client";
-import { COMPOSER_CHUNK_BYTES, createComposerUpload, matchesUpload } from "@/lib/composerResumable";
+import { ATTACHMENT_CHUNK_BYTES, memberAttachmentUpload } from "@/lib/resumableAttachment";
 import NextImage from "next/image";
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -316,13 +316,6 @@ function OwnerComposer({ ownerId, onPosted, quote, onQuoteDone, initialKind, ope
         if (!current() || sessionError || data.session?.user.id !== author) throw new Error("Return to the account that started this post to finish it.");
       });
       const attachmentUploads = new Map<number, () => Promise<void>>();
-      const uploadToken = async (refresh: boolean) => {
-        const fail = () => new Error("Return to the account that started this post to finish it.");
-        if (!current()) throw fail();
-        const { data, error } = await (refresh ? supabase.auth.refreshSession() : supabase.auth.getSession());
-        if (!current() || error || data.session?.user.id !== author || !data.session.access_token) throw fail();
-        return data.session.access_token;
-      };
       const media: { url: string; media_type: string; sort_order: number; width?: number; height?: number }[] = [];
       // Retain this exact draft and each confirmed step for a retry.
       const run = async (): Promise<string> => {
@@ -337,19 +330,10 @@ function OwnerComposer({ ownerId, onPosted, quote, onQuoteDone, initialKind, ope
           const bad = await checkUploadableBytes(p.file);
           if (bad) throw new Error(bad);
           await progress.check();
-          if (p.file.size > COMPOSER_CHUNK_BYTES) {
+          if (p.file.size > ATTACHMENT_CHUNK_BYTES) {
             let resume = attachmentUploads.get(i);
             if (!resume) {
-              resume = createComposerUpload({
-                projectUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!, anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-                owner: uid, path, file: p.file, token: uploadToken,
-                confirm: async nonce => {
-                  await progress.check();
-                  const { data } = await supabase.storage.from("post-media").info(path);
-                  await progress.check();
-                  return matchesUpload(data, path, p.file.size, nonce);
-                },
-              });
+              resume = memberAttachmentUpload(supabase, "post-media", uid, path, p.file, current);
               attachmentUploads.set(i, resume);
             }
             await resume();
