@@ -6,7 +6,7 @@
   "hostedStatementTimeoutMs": 8000,
   "isolatedStatementTimeoutMs": 30000,
   "jobNamePrefix": "prepared-feed-refresh-v2-",
-  "selectorSourceMd5": "04e8e5e6a7c965331b92c7504bffe704",
+  "selectorSourceMd5": "cc7c382e422fe66d229c93991f7849c4",
   "workerSourceMd5": "abcfe583c6a6a23a47f69be8a508ee74",
   "previousHosted": {
     "lanes": 1,

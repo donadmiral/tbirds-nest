@@ -57,6 +57,7 @@ before(async () => {
   await exec(sql('20261105160752_prepared_mass_integer_seek.sql'));
   await exec(sql('20261105164113_prepared_statement_score_cache.sql'));
   await exec(sql('20261105171503_prepared_affinity_cohort_bound.sql'));
+  await exec(sql('20261106201000_prepared_feed_time_seek.sql'));
   await exec('select configure_indexed_feed_v1(true);');
  }
  await exec(`create function pg_temp.prepared_expected_error(statement text) returns text language plpgsql security invoker as $$
@@ -449,4 +450,44 @@ if (process.env.PREPARED_FEED_NARROW === '1') test('catalog authorization uses a
  const plan=real?JSON.parse(await db.query(statement)):(await db.query(statement)).rows[0]['QUERY PLAN'];
  const nodes=[];const visit=value=>{if(!value||typeof value!=='object')return;if(value['Relation Name'])nodes.push(value);for(const child of Object.values(value))if(Array.isArray(child))child.forEach(visit);else visit(child);};visit(plan);
  assert.ok(nodes.some(node=>node['Relation Name']==='posts'&&String(node['Index Cond']).includes('catalog.post_id')), 'Post visibility must use the catalog ID as its index condition');
+});
+
+test('a chronological continuation seeks past tied posts under the worker RLS policy',narrowOnly,async t=>{
+ await admin();await exec('begin;');
+ try {
+  await exec(`insert into posts(id,user_id,content,created_at)
+   select ('10000000-0000-4000-8000-'||lpad((980000+n)::text,12,'0'))::uuid,
+    '${OWNER}','Time seek',date_trunc('day',now())-interval '12 hours'+make_interval(secs=>n/8)
+   from generate_series(1,2048)n;analyze feed_ranking.catalog;analyze posts;`);
+  await exec("set local plan_cache_mode=force_generic_plan;set local enable_seqscan=off;set local enable_bitmapscan=off;set role prepared_feed_reader;");
+  const cursor=(await rows(`select bucket::text, created_at::text,post_id from feed_ranking.catalog
+   where post_id='${id(980513)}'`))[0];
+  const predicate='(c.created_at,c.post_id)<($2,$3)';
+  const args=`('${cursor.bucket}','${cursor.created_at}','${cursor.post_id}')`;
+  const results={};
+  for(const [name,filter] of [['old','($2 is null or '+predicate+')'],['seek',predicate]]){
+   const stmt='feed_time_'+name;
+   await exec(`prepare ${stmt}(date,timestamptz,uuid) as select c.post_id,c.created_at
+    from feed_ranking.catalog c where c.bucket=$1 and ${filter} order by c.created_at desc,c.post_id desc limit 64;`);
+   const explain='explain(analyze,buffers,timing off,format json) execute '+stmt+args;
+   const [plan]=real?JSON.parse(await db.query(explain)):(await db.query(explain)).rows[0]['QUERY PLAN'];
+   const nodes=[];
+   function visit(node){nodes.push(node);for(const child of node.Plans||[])visit(child);}
+   visit(plan.Plan);
+   const scan=nodes.find(node=>node['Index Name']==='feed_catalog_time');
+   assert.ok(scan,'Expected chronological catalog index for the bounded page');
+   results[name]={hasCursorCondition:scan['Index Cond'].includes('ROW('),rowsFiltered:scan['Rows Removed by Filter']||0,
+    elapsedMs:plan['Execution Time'],rows:scan['Actual Rows']};
+  }
+  assert.equal(results.old.hasCursorCondition,false);
+  assert.equal(results.seek.hasCursorCondition,true);
+  assert.equal(results.seek.rows,64);
+  assert.ok(results.old.rowsFiltered>=1500 && results.seek.rowsFiltered<results.old.rowsFiltered);
+  const resultSql=filter=>`select c.post_id from feed_ranking.catalog c where c.bucket='${cursor.bucket}'
+   and ${filter} order by c.created_at desc,c.post_id desc limit 64`;
+  const rowKey=`(c.created_at,c.post_id)<('${cursor.created_at}'::timestamptz,'${cursor.post_id}'::uuid)`;
+  assert.deepEqual(await rows(resultSql(rowKey)),await rows(resultSql(`('${cursor.created_at}'::timestamptz is null or ${rowKey})`)));
+  t.diagnostic('Chronological batch '+JSON.stringify(results));
+  await exec('deallocate feed_time_old;deallocate feed_time_seek;');
+ }finally{await exec('rollback;');await authenticate();}
 });

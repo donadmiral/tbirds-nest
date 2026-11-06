@@ -14,6 +14,9 @@ on:
       - 'supabase/ops/prepared-feed-worker-v2/**'
       - 'tests/capacity*.cjs'
       - 'tests/prepared-feed-workers.test.cjs'
+  pull_request:
+    paths:
+      - 'supabase/migrations/20261106201000_prepared_feed_time_seek.sql'
   workflow_dispatch:
 
 permissions:
