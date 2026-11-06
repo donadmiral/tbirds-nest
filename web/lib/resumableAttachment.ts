@@ -4,7 +4,7 @@ import type { createClient } from './supabase/client';
 // Retain this closure with the publication attempt, whose object path is stable.
 export const ATTACHMENT_CHUNK_BYTES = 6 * 1024 * 1024;
 export type UploadReceipt = { name: string; size?: number; metadata?: Record<string, unknown> };
-type Bucket = 'post-media' | 'chat-media' | 'chat-files';
+type Bucket = 'post-media' | 'story-media' | 'chat-media' | 'chat-files';
 type Options = {
   bucket: Bucket;
   projectUrl: string;
@@ -24,7 +24,7 @@ const base64 = (text: string) => btoa(Array.from(new TextEncoder().encode(text),
 export function createResumableUpload({ bucket, projectUrl, anonKey, owner, path, file, token, confirm, transport = fetch }: Options) {
   const base = new URL(projectUrl);
   if ((base.protocol !== 'https:' && !(base.protocol === 'http:' && ['localhost','127.0.0.1','[::1]'].includes(base.hostname))) ||
-      base.username || base.password || !['post-media','chat-media','chat-files'].includes(bucket) || !owner || path.split('/').length !== 2 ||
+      base.username || base.password || !['post-media','story-media','chat-media','chat-files'].includes(bucket) || !owner || path.split('/').length !== 2 ||
       !path.startsWith(owner + '/') || !/^[\w.-]+$/.test(path.slice(owner.length + 1))) {
     throw new Error('Invalid upload destination.');
   }
