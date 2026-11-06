@@ -23,6 +23,7 @@ const migrations = [
   'supabase/migrations/20261105160752_prepared_mass_integer_seek.sql',
   'supabase/migrations/20261105164113_prepared_statement_score_cache.sql',
   'supabase/migrations/20261105171503_prepared_affinity_cohort_bound.sql',
+  'supabase/migrations/20261106201000_prepared_feed_time_seek.sql',
 ];
 const PROFILES = Object.freeze({
   foundation: { actors: 16, posts: 25000, workers: 8, steady: { seconds: 30, rate: 20 }, soak: { seconds: 60, rate: 10 } },

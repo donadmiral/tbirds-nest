@@ -11,7 +11,7 @@ do $rollout$
 declare old_job bigint;history_job bigint;lane_name text;client_count integer;
 begin
  if not exists(select 1 from pg_extension where extname='pg_cron')
-  or (select md5(prosrc) from pg_proc where oid='prepared_feed.select_page(text,double precision,uuid,integer)'::regprocedure)<>'04e8e5e6a7c965331b92c7504bffe704'
+  or (select md5(prosrc) from pg_proc where oid='prepared_feed.select_page(text,double precision,uuid,integer)'::regprocedure)<>'cc7c382e422fe66d229c93991f7849c4'
   or (select md5(prosrc) from pg_proc where oid='public.drain_prepared_feed_v1(integer)'::regprocedure)<>'abcfe583c6a6a23a47f69be8a508ee74'
   or not(select relrowsecurity from pg_class where oid='feed_ranking.catalog'::regclass)
   or (select rolcanlogin or rolbypassrls from pg_roles where rolname='prepared_feed_reader')
