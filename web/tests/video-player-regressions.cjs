@@ -718,3 +718,24 @@ test('enrolled clips display their protected poster and load the compatible play
  assert.equal(p.element.src,original+'&representation=compatible');assert.match(p.mediaKey,/representation=compatible/);p.unmount();
  const c=scenario().mount({src:original,edit:{generatedPosterV1:true,coverUrl:'authored-cover.jpg'},sourceVersion:'v1',immersive:true});c.render();assert.ok(c.find(n=>n.type==='img' && n.props.src==='authored-cover.jpg'));c.unmount();
 });
+
+test('an explicit Retry from the failed original reselects the latest compatible grant once, with no loop after a second failure',()=>{
+ const source=n=>'https://media.example/functions/v1/media-content/post-media/fixture/video.mp4?token='+n.repeat(64);
+ const s=scenario({autoplay:false});const p=s.mount({src:source('a'),edit:{generatedPosterV1:true},sourceVersion:'v1',mediaId:'enrolled'});p.render();
+ p.click('Play video');assert.match(p.mediaKey,/representation=compatible/);
+ p.videoEvent('onError');p.render();assert.doesNotMatch(p.mediaKey,/representation=compatible/);
+ // The original is allowed to keep its source/role through a token rotation. Retry must use the newest grant.
+ const originalKey=p.mediaKey;p.update({src:source('b')});assert.equal(p.mediaKey,originalKey);
+ p.videoEvent('onError');p.videoEvent('onError');p.render();
+ const retry=()=>{p.find(n=>n.type==='button'&&n.props.children==='Retry video').props.onClick();p.render();};retry();
+ assert.match(p.mediaKey,/representation=compatible/);assert.equal(p.element.src,source('b')+'&representation=compatible');
+ p.videoEvent('onError');p.render();assert.doesNotMatch(p.mediaKey,/representation=compatible/);
+ p.videoEvent('onError');p.render();assert.equal(p.mediaKey,originalKey);p.unmount();
+});
+test('renewal does not leave an active fallback or restart it after a manual pause',()=>{
+ const cap=n=>'https://media.example/functions/v1/media-content/post-media/fixture/video.mp4?token='+n.repeat(64);
+ const s=scenario(),p=s.mount({src:cap('a'),edit:{generatedPosterV1:true},sourceVersion:'v1',mediaId:'enrolled'});
+ p.intersect(1);p.videoEvent('onError');p.render();assert.doesNotMatch(p.mediaKey,/representation=compatible/);
+ p.key('k');assert.equal(p.element.paused,true);const plays=p.element.playCalls, key=p.mediaKey;
+ p.update({src:cap('b')});p.intersect(.7);p.intersect(1);assert.equal(p.mediaKey,key);assert.equal(p.element.playCalls,plays);assert.equal(p.element.paused,true);p.unmount();
+});

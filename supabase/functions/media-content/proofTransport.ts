@@ -1,6 +1,6 @@
 import { serviceRoleFetch } from '../_shared/serviceRoleFetch.ts';
 
-export type ProofStage = 'authorization' | 'revalidation' | 'variant_selection' | 'variant_revalidation';
+export type ProofStage = 'authorization' | 'revalidation' | 'variant_selection' | 'variant_revalidation' | 'scoped_authorization' | 'scoped_revalidation';
 type Attempt = { stage: ProofStage; number: number; started: number; sent?: number; headers?: number; finished?: number; status?: number; result?: 'ok' | 'refused' | 'error' | 'transport_timeout' | 'cancelled' };
 export type ProofBudget = { until: number; retried: boolean; attempts: Attempt[] };
 export function proofDiagnostics(budget: ProofBudget, now = Date.now()) {
@@ -23,7 +23,8 @@ export function createProofTransport(fetcher: typeof fetch, serviceKey: string, 
     const signal=init?.signal; const t=signal && active.get(signal);
     if(!t) return ordinary(input,init);
     const grant = t.sample.stage==='authorization' || t.sample.stage==='revalidation';
-    const expected = grant ? 'resolve_media_delivery' : 'resolve_media_variant_for_ticket_v1';
+    const scoped=t.sample.stage==='scoped_authorization'||t.sample.stage==='scoped_revalidation';
+    const expected = scoped?'read_post_representation_v1':grant ? 'resolve_media_delivery' : 'resolve_media_variant_for_ticket_v1';
     const url=new URL(input instanceof Request ? input.url : String(input));
     if((init?.method ?? (input instanceof Request ? input.method : 'GET')).toUpperCase()!=='POST' || url.pathname!==`/rest/v1/rpc/${expected}`) throw Error('Unexpected media proof operation');
     return bind(async (url,options) => {
@@ -47,7 +48,7 @@ export function createProofTransport(fetcher: typeof fetch, serviceKey: string, 
         // shared by BOTH grant proofs, inside the original overall startup deadline. Variants remain single-attempt.
         const timedOut=result.status===0 && trace.signal?.aborted && trace.signal.reason?.name==='TimeoutError' && (sample.status===undefined || (sample.status>=200 && sample.status<300));
         sample.result=timedOut?'transport_timeout':'error';
-        if(timedOut && n===1 && !budget.retried && (stage==='authorization'||stage==='revalidation') && budget.until-Date.now()>=1000) {budget.retried=true;continue;}
+        if(timedOut && n===1 && !budget.retried && (stage==='authorization'||stage==='revalidation'||stage==='scoped_authorization'||stage==='scoped_revalidation') && budget.until-Date.now()>=1000) {budget.retried=true;continue;}
         throw Error('Media proof unavailable');
       } finally {sample.finished=Date.now();sample.result??=parent.aborted?'cancelled':'error';active.delete(signal);}
     }

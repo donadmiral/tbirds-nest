@@ -65,19 +65,31 @@ export function VideoPlayer(props: Props) {
 }
 function BoundRepresentationPlayer({representations,...props}:Props&{representations:{poster:string;compatible:string}}){
   const allowed=useBoundPostVideo(props.src);const [failed,setFailed]=useState<string|null>(null);
+  const pending=useRef<{url:string;scope:string}|null>(null);
   if(!allowed)return <div aria-label="Video unavailable"/>;
-  const compatible=failed!==representations.compatible;
-  return renderVideoPlayer({...props,src:compatible?representations.compatible:props.src,poster:props.edit?.coverUrl||props.edit?.thumbnail||representations.poster},compatible?()=>setFailed(representations.compatible):undefined);
+  const nav=getNavigationStore(),scope=nav.getSnapshot().scope;
+  const choice=JSON.stringify([props.postId,props.mediaId,props.sourceVersion,imageDisplayIdentity(representations.compatible,process.env.NEXT_PUBLIC_SUPABASE_URL??'')]);
+  const compatible=failed!==choice;
+  // Grant renewal must not interrupt a working or manually paused original. Only an active delivery failure
+  // or the explicit Retry control can switch this mounted item back and forth. Each switch carries one intent.
+  const switchTo=(preferCompatible:boolean)=>{
+    if(!scope || scope!==nav.getSnapshot().scope)return;
+    pending.current={url:preferCompatible?representations.compatible:props.src,scope};
+    setFailed(preferCompatible?null:choice);
+  };
+  const src=compatible?representations.compatible:props.src;
+  const consumeIntent=()=>{const intent=pending.current;pending.current=null;return !!intent && intent.url===src && intent.scope===nav.getSnapshot().scope;};
+  return renderVideoPlayer({...props,src,poster:props.edit?.coverUrl||props.edit?.thumbnail||representations.poster},compatible?()=>switchTo(false):undefined,compatible?undefined:()=>switchTo(true),consumeIntent);
 }
-function renderVideoPlayer(props: Props,onRepresentationError?:()=>void) {
+function renderVideoPlayer(props: Props,onRepresentationError?:()=>void,retryPreferred?:()=>void,consumeIntent?:()=>boolean) {
   // Strip only a recognized first-party capability token from the view identity.
   // Never send this identity as a request or use it to authorize a different object.
   const identity = props.sourceVersion ? imageDisplayIdentity(props.src, process.env.NEXT_PUBLIC_SUPABASE_URL ?? '') : props.src;
   const mediaKey = JSON.stringify([props.postId, props.mediaId, props.sourceVersion, identity]);
-  return <VideoPlayback key={mediaKey} mediaKey={mediaKey} onRepresentationError={onRepresentationError} {...props} />;
+  return <VideoPlayback key={mediaKey} mediaKey={mediaKey} onRepresentationError={onRepresentationError} retryPreferred={retryPreferred} consumeIntent={consumeIntent} {...props} />;
 }
 
-function VideoPlayback({ src: latestSource, onRepresentationError, mediaKey, postId, sourceVersion, viewsCount, width, height, onDims, immersive = false, fullFrame = false, edit = null, onExpand, allowPlayback = true, soundtrack=null,poster=null,mediaOverlay }: Props & { mediaKey: string; onRepresentationError?:()=>void }) {
+function VideoPlayback({ src: latestSource, onRepresentationError, retryPreferred, consumeIntent, mediaKey, postId, sourceVersion, viewsCount, width, height, onDims, immersive = false, fullFrame = false, edit = null, onExpand, allowPlayback = true, soundtrack=null,poster=null,mediaOverlay }: Props & { mediaKey: string; onRepresentationError?:()=>void; retryPreferred?:()=>void; consumeIntent?:()=>boolean }) {
   const ref = useRef<WebVideo | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const viewportRef = useRef<HTMLDivElement | null>(null);
@@ -311,6 +323,11 @@ function VideoPlayback({ src: latestSource, onRepresentationError, mediaKey, pos
     };
   }, []);
 
+  // Start only after this mount has installed its source ownership and session cleanup.
+  useEffect(()=>{
+    if(consumeIntent?.() && !document.hidden && !pausedByUser.current && !wantsPlayback.current)playNow(true);
+  },[consumeIntent,playNow]);
+
   function togglePlay() {
     if (ref.current?.paused) playNow(true);
     else { pausedByUser.current = true; stop(); }
@@ -488,7 +505,7 @@ function VideoPlayback({ src: latestSource, onRepresentationError, mediaKey, pos
       {!playing && !failed && allowPlayback ? <button type="button" onClick={() => playNow(true)} aria-label="Play video" className={"absolute left-1/2 top-1/2 z-[5] flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-ink/70 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-pearl"}><Play size={24} /></button> : null}
       {failed ? <div role="status" className="absolute inset-x-3 top-3 z-10 rounded-xl bg-black/85 p-4 text-center text-sm text-white">
         <p>This video could not load. Check your connection or try again.</p>
-        <button type="button" className="mt-2 rounded-full border border-white/40 px-4 py-2" onClick={() => { setFailed(false); setNotice(""); ref.current?.load(); playNow(true); }}>Retry video</button>
+        <button type="button" className="mt-2 rounded-full border border-white/40 px-4 py-2" onClick={() => { if(!allowPlayback || sessionRevoked.current || document.hidden || document.documentElement.dataset.platinumCallActive==='true')return; if(retryPreferred){retryPreferred();return;} setFailed(false); setNotice(""); ref.current?.load(); playNow(true); }}>Retry video</button>
       </div> : null}
       {typeof viewsCount === "number" && viewsCount > 0 && !failed ? <span className="absolute left-2 top-2 flex items-center gap-1 rounded-md bg-ink/60 px-1.5 py-0.5 text-[11px] text-white"><Eye size={12} /> {viewsCount >= 1000 ? (viewsCount / 1000).toFixed(1).replace(/\.0$/, "") + "K" : viewsCount}</span> : null}
       <div className={expanded ? "relative flex shrink-0 flex-col gap-1 bg-[#0b0b0d] px-3 pb-3 pt-2" : "absolute inset-x-0 bottom-0 flex flex-col gap-1 bg-gradient-to-t from-black/90 to-transparent px-2 pb-1 pt-4 opacity-100 transition-opacity focus-within:opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus:opacity-100"} onClick={(e) => e.stopPropagation()}>

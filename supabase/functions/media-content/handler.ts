@@ -11,7 +11,7 @@ type Dependencies = {
   resolveVariant?(token: string, bucket: string, path: string, version: string, signal: AbortSignal, stage:'variant_selection'|'variant_revalidation', budget:ProofBudget): Promise<{
     bucket: string; path: string; version: string; etag: string; sourceVersion: string;
   } | { unavailable: true } | null>;
-  readRepresentation?(token:string,bucket:string,path:string,version:string|null,kind:'poster'|'compatible',signal:AbortSignal): Promise<
+  readRepresentation?(token:string,bucket:string,path:string,version:string|null,kind:'poster'|'compatible',signal:AbortSignal,stage:'scoped_authorization'|'scoped_revalidation',budget:ProofBudget): Promise<
     ({bytes:number;jpeg:string;hash:string} | {bucket:string;path:string;version:string;etag:string}) & {sourceVersion:string;sourcePath:string;sourceBucket:string;expiresAt:string} | null>;
   fetch: typeof fetch;
   randomId?(): string;
@@ -135,8 +135,8 @@ export function createMediaContentHandler(deps: Dependencies) {
       if (representation !== null && (url.searchParams.getAll('representation').length !== 1 || !['poster','compatible'].includes(representation) || bucket!=='post-media')) {stop('complete');return error(400);}
       // One RPC couples the original ticket proof with the approved derivative.
       const scopedKind=representation==='poster'||representation==='compatible'?representation:null;
-      const readScoped=(version:string|null)=>deps.readRepresentation?.(token,bucket,path,version,scopedKind!,controller.signal)??Promise.resolve(null);
-      const scoped=scopedKind?await measure('authorization',()=>readScoped(null)):null;
+      const readScoped=(version:string|null,phase:'scoped_authorization'|'scoped_revalidation')=>deps.readRepresentation?.(token,bucket,path,version,scopedKind!,controller.signal,phase,proof)??Promise.resolve(null);
+      const scoped=scopedKind?await measure('scoped_authorization',()=>readScoped(null,'scoped_authorization')):null;
       if(scopedKind && (!scoped||scoped.sourceBucket!==bucket||scoped.sourcePath!==path||!scoped.sourceVersion)){stop('complete');return error(403);}
       const grant=scoped?{bucket,path,version:scoped.sourceVersion,expiresAt:scoped.expiresAt}
         :await measure('authorization',()=>deps.resolve(token,bucket,path,controller.signal,'authorization',proof));
@@ -155,7 +155,7 @@ export function createMediaContentHandler(deps: Dependencies) {
       }
       const chooseVariant = async(phase:'variant_selection'|'variant_revalidation') => {
         if(representation==='compatible'){
-          const asset=phase==='variant_selection'?scoped:await measure(phase,()=>readScoped(grant.version));
+          const asset=phase==='variant_selection'?scoped:await measure('scoped_revalidation',()=>readScoped(grant.version,'scoped_revalidation'));
           if(asset && (asset.sourceVersion!==grant.version||asset.sourcePath!==path||asset.sourceBucket!==bucket))return {unavailable:true as const};
           return asset && 'path' in asset ? asset : {unavailable:true as const};
         }
