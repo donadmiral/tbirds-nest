@@ -49,5 +49,16 @@ The separate expanded *home-feed* benchmark did not pass on this runner; it does
 The [follow and guest notification receipt](live-follow-and-decisions.json) distinguishes a delivered in-app activity record from an actual physical-device push. QA repeated public follow/unfollow four times, repeated a private request twice and got exactly one pending request, then cancelled it. The wrong host, both blocking directions, invite-only denial, and expired session were refused. Accepted and declined decisions each produced one eligible private notification, duplicate commands produced no extra rows, and opt-outs were respected. Disposable SQL fixtures rolled back without calling an outside provider or notifying real users. The previously cited expanded feed figures are retained [separately](separate-feed-check.json).
 
 
+The first full CI rerun also invoked the native PostgreSQL check in the generic phone job, where its disposable database does not exist. The test correctly refused to run there. Revision 500823c moved the unchanged assertions outside the portable wildcard while preserving their mandatory invocation in the three-connection PostgreSQL job. No mobile code or admission guard changed.
+
 ## Native delivery
 The [iOS simulator](https://github.com/donadmiral/tbirds-nest/actions/runs/42274895237) passed native decoding, rendering and lifecycle checks on the exact mobile source, 6c5ca49, on attempt two. The prior attempt was cancelled before it received a Mac or ran tests. [The normal internal build workflow](https://github.com/donadmiral/tbirds-nest/actions/runs/42274895251) was resumed after the simulator and type checks passed. A completed internal package is not a public store update or physical-device acceptance.
+
+## Final installable builds
+
+Both final internal QA builds finished. The source-to-build link, gate runs and build IDs were checked against the build receipts. The iOS simulator and native quality gates passed before submission. The earlier GitHub runner timeout did not create an Expo build.
+
+- [iPhone QA build 41](https://expo.dev/accounts/donadmiral/projects/platinum-circles/builds/1ecf766b-3a28-4529-b026-e3a2da2b9711)
+- [Android QA build 10](https://expo.dev/accounts/donadmiral/projects/platinum-circles/builds/19e82621-8758-484a-9344-544d45aa40f3)
+
+These use the QA environment. Neither build was submitted to an app store or installed on a physical phone as part of this release. [Build receipts](internal-mobile-builds.json).

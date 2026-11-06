@@ -1,0 +1,30 @@
+{
+  "source": "6c5ca49f36aef0dfd9323251d320562e7dec9974",
+  "workflowUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/42274895251",
+  "attempt": 2,
+  "profile": "internal preview",
+  "ios": {
+    "status": "FINISHED",
+    "platform": "IOS",
+    "source": "6c5ca49f36aef0dfd9323251d320562e7dec9974",
+    "qualityRunId": 42274895308,
+    "gradedHLSRunId": 42274895237,
+    "buildId": "1ecf766b-3a28-4529-b026-e3a2da2b9711",
+    "installPage": "https://expo.dev/accounts/donadmiral/projects/platinum-circles/builds/1ecf766b-3a28-4529-b026-e3a2da2b9711",
+    "buildNumber": "41",
+    "jobId": 128107416895,
+    "finishedReceiptAt": "2026-11-06T19:39:45.8633409Z"
+  },
+  "android": {
+    "status": "FINISHED",
+    "platform": "ANDROID",
+    "source": "6c5ca49f36aef0dfd9323251d320562e7dec9974",
+    "qualityRunId": 42274895308,
+    "gradedHLSRunId": 42274895237,
+    "buildId": "19e82621-8758-484a-9344-544d45aa40f3",
+    "installPage": "https://expo.dev/accounts/donadmiral/projects/platinum-circles/builds/19e82621-8758-484a-9344-544d45aa40f3",
+    "buildNumber": "10",
+    "jobId": 128107416378,
+    "finishedReceiptAt": "2026-11-06T19:59:57.8533582Z"
+  }
+}
