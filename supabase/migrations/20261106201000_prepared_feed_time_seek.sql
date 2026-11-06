@@ -31,4 +31,11 @@ begin
  execute replace(pg_get_functiondef(selector),original,replace(original,batch,replacement));
 end $migration$;
 
+-- On a large catalog a generic plan can intersect a whole timestamp range
+-- with a whole day via two bitmap scans, recheck thousands of rows under RLS
+-- and then sort them to get 64. The ordered index already contains the full
+-- continuation key. Scope this preference to the bounded ranking function.
+alter function prepared_feed.select_page(text,double precision,uuid,integer)
+ set enable_bitmapscan=off;
+
 commit;

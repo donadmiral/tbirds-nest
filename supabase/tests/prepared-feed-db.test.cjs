@@ -459,7 +459,9 @@ test('a chronological continuation seeks past tied posts under the worker RLS po
    select ('10000000-0000-4000-8000-'||lpad((980000+n)::text,12,'0'))::uuid,
     '${OWNER}','Time seek',date_trunc('day',now())-interval '12 hours'+make_interval(secs=>n/8)
    from generate_series(1,2048)n;analyze feed_ranking.catalog;analyze posts;`);
-  await exec("set local plan_cache_mode=force_generic_plan;set local enable_seqscan=off;set local enable_bitmapscan=off;set role prepared_feed_reader;");
+  const [{config}]=await rows("select proconfig config from pg_proc where oid='prepared_feed.select_page(text,double precision,uuid,integer)'::regprocedure");
+  assert.ok(config.includes('enable_bitmapscan=off'));
+  await exec("set local plan_cache_mode=force_generic_plan;set local enable_bitmapscan=off;set role prepared_feed_reader;");
   const cursor=(await rows(`select bucket::text, created_at::text,post_id from feed_ranking.catalog
    where post_id='${id(980513)}'`))[0];
   const predicate='(c.created_at,c.post_id)<($2,$3)';
