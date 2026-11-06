@@ -67,6 +67,7 @@ for (const {script, env = {}} of [
   {script: '../discover-media-projections.test.cjs', env: {PLATINUM_VISUAL_RELEASE: '1'}},
   {script: './test-live-control-plane.mjs'},
   {script: './test-live-guest-requests.mjs'},
+  {script: './test-live-reaction-batches.mjs'},
   {script: './test-live-capacity-standard.mjs'},
   {script: './test-live-clips.mjs'},
   {script: './test-live-interactivity.mjs'},
