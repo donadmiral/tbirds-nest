@@ -160,16 +160,16 @@ async function canonicalIds(mode){
  }
  return expected;
 }
-async function boundaryFixture(check, equalScores=false){
+async function boundaryFixture(check, equalScores=false, budget=64, postCount=80){
  await admin();await exec('begin;');
  try{
   await exec(`truncate posts cascade;delete from follows;
    insert into posts(id,user_id,content,created_at,likes_count,channel)
    select ('10000000-0000-4000-8000-'||lpad((970000+n)::text,12,'0'))::uuid,
     ('10000000-0000-4000-8000-'||lpad((200+n)::text,12,'0'))::uuid,
-    'Boundary proof',now()-interval '1 hour',${equalScores?'1':'n'},'home' from generate_series(1,80)n;`);
+    'Boundary proof',now()-interval '1 hour',${equalScores?'1':'n'},'home' from generate_series(1,${postCount})n;`);
   let definition=(await rows("select pg_get_functiondef('prepared_feed.select_page(text,double precision,uuid,integer)'::regprocedure) definition"))[0].definition;
-  definition=definition.replace('maximum_candidates constant integer:=10000','maximum_candidates constant integer:=64');
+  definition=definition.replace('maximum_candidates constant integer:=10000','maximum_candidates constant integer:='+budget);
   // Remove only the conservative float padding in this test variant to put
   // the remaining raw bound exactly on the last selected score.
   if(equalScores)definition=definition.replaceAll('*(1.0+1e-12)','');
@@ -190,6 +190,14 @@ test('an unproven final boundary still falls back without another fetch',narrowO
   const page=(await rows("select prepared_feed.select_page('for_you',null,null,80) result"))[0].result;
   assert.equal(page.fallback,true);assert.equal(page.reason,'proof_budget');assert.equal(page.candidates,64);
  });
+});
+test('larger sorted batches retain the final 128-ID proof allowance',narrowOnly,async()=>{
+ const budget=620;
+ await boundaryFixture(async()=>{
+  const page=(await rows("select prepared_feed.select_page('for_you',null,null,200) result"))[0].result;
+  assert.equal(page.fallback,true);assert.equal(page.reason,'proof_budget');
+  assert.ok(page.candidates>=budget && page.candidates<=budget+127);
+ },true,budget,1000);
 });
 test('a remaining bound equal to the selected score cannot pass the strict proof',narrowOnly,async()=>{
  await boundaryFixture(async()=>{
