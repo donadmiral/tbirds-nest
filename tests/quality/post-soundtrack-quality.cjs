@@ -40,12 +40,21 @@ function publicationFixture({failTable,loseTable,failUpload=0,switchOnTable,musi
    supabase:{auth:{getSession:async()=>({data:{session:{user:{id:owner},access_token:'token'}}})},
     from(table){return{async upsert(data,options){calls.push(table);if(failTable===table&&!failed){failed=true;return{error:new Error('Disconnected')};}rows[table]??=new Map();for(const row of data){const key=options.onConflict.split(',').map(k=>row[k]).join('|');if(!rows[table].has(key))rows[table].set(key,row);}if(switchOnTable===table)owner='other';if(loseTable===table&&!failed){failed=true;return{error:new Error('Response lost')};}return{error:null};}};},rpc:async()=>({error:null})},
    ensureUploadSafe:async(uri)=>({uri,mime:'image/jpeg',ext:'jpg'}),safeExtFromUri:()=> 'jpg',
-   fetch:async(url)=>{uploads.push(url);if(failUpload===uploads.length)return{ok:false,status:503};return{ok:true};},
+   fetch:async(url)=>{uploads.push(url);return new Response(null,{status:failUpload===uploads.length?503:200});},
    FormData:class{append(){}},AbortController,process:{env:{EXPO_PUBLIC_SUPABASE_URL:'https://first.party',EXPO_PUBLIC_SUPABASE_ANON_KEY:'anon'}},
    VideoThumbnails:{getThumbnailAsync:async()=>({uri:'file://cover.jpg'})},Haptics:{notificationAsync:async()=>{},NotificationFeedbackType:{Success:1}},
    feedListRef:{current:null},Keyboard:{dismiss(){}},loadFeed(){},Alert:{alert:(...args)=>alerts.push(args)},
    setTimeout:()=>1,clearTimeout(){},
  };
+ // Execute the same upload adapter as the screen with a small local fixture file.
+ const modules = {
+   'expo-file-system': { File: class { size = 128; } }, 'expo/fetch': {},
+   './resumableUpload': { STORAGE_CHUNK_BYTES: 6 * 1024 * 1024 },
+   './supabase': { SUPABASE_URL: context.process.env.EXPO_PUBLIC_SUPABASE_URL, SUPABASE_ANON_KEY: 'anon' },
+ };
+ const transport = { ...context, exports: {}, require: name => modules[name] };
+ vm.runInNewContext(compile(fs.readFileSync(path.join(root,'src/services/uploadNativeFile.ts'),'utf8')), transport);
+ context.uploadNativeFile = transport.exports.uploadNativeFile;
  for(const name of ['setPostConfirmed','setPostProgress','setComposerReview','setSelectedComposerMedia','setPosting','setPublicationLocked','setMusicOpen','setComposerOpen','setComposerText','setComposerMedia','setComposerSoundtrack','setExclusivePost','setComposerProducts','setInnovationPost','setPostAudience','setCommentPolicy','setComposerSensitive','setCollabPicks','setPollOpts','setPollDays','setQuotingPost','setThreadingPost'])context[name]=()=>{};
  vm.runInNewContext(compile(text.slice(start,end)+'\nthis.publish=createPost;'),context);
  return{context,rows,calls,alerts,uploads,restoreOwner(){owner='owner';},switchAuthor(){author='business';}};

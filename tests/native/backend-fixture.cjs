@@ -178,9 +178,12 @@ function createFixture(onChange = () => {}, { feedVideoSource, immersiveLive = f
       const session = liveSessions.find(item => item.id === args.p_session_id);
       if (!session) return undefined;
       const manages = session.id === liveIds[1] && owner === OWNER;
+      const ownRequest = liveRequests.get(session.id + ':' + owner) || null;
       return { session, role: manages ? 'producer' : 'viewer', capabilities: { view: true, chat: true },
         chat_topic: liveTopic(session.id), guest_topic: '', pinned_message: null,
-        own_join_request: liveRequests.get(session.id + ':' + owner) || null,
+        own_join_request: ownRequest,
+        can_request_join: !manages && ['live', 'reconnecting'].includes(session.state)
+          && !['pending', 'accepted', 'declined'].includes(ownRequest?.status),
         join_requests: manages ? [...liveRequests.entries()].filter(([key]) => key.startsWith(session.id + ':')).map(([,row]) => row) : [],
         members: manages ? liveMembers : [], stage: { maximum: 12, occupied: 1 + liveMembers.length, available: 11 - liveMembers.length } };
     }
@@ -222,6 +225,13 @@ function createFixture(onChange = () => {}, { feedVideoSource, immersiveLive = f
     }
     if (name === 'get_feed' || name === 'get_discover_page' || name === 'get_trending_feed') return args.p_cursor_id || args.p_offset ? [] : posts;
     if (name === 'get_feed_visibility') return (args.p_ids || []).map(post_id => ({ post_id, snapshot_eligible: true }));
+    if (immersiveLive && owner === OWNER && plainArgs && name === 'feed_block_exists'
+      && Object.keys(args).length === 1 && liveSessions.some(room => room.host.id === args.p_author)) return false;
+    if (immersiveLive && owner === OWNER && plainArgs && name === 'get_profile' && Object.keys(args).length === 1) {
+      const host = liveSessions.find(room => room.host.id === args.p_profile_id)?.host;
+      if (host) return { ...host, viewer_follows: rows.follows.some(row => row.follower_id === owner && row.following_id === host.id),
+        viewer_requested: rows.follow_requests.some(row => row.requester_id === owner && row.target_id === host.id) };
+    }
     if (name === 'get_profile') return profiles.find(profile => profile.id === args.p_profile_id) || null;
     if (name === 'get_my_actors') return [{ ...profiles.find(profile => profile.id === owner), actor_type: 'personal', is_self: true }];
     if (name === 'get_profile_posts_page') return posts.filter(post => post.author_id === args.p_profile_id);

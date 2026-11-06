@@ -149,7 +149,7 @@ function load(file, imports) {
   return module.exports;
 }
 
-function runtime({ initialization, recorder } = {}) {
+function runtime({ initialization, recorder, playback = { session:null, expanded:false, close() {} } } = {}) {
   const fixture = createFixture(), effects = [], states = [];
   if (recorder) fixture.recordCaptureBoundary = recorder;
   const session = { user: { id: OWNER }, refresh_token: 'private-synthetic-token' };
@@ -172,6 +172,7 @@ function runtime({ initialization, recorder } = {}) {
   const Screen = load('tests/native/MemoryCaptureFixtureScreen.tsx', {
     react: React, 'react-native': { StyleSheet: { create: value => value }, View: 'View', Text: 'Text', TouchableOpacity: 'TouchableOpacity' },
     '../../src/components/memory/MemoryMovieExport': () => null,
+    '../../src/contexts/LivePlaybackContext': { useLivePlayback: () => playback },
     '../../src/stores/authStore': { useAuthStore: authStore }, '../../src/stores/accountsStore': { useAccountsStore: accountsStore },
     './memory-fixture.cjs': require('../native/memory-fixture.cjs'), './fixture-runtime.cjs': { fixtureRuntime: () => fixture },
     './memory-capture-observer.cjs': { getStatus: () => 'ready', subscribe: () => () => {} },
@@ -181,6 +182,14 @@ function runtime({ initialization, recorder } = {}) {
     mount() { const rendered = Screen(); const cleanup = effects.map(effect => effect()); return { rendered, cleanup }; },
     get initializations() { return initializations; } };
 }
+
+test('entering the independent capture fixture dismisses a leftover minimized Live player', async () => {
+  let closes = 0;
+  const r = runtime({ playback: { session: { id: 'previous-live' }, expanded: false, close() { closes++; } } });
+  r.mount();
+  await flush();
+  assert.equal(closes, 1);
+});
 
 test('actual capture component and readback helper record mount and one pending init before completion', async () => {
   let release;

@@ -26,11 +26,18 @@ test('native immersive journey uses actual SDK contracts for story presence, rep
   const command = (id, action, payload = {}) => client.rpc('live_command', { p_session_id: id, p_action: action, p_payload: payload,
     p_request_id: '99000000-0000-4000-8000-' + String(++sequence).padStart(12, '0') });
   assert.equal((await detail(viewer)).data.role, 'viewer');
+  assert.equal((await detail(viewer)).data.can_request_join, true);
+  assert.equal((await client.rpc('feed_block_exists', { p_author: PEER })).data, false);
+  const host = (await client.rpc('get_profile', { p_profile_id: PEER })).data;
+  assert.equal(host.viewer_follows, false); assert.equal(host.viewer_requested, false);
   assert.equal((await command(viewer, 'request_join')).data.ok, true);
   assert.equal((await detail(viewer)).data.own_join_request.status, 'pending');
+  assert.equal((await detail(viewer)).data.can_request_join, false);
   assert.equal((await command(viewer, 'cancel_join_request')).data.ok, true);
   assert.equal((await detail(viewer)).data.own_join_request, null);
+  assert.equal((await detail(viewer)).data.can_request_join, true);
   const producerState = (await detail(producer)).data;
+  assert.equal(producerState.can_request_join, false);
   assert.equal(producerState.role, 'producer'); assert.equal(producerState.join_requests[0].user_id, PEER);
   assert.equal((await command(producer, 'accept_join_request', { user_id: PEER })).data.ok, true);
   assert.equal((await detail(producer)).data.members[0].status, 'accepted');

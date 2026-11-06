@@ -1,6 +1,7 @@
 import React,{useEffect,useState} from 'react';
 import {StyleSheet,Text,TouchableOpacity,View} from 'react-native';
 import MemoryMovieExport from '../../src/components/memory/MemoryMovieExport';
+import {useLivePlayback} from '../../src/contexts/LivePlaybackContext';
 import {useAuthStore} from '../../src/stores/authStore';
 import {useAccountsStore} from '../../src/stores/accountsStore';
 import type {MemoryBook} from '../../shared/memoryBookModels';
@@ -13,6 +14,9 @@ import {observeCaptureBoundary} from './capture-boundary-trace.cjs';
 /** Registered only by the guarded disposable native UI preparation. The actual
  * AppNavigator supplies its real account, call and safe-area providers. */
 export default function MemoryCaptureFixtureScreen(){
+ const {session:liveSession,expanded,close}=useLivePlayback();
+ // Each acceptance flow records its own result even if a prior Live flow failed.
+ useEffect(()=>{if(liveSession&&!expanded)close();},[liveSession,expanded,close]);
  const owner=useAuthStore(state=>state.session?.user.id);
  const [open,setOpen]=useState(false),[status,setStatus]=useState(getStatus);
  const [book]=useState(()=>memoryBook() as MemoryBook);
