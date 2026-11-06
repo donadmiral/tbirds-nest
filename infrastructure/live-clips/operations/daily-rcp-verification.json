@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-11-03",
+  "result": "STORAGE_VERIFIED",
+  "evidence_source": "Root operator's actual AWS and Daily results, with independent local comparison of the saved proposed and applied policies.",
+  "scope": {
+    "management_account_id": "481552727043",
+    "project_account_id": "518317808503",
+    "organization_id": "o-u8vc1j1p9n",
+    "root_id": "r-0jo2",
+    "policy_id": "p-02ee9yrf9f",
+    "policy_name": "ManagedAccountResourceControlPolicy",
+    "policy_type": "RESOURCE_CONTROL_POLICY",
+    "aws_managed": false,
+    "attachment": "Root r-0jo2; project account directly beneath that root",
+    "daily_account_id": "291871421005",
+    "role_arn": "arn:aws:iam::518317808503:role/platinum-live-production-DailyWriter-3ZGHqfqMNzKI",
+    "action": "sts:AssumeRole",
+    "external_id": "platinumcircles",
+    "trust_s3_permissions_and_attachments_changed": false
+  },
+  "review": {
+    "result": "PASS",
+    "local_predicate_contexts": 26568,
+    "changed_results_only_exact_daily_exception": true,
+    "non_sts_controls_preserved": true,
+    "aws_source_condition_preserved": true,
+    "local_comparison_is_not_aws_authorization_simulation": true,
+    "before_file": "daily-rcp-before.json",
+    "before_file_sha256": "81b76b26e4640f3bdbc62d2e94549579dea071e0596b0ea1b06a7c6b71323ea7",
+    "before_compact_sha256": "16b104b6bb667245be8c093031a9e3e6d71909fa15a1db810c287107ee4d9bb0",
+    "proposed_file": "daily-rcp-proposed.json",
+    "proposed_file_sha256": "dd449944e6764bd13cce88264cdae011335c28d800ac8fa53b876cbb510da5e9",
+    "proposed_compact_sha256": "a858991f29903d76516f8ee329b195323fa73b0041b7c9a2330ec0cee27dcbf1",
+    "proposed_compact_characters": 2825
+  },
+  "aws_validate_policy": {
+    "before": {
+      "errors": 0,
+      "warnings": 1
+    },
+    "proposed": {
+      "errors": 0,
+      "warnings": 1
+    },
+    "warning_unchanged_from_baseline": true,
+    "warning_scope": "Existing AWS SourceAccount condition; unrelated control preserved"
+  },
+  "application": {
+    "operation": "UpdatePolicy",
+    "succeeded": true,
+    "initial_strict_readback_match": false,
+    "initial_difference": "AWS converted singleton Action arrays to strings and reordered object keys",
+    "fresh_describe_policy_saved": true,
+    "applied_file": "daily-rcp-applied.json",
+    "applied_file_sha256": "0df26b15818ae189bb5b3faabaa6b387fc552f1c5f332bb37907b5885b5f710c",
+    "normalized_match": true,
+    "normalization": "Only Action strings become one-item lists and object-key ordering is ignored; statement and all other array order are preserved",
+    "normalized_proposed_and_applied_sha256": "2300c08a7e5dba76029443865366e0d887f7198c845ae84d4a65e3a0810718ee"
+  },
+  "daily_probe": {
+    "operation_id": "dc520325-ac10-4423-b09e-f8f58d35a9f4",
+    "request_id": 11513,
+    "created_at": "2026-11-03T16:28:08.980134Z",
+    "claimed_at": "2026-11-03T16:28:09.474766Z",
+    "finished_at": "2026-11-03T16:28:10.943038Z",
+    "state": "SUCCEEDED",
+    "result": "STORAGE_VERIFIED",
+    "configuration_matches": true,
+    "temporary_room_cleanup_confirmed": true
+  },
+  "s3_write_proof": {
+    "bucket": "platinum-live-production-livebucket-6v2z2lrobdn3",
+    "key": "daily-co-test-upload.txt",
+    "baseline_versions": 0,
+    "observed_new_versions": [
+      {
+        "version_id": "sA45o5Et2nmAuh2U.ZLcFL5hbq7ruWJS",
+        "bytes": 102,
+        "last_modified": "2026-11-03T16:28:11Z"
+      },
+      {
+        "version_id": "yx1ZJkQK6X3EQLcflSIawc5hiq3r0y8y",
+        "bytes": 102,
+        "last_modified": "2026-11-03T16:28:11Z"
+      }
+    ],
+    "test_object_version_cleanup_claimed": false
+  },
+  "rollback": {
+    "performed": false,
+    "target_policy_id": "p-02ee9yrf9f",
+    "exact_preimage_file": "daily-rcp-before.json",
+    "exact_preimage_file_sha256": "81b76b26e4640f3bdbc62d2e94549579dea071e0596b0ea1b06a7c6b71323ea7",
+    "procedure": "If an authorized rollback is needed, verify the current policy against the recorded applied form, restore the captured preimage to the same policy ID, preserve attachments and unrelated resources, and verify readback. Stop on unexpected drift."
+  },
+  "final_owner_test_enablement": {
+    "enabled_at": "2026-11-03T16:31:04.126452Z",
+    "updated_settings_rows": 1,
+    "update_guard": "Successful Daily STORAGE_VERIFIED operation and maintenance request 11517",
+    "live_settings": {
+      "create": true,
+      "stage": true,
+      "delivery": true,
+      "private_delivery": true,
+      "recording": true,
+      "max_active_broadcasts": 10,
+      "max_stage_members": 12
+    },
+    "existing_broadcast_and_stage_limits_retained": true,
+    "renderer": {
+      "enabled": true,
+      "max_active": 2
+    },
+    "maintenance": {
+      "request_id": 11517,
+      "http_status": 200,
+      "ok": true,
+      "provider_configuration_checks_true": 9,
+      "all_provider_configuration_checks_true": true,
+      "automatic_maintenance_execution_verified": false
+    },
+    "cron": {
+      "configured_active_job_ids": [
+        19,
+        20,
+        21
+      ],
+      "roles": [
+        "maintenance",
+        "worker",
+        "interaction_flush"
+      ],
+      "job_run_details_observed": false,
+      "previous_last_issued_at": "2026-11-03T04:56:06.269035Z",
+      "configured_status_is_not_execution_proof": true
+    },
+    "scope": "Enabled for owner testing; no real camera broadcast or scale acceptance performed"
+  },
+  "limits": {
+    "daily_storage_access_verified": true,
+    "broadcast_enablement": "Enabled for owner testing at 2026-11-03T16:31:04.126452Z",
+    "full_broadcast_acceptance": false,
+    "five_million_user_capacity_certified": false
+  }
+}

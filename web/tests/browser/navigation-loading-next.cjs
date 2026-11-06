@@ -64,18 +64,18 @@ async function main() {
     hold = true;
     await page.evaluate(() => {
       window.shellProbe = { started: performance.now(), frames: [], active: true };
-      const frame = () => { const p = window.shellProbe; if (!p.active) return; const root = document.querySelector('[data-navigation-loading]'); const chrome = [...document.querySelectorAll('[data-app-chrome]')].filter(node => node.getClientRects().length && node.getBoundingClientRect().width > 0); p.frames.push({ at: performance.now() - p.started, fallback: root?.getAttribute('data-navigation-loading') || null, chrome: chrome.length, path: location.pathname }); requestAnimationFrame(frame); }; requestAnimationFrame(frame);
+      const frame = () => { const p = window.shellProbe; if (!p.active) return; const root = document.querySelector('[data-navigation-loading]'); const chrome = [...document.querySelectorAll('[data-app-chrome]')].filter(node => node.getClientRects().length && node.getBoundingClientRect().width > 0); p.frames.push({ at: performance.now() - p.started, fallback: root?.getAttribute('data-navigation-loading') || null, profilePending: chrome.some(node => node.getAttribute('data-navigation-profile') === 'pending'), chrome: chrome.length, path: location.pathname }); requestAnimationFrame(frame); }; requestAnimationFrame(frame);
     });
     await page.getByRole('link', { name: 'Profile', exact: true }).first().click();
     await until(() => held.length > 0);
-    const pending = page.locator('[data-navigation-loading="verified"]'); await pending.waitFor({ timeout: 30000 });
-    assert.equal(await pending.locator('input,textarea,button').count(), 0);
-    assert.equal(await pending.locator('img[src*="token="]').count(), 0);
+    const pending = page.locator('aside[data-navigation-profile="pending"]'); await pending.waitFor({ timeout: 30000 });
+    assert.equal(await page.locator('[data-navigation-profile="pending"] :is(input,textarea,button)').count(), 0);
+    assert.equal(await page.locator('[data-navigation-profile="pending"] img[src*="token="]').count(), 0);
     await pending.getByRole('link', { name: 'Jobs', exact: true }).first().waitFor();
     const counts = () => requests.filter(row => row.path === '/rest/v1/notifications').length;
     await delay(300); const unreadBefore = counts(); await delay(350); assert.equal(counts(), unreadBefore);
     const frames = await page.evaluate(() => { window.shellProbe.active = false; return window.shellProbe.frames; });
-    const loadingFrames = frames.filter(frame => frame.fallback === 'verified');
+    const loadingFrames = frames.filter(frame => frame.profilePending);
     assert.ok(loadingFrames.length >= 5); assert.ok(loadingFrames.every(frame => frame.chrome >= 2));
     assert.ok(frames.every(frame => frame.chrome >= 2), 'Navigation remains visible in every sampled frame, including the handoff before the verified fallback.');
     await page.screenshot({ path: path.join(artifacts, 'held-profile-expanded.png') });
@@ -89,7 +89,7 @@ async function main() {
     await page.getByRole('link', { name: /^Notifications(?:, \d+ unread)?$/ }).first().click();
     await until(() => held.length > 0); await pending.waitFor({ timeout: 30000 });
     const geometry = await pending.evaluate(node => {
-      const sidebar = node.querySelector('aside').getBoundingClientRect(), main = node.querySelector('main').getBoundingClientRect();
+      const sidebar = node.getBoundingClientRect(), main = node.ownerDocument.querySelector('main').getBoundingClientRect();
       return { sidebarWidth: sidebar.width, sidebarRight: sidebar.right, mainLeft: main.left };
     });
     assert.equal(geometry.sidebarWidth, 76); assert.ok(geometry.mainLeft >= geometry.sidebarRight);

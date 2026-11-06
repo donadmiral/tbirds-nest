@@ -1,0 +1,23 @@
+{
+  "kind": "local-pglite-algorithm-diagnostic-not-capacity-proof",
+  "measuredAt": "2026-11-05T16:52:33.010Z",
+  "candidatePosts": 250130,
+  "viewer": "synthetic-100",
+  "baselineMilliseconds": 4854,
+  "candidateMilliseconds": 3148,
+  "candidates": 10036,
+  "resultCount": 200,
+  "fallback": false,
+  "exactCompleteJsonEqual": true,
+  "sourceFiles": {
+    "supabase/migrations/20261105160752_prepared_mass_integer_seek.sql": "bbe3dbbdfdf941d30c1c8ec416c2ff942fca4f22d5f717893389dc120af80739",
+    "supabase/migrations/20261105164113_prepared_statement_score_cache.sql": "4a334e63bc8fc41d920aa904c5a70012e938217f94df26e4a1df3ad74f94344c"
+  },
+  "productionCapacityEstablished": false,
+  "limitations": [
+    "WASM PGlite local algorithm A/B, not native PostgreSQL throughput or production measurement.",
+    "Same transaction, ranking instant and synthetic viewer for both ordered-result comparisons.",
+    "Recovered diagnostic fixture uses the earlier reviewed score body. The current hosted marketplace body is covered by the26-case regression and the native workload.",
+    "Original expanded native workload and shared worker policy still must pass."
+  ]
+}

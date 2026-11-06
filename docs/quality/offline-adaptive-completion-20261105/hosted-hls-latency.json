@@ -1,0 +1,142 @@
+{
+  "kind": "bounded_hls_latency",
+  "requests": [
+    {
+      "label": "original_range",
+      "status": 206,
+      "headerMs": 11611,
+      "headers": {
+        "server-timing": "authorization;dur=385, storage_headers;dur=451, revalidation;dur=235, first_byte;dur=1",
+        "x-vercel-id": null,
+        "x-vercel-cache": null,
+        "x-served-by": "supabase-edge-runtime",
+        "sb-region": null,
+        "x-sb-edge-region": "us-east-2",
+        "server": "envoy",
+        "date": "Thu, 05 Nov 2026 15:49:53 GMT",
+        "content-length": "1024",
+        "content-range": "bytes 0-1023/506091"
+      },
+      "bytes": 1024,
+      "totalMs": 11613
+    },
+    {
+      "label": "readiness_cold",
+      "status": 200,
+      "headerMs": 5493,
+      "headers": {
+        "server-timing": null,
+        "x-vercel-id": "cle1::sfo1::466cx-1793893797951-5de847fbc534",
+        "x-vercel-cache": "MISS",
+        "x-served-by": null,
+        "sb-region": null,
+        "x-sb-edge-region": null,
+        "server": "envoy",
+        "date": "Thu, 05 Nov 2026 15:49:58 GMT",
+        "content-length": "383",
+        "content-range": null
+      },
+      "bytes": 383,
+      "totalMs": 5493
+    },
+    {
+      "label": "readiness_warm",
+      "status": 200,
+      "headerMs": 5359,
+      "headers": {
+        "server-timing": null,
+        "x-vercel-id": "cle1::sfo1::xfmtb-1793893803979-8dda77ab99b4",
+        "x-vercel-cache": "MISS",
+        "x-served-by": null,
+        "sb-region": null,
+        "x-sb-edge-region": null,
+        "server": "envoy",
+        "date": "Thu, 05 Nov 2026 15:50:04 GMT",
+        "content-length": "383",
+        "content-range": null
+      },
+      "bytes": 383,
+      "totalMs": 5359
+    },
+    {
+      "label": "master_warm_first",
+      "status": 200,
+      "headerMs": 4220,
+      "headers": {
+        "server-timing": null,
+        "x-vercel-id": "cle1::sfo1::5mctd-1793893808219-a83cf33f220c",
+        "x-vercel-cache": "MISS",
+        "x-served-by": null,
+        "sb-region": null,
+        "x-sb-edge-region": null,
+        "server": "envoy",
+        "date": "Thu, 05 Nov 2026 15:50:08 GMT",
+        "content-length": "1013",
+        "content-range": null
+      },
+      "bytes": 1013,
+      "totalMs": 4221
+    },
+    {
+      "label": "master_warm_second",
+      "status": 200,
+      "headerMs": 4704,
+      "headers": {
+        "server-timing": null,
+        "x-vercel-id": "cle1::sfo1::596pp-1793893812934-a066c8b1904f",
+        "x-vercel-cache": "MISS",
+        "x-served-by": null,
+        "sb-region": null,
+        "x-sb-edge-region": null,
+        "server": "envoy",
+        "date": "Thu, 05 Nov 2026 15:50:13 GMT",
+        "content-length": "1013",
+        "content-range": null
+      },
+      "bytes": 1013,
+      "totalMs": 4704
+    }
+  ],
+  "ok": true,
+  "sourceHash": "c8bfa0f0d75f6b7fb22d7fea338d8de915bda2e9b2680c055953849fca90fa16",
+  "cleanup": {
+    "deletedTickets": 1
+  },
+  "checkedAt": "2026-11-05T15:50:20Z",
+  "baseline": [
+    {
+      "label": "no_route",
+      "status": 404,
+      "headerMs": 6021,
+      "server": "envoy",
+      "functionInvoked": false
+    },
+    {
+      "label": "invalid_path",
+      "status": 400,
+      "headerMs": 3951,
+      "server": "envoy",
+      "cacheBrokerOrSqlInvoked": false
+    }
+  ],
+  "providerObservability": {
+    "runtimeLogs": "No logs found for requested QA deployment",
+    "requestTrace": "not_found",
+    "metrics": "No usable phase duration returned by available query/schema tools"
+  },
+  "analysis": {
+    "transportBaseline": "Missing route 6021 ms and malformed gateway path 3951 ms use no cache, broker, or database. Executor-visible timings contain material transport/platform overhead.",
+    "originalTiming": "The 1024-byte original range reports 1072 ms across measured authorization, storage_headers, revalidation, and first_byte phases. This is not total handler duration because variant resolution is not a named timing phase.",
+    "gatewayWarmPath": "A valid authorization and asset cache hit performs two encrypted Runtime Cache reads and no broker RPC. CDN MISS is expected for private no-store capability responses and does not establish a Runtime Cache miss.",
+    "gatewayColdPath": "A cold authorization performs ticket and rendition broker requests. Each invokes broker authorization plus its operation RPC, totaling four top-level database RPC calls. Resolver internals also revalidate source access.",
+    "recommendation": "Keep current authorization and revocation windows. Real regional cold/warm device startup measurement remains unverified. Use nonidentifying gateway phase timing if targeted provider measurements require further attribution.",
+    "regions": {
+      "observedGatewayFunction": "sfo1",
+      "observedExecutorVercelIngress": "cle1",
+      "observedQaMediaContentEdge": "us-east-2",
+      "parentVerifiedProductionDatabase": "us-west-2",
+      "qaDatabase": "not independently verified"
+    },
+    "performanceClaim": "Functional HLS access, denial, and decoding passed separately. This probe does not establish instant HLS start or five-million-user capacity."
+  }
+}

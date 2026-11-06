@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "project_ref": "prlkikhckbifseosbukl",
+  "checked_at": "2026-11-03T05:05:04.783Z",
+  "fixture_session_id": "bea38e73-71f1-411d-ae0a-2a91974cea01",
+  "fixture_instance_id": "43168782-6130-4e5f-b56f-d66c341e9152",
+  "fixture_file_count": 5,
+  "acceptance_scope": "isolated_synthetic_cdn_delivery",
+  "provider_broadcast_verified": false,
+  "measured_capacity_verified": false,
+  "ok": false,
+  "passed": 1,
+  "total": 2,
+  "probes": [
+    {
+      "name": "signer_capability",
+      "ok": true,
+      "status": 200,
+      "elapsed_ms": 4093
+    },
+    {
+      "name": "hls_manifest_and_segments",
+      "ok": false,
+      "status": 200,
+      "elapsed_ms": 3704,
+      "error": "CORS_MISMATCH"
+    }
+  ]
+}

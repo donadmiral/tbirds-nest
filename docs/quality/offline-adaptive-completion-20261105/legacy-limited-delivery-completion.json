@@ -1,0 +1,54 @@
+{
+  "recordedAt": "2026-11-05T17:15:25.749903+00:00",
+  "migration": "supabase/migrations/20261105171030_legacy_limited_delivery_completion.sql",
+  "sha256": "11ea95965816defb36c4e2c7a0c92262d280c95809a0f9fb04e0ea79f5dc2ec8",
+  "generatedBy": "Supabase CLI migration new legacy_limited_delivery_completion",
+  "productionReadOnlyPreflight": {
+    "media_delivery_exists": true,
+    "require_session_exists": true,
+    "legacy_grants_exists": false,
+    "binding_trigger_exists": false,
+    "read_legacy_chat_media_exists": false,
+    "close_legacy_chat_media_exists": false
+  },
+  "implementation": "Exact QA-tested Oct29 source/session-binding table, insert trigger, read and close RPCs only. CREATE TABLE IF NOT EXISTS and CREATE OR REPLACE allow the same contract to be reapplied on QA.",
+  "preservation": [
+    "No existing grant is bound or upgraded.",
+    "No consume-counter, original open/claim function or original expiry is changed.",
+    "New grants pin current storage identity, version, owner, path and auth session.",
+    "Read rechecks current conversation manifest, exact source and original deadline.",
+    "Close only shortens the caller-owned original grant deadline.",
+    "Private-session cutover rejects installation and the legacy reader fails closed."
+  ],
+  "validation": {
+    "engine": "PGlite 0.5.10 executing the deployed chat contracts, the exact existing session helper and the full adaptive migration chain",
+    "testFile": "supabase/tests/private-hls-db.test.cjs",
+    "passed": 18,
+    "failed": 0,
+    "realPostgres17": "Passed all 18 cases in the preserved nativePostgres receipt.",
+    "hostedMutationPerformed": false,
+    "hostedMutationScope": "Historical local validation phase only. Completed production installation is recorded separately under productionPostflight."
+  },
+  "nativePostgres": {
+    "passed": true,
+    "version": "PostgreSQL 17",
+    "transport": "disposable local Unix socket",
+    "commit": "75078e4ab762c45a9acba0239bdc5a8b5bdcd173",
+    "runId": 42074151405,
+    "jobId": 127409722339,
+    "tests": 18,
+    "failed": 0,
+    "testSourceSha256": "449ef6f2c402bd701fd69419be9b31b82d80e09365d0ed6dabb20067f1a0a77e",
+    "sourceMatchesCurrentCheckout": true,
+    "verifiedAt": "2026-11-05T17:38:35.657699+00:00"
+  },
+  "productionPostflight": {
+    "installed": true,
+    "receipt": "private-media-production-rollout.json",
+    "legacyRls": true,
+    "authenticatedTableAccess": false,
+    "serviceRoleTableAccess": false,
+    "authenticatedReader": true,
+    "anonymousReader": false
+  }
+}

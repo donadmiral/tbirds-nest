@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "checked_at_utc": "2026-11-03T06:19:40.456477+00:00",
+  "account": "518317808503",
+  "region": "us-east-2",
+  "account_plan": {
+    "accountId": "518317808503",
+    "accountPlanType": "PAID",
+    "accountPlanStatus": "ACTIVE",
+    "accountPlanRemainingCredits": {
+      "amount": 120,
+      "unit": "USD"
+    }
+  },
+  "owner_ui": {
+    "advanced_activation_url": "https://settings.aws.com/projects/activate-advanced",
+    "upgrade_prerequisite_cleared": true,
+    "advanced_features_activated": false,
+    "owner_root_email_verification_pending": true,
+    "activation_irreversible": true,
+    "activation_removes_project_spend_limits": true,
+    "project_monthly_spend_limit_usd": 60,
+    "policy_management_not_yet_available": true
+  },
+  "transcribe_read": {
+    "transcribe_read_authorized": true,
+    "job_count": 0,
+    "jobs_started": false
+  },
+  "agent_actions": {
+    "paid_upgrade_submitted": false,
+    "payment_data_entered": false,
+    "advanced_activation_submitted": false,
+    "organization_policy_mutation": false,
+    "transcription_job_started": false
+  },
+  "supersedes": {
+    "receipt": "aws-owner-policy-review.json",
+    "fields": [
+      "current_plan",
+      "upgrade_required"
+    ],
+    "earlier_free_plan_transcribe_denial": "Historical; current ListTranscriptionJobs succeeded after the owner account change."
+  },
+  "daily": {
+    "previous_provider_result": "role_assumption_denied",
+    "attached_policy_verified": false,
+    "paid_upgrade_is_not_daily_acceptance": true
+  }
+}

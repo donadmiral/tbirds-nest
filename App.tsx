@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -8,8 +8,11 @@ import FlashMessage from 'react-native-flash-message';
 import AppNavigator from './src/navigation/AppNavigator';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { useAuthStore } from './src/stores/authStore';
-import { feedSnapshots } from './src/services/feedSnapshot';
-import { subscribeNavigationScope } from './src/lib/navigationCache';
+import { feedSnapshots, warmFeedSnapshots } from './src/services/feedSnapshot';
+import { navigationScope, subscribeNavigationScope } from './src/lib/navigationCache';
+import { startupSnapshots, waitForStartupSnapshots } from './src/services/startupSnapshots';
+import './src/services/startupContentSnapshots';
+import SplashLoader from './src/components/SplashLoader';
 import { useFonts } from 'expo-font';
 import { SpaceGrotesk_500Medium, SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk';
 import { Caveat_600SemiBold } from '@expo-google-fonts/caveat';
@@ -51,8 +54,22 @@ subscribeNavigationScope(() => {
   feedSnapshots.setAccount(useAuthStore.getState().session?.user.id ?? null);
 });
 
+function syncStartupAccount() {
+  const state = useAuthStore.getState();
+  // A not-yet-read session is not a sign-out. Keep the last owner's encrypted
+  // disk copy until authentication establishes the actual next account.
+  if (!state.initialized && !state.session) return;
+  void startupSnapshots.setAccount(state.session?.user.id ?? null, navigationScope());
+}
+useAuthStore.subscribe(syncStartupAccount);
+syncStartupAccount();
+
 export default function App() {
   const initialize = useAuthStore((state) => state.initialize);
+  const session = useAuthStore((state) => state.session);
+  const initialized = useAuthStore((state) => state.initialized);
+  const scope = navigationScope();
+  const [readyScope, setReadyScope] = useState<string | null | undefined>(undefined);
   useFonts({
     SpaceGrotesk_500Medium, SpaceGrotesk_700Bold, Caveat_600SemiBold,
     ArchivoBlack_400Regular, SpaceMono_400Regular,
@@ -67,13 +84,23 @@ export default function App() {
     return stop;
   }, [initialize]);
 
+  useEffect(() => {
+    if (!initialized) return;
+    let active = true;
+    const owner = session?.user.id ?? null;
+    const local = startupSnapshots.setAccount(owner, scope).then(() => owner
+      ? Promise.all([startupSnapshots.hydrate(owner), warmFeedSnapshots(owner)]) : undefined);
+    void waitForStartupSnapshots(local).then(() => { if (active) setReadyScope(scope); });
+    return () => { active = false; };
+  }, [initialized, scope, session?.user.id]);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <SafeAreaProvider>
             <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-            <AppNavigator />
+            {initialized && readyScope === scope ? <AppNavigator /> : <SplashLoader />}
             <FlashMessage position="top" floating />
           </SafeAreaProvider>
         </QueryClientProvider>

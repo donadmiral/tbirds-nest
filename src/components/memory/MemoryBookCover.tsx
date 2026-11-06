@@ -1,4 +1,4 @@
-import React, {useId,useState} from 'react';
+import React, {useId,useLayoutEffect,useRef,useState,useSyncExternalStore} from 'react';
 import {View,Text,Platform,type ViewStyle} from 'react-native';
 import {Image} from 'expo-image';
 import {LinearGradient} from 'expo-linear-gradient';
@@ -11,15 +11,28 @@ import {memoryCoverParagraph,memoryCoverWritingLayout,memoryCoverWritingTitleSiz
 import {memoryCoverCollageCells,memoryCoverScaledStrokes,memoryCoverSources} from '../../../shared/memoryCoverPersonalization';
 import {DrawingLayer} from '../stories/DrawLayer';
 import {privateImageCachePolicy} from '../../../shared/mediaDelivery';
+import {imageDisplayIdentity} from '../../lib/imageDisplayIdentity';
+import {navigationScope,subscribeNavigationScope} from '../../lib/navigationCache';
+import {SUPABASE_URL} from '../../services/supabase';
 export type MemoryBookCoverProps={artwork?:MemoryCoverArtwork|null;title:string;subtitle?:string|null;color?:string;design?:string;coverPages?:readonly MemoryCoverPage[];photoUrl?:string;fallbackPhotoUrl?:string;videoUrl?:string;takenAt?:string;width?:number;height?:number};
 type Position={left:`${number}%`;top:`${number}%`};
 const serif=Platform.OS==='ios'?'Didot':'serif';
 const absolute={position:'absolute',left:0,right:0,top:0,bottom:0} as const;
 
 function CoverPhoto({photoUrl,fallbackPhotoUrl,videoUrl,ink,scale,position={left:'50%',top:'50%'},zoom=1,monochrome=false}:{photoUrl?:string;fallbackPhotoUrl?:string;videoUrl?:string;ink:string;scale:number;position?:Position;zoom?:number;monochrome?:boolean}){
- const [failed,setFailed]=useState<string[]>([]),src=[photoUrl,fallbackPhotoUrl].find(url=>url&&!failed.includes(url));
+ const scope=useSyncExternalStore(subscribeNavigationScope,navigationScope,navigationScope),urls=[photoUrl,fallbackPhotoUrl,videoUrl];
+ const [grants,setGrants]=useState(()=>urls.map(uri=>({uri,scope})));
+ const currentGrants=urls.map((uri,index)=>grants[index].uri===uri?grants[index]:{uri,scope});
+ if(currentGrants.some((grant,index)=>grant!==grants[index]))setGrants(currentGrants);
+ const allowed=(grant:typeof grants[number])=>!!grant.uri&&(privateImageCachePolicy(grant.uri)!=='none'||!!scope&&grant.scope===scope);
+ const [failed,setFailed]=useState<string[]>([]),src=currentGrants.slice(0,2).find(grant=>allowed(grant)&&!failed.includes(JSON.stringify([scope,grant.uri])))?.uri;
+ const safeVideo=allowed(currentGrants[2])?videoUrl:undefined,request=JSON.stringify([scope,src]);
+ const activeRequest=useRef<string|null>(null);
+ useLayoutEffect(()=>{activeRequest.current=request;return()=>{if(activeRequest.current===request)activeRequest.current=null;};},[request]);
+ const fail=()=>{if(activeRequest.current!==request||navigationScope()!==scope)return;setFailed(previous=>activeRequest.current===request&&navigationScope()===scope?[...previous.slice(-3),request]:previous);};
+ const displayKey=src?JSON.stringify([privateImageCachePolicy(src)==='none'?scope:null,imageDisplayIdentity(src,SUPABASE_URL)]):undefined;
  return <View style={{width:'100%',height:'100%',transform:[{scale:zoom}],transformOrigin:[position.left,position.top,0]}}>
-  {src?<Image key={src} source={{uri:src}} recyclingKey={src} cachePolicy={privateImageCachePolicy(src)} transition={0} priority="high" contentFit="cover" contentPosition={position} style={{width:'100%',height:'100%'}} onError={()=>setFailed(prev=>[...prev.slice(-3),src])}/>:videoUrl?<VideoThumb key={videoUrl} uri={videoUrl} fill chip={false} contentPosition={position}/>:<View style={{flex:1,alignItems:'center',justifyContent:'center',borderWidth:1,borderColor:ink+'30',margin:5*scale}}><Feather name="image" size={25*scale} color={ink+'80'}/><Text style={{fontFamily:serif,fontSize:9*scale,color:ink+'A0',marginTop:5*scale}}>{photoUrl?'Open to view':'Your memories'}</Text></View>}
+  {src?<Image key={displayKey} source={{uri:src}} recyclingKey={displayKey} cachePolicy={privateImageCachePolicy(src)} transition={0} priority="high" contentFit="cover" contentPosition={position} style={{width:'100%',height:'100%'}} onError={fail}/>:safeVideo?<VideoThumb key={safeVideo} uri={safeVideo} fill chip={false} contentPosition={position}/>:<View style={{flex:1,alignItems:'center',justifyContent:'center',borderWidth:1,borderColor:ink+'30',margin:5*scale}}><Feather name="image" size={25*scale} color={ink+'80'}/><Text style={{fontFamily:serif,fontSize:9*scale,color:ink+'A0',marginTop:5*scale}}>{photoUrl?'Open to view':'Your memories'}</Text></View>}
   {monochrome&&<View pointerEvents="none" style={[absolute,{backgroundColor:'#888888',mixBlendMode:'saturation'}]}/>}
  </View>;
 }

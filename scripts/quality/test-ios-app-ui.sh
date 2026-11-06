@@ -32,6 +32,8 @@ cleanup() {
     container="$(xcrun simctl get_app_container "$ui_simulator" app.platinumcircles.mobile.qa data 2>/dev/null || true)"
     if [[ -f "$container/Documents/native-ui-receipt.json" ]]; then cp "$container/Documents/native-ui-receipt.json" native-ui-logs/native-ui-receipt.json; fi
     if [[ -f "$container/Documents/native-ui-auth-diagnostics.json" ]]; then cp "$container/Documents/native-ui-auth-diagnostics.json" native-ui-logs/native-ui-auth-diagnostics.json; fi
+    if [[ -f "$container/Documents/native-ui-input-diagnostics.json" ]]; then cp "$container/Documents/native-ui-input-diagnostics.json" native-ui-logs/native-ui-input-diagnostics.json; fi
+    if [[ -f "$container/Documents/native-ui-ios-input-diagnostics.jsonl" ]]; then cp "$container/Documents/native-ui-ios-input-diagnostics.jsonl" native-ui-logs/native-ui-ios-input-diagnostics.jsonl; fi
     if [[ -d "$container/Documents/native-memory-capture" ]]; then
       mkdir -p native-ui-logs/memory-capture
       cp -R "$container/Documents/native-memory-capture/." native-ui-logs/memory-capture/
@@ -51,6 +53,7 @@ trap cleanup EXIT
 npx --no-install expo prebuild --platform ios --no-install \
   --skip-dependency-update react,react-native 2>&1 | tee native-ui-logs/prebuild.log
 python3 scripts/quality/native-ui-ios-url-trace.py
+python3 scripts/quality/native-ui-ios-input-trace.py
 python3 - <<'PY'
 from pathlib import Path
 import plistlib
@@ -107,11 +110,29 @@ if [[ "$audit_build_only" == 1 ]]; then
   cp native-ui-logs/source.json native-audit-build/source.json
   exit 0
 fi
+# Archive the signed Simulator app unchanged before any UI flow can fail.
+# It contains synthetic transports and is CI evidence, never a user build.
+binary_retention_status=0
+mkdir -p native-ui-logs/test-only-binary || binary_retention_status=$?
+COPYFILE_DISABLE=1 tar -czf "$PWD/native-ui-logs/test-only-binary/qa.app.tar.gz" \
+  -C "$(dirname "$app")" "$(basename "$app")" || binary_retention_status=$?
+cp native-ui-logs/source.json native-ui-logs/test-only-binary/source.json || binary_retention_status=$?
+python3 scripts/quality/native-ui-audit-binary.py --platform ios \
+  --kind disposable-native-full-app --binary "$app" --source "$GITHUB_SHA" \
+  --tree "$(git rev-parse 'HEAD^{tree}')" --ios-target "$ios_target" \
+  --output native-ui-logs/test-only-binary/binary-manifest.pending.json || binary_retention_status=$?
+if (( binary_retention_status == 0 )); then
+  mv native-ui-logs/test-only-binary/binary-manifest.pending.json \
+    native-ui-logs/test-only-binary/binary-manifest.json || binary_retention_status=$?
+fi
+printf '{"exitCode":%s}\n' "$binary_retention_status" > native-ui-logs/binary-retention.json || binary_retention_status=$?
 runtime="$(xcrun simctl list runtimes --json | python3 -c 'import json,sys; items=[x for x in json.load(sys.stdin)["runtimes"] if x.get("isAvailable") and x["identifier"].startswith("com.apple.CoreSimulator.SimRuntime.iOS-")]; preferred=next((x for x in items if x["version"]==sys.argv[1]),None); print(preferred["identifier"] if preferred else "")' "$ios_version")"
 test -n "$runtime"
 ui_simulator="$(xcrun simctl create "Platinum full app UI ${GITHUB_RUN_ID}" "$ios_device_type" "$runtime")"
+python3 scripts/quality/native-ui-ios-autofill.py verify-created "$ui_simulator" --runtime "$runtime"
 xcrun simctl boot "$ui_simulator"
 xcrun simctl bootstatus "$ui_simulator" -b
+python3 scripts/quality/native-ui-ios-autofill.py configure "$ui_simulator"
 xcrun simctl install "$ui_simulator" "$app"
 xcrun simctl spawn "$ui_simulator" log stream --style compact --level info --predicate 'process == "PlatinumQA"' > native-ui-logs/app.log 2>&1 &
 ui_log_pid=$!
@@ -125,15 +146,17 @@ mkdir -p native-ui-logs/memory-capture
 if [[ -n "$container" ]]; then
   cp "$container/Documents/native-ui-receipt.json" native-ui-logs/native-ui-receipt.json || evidence_status=1
   cp "$container/Documents/native-ui-auth-diagnostics.json" native-ui-logs/native-ui-auth-diagnostics.json || evidence_status=1
+  cp "$container/Documents/native-ui-input-diagnostics.json" native-ui-logs/native-ui-input-diagnostics.json || evidence_status=1
+  cp "$container/Documents/native-ui-ios-input-diagnostics.jsonl" native-ui-logs/native-ui-ios-input-diagnostics.jsonl || evidence_status=1
   cp -R "$container/Documents/native-memory-capture/." native-ui-logs/memory-capture/ || evidence_status=1
 else
   evidence_status=1
 fi
 memory_status=0
-python3 scripts/quality/verify-native-ui-memory.py || memory_status=$?
+python3 scripts/quality/verify-native-ui-memory.py native-ui-logs/memory-capture ios || memory_status=$?
 verification_status=0
 node scripts/quality/verify-native-ui.cjs ios || verification_status=$?
 cat > native-ui-logs/phase-results.json <<EOF
-{"flows":$flow_status,"evidence":$evidence_status,"memoryDecoder":$memory_status,"fullAppVerifier":$verification_status}
+{"flows":$flow_status,"evidence":$evidence_status,"memoryDecoder":$memory_status,"fullAppVerifier":$verification_status,"binaryRetention":$binary_retention_status}
 EOF
-if (( flow_status != 0 || evidence_status != 0 || memory_status != 0 || verification_status != 0 )); then exit 1; fi
+if (( flow_status != 0 || evidence_status != 0 || memory_status != 0 || verification_status != 0 || binary_retention_status != 0 )); then exit 1; fi

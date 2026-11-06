@@ -1,0 +1,291 @@
+{
+  "title": "Conditional owner review: Daily access to the Platinum Live writer role",
+  "prepared_on": "2026-11-03",
+  "status": "REVIEW_ONLY_NOT_READY_TO_APPLY",
+  "external_actions_performed": false,
+  "attached_policy_verified": false,
+  "policy_id": null,
+  "attachment_path": null,
+  "before_policy_sha256": null,
+  "scope": {
+    "resource_account": "518317808503",
+    "daily_principal_account": "291871421005",
+    "target_role_arn": "arn:aws:iam::518317808503:role/platinum-live-production-DailyWriter-3ZGHqfqMNzKI",
+    "requested_operation": "sts:AssumeRole",
+    "required_external_id": "platinumcircles",
+    "target_source": "Exact ARN supplied by the operator and present in the saved deployment receipt; this review made no live AWS call.",
+    "daily_account_source": "Daily official custom S3 storage documentation.",
+    "unchanged_role_trust_requirements": {
+      "trusted_aws_principal": "arn:aws:iam::291871421005:root",
+      "action": "sts:AssumeRole",
+      "condition": {
+        "StringEquals": {
+          "sts:ExternalId": "platinumcircles"
+        }
+      }
+    }
+  },
+  "evidence_and_limits": {
+    "observed_by_operator": "The actual Daily storage verification reported role_assumption_denied. The IAM trust was inspected separately and matched the intended Daily account and ExternalId.",
+    "not_observed": "The contents, identifier, attachment ancestry and mutability of the effective RCP have not been read. The operator's current ListParents call and both ListPoliciesForTarget calls returned AccessDeniedException. A later result-formatting error does not change those observed API denials; this plan does not repeat the calls.",
+    "hypothesis": "The published AWS new-experience external-principal deny is a plausible cause, not a confirmed diagnosis.",
+    "current_authorization_boundary": "The user subsequently authorized owner-level Settings review and service completion. The review was performed, and AWS now reports PAID/ACTIVE after an owner account change. Advanced activation remains unsubmitted by the agent and requires owner root-email verification; actual organization policy content and mutability are still unverified.",
+    "no_claim_of_resolution": "A correct local trust policy and this proposed exception cannot establish that another applicable policy will permit STS or S3."
+  },
+  "owner_review_gates": [
+    "Read the effective RCP attachments at the account, every parent OU and organization root through an authorized owner or administrator; record exact policy IDs, content hashes and attachment scope.",
+    "Identify the specific applicable deny using policy content and available denial evidence. Also check other applicable RCPs, SCPs and IAM controls before attributing the failure to this published example.",
+    "Determine policy mutability and the identity authorized to edit it. The AWS-published new-experience RCP is explicitly documented as nonmodifiable.",
+    "If the actual blocker is that immutable AWS-managed policy, STOP. Request a supported narrow exception from the responsible AWS/account owner. Do not attempt UpdatePolicy, attach an Allow, detach policies, disable policy types, leave the organization, or activate advanced features as part of this plan.",
+    "Only if an editable customer-managed policy contains an equivalent deny, prepare a diff against its captured exact content; preserve every unrelated statement and its attachments.",
+    "Confirm the role ARN still matches exactly, and its trust still permits only the intended Daily AssumeRole relationship with ExternalId platinumcircles. Do not broaden trust or S3 permissions.",
+    "Review the concrete current-policy diff and rollback content with the owner before any mutation. An approval to inspect account settings is not approval to upgrade features, change billing or remove guardrails.",
+    "Validate the proposed RCP using current AWS-supported policy validation and the decision cases below. Local reasoning is not an AWS authorization simulation."
+  ],
+  "conditional_example": {
+    "classification": "Derived design for an editable policy only; not an export of the attached policy and not a complete replacement policy.",
+    "prerequisite": "A qualified owner confirms that a mutable policy's relevant deny is semantically equivalent to the published DenyAnyoneOutsideMyOrgAndAWS statement. If any action, condition, resource scope or surrounding statement differs, adapt and re-review the exact diff rather than applying this example.",
+    "source_url": "https://docs.aws.amazon.com/accounts/latest/reference/scps-and-rcps-for-projects.html",
+    "published_statement_sid_for_comparison": "DenyAnyoneOutsideMyOrgAndAWS",
+    "transformation": "Keep the original non-STS action coverage and conditions. Separate STS denial by resource, principal account, ExternalId and other current role-scoped actions, so the reviewed exception is only the intended Daily AssumeRole path.",
+    "derived_statement_fragments": [
+      {
+        "Sid": "DenyExternalNonStsAsBefore",
+        "Effect": "Deny",
+        "Principal": "*",
+        "Action": [
+          "aoss:*",
+          "appconfig:*",
+          "appstream:*",
+          "autoscaling:*",
+          "codebuild:*",
+          "codecommit:*",
+          "cognito-identity:*",
+          "cognito-idp:*",
+          "comprehend:*",
+          "comprehendmedical:*",
+          "dax:*",
+          "dynamodb:*",
+          "ecr:*",
+          "health:*",
+          "kinesisvideo:*",
+          "kms:*",
+          "logs:*",
+          "s3:*",
+          "secretsmanager:*",
+          "sqs:*",
+          "support:*",
+          "textract:*",
+          "transcribe:*",
+          "translate:*"
+        ],
+        "Resource": "*",
+        "Condition": {
+          "BoolIfExists": {
+            "aws:PrincipalIsAWSService": "false"
+          },
+          "Null": {
+            "aws:PrincipalARN": "false"
+          },
+          "StringNotEqualsIfExists": {
+            "aws:PrincipalOrgID": "${aws:ResourceOrgID}"
+          }
+        }
+      },
+      {
+        "Sid": "DenyExternalStsOutsideExactLiveRole",
+        "Effect": "Deny",
+        "Principal": "*",
+        "Action": [
+          "sts:*"
+        ],
+        "NotResource": "arn:aws:iam::518317808503:role/platinum-live-production-DailyWriter-3ZGHqfqMNzKI",
+        "Condition": {
+          "BoolIfExists": {
+            "aws:PrincipalIsAWSService": "false"
+          },
+          "Null": {
+            "aws:PrincipalARN": "false"
+          },
+          "StringNotEqualsIfExists": {
+            "aws:PrincipalOrgID": "${aws:ResourceOrgID}"
+          }
+        }
+      },
+      {
+        "Sid": "DenyExternalStsToLiveRoleExceptDaily",
+        "Effect": "Deny",
+        "Principal": "*",
+        "Action": [
+          "sts:*"
+        ],
+        "Resource": "arn:aws:iam::518317808503:role/platinum-live-production-DailyWriter-3ZGHqfqMNzKI",
+        "Condition": {
+          "BoolIfExists": {
+            "aws:PrincipalIsAWSService": "false"
+          },
+          "Null": {
+            "aws:PrincipalARN": "false"
+          },
+          "StringNotEqualsIfExists": {
+            "aws:PrincipalOrgID": "${aws:ResourceOrgID}",
+            "aws:PrincipalAccount": "291871421005"
+          }
+        }
+      },
+      {
+        "Sid": "DenyExternalStsToLiveRoleWithoutDailyExternalId",
+        "Effect": "Deny",
+        "Principal": "*",
+        "Action": [
+          "sts:*"
+        ],
+        "Resource": "arn:aws:iam::518317808503:role/platinum-live-production-DailyWriter-3ZGHqfqMNzKI",
+        "Condition": {
+          "BoolIfExists": {
+            "aws:PrincipalIsAWSService": "false"
+          },
+          "Null": {
+            "aws:PrincipalARN": "false"
+          },
+          "StringNotEqualsIfExists": {
+            "aws:PrincipalOrgID": "${aws:ResourceOrgID}",
+            "sts:ExternalId": "platinumcircles"
+          }
+        }
+      },
+      {
+        "Sid": "DenyOtherExternalStsRoleActions",
+        "Effect": "Deny",
+        "Principal": "*",
+        "Action": [
+          "sts:AssumeRoleWithSAML",
+          "sts:AssumeRoleWithWebIdentity",
+          "sts:SetContext",
+          "sts:SetSourceIdentity",
+          "sts:TagSession"
+        ],
+        "Resource": "arn:aws:iam::518317808503:role/platinum-live-production-DailyWriter-3ZGHqfqMNzKI",
+        "Condition": {
+          "BoolIfExists": {
+            "aws:PrincipalIsAWSService": "false"
+          },
+          "Null": {
+            "aws:PrincipalARN": "false"
+          },
+          "StringNotEqualsIfExists": {
+            "aws:PrincipalOrgID": "${aws:ResourceOrgID}"
+          }
+        }
+      }
+    ],
+    "preservation_rules": [
+      "The first fragment's non-STS action set, resource and conditions must match the captured original deny after separating only sts:*; use the actual action list, not this published snapshot, when preparing a later concrete diff.",
+      "Preserve the entire DenyAWSWhenItsNotMyOrgsSourceAccount statement, if present, byte for byte, including its STS coverage. Preserve every other statement and attachment without change.",
+      "Keep the original treatment of organization principals, AWS service principals and anonymous requests. This example does not change the published conditions defining the denied external authenticated class.",
+      "Do not place the Daily account exception into the non-STS statement or into a resource-wildcard condition that also exempts other roles.",
+      "All fragments use Deny and Principal '*'. RCP NotAction and NotPrincipal are unsupported. No Allow statement, policy detachment or policy-type disablement is proposed.",
+      "The current STS role-action catalog was reviewed on 2026-11-03. Recheck it before applying. The unchanged trust must still grant only sts:AssumeRole with the required ExternalId; no new session-tag, source-identity, context, SAML or web-identity grant is proposed."
+    ],
+    "semantics": [
+      "For requests already matched by the original external-principal deny, sts:* remains denied on every resource other than the one exact role.",
+      "On the exact role, every external account except 291871421005 remains denied, even if it supplies the known ExternalId.",
+      "Daily requests to the exact role remain denied when ExternalId is absent or differs from platinumcircles. The role trust independently enforces the same value.",
+      "Other current role-scoped STS actions remain explicitly denied on that role. A matching Daily sts:AssumeRole request only passes this refactored deny; all other authorization layers must still permit it.",
+      "After a permitted AssumeRole, Daily uses the resulting role session. This does not grant Daily's original external identity direct S3 access or broaden the role's existing S3 policy."
+    ]
+  },
+  "decision_cases": [
+    {
+      "case": "Daily account; exact role; sts:AssumeRole; ExternalId platinumcircles",
+      "expected": "No deny from the refactored external-principal statement; unchanged trust and every other applicable policy must still permit the request."
+    },
+    {
+      "case": "Daily account; exact role; wrong or missing ExternalId",
+      "expected": "Denied by the scoped ExternalId deny and unchanged trust."
+    },
+    {
+      "case": "Another external account; exact role; correct ExternalId",
+      "expected": "Denied by the external-account restriction."
+    },
+    {
+      "case": "Daily account; any other role; any STS action",
+      "expected": "Denied by the sts:* NotResource restriction whenever the original external-principal conditions match."
+    },
+    {
+      "case": "Another external account; any other role; any STS action",
+      "expected": "Same existing STS denial; no new exception."
+    },
+    {
+      "case": "Daily account; exact role; SAML, web identity, session tags, source identity or context action",
+      "expected": "Denied by the explicit other-role-actions fragment; trust remains unchanged."
+    },
+    {
+      "case": "External principal; S3, KMS or any other original non-STS service",
+      "expected": "The original deny remains unchanged."
+    },
+    {
+      "case": "Principal with missing PrincipalOrgID and a present PrincipalARN",
+      "expected": "Missing organization information does not bypass the external-principal conditions."
+    },
+    {
+      "case": "Organization principal, AWS service principal or anonymous request",
+      "expected": "Treatment under the original conditions is preserved; no new permission is granted."
+    },
+    {
+      "case": "Another applicable RCP or the preserved AWS SourceOrgID deny still blocks the request",
+      "expected": "Request stays denied; stop and review that distinct blocker. Do not broaden this exception."
+    }
+  ],
+  "execution_and_rollback_after_separate_owner_approval": {
+    "precondition": "Policy identity, exact preimage hash, mutability, effective attachment scope and final diff have all been verified and approved.",
+    "apply_scope": "Only the reviewed statement refactor in the identified editable policy. Re-read its hash immediately before any write and stop on drift. No runnable mutation command or complete replacement policy is included here.",
+    "verification": "Read back the exact policy, compare unrelated statements and attachments, and rerun only the bounded Daily verify_storage operation. Record its enum-only receipt, room cleanup confirmation and, when authorized, fresh daily-co-test-upload.txt object metadata. Do not start a broadcast for this verification.",
+    "rollback": "Restore the exact captured prior policy content to the same verified policy ID if the approved change creates an unintended result. Preserve attachments and all unrelated resources.",
+    "success_limit": "Storage verification and removal of this denial are separate from playable HLS, CDN playback, replay and scale acceptance."
+  },
+  "sources": [
+    {
+      "url": "https://docs.aws.amazon.com/accounts/latest/reference/scps-and-rcps-for-projects.html",
+      "supports": "Published conditional baseline; managed new-experience RCP is not modifiable."
+    },
+    {
+      "url": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_rcps_syntax.html",
+      "supports": "RCP Deny-only customer policies; Principal '*'; Action and NotResource; NotAction/NotPrincipal unsupported."
+    },
+    {
+      "url": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_rcps_evaluation.html",
+      "supports": "A deny anywhere in effective RCP ancestry cannot be overridden by another Allow."
+    },
+    {
+      "url": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_sts.html",
+      "supports": "Current STS role-scoped actions and ExternalId on AssumeRole."
+    },
+    {
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_common-scenarios_third-party.html",
+      "supports": "Third-party role trust and ExternalId are separate required controls."
+    },
+    {
+      "url": "https://docs.daily.co/docs/guides/features/recording/custom-s3-storage",
+      "supports": "Daily account291871421005, domain-name ExternalId, documented S3 test object."
+    }
+  ],
+  "earlier_permission_request": {
+    "action": "Open AWS Settings for owner-level read-only review of the current account mode and available organization policy controls.",
+    "reason": "The authorized API identity cannot inspect the effective organization-policy ancestry, and automatic approval review previously rejected opening Settings under the narrower key-work authorization.",
+    "permitted_result": "Inspect and report the relevant current settings or owner handoff required; capture only nonsecret evidence needed to identify the policy control.",
+    "separate_authorization_required": "Any account upgrade, advanced-feature activation, billing change, policy mutation, detachment, disablement or other write remains outside this request."
+  },
+  "latest_owner_review": {
+    "receipts": [
+      "../../supabase/ops/live-release-20261103/evidence/aws-owner-policy-review.json",
+      "../../supabase/ops/live-release-20261103/evidence/aws-owner-plan-updated.json"
+    ],
+    "current_plan": "PAID",
+    "advanced_activation_completed": false,
+    "root_email_verification_pending": true,
+    "actual_policy_read": false,
+    "policy_mutation_performed": false,
+    "next_step": "Owner completes the concrete irreversible activation review and root-email verification if chosen. Then inspect effective policy content, scope and supported mutability before preparing any actual Daily exception. A plan upgrade is not evidence of provider acceptance."
+  }
+}

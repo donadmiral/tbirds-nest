@@ -19,6 +19,7 @@ import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
 import { typeSize, fontWeight, radius, space } from '../../constants/tokens';
 import { BusinessSessionError, businessSessionMessage, businessSessionStep, installBusinessSession, isBusinessSessionHandoff, prepareBusinessSession, type BusinessSessionHandoff } from '../../services/businessSessionService';
+import { isReadAccessDenied } from '../../../shared/readContinuity';
 
 type Row = {
   business_id: string; full_name: string | null; username: string | null;
@@ -66,7 +67,7 @@ export default function BusinessesScreen({ navigation }: any) {
       if (!current()) return;
       if (result.error || !Array.isArray(result.data)) throw result.error || new Error('Business list unavailable');
       setRows(result.data as Row[]);
-    } catch { if (current()) setError('Your businesses could not be loaded. Confirm your personal account and try again.'); }
+    } catch (failure) { if (current()) { if (isReadAccessDenied(failure)) setRows([]); setError('Your businesses could not be loaded. Confirm your personal account and try again.'); } }
     finally { if (current()) setLoading(false); if (readRequest.current === abort) readRequest.current = null; abort.abort(); }
   }, [applyAccount]);
 
@@ -151,9 +152,10 @@ export default function BusinessesScreen({ navigation }: any) {
       {notice && <Text accessibilityLiveRegion="polite" style={s.intro}>{notice}</Text>}
       {opening && <View style={s.accessNotice}><Text accessibilityLiveRegion="polite" style={s.meta}>{installing ? 'Opening your business account…' : 'Checking owner and device access…'}</Text>{!installing && <TouchableOpacity onPress={cancel} accessibilityRole="button" accessibilityLabel="Cancel sign-in" style={s.secondary}><Text style={s.roleTxt}>Cancel sign-in</Text></TouchableOpacity>}</View>}
 
-      {loading ? (
+      {error && rows.length > 0 ? <TouchableOpacity accessibilityRole="button" onPress={() => { void load(); }}><Text accessibilityRole="alert" style={s.intro}>{error} Tap to retry.</Text></TouchableOpacity> : null}
+      {loading && rows.length === 0 ? (
         <View style={s.centered}><ActivityIndicator color={getTheme().brand.base} /></View>
-      ) : error ? (
+      ) : error && rows.length === 0 ? (
         <View style={s.centered}>
           <Feather name="alert-circle" size={30} color={getTheme().ink.faint} />
           <Text style={s.emptyTitle}>Could not load your businesses</Text>

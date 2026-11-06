@@ -17,6 +17,7 @@ import { supabase } from '../../services/supabase';
 import { withoutPrivateMedia } from '../../services/contentMedia';
 import { profileContentRead, profilePostCursor, mergeProfilePosts, type ProfilePostCursor } from '../../services/profileContent';
 import { navigationScope, subscribeNavigationScope } from '../../lib/navigationCache';
+import { isReadAccessDenied } from '../../../shared/readContinuity';
 import { useProfileMediaRefresh } from '../../hooks/useProfileMediaRefresh';
 import { normalizeProfilePost } from '../../utils/profilePost';
 import MemoryAlbumCard from '../../components/MemoryAlbumCard';
@@ -338,7 +339,7 @@ export default function ProfileScreen() {
         .gte('created_at', new Date(Date.now() - 86400000).toISOString()).limit(1));
       if (!Array.isArray(rows)) throw new Error('Your story indicator could not be verified.');
       if (current()) setHasStory(rows.length > 0);
-    }).catch(() => { if (current()) setHasStory(false); });
+    }).catch(error => { if (current() && isReadAccessDenied(error)) setHasStory(false); });
     return () => { controller.abort(); };
   }, [userId, sessionScope]));
 

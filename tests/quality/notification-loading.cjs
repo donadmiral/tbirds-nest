@@ -27,6 +27,9 @@ function namedFunction(name, globals = {}) {
 }
 const inviteKey = namedFunction('collaboratorInviteKey');
 const media = compile(fs.readFileSync(path.join(root, 'shared/contentMedia.ts'), 'utf8'));
+const reuse = compile(fs.readFileSync(path.join(root, 'shared/feedMediaReuse.ts'), 'utf8'), { require: () => media });
+const continuity = compile(fs.readFileSync(path.join(root, 'shared/notificationMediaContinuity.ts'), 'utf8'), { require: name => name === './contentMedia' ? media : reuse });
+const readContinuity = compile(fs.readFileSync(path.join(root, 'shared/readContinuity.ts'), 'utf8'));
 const base = 'https://notifications-fixture.invalid';
 const raw = base + '/storage/v1/object/public/post-media/owner/photo.jpg';
 const signed = base + '/storage/v1/object/sign/post-media/owner/photo.jpg?token=verified';
@@ -39,12 +42,14 @@ function fixture({ read, sign, thumbs } = {}) {
  const requests = [], signs = [], thumbnailRequests = [];
  const set = key => value => { state[key] = typeof value === 'function' ? value(state[key]) : value; };
  const globals = {
+  notificationStartup: { write: async () => {}, clear: async () => {} }, networkNotificationsReady: { current: false },
   userId: 'viewer', generation: { current: 0 }, owner: { current: 'viewer' }, mounted: { current: true }, cursorRef: { current: { offset: 0, asOf: '2026-10-31' } }, pageLock: { current: false }, done: false,
   navigationScope: () => scope, deadline: value => Promise.resolve(value),
+  ...continuity, ...readContinuity, SUPABASE_URL: base, mediaScope: { current: null }, thumbSources: { current: { scope: null, posts: [], stories: [] } }, rowsRef: { get current() { return state.rows; } },
   setRows: set('rows'), setThumbs: set('thumbs'), setError: set('error'), setLoading: set('loading'), setLoadingMore: set('loadingMore'), setRefreshing: set('refreshing'), setDone: set('done'),
   withoutPrivateMedia: rows => media.replaceContentMedia(rows, base, new Map()),
   invitesFirst: rows => [...rows.filter(row => row.type === 'collab_invite' || row.type === 'community_invite'), ...rows.filter(row => row.type !== 'collab_invite' && row.type !== 'community_invite')],
-  supabase: { rpc: (name, params) => { requests.push({ name, params }); return read ? read(params) : Promise.resolve({ data: [row(1)], error: null }); } },
+  supabase: { rpc: (name, params) => { const request = { name, params }; requests.push(request); const result = read ? read(params) : Promise.resolve({ data: [row(1)], error: null }); result.abortSignal = signal => { request.signal = signal; return result; }; return result; } },
   hydratePostMedia: rows => { signs.push(rows); return sign ? sign(rows) : Promise.resolve(rows.map(row => ({ ...row, post_thumb: signed }))); },
   hydrateThumbs: (rows, ...rest) => { thumbnailRequests.push({ rows, args: rest }); return thumbs ? thumbs(rows) : Promise.resolve(); },
  };
@@ -72,6 +77,18 @@ test('notification text and controls publish before thumbnail signing or decorat
  assert.equal(h.globals.cursorRef.current.offset, 1); assert.equal(h.signs.length, 1); assert.equal(h.thumbnailRequests.length, 1); assert.equal(renderState(h.state).type, 'TapTopSectionList');
  signing.resolve([{ ...row(1), post_thumb: signed }]); await turn(); assert.equal(h.state.rows[0].post_thumb, signed);
  thumbnail.resolve(); await turn(); assert.equal(h.state.error, null);
+});
+test('cancelled notification reconciliation cannot publish or sign a late response', async () => {
+ const gate = deferred(), h = fixture({ read: () => gate.promise }), controller = new AbortController();
+ const work = h.load(controller.signal); controller.abort();
+ gate.resolve({ data: [row(1)], error: null }); await work;
+ assert.equal(h.requests[0].signal, controller.signal); assert.equal(h.state.rows.length, 0); assert.equal(h.signs.length, 0);
+});
+test('notification reconciliation reports a transient failure to its retry scheduler', async () => {
+ const h = fixture({ read: async () => ({ data: null, error: Error('Offline') }) });
+ h.state.rows = [row(1)];
+ await assert.rejects(h.load(new AbortController().signal), /Offline/);
+ assert.equal(h.state.rows.length, 1); assert.equal(h.state.loading, false); assert.equal(h.state.error, 'Offline');
 });
 test('late first-page media cannot discard an appended notification page', async () => {
  const signing = deferred(), h = fixture({ read: params => Promise.resolve({ data: params.p_offset ? [row(61)] : Array.from({ length: 60 }, (_, i) => row(i + 1)), error: null }), sign: rows => rows.length === 60 ? signing.promise : Promise.resolve(rows.map(row => ({ ...row, post_thumb: signed }))) });
@@ -167,4 +184,120 @@ test('verified answered invitations are removed without touching open invitation
  await h.prune(inviteKey(h.state.rows));
  assert.deepEqual(Array.from(h.state.rows, item => item.notification_id), ['notice-2', 'notice-3']);
  assert.deepEqual(Array.from(h.deletes[0].values[1]), ['notice-1']); assert.deepEqual(h.deletes[0].filters, [['recipient_id', 'viewer']]);
+});
+
+const delivery = base + '/functions/v1/media-content/post-media/owner/photo.jpg?token=' + 'a'.repeat(64);
+function seedMedia(h, expiry = Date.now() + 120000) {
+ h.state.rows = [row(1, { post_thumb: delivery, _mediaExpiresAt: expiry })];
+ h.globals.mediaScope.current = h.scope();
+ h.globals.thumbSources.current = { scope: h.scope(), posts: [{ id: row(1).post_id, media_url: delivery, _mediaExpiresAt: expiry }], stories: [] };
+ h.state.thumbs = { ['p:' + row(1).post_id]: delivery };
+}
+test('warm notification refresh keeps same authorized thumbnails while signing is pending', async () => {
+ const wait = deferred(), h = fixture({ sign: () => wait.promise, thumbs: () => wait.promise }); seedMedia(h);
+ await h.load();
+ assert.equal(h.state.rows[0].post_thumb, delivery);
+ assert.equal(h.state.thumbs['p:' + row(1).post_id], delivery);
+ wait.resolve([row(1, { post_thumb: delivery, _mediaExpiresAt: Date.now() + 120000 })]); await turn();
+});
+test('expired, legacy and previous-account notification pictures cannot be retained', async () => {
+ for (const kind of ['expired', 'legacy', 'scope']) {
+  const wait = deferred(), h = fixture({ sign: () => wait.promise, thumbs: () => wait.promise }); seedMedia(h, kind === 'expired' ? Date.now() - 1 : undefined);
+  if (kind === 'legacy') { h.state.rows[0].post_thumb = signed; h.globals.thumbSources.current.posts[0].media_url = signed; }
+  if (kind === 'scope') h.account('new-session');
+  await h.load(); assert.equal(h.state.rows[0].post_thumb, null); assert.deepEqual({ ...h.state.thumbs }, {});
+  wait.resolve([row(1, { post_thumb: null })]); await turn();
+ }
+});
+test('authoritative empty or denied notifications immediately remove retained media', async () => {
+ for (const denied of [false, true]) {
+  const h = fixture({ read: async () => ({ data: denied ? null : [], error: denied ? { code: '42501', message: 'permission denied' } : null }) }); seedMedia(h);
+  await h.load(); assert.equal(h.state.rows.length, 0); assert.deepEqual({ ...h.state.thumbs }, {});
+ }
+});
+test('changed notification media cannot borrow the previous image grant', async () => {
+ const wait = deferred(), h = fixture({ read: async () => ({ data: [row(1, { post_thumb: raw.replace('photo.jpg', 'different.jpg') })], error: null }), sign: () => wait.promise }); seedMedia(h);
+ await h.load(); assert.equal(h.state.rows[0].post_thumb, null);
+ wait.resolve([row(1, { post_thumb: null })]); await turn();
+});
+
+function sourceReader(h, data, sign) {
+ h.globals.supabase.from = () => {
+  const query = { select() { return query; }, in() { return query; }, then(yes, no) { return Promise.resolve(data).then(yes, no); } };
+  return query;
+ };
+ h.globals.hydratePostMedia = sign;
+ h.globals.hydrateStoryMedia = async rows => rows;
+ return callback('hydrateThumbs', h.globals);
+}
+test('confirmed missing thumbnail sources disappear before slower media signing', async () => {
+ const h = fixture(), gate = deferred(); seedMedia(h);
+ const hydrate = sourceReader(h, { data: [], error: null }, () => gate.promise);
+ const work = hydrate([row(1)], 0, 'viewer', h.scope()); await turn();
+ assert.deepEqual({ ...h.state.thumbs }, {});
+ gate.resolve([]); await work;
+});
+test('same thumbnail object stays visible through renewal and failed grant removes it', async () => {
+ const h = fixture(), gate = deferred(); seedMedia(h);
+ const hydrate = sourceReader(h, { data: [{ id: row(1).post_id, media_url: raw }], error: null }, () => gate.promise);
+ const work = hydrate([row(1)], 0, 'viewer', h.scope()); await turn();
+ assert.equal(h.state.thumbs['p:' + row(1).post_id], delivery);
+ gate.reject(Error('Grant denied')); await assert.rejects(work, /Grant denied/);
+ assert.deepEqual({ ...h.state.thumbs }, {});
+});
+test('thumbnail metadata denial removes prior sources without attempting a new grant', async () => {
+ const h = fixture(); seedMedia(h); let grants = 0;
+ const hydrate = sourceReader(h, { data: null, error: { code: '42501' } }, async () => { grants++; return []; });
+ await assert.rejects(hydrate([row(1)], 0, 'viewer', h.scope()));
+ assert.deepEqual({ ...h.state.thumbs }, {}); assert.equal(grants, 0);
+});
+test('expiry removes held notification capabilities without waiting for another network response', () => {
+ const h = fixture(); seedMedia(h, Date.now() - 1);
+ let expression, expire;
+ function visit(node) { if (ts.isCallExpression(node) && node.expression.getText(ast) === 'useEffect' && node.getText(ast).includes('const sources = [...rows')) expression = node.getText(ast); ts.forEachChild(node, visit); }
+ visit(ast); assert.ok(expression);
+ compile('module.exports = ' + expression, { ...h.globals, rows: h.state.rows, thumbs: h.state.thumbs, useEffect: fn => fn(), setTimeout(fn) { expire = fn; return 1; }, clearTimeout() {} });
+ expire();
+ assert.equal(h.state.rows[0].post_thumb, null); assert.equal(h.state.rows[0]._mediaExpiresAt, undefined);
+ assert.deepEqual({ ...h.state.thumbs }, {});
+});
+
+function startupEffect(h, initial) {
+ let initializer;
+ const visit = node => {
+  if (ts.isCallExpression(node) && node.expression.getText(ast) === 'useEffect'
+    && node.arguments[0]?.getText(ast).includes('networkNotificationsReady.current=false')) initializer = node.arguments[0].getText(ast);
+  ts.forEachChild(node, visit);
+ };
+ visit(ast); assert.ok(initializer);
+ let saved = initial; const listeners = new Set();
+ Object.assign(h.globals.notificationStartup, {
+  peek: () => saved, hydrate: async () => saved,
+  write: async (_owner, next) => { saved = next; listeners.forEach(fn => fn()); },
+  clear: async () => { saved = null; listeners.forEach(fn => fn()); },
+  subscribe: fn => { listeners.add(fn); return () => listeners.delete(fn); },
+ });
+ const cleanup = compile('module.exports = ' + initializer, { ...h.globals, setBusy() {} })();
+ return { cleanup, saved: () => saved, restore(value) { saved = value; listeners.forEach(fn => fn()); } };
+}
+test('notification startup paints cached preview while refresh waits, then fresh data wins over late disk callbacks', async () => {
+ const gate = deferred(), h = fixture({ read: () => gate.promise });
+ const cached = [row(1, { post_thumb: null, body_preview: 'Saved ordinary reply' })];
+ const restore = startupEffect(h, cached);
+ assert.equal(h.state.loading, false); assert.equal(h.state.rows[0].body_preview, 'Saved ordinary reply');
+ const work = h.load(); await turn(); assert.equal(h.state.rows[0].body_preview, 'Saved ordinary reply');
+ gate.resolve({ data: [row(2)], error: null }); await work;
+ restore.restore(cached); assert.equal(h.state.rows[0].notification_id, 'notice-2'); restore.cleanup();
+});
+test('notification startup accepts late disk completion and clears an expired preview without waiting for network', async () => {
+ const h = fixture(), restore = startupEffect(h, null);
+ assert.equal(h.state.loading, true);
+ restore.restore([row(1, { post_thumb: null })]); assert.equal(h.state.rows.length, 1); assert.equal(h.state.loading, false);
+ restore.restore(null); assert.equal(h.state.rows.length, 0); assert.match(h.state.error, /Reconnect/); restore.cleanup();
+});
+test('confirmed notification access denial removes saved previews and prevents a late disk resurrection', async () => {
+ const h = fixture({ read: async () => ({ data: null, error: { code: '42501', message: 'Denied' } }) });
+ const cached = [row(1, { post_thumb: null })], restore = startupEffect(h, cached);
+ await h.load(); assert.equal(h.state.rows.length, 0); assert.equal(restore.saved(), null);
+ restore.restore(cached); assert.equal(h.state.rows.length, 0); restore.cleanup();
 });

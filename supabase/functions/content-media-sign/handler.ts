@@ -1,4 +1,4 @@
-import { CONTENT_UUID, contentObject, isContentCapability, isMediaDeliveryCapability, type ContentReference } from '../../../shared/contentMedia.ts';
+import { CONTENT_UUID, contentObject, isContentCapability, isMediaDeliveryCapability, type ContentReference, type ContentPlaybackGrant } from '../../../shared/contentMedia.ts';
 
 type Dependencies = {
   base: string;
@@ -6,7 +6,7 @@ type Dependencies = {
   manifest(request: Request, references: ContentReference[]): Promise<Array<{ media_url: string }> | null>;
   uploads?(request: Request, urls: string[]): Promise<Array<{ media_url: string }> | null>;
   sign(bucket: string, paths: string[], ttl: number): Promise<Array<{ path: string; signedUrl: string }> | null>;
-  deliver?(request: Request, references: ContentReference[] | null, uploads: string[] | null): Promise<{ urls: Array<{ key: string; url: string }>; expiresAt: number } | null>;
+  deliver?(request: Request, references: ContentReference[] | null, uploads: string[] | null): Promise<{ urls: Array<{ key: string; url: string; sourceVersion?: string; playback?: Omit<ContentPlaybackGrant, 'source'> }>; expiresAt: number } | null>;
 };
 const TTL = 300;
 export function createContentMediaHandler(deps: Dependencies) {
@@ -29,7 +29,7 @@ export function createContentMediaHandler(deps: Dependencies) {
         if (!deps.uploads) return json(503, { error: 'Upload previews are not available. Try again.' });
         manifest = await deps.uploads(request, body.uploads);
       } else {
-        if (!Array.isArray(body.references) || !body.references.length || body.references.length > 100 || body.references.some((ref: ContentReference) => !ref || !['post', 'story', 'sound', 'story_draft', 'memory_album', 'highlight'].includes(ref.kind) || typeof ref.id !== 'string' || !CONTENT_UUID.test(ref.id))) return json(400, { error: 'Valid content references required.' });
+        if (!Array.isArray(body.references) || !body.references.length || body.references.length > 100 || body.references.some((ref: ContentReference) => !ref || !['post', 'story', 'sound', 'story_draft', 'memory_album', 'highlight', 'channel_message'].includes(ref.kind) || typeof ref.id !== 'string' || !CONTENT_UUID.test(ref.id))) return json(400, { error: 'Valid content references required.' });
         manifest = await deps.manifest(request, body.references);
       }
       if (!manifest) return json(503, { error: 'Media access is unavailable. Try again.' });
@@ -51,8 +51,8 @@ export function createContentMediaHandler(deps: Dependencies) {
       }
       // Original audio is revocable. Never turn it into a Storage bearer URL
       // whose lifetime outlasts the live rights and account checks in delivery.
-      if ([...objects.values()].some(object => object.bucket === 'music-audio')) {
-        return json(400, { error: 'Original audio requires private no-store delivery. Update the client and try again.' });
+      if ([...objects.values()].some(object => ['music-audio','live-clips'].includes(object.bucket))) {
+        return json(400, { error: 'This media requires private no-store delivery. Update the client and try again.' });
       }
       const urls: Array<{ key: string; url: string }> = [];
       for (const bucket of new Set([...objects.values()].map(object => object.bucket))) {

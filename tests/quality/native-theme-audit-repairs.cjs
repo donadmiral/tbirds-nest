@@ -64,7 +64,11 @@ function component(file, api, options = {}) {
     if (name === 'expo-application') return options.application || { nativeApplicationVersion: '1.1.0', nativeBuildVersion: '42' };
     if (name.endsWith('/components/SafeArea')) return { SafeAreaView: 'SafeAreaView', useSafeAreaInsets: () => ({ bottom: 0 }) };
     if (name === '@react-navigation/native') return { useNavigation: () => ({ goBack() {} }), useRoute: () => ({ params: { businessId: 'business', businessName: 'Audit business' } }), useFocusEffect() {} };
-    if (name.endsWith('/stores/authStore')) return { useAuthStore: () => ({ profile: { id: 'owner' } }) };
+    if (name.endsWith('/stores/authStore')) return { useAuthStore: selector => {
+      const state = { profile: { id: 'owner' }, session: { user: { id: 'owner' } } };
+      return selector ? selector(state) : state;
+    } };
+    if (name.endsWith('/shared/readContinuity')) return compile(read('shared/readContinuity.ts'), 'readContinuity.ts');
     if (name.endsWith('/lib/navigationCache')) return { navigationScope: () => 'theme-owner' };
     if (name.endsWith('/services/useReadingWindow')) return { useReadingWindow: () => ({
       history: { current: null }, snapshot: null, top: { current: 0 },

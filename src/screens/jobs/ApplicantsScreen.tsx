@@ -21,6 +21,8 @@ import { useAuthStore } from '../../stores/authStore';
 import { JobApplication, ApplicationStatus, STATUS_META, APPLICATION_STATUS_ORDER } from '../../services/jobsService';
 
 import { loadApplicantPage, mergeApplicants, saveApplicationStatus, saveInterview, type ApplicantCursor } from '../../../shared/hiring';
+import { isReadAccessDenied } from '../../../shared/readContinuity';
+import { orderTimeout } from '../../../shared/orderRequest';
 
 const NAVY = '#0B1E3D';
 
@@ -55,6 +57,9 @@ export default function ApplicantsScreen() {
   const [statusApp, setStatusApp] = useState<JobApplication | null>(null);
 
   const generation = useRef(0);
+  const readIdentity = `${userId ?? ''}:${job?.id ?? ''}:${filter}`;
+  const identityRef = useRef(readIdentity);
+  if (identityRef.current !== readIdentity) { identityRef.current = readIdentity; generation.current++; }
   const sheetGeneration = useRef(0);
   const [counts, setCounts] = useState<Record<string, number>>({ all: 0 });
   const [cursor, setCursor] = useState<ApplicantCursor | null>(null);
@@ -62,21 +67,23 @@ export default function ApplicantsScreen() {
   const morePending = useRef(false);
   const load = useCallback(async () => {
     const token = ++generation.current;
-    setLoading(true); setErr(null); setApps([]); setCounts({ all: 0 }); setCursor(null);
+    setLoading(true); setErr(null);
     morePending.current = false; setLoadingMore(false);
-    if (!job?.id || !userId) { setErr('This job is unavailable. Sign in and reopen the job.'); setLoading(false); return; }
+    if (!job?.id || !userId) { setApps([]); setCounts({ all: 0 }); setCursor(null); setErr('This job is unavailable. Sign in and reopen the job.'); setLoading(false); return; }
     try {
-      const page = await loadApplicantPage<JobApplication>(supabase, job.id, filter);
+      const page = await orderTimeout(loadApplicantPage<JobApplication>(supabase, job.id, filter), 15000, 'Applicants could not be loaded. Please try again.');
       if (token !== generation.current) return;
       setApps(page.applications); setCounts(page.counts); setCursor(page.has_more ? page.cursor : null);
-    } catch (e: any) { if (token === generation.current) setErr(e?.message || 'Could not load applicants'); }
+    } catch (e: any) { if (token === generation.current) { if (isReadAccessDenied(e)) { setApps([]); setCounts({ all: 0 }); setCursor(null); } setErr(e?.message || 'Could not load applicants'); } }
     finally { if (token === generation.current) setLoading(false); }
   }, [job?.id, userId, filter]);
   useEffect(() => {
+    setApps([]); setCursor(null); setExpanded(new Set());
     setSheetApp(null); setSheetProfile(null); setStatusApp(null); setIvAt(''); setIvLoc(''); ++sheetGeneration.current;
     void load();
     return () => { ++generation.current; ++sheetGeneration.current; };
   }, [load]);
+  useEffect(() => { setCounts({ all: 0 }); }, [job?.id, userId]);
   const loadMore = async () => {
     if (!cursor || morePending.current) return;
     const token = generation.current;
@@ -227,9 +234,10 @@ export default function ApplicantsScreen() {
         />
       </View>
 
-      {loading ? (
+      {err && shown.length > 0 ? <TouchableOpacity accessibilityRole="button" onPress={() => { void load(); }}><Text accessibilityRole="alert" style={st.errTxt}>{err}. Tap to retry.</Text></TouchableOpacity> : null}
+      {loading && shown.length === 0 ? (
         <ListRowSkeleton />
-      ) : err ? (
+      ) : err && shown.length === 0 ? (
         <View style={st.center}>
           <Text style={st.errTxt}>{err}</Text>
           <TouchableOpacity style={st.retry} onPress={load}><Text style={st.retryTxt}>Try again</Text></TouchableOpacity>
@@ -248,6 +256,8 @@ export default function ApplicantsScreen() {
           renderItem={renderRow}
           contentContainerStyle={{ padding: 14, paddingBottom: 60 }}
           showsVerticalScrollIndicator={false}
+          refreshing={loading}
+          onRefresh={() => { void load(); }}
           ListFooterComponent={cursor ? <TouchableOpacity disabled={loadingMore} style={st.retry} onPress={() => { void loadMore(); }}><Text style={st.retryTxt}>{loadingMore ? 'Loading…' : 'Load more applicants'}</Text></TouchableOpacity> : null}
         />
       )}

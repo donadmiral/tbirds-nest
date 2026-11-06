@@ -1,0 +1,34 @@
+{
+  "projectId": "uaulhuelcfkjwojtymmw",
+  "fixtureRunId": "554e817b-78b8-4e64-9a94-b2aa80fdca4d",
+  "recordedAt": "2026-11-05T19:40:13.293Z",
+  "sourceRemoval": {
+    "attempts": [
+      {
+        "cleanupDone": false,
+        "cleanupPending": true,
+        "cleanupAttempts": 0
+      }
+    ],
+    "jobState": "cancelled",
+    "sourceObjects": 0,
+    "activePublication": false,
+    "allFixtureObjects": 4
+  },
+  "temporaryEndpoint": {
+    "name": "qa-physical-cache-cleanup-20261105",
+    "version": 2,
+    "verifyJwt": true,
+    "retired": true,
+    "activeSourceSha256": "c09dd43a8876199177868e9af56fce1477e4cd1a4014dd1abbd4a0a747c98147",
+    "retiredBundleSha256": "795f20ce1fd664f122d9fb258f97cbb8d0980be2e9ba87c9867202fbfd69bc01",
+    "readbackCode": "Deno.serve(() => new Response(JSON.stringify({ error: 'RETIRED' }), { status: 410, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } }));\n",
+    "authenticatedLiveReadback": {
+      "status": 410,
+      "result": {
+        "error": "RETIRED"
+      }
+    }
+  },
+  "independentDerivativeAbsenceStillRequired": true
+}

@@ -1,0 +1,24 @@
+{
+  "recordedAt": "2026-11-05T19:31:14.711Z",
+  "phase": "read-only-before-final-cleanup",
+  "projectId": "uaulhuelcfkjwojtymmw",
+  "fixtureRunId": "554e817b-78b8-4e64-9a94-b2aa80fdca4d",
+  "cleanupHeldUntilRecordingReview": true,
+  "remaining": {
+    "posts": 1,
+    "users": 2,
+    "follows": 1,
+    "profiles": 2,
+    "sessions": 12,
+    "identities": 2,
+    "attachments": 2,
+    "notifications": 1,
+    "refreshTokens": 12,
+    "sourceObjects": 2,
+    "allFixtureObjects": 6,
+    "activeAdaptiveJobs": 1,
+    "activeOriginalJobs": 0,
+    "pendingAdaptiveCleanup": 1,
+    "pendingOriginalCleanup": 0
+  }
+}

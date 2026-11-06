@@ -1,5 +1,6 @@
 "use client";
 
+import { ResourceRefreshNotice } from "@/components/ResourceRefreshNotice";
 import { useAccountResource } from "@/lib/useAccountResource";
 import { useCurrentTime } from "@/lib/useCurrentTime";
 import { ErrorState } from "@/components/ErrorState";
@@ -44,7 +45,7 @@ async function loadCalls(supabase: ReturnType<typeof createClient>, me: string):
   return list.map(row=>({...row,other:byId.get(row.initiator_id===me?row.receiver_id??"":row.initiator_id)}));
 }
 export default function CallsPage() {
-  const resource=useAccountResource(loadCalls, []);
+  const resource=useAccountResource(loadCalls, [], { cacheKey: "calls:history" });
   const uid=resource.owner, rows=resource.data;
   const now=useCurrentTime();
   const redial = (row: Row, isVideo: boolean) => {
@@ -72,6 +73,7 @@ export default function CallsPage() {
       <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><Phone size={19} className="text-accent" /> Calls</h1>
       <p className="pb-5 text-[13px] text-muted">Your call history.</p>
 
+      <ResourceRefreshNotice error={resource.refreshError} refreshing={resource.refreshing} retry={resource.retry} />
       {resource.error ? <ErrorState title="Call history could not load" line={resource.error} onRetry={resource.retry}/> : resource.loading ? <p className="py-10 text-center text-sm text-muted">Loading</p>
       : rows.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-ink/15 py-16 text-center">

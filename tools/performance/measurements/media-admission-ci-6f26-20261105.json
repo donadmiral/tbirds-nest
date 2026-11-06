@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "kind": "isolated-media-admission-load",
+  "sourceCommit": "6f26e5f26210bf9d5cffdc7a0d2c9df9c3bdc019",
+  "measuredAt": "2026-11-05T05:27:46.357Z",
+  "sourceFiles": {
+    "supabase/tests/media-processing-fixture.sql": "2d2546951950bfaab7dc8f3d0e376ab309c4f7a876215682988ff3179dff947e",
+    "supabase/migrations/20261102071532_durable_media_processing_v1.sql": "103b73af327747c00b8e47f061c957459052d23c413b3e05cad662986c28bec5",
+    "supabase/migrations/20261102090521_adaptive_media_renditions_v2.sql": "1382ced186d6f8e1a96964fa79f98d43194957b3aecc33ac9b4213b1afd40ae1",
+    "supabase/migrations/20261105044918_adaptive_media_admission_backfill_v2.sql": "9c7c06abbb6f5fb840aa99d08c026531e531dd68c576b51a88dd0bd070c40ccb"
+  },
+  "jobs": 64,
+  "competingSessions": 16,
+  "configuredLeaseLimit": 4,
+  "providerCalls": 0,
+  "encoderThroughputMeasured": false,
+  "productionCapacityEstablished": false,
+  "passed": true,
+  "preview": {
+    "state": "preview",
+    "hasMore": false,
+    "scanned": 64,
+    "admitted": 0,
+    "eligible": 64,
+    "nextAfterId": "40000000-0000-4000-8000-000000001064"
+  },
+  "enrolled": {
+    "state": "complete",
+    "hasMore": false,
+    "scanned": 64,
+    "admitted": 64,
+    "eligible": 64,
+    "nextAfterId": "40000000-0000-4000-8000-000000001064"
+  },
+  "completedControlledFailures": 64,
+  "peakLeases": 4,
+  "expiredLeaseFenced": true,
+  "emergencyStopEnforced": true,
+  "duplicateEnrollmentPrevented": true,
+  "claimCalls": 304,
+  "claimLatencyMs": {
+    "count": 304,
+    "p50": 9.942770999999993,
+    "p95": 17.143646999999987,
+    "p99": 37.578846,
+    "max": 42.01375800000005
+  },
+  "elapsedMs": 1018.6641809999999,
+  "sourceObjectsRetained": 64,
+  "limitations": [
+    "Measures SQL admission and lease control only, not encoding, Storage transfer, CDN delivery, or provider quotas.",
+    "Jobs intentionally finish as failed without uploading media. These are controlled failure-path checks, not produced renditions."
+  ]
+}

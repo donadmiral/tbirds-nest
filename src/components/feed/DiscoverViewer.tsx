@@ -1,7 +1,9 @@
+import {usePostVideoRepresentation} from '../../lib/usePostVideoRepresentation';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, AppState, FlatList, Modal, PanResponder, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { Image } from 'expo-image';
-import { VideoView, useVideoPlayer } from 'expo-video';
+import { VideoView } from 'expo-video';
+import { useAdaptiveVideoPlayer as useVideoPlayer } from '../../lib/useAdaptiveVideoPlayer';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from '../SafeArea';
 import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
@@ -23,7 +25,8 @@ type Props = { posts: DiscoverPost[]; initialId: string; profiles: Record<string
 
 function DiscoverVideo({ item, postId, active, soundtrack, width, height, onRetry }: { item: Media; postId: string; active: boolean; soundtrack: SoundtrackSelection | null; width: number; height: number; onRetry: () => void }) {
   const autoplay = useSettingsStore(s => s.autoplayVideos);
-  const player = useVideoPlayer(item.url, p => { p.loop = true; p.muted = true; p.timeUpdateEventInterval = 0.25; });
+  const displayed=usePostVideoRepresentation(item.url,item.edit);
+  const player = useVideoPlayer(displayed.source||null, p => { p.loop = true; p.muted = true; p.timeUpdateEventInterval = 0.25; },displayed.original);
   const [playing, setPlaying] = useState(false), [time, setTime] = useState(0), [muted, setMuted] = useState(true), [failed, setFailed] = useState(false);
   const [requested, setRequested] = useState(autoplay);
   const start = Math.max(0, Number(item.edit?.trimStart) || 0);
@@ -70,7 +73,7 @@ function DiscoverVideo({ item, postId, active, soundtrack, width, height, onRetr
     <TouchableOpacity accessibilityLabel={muted?'Unmute video':'Mute video'} style={s.sound} onPress={()=>setMuted(v=>!v)}><Feather name={muted?'volume-x':'volume-2'} size={22} color="#fff"/></TouchableOpacity>
     {song.error ? <TouchableOpacity accessibilityLabel="Retry music" style={[s.failure,{bottom:60}]} onPress={song.retry}><Text style={s.white}>{song.error}</Text></TouchableOpacity> : null}
     {!requested && !failed ? <TouchableOpacity accessibilityLabel="Play video" style={s.play} onPress={()=>setRequested(true)}><Feather name="play" size={32} color="#fff"/></TouchableOpacity> : null}
-    {failed ? <View style={s.failure}><Text style={s.white}>Video could not play</Text><TouchableOpacity onPress={()=>{setFailed(false);onRetry();void player.replaceAsync(item.url).then(()=>{if(active)player.play();}).catch(()=>setFailed(true));}}><Text style={s.white}>Try again</Text></TouchableOpacity></View>:null}
+    {failed ? <View style={s.failure}><Text style={s.white}>Video could not play</Text><TouchableOpacity onPress={()=>{if(!displayed.available || !displayed.source)return;setFailed(false);onRetry();void player.replaceAsync({uri:displayed.original || displayed.source,useCaching:false}).then(()=>{if(active)player.play();}).catch(()=>setFailed(true));}}><Text style={s.white}>Try again</Text></TouchableOpacity></View>:null}
   </View>;
 }
 function DiscoverCell({ post, active, width, height, onRetry }: { post: DiscoverPost; active:boolean; width:number; height:number; onRetry:()=>void }) {

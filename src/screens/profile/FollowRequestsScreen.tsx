@@ -17,6 +17,8 @@ import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
+import { createScreenReadGuard, isReadAccessDenied, requireReadRows } from '../../../shared/readContinuity';
+import { orderTimeout } from '../../../shared/orderRequest';
 
 
 type FollowRequest = {
@@ -59,36 +61,41 @@ export default function FollowRequestsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [busyIds, setBusyIds] = useState<Record<string, boolean>>({});
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reads] = useState(() => createScreenReadGuard(userId));
+  reads.setScope(userId);
 
   const load = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) { setLoading(false); return; }
+    const current = reads.begin(userId);
+    if (!current()) return;
+    setLoadError(null);
     try {
-      const { data, error } = await supabase
+      const { data, error } = await orderTimeout(supabase
         .from('follow_requests')
         .select('id, requester_id, status, created_at')
         .eq('target_id', userId)
         .eq('status', 'pending')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }), 15000, 'Follow requests could not be loaded.');
 
-      if (error) {
-        console.log('[FollowRequests] load error:', error.message);
-        return;
-      }
+      if (error) throw error;
+      if (!current()) return;
 
-      const rows = data || [];
+      const rows = requireReadRows<any>(data);
       if (rows.length === 0) {
         setRequests([]);
         return;
       }
 
       const requesterIds = rows.map((r: any) => r.requester_id);
-      const { data: profiles } = await supabase
+      const { data: profiles, error: profileError } = await orderTimeout(supabase
         .from('profiles')
         .select('id, full_name, username, avatar_url, degree_program')
-        .in('id', requesterIds);
+        .in('id', requesterIds), 15000, 'Follow request profiles could not be loaded.');
+      if (profileError) throw profileError;
 
       const profileMap: Record<string, any> = {};
-      (profiles || []).forEach((p: any) => { profileMap[p.id] = p; });
+      requireReadRows<any>(profiles).forEach((p: any) => { profileMap[p.id] = p; });
 
       const shaped: FollowRequest[] = rows.map((r: any) => ({
         id: r.id,
@@ -98,16 +105,15 @@ export default function FollowRequestsScreen() {
         requester: profileMap[r.requester_id] || null,
       }));
 
-      setRequests(shaped);
+      if (current()) setRequests(shaped);
     } catch (e) {
-      console.log('[FollowRequests] load catch:', e);
+      if (current()) { if (isReadAccessDenied(e)) setRequests([]); setLoadError('Follow requests could not be refreshed. Tap to retry.'); }
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (current()) { setLoading(false); setRefreshing(false); }
     }
-  }, [userId]);
+  }, [userId, reads]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { setRequests([]); setBusyIds({}); setLoading(!!userId); setRefreshing(false); setLoadError(null); void load(); return () => reads.invalidate(); }, [load, userId, reads]);
 
   const respond = async (requestId: string, action: 'accept' | 'reject') => {
     if (busyIds[requestId]) return;
@@ -188,7 +194,8 @@ export default function FollowRequestsScreen() {
         <SettingsExit navigation={navigation} />
       </View>
 
-      {loading ? (
+      {loadError ? <TouchableOpacity accessibilityRole="button" onPress={() => { setRefreshing(true); void load(); }}><Text accessibilityRole="alert" style={{ padding: 16, color: t.status.danger }}>{loadError}</Text></TouchableOpacity> : null}
+      {loading && requests.length === 0 ? (
         <ListRowSkeleton />
       ) : (
         <FlatList
@@ -200,6 +207,7 @@ export default function FollowRequestsScreen() {
             <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={t.brand.base} />
           }
           ListEmptyComponent={
+            loadError ? null :
             <View style={st.empty}>
               <Feather name="user-check" size={40} color="rgba(11,30,61,0.08)" />
               <Text style={st.emptyTitle}>No pending requests</Text>

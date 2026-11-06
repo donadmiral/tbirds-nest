@@ -1,6 +1,6 @@
 /** A small, account-bound copy of public feed content. Never an authorization cache. */
 export const FEED_SNAPSHOT_VERSION = 1;
-export const FEED_SNAPSHOT_MAX_AGE = 15 * 60_000;
+export const FEED_SNAPSHOT_MAX_AGE = 24 * 60 * 60_000;
 export const FEED_SNAPSHOT_LIMIT = 20;
 const MAX_BYTES = 160_000;
 const MODES = ['forYou', 'latest', 'trending'] as const;
@@ -15,6 +15,9 @@ export type FeedSnapshot = { version: number; owner: string; mode: Mode; savedAt
 const key = (owner: string, mode: string) => `pc-feed-v${FEED_SNAPSHOT_VERSION}:${owner}:${mode}`;
 const text = (value: unknown, max: number) => typeof value === 'string' ? value.slice(0, max) : null;
 const count = (value: unknown) => typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 ? value : 0;
+const restricted = (value: Row) => !!(value.view_once || value.is_view_once || value.view_limit || value.is_ephemeral
+  || value.expires_at || value.deleted_at || value.is_deleted || value.revoked_at || value.is_restricted
+  || value.restricted || value.is_paywalled || value.is_sensitive || value.edit?.sensitive);
 const publicUrl = (value: unknown) => {
   if (typeof value !== 'string' || value.length > 2048) return null;
   // Signed/private URLs and credentials must not become durable feed data.
@@ -27,15 +30,32 @@ export function publicSnapshotRows(rows: Row[], eligible: Set<string>): Row[] {
   const seen = new Set<string>();
   return rows.flatMap(row => {
     if (!row || typeof row.post_id !== 'string' || typeof row.author_id !== 'string'
-      || !eligible.has(row.post_id) || seen.has(row.post_id) || seen.size >= FEED_SNAPSHOT_LIMIT) return [];
+      || restricted(row) || !eligible.has(row.post_id) || seen.has(row.post_id) || seen.size >= FEED_SNAPSHOT_LIMIT) return [];
     seen.add(row.post_id);
-    const media = (Array.isArray(row.media) ? row.media : []).slice(0, 10).flatMap((item: Row) => {
+    const media = (Array.isArray(row.media) ? row.media : []).slice(0, 10).flatMap((item: Row): Row[] => {
       const url = publicUrl(item?.url);
-      if (!url || !['image', 'video'].includes(item.media_type)) return [];
-      return [{ id: text(item.id, 80) ?? url, url, media_type: item.media_type,
+      if (!item || restricted(item) || !['image', 'video'].includes(item.media_type)) return [];
+      const aspect = ['original', 'square', 'portrait', 'landscape'].includes(item.edit?.aspect) ? item.edit.aspect : undefined;
+      const aspectRatio = typeof item.edit?.aspectRatio === 'number' && Number.isFinite(item.edit.aspectRatio)
+        && item.edit.aspectRatio >= .25 && item.edit.aspectRatio <= 4 ? item.edit.aspectRatio : undefined;
+      const rotation = typeof item.edit?.rotation === 'number' && Number.isFinite(item.edit.rotation) ? item.edit.rotation : undefined;
+      const sourceVersion = typeof item._sourceVersion === 'string' && /^[a-zA-Z0-9_-]{1,128}$/.test(item._sourceVersion) ? item._sourceVersion : undefined;
+      const edit = { ...(aspect ? { aspect } : {}), ...(aspectRatio ? { aspectRatio } : {}),
+        ...(rotation !== undefined ? { rotation } : {}) };
+      if (!url) {
+        const id = text(item.id, 80);
+        if (!id) return [];
+        // Reserve the original frame without persisting an object path or a
+        // playback capability. Video covers use an image-only placeholder.
+        return [{ id, url: '', _sourceVersion: sourceVersion, media_type: 'image', width: count(item.width) || null,
+          height: count(item.height) || null, sort_order: count(item.sort_order), edit,
+          _startupPlaceholder: true, _startupPreview: true,
+          _startupMediaType: item._startupMediaType === 'video' || item.media_type === 'video' ? 'video' : 'image' }];
+      }
+      return [{ id: text(item.id, 80) ?? url, url, _sourceVersion: sourceVersion, media_type: item.media_type,
         width: count(item.width) || null, height: count(item.height) || null,
         sort_order: count(item.sort_order), is_sensitive: item.is_sensitive === true,
-        edit: publicUrl(item.edit?.coverUrl) ? { coverUrl: publicUrl(item.edit.coverUrl) } : null }];
+        edit: { ...edit, ...(publicUrl(item.edit?.coverUrl) ? { coverUrl: publicUrl(item.edit.coverUrl) } : {}) } }];
     });
     return [{ post_id: row.post_id, author_id: row.author_id,
       content: text(row.content ?? row.body, 12_000) ?? '', created_at: text(row.created_at, 40),
@@ -115,6 +135,29 @@ export function mergeFeedRefresh<T extends { id: string }>(current: T[], incomin
   const next = new Map(unique.map(row => [row.id, row]));
   const present = new Set(current.map(row => row.id));
   return { rows: current.map(row => next.get(row.id) ?? row), pending: unique.filter(row => !present.has(row.id)) };
+}
+
+/** A slow encrypted read may finish after text-only launch rows are on screen.
+ * Fill only same-ID reserved media slots. Keep row order, content, optimistic state,
+ * and any existing media/geometry exactly as rendered. The caller fences this
+ * merge to its still-pending initial request and restored account scope. */
+export function mergeLateFeedPreviews<T extends { id: string; media?: { id?: string; url?: string; _startupPreview?: boolean; _startupPlaceholder?: boolean }[] }>(current: T[], restored: T[]): T[] {
+  const byId = new Map(restored.map(row => [row.id, row]));
+  let changed = false;
+  const next = current.map(row => {
+    if (!row.media?.length) return row;
+    const incoming = new Map(byId.get(row.id)?.media?.map(item => [item.id, item]));
+    let rowChanged = false;
+    const media = row.media.map(item => {
+      const source = incoming.get(item.id);
+      if (!item.id || item.url || !item._startupPlaceholder || source?._startupPreview !== true
+        || typeof source.url !== 'string' || !source.url.startsWith('data:image/jpeg;base64,')) return item;
+      rowChanged = changed = true;
+      return { ...item, url: source.url, _startupPreview: true };
+    });
+    return rowChanged ? { ...row, media } : row;
+  });
+  return changed ? next : current;
 }
 
 /** Public cache prefetch only. Private media warms in its mounted, no-store image view. */

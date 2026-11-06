@@ -132,7 +132,10 @@ test('application clients propagate errors, validate pagination and send concurr
   const saved = await h.withdrawApplication(client,{id:id(100),status:'interview',updated_at:'2026-01-01',job:{title:'Engineer'}});
   assert.equal(saved.job.title,'Engineer'); assert.equal(calls[1].args.p_expected_status,'interview');
   assert.equal(calls[1].args.p_expected_updated_at,'2026-01-01');
-  await assert.rejects(h.loadMyApplicationPage({rpc:async()=>({error:{message:'Network unavailable'}})}),/Network unavailable/);
+  const unavailable = { message: 'Network unavailable', code: 'PGRST000' };
+  await assert.rejects(h.loadMyApplicationPage({rpc:async()=>({error:unavailable})}), error => error === unavailable);
+  const denied = { message: 'Permission denied', code: '42501', status: 403 };
+  await assert.rejects(h.loadMyApplicationPage({rpc:async()=>({error:denied})}), error => error === denied);
   await assert.rejects(h.loadMyApplicationPage({rpc:async()=>({data:{applications:[],has_more:true,cursor:null}})}),/could not be loaded/);
   await assert.rejects(h.withdrawApplication({rpc:async()=>({error:{code:'40001'}})},{id:id(100),status:'interview'}),/changed/);
   for(const status of ['hired','accepted','rejected','withdrawn']) assert.equal(h.canWithdrawApplication(status),false);

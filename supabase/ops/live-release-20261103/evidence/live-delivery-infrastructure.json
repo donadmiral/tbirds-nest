@@ -1,0 +1,246 @@
+{
+  "schema_version": 1,
+  "observed_at_utc": "2026-11-03 02:09:52 UTC",
+  "scope": "Live delivery infrastructure configuration and validation",
+  "completion_state": "partially_configured_aws_access_and_service_credentials_required",
+  "source_baseline_commit": "089e56da08ef72b4c8a5dad0c5cf5c622f7f7ef0",
+  "original_web_admin_runtime_commit": "2e265ef0915ed83cbf5ba79f22f3ea1f1a717d8d",
+  "reviewed_source_sha256": {
+    "infrastructure/live/live-cloudformation.json": "3ec36c4908f6da683d97f253864f1199fa7d4de68d6f4ed5cf1e76114215e663",
+    "infrastructure/live/production-parameters.json": "45bafdd2bfd6cbf7f0bdd50d638da3bdb3e0f1b10217733c40e54e4f362c23a0",
+    "supabase/functions/live-sign/index.ts": "ff7f36a86c2496e13e2eda981b87cb55daee557db90ed899bb25b42e3d2a7924",
+    "supabase/functions/live-sign/handler.ts": "4531d207dc0b4cd18a97277dab58edcbc67fafc50725e77237df54d9662d3fab",
+    "supabase/functions/live-maintenance/index.ts": "89957db22f45ce68937dd8003cf1c095f086137fea0e954c7d94953ea3da79f2",
+    "supabase/functions/live-maintenance/handler.ts": "e4785fabde02fcf4d6f0eed5f6eeba322d68fea252459160a2411206f7d5a9b6"
+  },
+  "production": {
+    "project": "prlkikhckbifseosbukl",
+    "settings_saved": {
+      "LIVE_PLAYBACK_SIGNER_URL": "https://prlkikhckbifseosbukl.supabase.co/functions/v1/live-sign",
+      "LIVE_DAILY_DOMAIN_ID": "bfe7e3aa-0369-4bd6-9db1-d882df729ddf"
+    },
+    "settings_saved_at_utc": {
+      "LIVE_PLAYBACK_SIGNER_URL": "2026-11-03T01:53:44Z",
+      "LIVE_DAILY_DOMAIN_ID": "2026-11-03T02:06:30Z"
+    },
+    "runtime_verification": {
+      "id": 10559,
+      "status_code": 200,
+      "timed_out": false,
+      "maintenance_ok": true,
+      "provider_configuration": {
+        "DAILY_API_KEY": true,
+        "LIVE_HLS_BUCKET": false,
+        "LIVE_HLS_REGION": false,
+        "LIVE_HLS_CDN_ORIGIN": false,
+        "LIVE_DAILY_DOMAIN_ID": true,
+        "LIVE_HLS_ASSUME_ROLE_ARN": false,
+        "LIVE_PLAYBACK_SIGNER_URL": true,
+        "LIVE_DAILY_WEBHOOK_SECRET": false,
+        "LIVE_PLAYBACK_SIGNER_SECRET": false
+      }
+    },
+    "daily_domain_inspection": {
+      "id": 10554,
+      "status_code": 200,
+      "timed_out": false,
+      "maintenance_ok": true,
+      "provider_inspection": {
+        "ok": true,
+        "domain_id": "bfe7e3aa-0369-4bd6-9db1-d882df729ddf",
+        "domain_name": "platinumcircles"
+      }
+    },
+    "daily_inspection_authentication": "Existing server-held Daily API credential; fixed read-only domain endpoint; validated one-use maintenance tick",
+    "daily_credential_value_exposed": false,
+    "screenshot": "live-delivery-settings.jpg"
+  },
+  "edge_deployments": [
+    {
+      "environment": "qa",
+      "project": "uaulhuelcfkjwojtymmw",
+      "function": "live-sign",
+      "id": "1fe4c5bd-812b-4a31-9c04-1fcd58db6782",
+      "version": 2,
+      "status": "ACTIVE",
+      "updated_at": "2026-11-03T01:55:24.569Z",
+      "verify_jwt": false,
+      "bundle_sha256": "eb9447aa1131d576f34218accc267db6c021a1e89263b9e0eac8d60f11511c3f"
+    },
+    {
+      "environment": "production",
+      "project": "prlkikhckbifseosbukl",
+      "function": "live-sign",
+      "id": "9a780d86-48ff-4562-926a-bcbd74b4f194",
+      "version": 3,
+      "status": "ACTIVE",
+      "updated_at": "2026-11-03T01:56:00.185Z",
+      "verify_jwt": false,
+      "bundle_sha256": "eb9447aa1131d576f34218accc267db6c021a1e89263b9e0eac8d60f11511c3f"
+    },
+    {
+      "environment": "qa",
+      "project": "uaulhuelcfkjwojtymmw",
+      "function": "live-maintenance",
+      "id": "2e541fe5-2032-4d8c-af06-eada7c600824",
+      "version": 4,
+      "status": "ACTIVE",
+      "updated_at": "2026-11-03T02:02:49.154Z",
+      "verify_jwt": false,
+      "bundle_sha256": "8c3236203119a771d88ca9406014216651675918885b1d4a2f66382d5535c215"
+    },
+    {
+      "environment": "production",
+      "project": "prlkikhckbifseosbukl",
+      "function": "live-maintenance",
+      "id": "1106210d-b02e-422f-ae62-053dfd0b4ab0",
+      "version": 3,
+      "status": "ACTIVE",
+      "updated_at": "2026-11-03T02:03:35.904Z",
+      "verify_jwt": false,
+      "bundle_sha256": "8c3236203119a771d88ca9406014216651675918885b1d4a2f66382d5535c215"
+    }
+  ],
+  "edge_verification": {
+    "qa_signer": {
+      "project": "uaulhuelcfkjwojtymmw",
+      "status": 401,
+      "error": "AUTH_REQUIRED",
+      "cache_control": "private, no-store",
+      "passed": true
+    },
+    "production_signer": {
+      "project": "prlkikhckbifseosbukl",
+      "status": 401,
+      "error": "AUTH_REQUIRED",
+      "cache_control": "private, no-store",
+      "passed": true
+    },
+    "qa_maintenance": {
+      "project": "uaulhuelcfkjwojtymmw",
+      "status": 401,
+      "error": "AUTH_REQUIRED",
+      "inspection_exposed": false,
+      "passed": true
+    },
+    "production_maintenance": {
+      "request_id": 10554,
+      "status": 200,
+      "maintenance_ok": true,
+      "provider_inspection_ok": true
+    },
+    "successful_signed_playback_verified": false
+  },
+  "local_verification": {
+    "cloudformation": {
+      "template_sha256": "3ec36c4908f6da683d97f253864f1199fa7d4de68d6f4ed5cf1e76114215e663",
+      "cfn_lint_version": "1.59.0",
+      "regions": [
+        "us-east-1",
+        "us-west-2"
+      ],
+      "exit_code": 0
+    },
+    "template_contract_tests": {
+      "command": "node infrastructure/live/test/template.test.mjs",
+      "passed": 4,
+      "failed": 0
+    },
+    "signing_and_edge_tests": {
+      "command": "node supabase/tests/live-signing.test.cjs",
+      "passed": 7,
+      "failed": 0
+    },
+    "provider_and_maintenance_tests": {
+      "command": "node --test supabase/tests/live-provider.test.cjs",
+      "passed": 17,
+      "failed": 0
+    },
+    "signer_deno_check": {
+      "version": "2.1.4",
+      "passed": true
+    },
+    "maintenance_handler_strict_typescript_check": {
+      "passed": true
+    },
+    "scope": "Local contract/authentication fixtures and linter checks; no hosted AWS or real broadcast acceptance"
+  },
+  "aws": {
+    "authenticated_customer_account": null,
+    "customer_account_id_inferred": false,
+    "resources_created": [],
+    "daily_provider_account": "291871421005",
+    "daily_role_external_id": "platinumcircles",
+    "proposed_stack_name": "platinum-live-production",
+    "proposed_region": "us-west-2",
+    "region_selection_note": "Matches existing Supabase region; confirm placement before creation",
+    "parameters_path": "infrastructure/live/production-parameters.json",
+    "cli_version": "2.39.3",
+    "cli_vendor_archive_sha256": "14cb35809ad7547dd3c69fa9899a3975fbd850b6a6791f3fe264856490cd9a63",
+    "cli_signature_fingerprint": "FB5DB77FD5C118B80511ADA8A6310ACC4672475C",
+    "cli_signature_verified": true,
+    "access_blockers": [
+      "No authenticated AWS CLI profile, credentials or suitable provisioning connector was available",
+      "Cloud browser AWS console returned Site Unavailable after one reload"
+    ],
+    "repository_identity_check": {
+      "workflow_files_checked": 17,
+      "aws_identity_found": false,
+      "reusable_aws_deployment_path_found": false,
+      "scope": [
+        ".github/workflows",
+        "infrastructure/live"
+      ],
+      "external_github_organization_secrets_inspected": false
+    }
+  },
+  "signing": {
+    "endpoint_deployed": true,
+    "internal_url_configured": true,
+    "internal_authentication_secret_installed": false,
+    "cdn_signing_key_installed": false,
+    "cloudfront_key_store_created": false,
+    "actual_cdn_origin_configured": false
+  },
+  "webhook": {
+    "receiver_deployed": true,
+    "intended_url": "https://prlkikhckbifseosbukl.supabase.co/functions/v1/live-provider-webhook",
+    "expected_domain_id": "bfe7e3aa-0369-4bd6-9db1-d882df729ddf",
+    "intended_retry_policy": "exponential",
+    "intended_event_types": [
+      "streaming.started",
+      "streaming.updated",
+      "streaming.ended",
+      "streaming.error",
+      "streaming.warning"
+    ],
+    "hmac_secret_installed": false,
+    "provider_registration_completed": false,
+    "provider_active_state_verified": false,
+    "aws_required_for_registration": false,
+    "remaining_requirements": [
+      "Protected Supabase HMAC secret installation",
+      "Authenticated Daily webhook registration using the same HMAC",
+      "Successful signed verification ping and ACTIVE receipt"
+    ]
+  },
+  "admission": {
+    "stage_broadcast_enabled": false,
+    "hls_delivery_enabled": false,
+    "recording_enabled": false,
+    "clip_encoder_enabled": false,
+    "acceptance_required_before_enablement": true
+  },
+  "capacity": {
+    "registered_user_design_target": 5000000,
+    "measured_capacity_certified": false,
+    "load_and_soak_acceptance_completed": false
+  },
+  "limitations": [
+    "No real Daily room destination or role assumption was validated",
+    "No master playlist, child segment, range request or private playback was accepted against deployed AWS",
+    "No new service secrets were generated or saved",
+    "Maintenance manual execution was verified; recent recurring cron run history was empty at inspection",
+    "Renderer deployment, native device acceptance and broader CI are outside this infrastructure follow-up"
+  ]
+}

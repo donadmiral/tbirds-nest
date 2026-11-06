@@ -7,6 +7,7 @@ import { installFixtureTransport } from './install-fixture-transport.cjs';
 import { installFixtureRuntime } from './fixture-runtime.cjs';
 import { observeCaptureBoundary, isCaptureState } from './capture-boundary-trace.cjs';
 import { createNavigationTimingRecorder } from './navigation-timing.cjs';
+import { installInputDiagnostics, attachPressabilityEmitter, record as recordInput } from './input-diagnostics.cjs';
 
 if (process.env.EXPO_PUBLIC_APP_ENV !== 'qa' || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY !== 'native-ui-synthetic-no-provider-key') {
   throw new Error('The isolated native UI entry cannot use a provider credential or production configuration.');
@@ -27,9 +28,18 @@ function persist(receipt) {
     writing = writing.then(() => FileSystem.writeAsStringAsync(FileSystem.documentDirectory + 'native-ui-receipt.json', snapshot));
   }, 100);
 }
-const fixture = createFixture(persist);
+const fixture = createFixture(persist, { feedVideoSource: () => require('./feed-video-asset.cjs').feedVideoSource(), immersiveLive: true });
 installFixtureRuntime(fixture);
 installFixtureTransport(fixture, FixtureWebSocket);
+installInputDiagnostics({
+  write: value => FileSystem.writeAsStringAsync(FileSystem.documentDirectory + 'native-ui-input-diagnostics.json', value),
+});
+try {
+  // Passive installed RN emitter. It does not replace responder handlers or
+  // identify a target; targeted callbacks below supply the control boundary.
+  const emitter = require('react-native/Libraries/Pressability/PressabilityPerformanceEventEmitter').default;
+  attachPressabilityEmitter(emitter);
+} catch { recordInput('pressability-unavailable'); }
 Linking.addEventListener('url', ({ url }) => {
   if (typeof url === 'string' && /^platinum-circles-qa:/i.test(url)) {
     observeCaptureBoundary(fixture, 'received', { matched: url === 'platinum-circles-qa://ui-fixture/memory' });
@@ -44,7 +54,7 @@ const { registerRootComponent } = require('expo');
 // Match production bootstrap only after the isolated transport is installed.
 require('@daily-co/react-native-daily-js');
 const { linking } = require('../../src/navigation/linking');
-const { CommonActions, getActionFromState } = require('@react-navigation/native');
+const { getActionFromState } = require('@react-navigation/native');
 linking.prefixes.push('platinum-circles-qa://');
 linking.config.screens.NativeMemoryCaptureFixture = 'ui-fixture/memory';
 const defaultPathState = linking.getStateFromPath;
@@ -61,20 +71,10 @@ linking.getStateFromPath = function (path, ...args) {
 const defaultLinkAction = linking.getActionFromState || getActionFromState;
 linking.getActionFromState = (state, options) => {
   try {
-    const route = state.routes[0];
-    if (state.routes.length === 1 && route?.name === 'NativeMemoryCaptureFixture'
-      && route.path === 'ui-fixture/memory') {
-      // Remove prior screen-owned Modals even when navigation failed mid-sheet.
-      // Only navigator routes change: App providers, auth/account stores, the
-      // synthetic transport and its cumulative receipt remain in this process.
-      const action = CommonActions.reset({ index: 0, routes: [route] });
-      // Linking performs dispatch after this returns. This is only production of
-      // an action; the separate mounted observation is a later boundary.
-      observeCaptureBoundary(fixture, 'action-produced', () => ({ matched: true, reset: action.type === 'RESET' }));
-      return action;
-    }
+    // Keep the same normal navigation action as production memory navigation.
+    // A prior failed flow or blocking modal still fails the required journey.
     const action = defaultLinkAction(state, options);
-    observeCaptureBoundary(fixture, action === undefined ? 'action-empty' : 'action-produced', () => ({ matched: false, reset: action?.type === 'RESET' }));
+    observeCaptureBoundary(fixture, action === undefined ? 'action-empty' : 'action-produced', () => ({ matched: isCaptureState(state), reset: action?.type === 'RESET' }));
     return action;
   } catch (error) {
     observeCaptureBoundary(fixture, 'action-failed', () => ({ matched: isCaptureState(state) }));

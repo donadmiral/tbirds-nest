@@ -11,6 +11,7 @@ function fixture(initial,hydrate,{signedIn=true,active=true}={}){
  const navigation={navigationScope:()=>scope,subscribeNavigationScope:fn=>{listeners.add(fn);return()=>listeners.delete(fn);}};
  const auth={useAuthStore:{getState:()=>({session:owner?{user:{id:owner},access_token:owner+'-token'}:null})}};
  const service=compile('src/services/profileContent.ts',{
+  '../../shared/adaptiveMedia':{acceptAdaptiveMedia(){}},
   '../../shared/contentMedia':{hydrateContentMedia:(_client,_base,value)=>hydrate(value)},
   '../lib/navigationCache':navigation,'../stores/authStore':auth,'./supabase':{supabase:{},SUPABASE_URL:'https://fixture.invalid'},
  });

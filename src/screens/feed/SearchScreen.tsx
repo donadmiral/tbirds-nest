@@ -15,7 +15,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createRecentSearchStore } from '../../../shared/recentSearches';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
-import { hydratePostMedia, withoutPrivateMedia } from '../../services/contentMedia';
+import { hydratePostMedia, withoutPrivateMedia, retainFeedMedia } from '../../services/contentMedia';
+import { isReadAccessDenied, requireReadRows } from '../../../shared/readContinuity';
 import { normalizeProfilePost } from '../../utils/profilePost';
 import { profileRead } from '../../utils/profileRead';
 import { useProfileMediaRefresh } from '../../hooks/useProfileMediaRefresh';
@@ -77,6 +78,7 @@ export default function SearchScreen({ navigation }: any) {
   const scope = `${myId}:${query.trim()}:${postMode}`;
   const searchScope = useRef(scope); searchScope.current = scope;
   const [visibleScope, setVisibleScope] = useState('');
+  const resultsScope = useRef(visibleScope); resultsScope.current = visibleScope;
   const [errors, setErrors] = useState<Partial<Record<Tab, string>>>({});
   useProfileMediaRefresh(posts, setPosts, scope, focused && activeTab === 'posts', message => setErrors(previous => ({ ...previous, posts: message })));
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; request.current++; }; }, []);
@@ -103,12 +105,13 @@ export default function SearchScreen({ navigation }: any) {
     const expected = `${myId}:${q}:${postMode}`;
     const current = () => mounted.current && owner === identity.current && version === request.current && searchScope.current === expected;
     if (!current()) return;
+    const sameResults = resultsScope.current === expected;
     if (!q || !myId) { setPeople([]); setPosts([]); setJobs([]); setListings([]); setLoading(false); setErrors({}); setVisibleScope(expected); return; }
     setLoading(true); setErrors({});
     const readRows = async (request: any): Promise<any[]> => {
       const { data, error } = await profileRead(request) as any;
       if (error) throw error;
-      return data || [];
+      return requireReadRows<any>(data);
     };
     try {
       const [blocked, peopleResult, postResult, jobResult, marketResult] = await Promise.allSettled([
@@ -124,19 +127,28 @@ export default function SearchScreen({ navigation }: any) {
       const blockedIds = new Set(blocked.value.map(row => row.blocker_id === myId ? row.blocked_id : row.blocker_id));
       const nextErrors: Partial<Record<Tab, string>> = {};
       if (peopleResult.status === 'fulfilled') setPeople(peopleResult.value.filter(row => !blockedIds.has(row.id)));
-      else { setPeople([]); nextErrors.people = 'People could not load. Please retry.'; }
+      else { setPeople(previous => sameResults && !isReadAccessDenied(peopleResult.reason) ? previous.filter(row => !blockedIds.has(row.id)) : []); nextErrors.people = 'People could not load. Please retry.'; }
       if (jobResult.status === 'fulfilled') setJobs(jobResult.value);
-      else { setJobs([]); nextErrors.jobs = 'Jobs could not load. Please retry.'; }
+      else { if (!sameResults || isReadAccessDenied(jobResult.reason)) setJobs([]); nextErrors.jobs = 'Jobs could not load. Please retry.'; }
       if (marketResult.status === 'fulfilled') setListings(marketResult.value.filter(row => !blockedIds.has(row.seller_id)));
-      else { setListings([]); nextErrors.market = 'Market results could not load. Please retry.'; }
+      else { setListings(previous => sameResults && !isReadAccessDenied(marketResult.reason) ? previous.filter(row => !blockedIds.has(row.seller_id)) : []); nextErrors.market = 'Market results could not load. Please retry.'; }
       const postRows = postResult.status === 'fulfilled' ? postResult.value.map(row => ({ ...row,
         id: row.id || row.post_id, user_id: row.user_id || row.author_id,
         post_media: Array.isArray(row.media) ? row.media : row.post_media || [],
         profile: row.profile || { id: row.user_id || row.author_id, full_name: row.author_name, username: row.author_username, avatar_url: row.author_avatar },
         _mediaExpected: !!(row.media?.length || row.post_media?.length || row.media_url),
       })).filter(row => !blockedIds.has(row.user_id)) : [];
-      setPosts(withoutPrivateMedia(postRows).map(row => normalizeProfilePost({ ...row, _mediaPending: true })));
-      if (postResult.status === 'rejected') nextErrors.posts = 'Posts could not load. Please retry.';
+      if (postResult.status === 'fulfilled') {
+        setPosts(previous => {
+          if (!current()) return previous;
+          const candidates = postRows.map(normalizeProfilePost);
+          const retained = retainFeedMedia(sameResults ? previous : [], candidates, sameResults ? expected : null, expected);
+          return retained.map((row, index) => normalizeProfilePost({ ...(row === candidates[index] ? withoutPrivateMedia([row])[0] : row), _mediaPending: true }));
+        });
+      } else {
+        setPosts(previous => current() && sameResults && !isReadAccessDenied(postResult.reason) ? previous.filter(row => !blockedIds.has(row.user_id)) : current() ? [] : previous);
+        nextErrors.posts = 'Posts could not load. Please retry.';
+      }
       setErrors(nextErrors); setVisibleScope(expected); setLoading(false);
       if (postRows.length) {
         try {

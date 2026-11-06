@@ -1,0 +1,197 @@
+{
+  "schema_version": 1,
+  "observed_at": "2026-11-03T07:11:51.920Z",
+  "mode": "read_only_no_deployment",
+  "team": {
+    "id": "team_yu7fUehO2z7E6QHF6Nvxp3tC",
+    "slug": "intobank",
+    "name": "Intobank"
+  },
+  "project": {
+    "id": "prj_mvKhFO3aq4OeCefPa3yaH8ub583u",
+    "name": "platinum-web",
+    "accountId": "team_yu7fUehO2z7E6QHF6Nvxp3tC",
+    "framework": "nextjs",
+    "nodeVersion": "24.x",
+    "link": null,
+    "targets": null
+  },
+  "repository": {
+    "id": "1314826575",
+    "owner": "donadmiral",
+    "name": "tbirds-nest",
+    "url": "https://github.com/donadmiral/tbirds-nest",
+    "default_branch": "master"
+  },
+  "current_production": {
+    "id": "dpl_Ds9RKyzPNXqnNSziBWFeC9DwPZcc",
+    "name": "platinum-web",
+    "url": "platinum-a7qblm7vx-intobank.vercel.app",
+    "readyState": "READY",
+    "target": "production",
+    "createdAt": 1793668083169,
+    "project": {
+      "id": "prj_mvKhFO3aq4OeCefPa3yaH8ub583u",
+      "name": "platinum-web",
+      "framework": "nextjs"
+    },
+    "meta": {
+      "githubCommitRef": "codex/live-completion-20261102",
+      "githubCommitSha": "2e265ef0915ed83cbf5ba79f22f3ea1f1a717d8d",
+      "githubRepo": "tbirds-nest",
+      "githubOrg": "donadmiral"
+    },
+    "alias": [
+      "platinumcircles.app",
+      "www.platinumcircles.app",
+      "platinum-web-five.vercel.app",
+      "platinum-web-intobank.vercel.app",
+      "platinum-web-git-codex-live-completion-20261102-intobank.vercel.app"
+    ]
+  },
+  "environment_names_only": [
+    {
+      "key": "NEXT_PUBLIC_CAMERAKIT_API_TOKEN",
+      "type": "plain",
+      "target": [
+        "production"
+      ],
+      "gitBranch": null
+    },
+    {
+      "key": "NEXT_PUBLIC_CAMERAKIT_LENS_GROUP_ID",
+      "type": "plain",
+      "target": [
+        "production"
+      ],
+      "gitBranch": null
+    },
+    {
+      "key": "NEXT_PUBLIC_SUPABASE_URL",
+      "type": "encrypted",
+      "target": [
+        "preview"
+      ],
+      "gitBranch": "codex/live-completion-20261102"
+    },
+    {
+      "key": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "type": "encrypted",
+      "target": [
+        "preview"
+      ],
+      "gitBranch": "codex/live-completion-20261102"
+    },
+    {
+      "key": "NEXT_PUBLIC_GIPHY_KEY",
+      "type": "encrypted",
+      "target": [
+        "production"
+      ],
+      "gitBranch": null
+    },
+    {
+      "key": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "type": "encrypted",
+      "target": [
+        "production"
+      ],
+      "gitBranch": null
+    },
+    {
+      "key": "NEXT_PUBLIC_SUPABASE_URL",
+      "type": "encrypted",
+      "target": [
+        "production"
+      ],
+      "gitBranch": null
+    }
+  ],
+  "required_build_environment_names": [
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+  ],
+  "secret_values_requested": false,
+  "project_settings_evidence": {
+    "intended_root_directory": "web",
+    "framework": "nextjs",
+    "node_version": "24.x",
+    "source_files_outside_root_directory": true,
+    "current_root_directory_field_returned_by_tool": false,
+    "evidence": "Live deployment logs identify web@0.1.0 prebuild/build and Next16.4.3; repository web/package.json, next.config.ts and vercel.json are inspected. Installed project metadata omits the rootDirectory field.",
+    "build_command": "npm run build",
+    "install": "existing automatic project install; no override proposed"
+  },
+  "staging_limitation": {
+    "installed_tool": "mcp__codex_apps__vercel_create_deployment",
+    "skip_domain_flag_available": false,
+    "reason": "The installed tool request schema exposes target, projectSettings and gitSource but no skipAutoAssignDomains or equivalent. No unsupported field or credential workaround is proposed.",
+    "documented_cli_alternative": "vercel deploy --prod --skip-domain (not executed; no credential sought)",
+    "authorized_owner_path": "After exact final source and QA review, root may create the production Git-commit deployment using the supported request below; automatic domains may switch at READY. Inspect canonical domain immediately and use the recorded rollback target if smoke fails."
+  },
+  "proposed_create_deployment": {
+    "forceNew": "1",
+    "teamId": "team_yu7fUehO2z7E6QHF6Nvxp3tC",
+    "requestBody": {
+      "name": "platinum-web",
+      "project": "prj_mvKhFO3aq4OeCefPa3yaH8ub583u",
+      "target": "production",
+      "withLatestCommit": false,
+      "gitSource": {
+        "type": "github",
+        "repoId": "1314826575",
+        "ref": "codex/live-completion-20261102",
+        "sha": "REPLACE_WITH_REVIEWED_FINAL_40_HEX_COMMIT"
+      },
+      "projectSettings": {
+        "framework": "nextjs",
+        "nodeVersion": "24.x",
+        "rootDirectory": "web",
+        "sourceFilesOutsideRootDirectory": true
+      }
+    }
+  },
+  "rollback": {
+    "project_id": "prj_mvKhFO3aq4OeCefPa3yaH8ub583u",
+    "deployment_id": "dpl_Ds9RKyzPNXqnNSziBWFeC9DwPZcc",
+    "commit_sha": "2e265ef0915ed83cbf5ba79f22f3ea1f1a717d8d",
+    "tool": "mcp__codex_apps__vercel_request_rollback",
+    "team_id": "team_yu7fUehO2z7E6QHF6Nvxp3tC"
+  },
+  "smoke_checks": [
+    {
+      "path": "/live",
+      "expected": "200; visible directory/category controls; no fatal client exception; production Supabase hostname prlkikhckbifseosbukl.supabase.co without logging headers."
+    },
+    {
+      "path": "/live/clips",
+      "expected": "200; truthful signed-out clip state."
+    },
+    {
+      "path": "/live/connections",
+      "expected": "200; signed-out connection state; no provider popup or OAuth request."
+    },
+    {
+      "path": "/live/connections/callback",
+      "expected": "200; no-code callback error/recovery; no provider exchange."
+    },
+    {
+      "path": "/live/clips/10000000-0000-4000-8000-000000000001/publish",
+      "expected": "200; sign-in required; no publication enqueued."
+    },
+    {
+      "path": "/live/clips/10000000-0000-4000-8000-000000000001/captions",
+      "expected": "200; sign-in required; no transcription requested."
+    },
+    {
+      "path": "/api/live/social-pull/10000000-0000-4000-8000-000000000001/clip.mp4?token=invalid",
+      "expected": "403 generic media-unavailable, no redirect, private/no-store and no-rewrite-cache headers; request is intentionally invalid."
+    }
+  ],
+  "mutation_performed": false,
+  "primary_sources": [
+    "https://vercel.com/docs/rest-api/deployments/create-a-new-deployment",
+    "https://vercel.com/docs/cli/deploy",
+    "https://vercel.com/docs/deployments/promoting-a-deployment"
+  ]
+}

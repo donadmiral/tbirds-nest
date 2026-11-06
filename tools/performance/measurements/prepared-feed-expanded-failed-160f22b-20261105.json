@@ -1,0 +1,628 @@
+{
+  "version": 1,
+  "kind": "isolated-prepared-feed-load",
+  "sourceCommit": "160f22b72d5ddf5eacde5bfa3ab962ccfb591116",
+  "measuredAt": "2026-11-05T15:46:08.323Z",
+  "profile": "expanded",
+  "posts": 250000,
+  "authenticatedActors": 128,
+  "workers": 32,
+  "providerCalls": 0,
+  "clientCapability": "platinum-cache/1",
+  "sourceFiles": {
+    "supabase/migrations/20261102090625_exact_feed_hydration_and_narrow_ranking.sql": "800093fc9061354b1670263116eca7904fb2b3c4560f582b49f8e4e7413e1ada",
+    "supabase/migrations/20261102092828_indexed_feed_rank_frontier.sql": "de49bff9b2ba51c9e01ebafb2f1598ea37555765aca5a6248797c0e1b2d7c39d",
+    "supabase/migrations/20261102175247_feed_catalog_inline_visibility.sql": "8850532ffd2749f2adc779788a6c9285cb936184e5853af3a691571e3c08d776",
+    "supabase/migrations/20261102180219_feed_frontier_defer_partial_scoring.sql": "5cdc737eadb15df8becb0b640e383778de23dae6f6a22e43d3deda3fae4e488e",
+    "supabase/migrations/20261105045938_deterministic_feed_author_ties.sql": "ba267e27c811b9653688fb5cb788303afe9fee8a066cbf9660e196fecf833155",
+    "supabase/migrations/20261105044917_prepared_feed_snapshots.sql": "f6efa6982b921d1f8495b82868880d61f52ab15d9b856962329cdb8ac32af8dc",
+    "supabase/migrations/20261105051142_prepared_feed_narrow_ranking.sql": "ab2d267865043a89c31989b5e24fed4333a33a224d765dbadd0ae80e4ee143ed",
+    "supabase/migrations/20261105051152_prepared_feed_single_snapshot_rank.sql": "30aa899bfbc5e5b4b4794de7b76c0d34283f79cec8d2e586be3d1c60978874c9",
+    "supabase/migrations/20261105051338_prepared_feed_bounded_hydration.sql": "3f84268cef57533bea4ec2b5797875a023138594c638bc50962058b94c45abd5",
+    "supabase/migrations/20261105051457_prepared_feed_client_capability_gate.sql": "8f9c6a1342f778cbc81eef6c963919ebd4e6380921a32e4864d558763cf43919",
+    "supabase/migrations/20261105052419_feed_catalog_point_visibility.sql": "c5f502b61f4b9e69ba6d924cbd6bb021689f6c7bb4004c40146d94903aa9276f",
+    "supabase/migrations/20261105052732_amortized_feed_frontier_scoring.sql": "7620ce1fdf5597b1e263d2983498e6e6dc78d6bcb4f27ded347c38b9d2c8c134",
+    "supabase/tests/feed-scale-fixture.cjs": "6654de75869c4e06eb6348d3f79f5e6aabf0516f45ed89ad10aa476e51b53c6b",
+    "supabase/tests/engagement-counter-fixture.cjs": "c1023942034cd9edb967f19aaa102c7b36abdb4acfbcd088eae40a7f1a4dcffa",
+    "tools/performance/production-read-indexes.sql": "f25b6cdf0c88df115b70e418813871817d96d09e143c51e362fefb3775036a1b",
+    "tools/performance/production-read-indexes-20261105.json": "86952f90abf538349f20d1588eec0d8f933843fb11499152b926e977f42c7030"
+  },
+  "productionCapacityEstablished": false,
+  "passed": false,
+  "phase": "prepare_batch",
+  "phaseTimings": [
+    {
+      "phase": "fixture_setup",
+      "elapsedMs": 0.037585999999997455
+    },
+    {
+      "phase": "initial_frontier",
+      "elapsedMs": 11623.369275
+    },
+    {
+      "phase": "unprepared_reads",
+      "elapsedMs": 12575.806713
+    },
+    {
+      "phase": "enqueue_preparation",
+      "elapsedMs": 26300.102476
+    },
+    {
+      "phase": "prepare_batch",
+      "elapsedMs": 39803.774439999994,
+      "batch": 0,
+      "completedSnapshots": 0
+    }
+  ],
+  "equalTimestampFixture": true,
+  "totalPosts": 250130,
+  "readIndexes": [
+    {
+      "name": "catalog_pkey",
+      "table": "catalog",
+      "schema": "feed_ranking",
+      "definition": "CREATE UNIQUE INDEX catalog_pkey ON feed_ranking.catalog USING btree (post_id)"
+    },
+    {
+      "name": "feed_catalog_future",
+      "table": "catalog",
+      "schema": "feed_ranking",
+      "definition": "CREATE INDEX feed_catalog_future ON feed_ranking.catalog USING btree (created_at DESC)"
+    },
+    {
+      "name": "feed_catalog_innovation_mass",
+      "table": "catalog",
+      "schema": "feed_ranking",
+      "definition": "CREATE INDEX feed_catalog_innovation_mass ON feed_ranking.catalog USING btree (bucket, mass DESC, post_id DESC) WHERE (channel = 'innovation'::text)"
+    },
+    {
+      "name": "feed_catalog_innovation_time",
+      "table": "catalog",
+      "schema": "feed_ranking",
+      "definition": "CREATE INDEX feed_catalog_innovation_time ON feed_ranking.catalog USING btree (bucket, created_at DESC, post_id DESC) WHERE (channel = 'innovation'::text)"
+    },
+    {
+      "name": "feed_catalog_mass",
+      "table": "catalog",
+      "schema": "feed_ranking",
+      "definition": "CREATE INDEX feed_catalog_mass ON feed_ranking.catalog USING btree (bucket, mass DESC, post_id DESC)"
+    },
+    {
+      "name": "feed_catalog_time",
+      "table": "catalog",
+      "schema": "feed_ranking",
+      "definition": "CREATE INDEX feed_catalog_time ON feed_ranking.catalog USING btree (bucket, created_at DESC, post_id DESC)"
+    },
+    {
+      "name": "days_pkey",
+      "table": "days",
+      "schema": "feed_ranking",
+      "definition": "CREATE UNIQUE INDEX days_pkey ON feed_ranking.days USING btree (bucket)"
+    },
+    {
+      "name": "settings_pkey",
+      "table": "settings",
+      "schema": "feed_ranking",
+      "definition": "CREATE UNIQUE INDEX settings_pkey ON feed_ranking.settings USING btree (singleton)"
+    },
+    {
+      "name": "demand_pkey",
+      "table": "demand",
+      "schema": "prepared_feed",
+      "definition": "CREATE UNIQUE INDEX demand_pkey ON prepared_feed.demand USING btree (viewer_id, scope, mode)"
+    },
+    {
+      "name": "prepared_feed_demand_due",
+      "table": "demand",
+      "schema": "prepared_feed",
+      "definition": "CREATE INDEX prepared_feed_demand_due ON prepared_feed.demand USING btree (available_at, viewer_id) WHERE (failures < 6)"
+    },
+    {
+      "name": "prepared_feed_demand_expiry",
+      "table": "demand",
+      "schema": "prepared_feed",
+      "definition": "CREATE INDEX prepared_feed_demand_expiry ON prepared_feed.demand USING btree (expires_at)"
+    },
+    {
+      "name": "settings_pkey",
+      "table": "settings",
+      "schema": "prepared_feed",
+      "definition": "CREATE UNIQUE INDEX settings_pkey ON prepared_feed.settings USING btree (singleton)"
+    },
+    {
+      "name": "prepared_feed_snapshot_expiry",
+      "table": "snapshots",
+      "schema": "prepared_feed",
+      "definition": "CREATE INDEX prepared_feed_snapshot_expiry ON prepared_feed.snapshots USING btree (expires_at)"
+    },
+    {
+      "name": "prepared_feed_snapshot_lookup",
+      "table": "snapshots",
+      "schema": "prepared_feed",
+      "definition": "CREATE INDEX prepared_feed_snapshot_lookup ON prepared_feed.snapshots USING btree (viewer_id, scope, mode, created_at DESC)"
+    },
+    {
+      "name": "snapshots_cursor_serial_key",
+      "table": "snapshots",
+      "schema": "prepared_feed",
+      "definition": "CREATE UNIQUE INDEX snapshots_cursor_serial_key ON prepared_feed.snapshots USING btree (cursor_serial)"
+    },
+    {
+      "name": "snapshots_pkey",
+      "table": "snapshots",
+      "schema": "prepared_feed",
+      "definition": "CREATE UNIQUE INDEX snapshots_pkey ON prepared_feed.snapshots USING btree (id)"
+    },
+    {
+      "name": "blocked_users_idx",
+      "table": "blocked_users",
+      "schema": "public",
+      "definition": "CREATE INDEX blocked_users_idx ON public.blocked_users USING btree (blocker_id)"
+    },
+    {
+      "name": "blocked_users_pkey",
+      "table": "blocked_users",
+      "schema": "public",
+      "definition": "CREATE UNIQUE INDEX blocked_users_pkey ON public.blocked_users USING btree (blocker_id, blocked_id)"
+    },
+    {
+      "name": "idx_blocked_users_blocker",
+      "table": "blocked_users",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_blocked_users_blocker ON public.blocked_users USING btree (blocker_id)"
+    },
+    {
+      "name": "idx_blocked_users_pair",
+      "table": "blocked_users",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_blocked_users_pair ON public.blocked_users USING btree (blocker_id, blocked_id)"
+    },
+    {
+      "name": "idx_comm_members_user",
+      "table": "community_members",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_comm_members_user ON public.community_members USING btree (user_id)"
+    },
+    {
+      "name": "uq_comm_member",
+      "table": "community_members",
+      "schema": "public",
+      "definition": "CREATE UNIQUE INDEX uq_comm_member ON public.community_members USING btree (community_id, user_id)"
+    },
+    {
+      "name": "follows_pkey",
+      "table": "follows",
+      "schema": "public",
+      "definition": "CREATE UNIQUE INDEX follows_pkey ON public.follows USING btree (follower_id, following_id)"
+    },
+    {
+      "name": "follows_recent_creators_idx",
+      "table": "follows",
+      "schema": "public",
+      "definition": "CREATE INDEX follows_recent_creators_idx ON public.follows USING btree (created_at DESC, following_id, follower_id)"
+    },
+    {
+      "name": "idx_follows_follower",
+      "table": "follows",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_follows_follower ON public.follows USING btree (follower_id, created_at DESC)"
+    },
+    {
+      "name": "idx_follows_following",
+      "table": "follows",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_follows_following ON public.follows USING btree (following_id, created_at DESC)"
+    },
+    {
+      "name": "orbits_follower_idx",
+      "table": "follows",
+      "schema": "public",
+      "definition": "CREATE INDEX orbits_follower_idx ON public.follows USING btree (follower_id)"
+    },
+    {
+      "name": "orbits_following_idx",
+      "table": "follows",
+      "schema": "public",
+      "definition": "CREATE INDEX orbits_following_idx ON public.follows USING btree (following_id)"
+    },
+    {
+      "name": "hidden_posts_pkey",
+      "table": "hidden_posts",
+      "schema": "public",
+      "definition": "CREATE UNIQUE INDEX hidden_posts_pkey ON public.hidden_posts USING btree (user_id, post_id)"
+    },
+    {
+      "name": "link_previews_pkey",
+      "table": "link_previews",
+      "schema": "public",
+      "definition": "CREATE UNIQUE INDEX link_previews_pkey ON public.link_previews USING btree (url)"
+    },
+    {
+      "name": "marketplace_listings_pkey",
+      "table": "marketplace_listings",
+      "schema": "public",
+      "definition": "CREATE UNIQUE INDEX marketplace_listings_pkey ON public.marketplace_listings USING btree (id)"
+    },
+    {
+      "name": "members_pkey",
+      "table": "members",
+      "schema": "public",
+      "definition": "CREATE UNIQUE INDEX members_pkey ON public.members USING btree (id)"
+    },
+    {
+      "name": "muted_authors_pkey",
+      "table": "muted_authors",
+      "schema": "public",
+      "definition": "CREATE UNIQUE INDEX muted_authors_pkey ON public.muted_authors USING btree (user_id, author_id)"
+    },
+    {
+      "name": "idx_post_bookmarks_post_id",
+      "table": "post_bookmarks",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_post_bookmarks_post_id ON public.post_bookmarks USING btree (post_id)"
+    },
+    {
+      "name": "idx_post_bookmarks_user_created",
+      "table": "post_bookmarks",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_post_bookmarks_user_created ON public.post_bookmarks USING btree (user_id, created_at DESC)"
+    },
+    {
+      "name": "idx_post_bookmarks_user_id",
+      "table": "post_bookmarks",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_post_bookmarks_user_id ON public.post_bookmarks USING btree (user_id)"
+    },
+    {
+      "name": "post_bookmarks_pkey",
+      "table": "post_bookmarks",
+      "schema": "public",
+      "definition": "CREATE UNIQUE INDEX post_bookmarks_pkey ON public.post_bookmarks USING btree (id)"
+    },
+    {
+      "name": "post_bookmarks_post_id_user_id_key",
+      "table": "post_bookmarks",
+      "schema": "public",
+      "definition": "CREATE UNIQUE INDEX post_bookmarks_post_id_user_id_key ON public.post_bookmarks USING btree (post_id, user_id)"
+    },
+    {
+      "name": "post_bookmarks_post_user_unique",
+      "table": "post_bookmarks",
+      "schema": "public",
+      "definition": "CREATE UNIQUE INDEX post_bookmarks_post_user_unique ON public.post_bookmarks USING btree (post_id, user_id)"
+    },
+    {
+      "name": "idx_post_comments_parent_comment_id",
+      "table": "post_comments",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_post_comments_parent_comment_id ON public.post_comments USING btree (parent_comment_id)"
+    },
+    {
+      "name": "idx_post_comments_post_created",
+      "table": "post_comments",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_post_comments_post_created ON public.post_comments USING btree (post_id, created_at)"
+    },
+    {
+      "name": "idx_post_comments_post_id",
+      "table": "post_comments",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_post_comments_post_id ON public.post_comments USING btree (post_id)"
+    },
+    {
+      "name": "idx_post_comments_user_id",
+      "table": "post_comments",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_post_comments_user_id ON public.post_comments USING btree (user_id)"
+    },
+    {
+      "name": "post_comments_live_preview",
+      "table": "post_comments",
+      "schema": "public",
+      "definition": "CREATE INDEX post_comments_live_preview ON public.post_comments USING btree (post_id, created_at DESC, id DESC) WHERE (parent_comment_id IS NULL)"
+    },
+    {
+      "name": "post_comments_pkey",
+      "table": "post_comments",
+      "schema": "public",
+      "definition": "CREATE UNIQUE INDEX post_comments_pkey ON public.post_comments USING btree (id)"
+    },
+    {
+      "name": "idx_post_likes_post",
+      "table": "post_likes",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_post_likes_post ON public.post_likes USING btree (post_id)"
+    },
+    {
+      "name": "idx_post_likes_post_id",
+      "table": "post_likes",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_post_likes_post_id ON public.post_likes USING btree (post_id)"
+    },
+    {
+      "name": "idx_post_likes_unique",
+      "table": "post_likes",
+      "schema": "public",
+      "definition": "CREATE UNIQUE INDEX idx_post_likes_unique ON public.post_likes USING btree (post_id, user_id)"
+    },
+    {
+      "name": "idx_post_likes_user",
+      "table": "post_likes",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_post_likes_user ON public.post_likes USING btree (user_id)"
+    },
+    {
+      "name": "idx_post_likes_user_id",
+      "table": "post_likes",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_post_likes_user_id ON public.post_likes USING btree (user_id)"
+    },
+    {
+      "name": "idx_post_likes_user_post",
+      "table": "post_likes",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_post_likes_user_post ON public.post_likes USING btree (user_id, post_id)"
+    },
+    {
+      "name": "post_likes_pkey",
+      "table": "post_likes",
+      "schema": "public",
+      "definition": "CREATE UNIQUE INDEX post_likes_pkey ON public.post_likes USING btree (id)"
+    },
+    {
+      "name": "post_likes_post_id_user_id_key",
+      "table": "post_likes",
+      "schema": "public",
+      "definition": "CREATE UNIQUE INDEX post_likes_post_id_user_id_key ON public.post_likes USING btree (post_id, user_id)"
+    },
+    {
+      "name": "post_likes_post_user_unique",
+      "table": "post_likes",
+      "schema": "public",
+      "definition": "CREATE UNIQUE INDEX post_likes_post_user_unique ON public.post_likes USING btree (post_id, user_id)"
+    },
+    {
+      "name": "post_likes_user_post_unique",
+      "table": "post_likes",
+      "schema": "public",
+      "definition": "CREATE UNIQUE INDEX post_likes_user_post_unique ON public.post_likes USING btree (user_id, post_id)"
+    },
+    {
+      "name": "post_likes_viewer_recent_idx",
+      "table": "post_likes",
+      "schema": "public",
+      "definition": "CREATE INDEX post_likes_viewer_recent_idx ON public.post_likes USING btree (user_id, created_at DESC, post_id)"
+    },
+    {
+      "name": "idx_post_media_post_sort",
+      "table": "post_media",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_post_media_post_sort ON public.post_media USING btree (post_id, sort_order)"
+    },
+    {
+      "name": "post_media_pkey",
+      "table": "post_media",
+      "schema": "public",
+      "definition": "CREATE UNIQUE INDEX post_media_pkey ON public.post_media USING btree (id)"
+    },
+    {
+      "name": "post_media_post_id_idx",
+      "table": "post_media",
+      "schema": "public",
+      "definition": "CREATE INDEX post_media_post_id_idx ON public.post_media USING btree (post_id)"
+    },
+    {
+      "name": "post_mentions_pkey",
+      "table": "post_mentions",
+      "schema": "public",
+      "definition": "CREATE UNIQUE INDEX post_mentions_pkey ON public.post_mentions USING btree (post_id, mentioned_user_id)"
+    },
+    {
+      "name": "post_mentions_post_idx",
+      "table": "post_mentions",
+      "schema": "public",
+      "definition": "CREATE INDEX post_mentions_post_idx ON public.post_mentions USING btree (post_id)"
+    },
+    {
+      "name": "post_mentions_user_idx",
+      "table": "post_mentions",
+      "schema": "public",
+      "definition": "CREATE INDEX post_mentions_user_idx ON public.post_mentions USING btree (mentioned_user_id, created_at DESC)"
+    },
+    {
+      "name": "idx_post_products_listing",
+      "table": "post_products",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_post_products_listing ON public.post_products USING btree (listing_id) WHERE (listing_id IS NOT NULL)"
+    },
+    {
+      "name": "idx_post_products_post",
+      "table": "post_products",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_post_products_post ON public.post_products USING btree (post_id, sort_order)"
+    },
+    {
+      "name": "post_products_pkey",
+      "table": "post_products",
+      "schema": "public",
+      "definition": "CREATE UNIQUE INDEX post_products_pkey ON public.post_products USING btree (id)"
+    },
+    {
+      "name": "idx_post_reposts_post_id",
+      "table": "post_reposts",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_post_reposts_post_id ON public.post_reposts USING btree (post_id)"
+    },
+    {
+      "name": "idx_post_reposts_user_id",
+      "table": "post_reposts",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_post_reposts_user_id ON public.post_reposts USING btree (user_id)"
+    },
+    {
+      "name": "post_reposts_pkey",
+      "table": "post_reposts",
+      "schema": "public",
+      "definition": "CREATE UNIQUE INDEX post_reposts_pkey ON public.post_reposts USING btree (id)"
+    },
+    {
+      "name": "post_reposts_post_id_user_id_key",
+      "table": "post_reposts",
+      "schema": "public",
+      "definition": "CREATE UNIQUE INDEX post_reposts_post_id_user_id_key ON public.post_reposts USING btree (post_id, user_id)"
+    },
+    {
+      "name": "post_reposts_post_user_unique",
+      "table": "post_reposts",
+      "schema": "public",
+      "definition": "CREATE UNIQUE INDEX post_reposts_post_user_unique ON public.post_reposts USING btree (post_id, user_id)"
+    },
+    {
+      "name": "idx_post_seen_user",
+      "table": "post_seen",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_post_seen_user ON public.post_seen USING btree (user_id, seen_at DESC)"
+    },
+    {
+      "name": "post_seen_pkey",
+      "table": "post_seen",
+      "schema": "public",
+      "definition": "CREATE UNIQUE INDEX post_seen_pkey ON public.post_seen USING btree (user_id, post_id)"
+    },
+    {
+      "name": "idx_posts_audience",
+      "table": "posts",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_posts_audience ON public.posts USING btree (audience) WHERE (audience <> 'everyone'::text)"
+    },
+    {
+      "name": "idx_posts_channel",
+      "table": "posts",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_posts_channel ON public.posts USING btree (channel) WHERE (channel IS NOT NULL)"
+    },
+    {
+      "name": "idx_posts_community",
+      "table": "posts",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_posts_community ON public.posts USING btree (community_id, created_at DESC) WHERE (community_id IS NOT NULL)"
+    },
+    {
+      "name": "idx_posts_created",
+      "table": "posts",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_posts_created ON public.posts USING btree (created_at DESC)"
+    },
+    {
+      "name": "idx_posts_created_at",
+      "table": "posts",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_posts_created_at ON public.posts USING btree (created_at DESC)"
+    },
+    {
+      "name": "idx_posts_user_created",
+      "table": "posts",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_posts_user_created ON public.posts USING btree (user_id, created_at DESC)"
+    },
+    {
+      "name": "idx_posts_user_id",
+      "table": "posts",
+      "schema": "public",
+      "definition": "CREATE INDEX idx_posts_user_id ON public.posts USING btree (user_id)"
+    },
+    {
+      "name": "posts_archived_idx",
+      "table": "posts",
+      "schema": "public",
+      "definition": "CREATE INDEX posts_archived_idx ON public.posts USING btree (user_id) WHERE (archived_at IS NOT NULL)"
+    },
+    {
+      "name": "posts_article_idx",
+      "table": "posts",
+      "schema": "public",
+      "definition": "CREATE INDEX posts_article_idx ON public.posts USING btree (channel, created_at DESC) WHERE (article_title IS NOT NULL)"
+    },
+    {
+      "name": "posts_home_rank_inputs_idx",
+      "table": "posts",
+      "schema": "public",
+      "definition": "CREATE INDEX posts_home_rank_inputs_idx ON public.posts USING btree (created_at DESC, id) INCLUDE (user_id, likes_count, comments_count, reposts_count) WHERE (community_id IS NULL)"
+    },
+    {
+      "name": "posts_innovation_rank_inputs_idx",
+      "table": "posts",
+      "schema": "public",
+      "definition": "CREATE INDEX posts_innovation_rank_inputs_idx ON public.posts USING btree (created_at DESC, id) INCLUDE (user_id, likes_count, comments_count, reposts_count) WHERE ((community_id IS NULL) AND (channel = 'innovation'::text))"
+    },
+    {
+      "name": "posts_pkey",
+      "table": "posts",
+      "schema": "public",
+      "definition": "CREATE UNIQUE INDEX posts_pkey ON public.posts USING btree (id)"
+    },
+    {
+      "name": "posts_quote_counter_idx",
+      "table": "posts",
+      "schema": "public",
+      "definition": "CREATE INDEX posts_quote_counter_idx ON public.posts USING btree (quoted_post_id) WHERE (quoted_post_id IS NOT NULL)"
+    },
+    {
+      "name": "posts_quoted_post_id_idx",
+      "table": "posts",
+      "schema": "public",
+      "definition": "CREATE INDEX posts_quoted_post_id_idx ON public.posts USING btree (quoted_post_id) WHERE (quoted_post_id IS NOT NULL)"
+    },
+    {
+      "name": "posts_thread_parent_id_idx",
+      "table": "posts",
+      "schema": "public",
+      "definition": "CREATE INDEX posts_thread_parent_id_idx ON public.posts USING btree (thread_parent_id) WHERE (thread_parent_id IS NOT NULL)"
+    },
+    {
+      "name": "profiles_pkey",
+      "table": "profiles",
+      "schema": "public",
+      "definition": "CREATE UNIQUE INDEX profiles_pkey ON public.profiles USING btree (id)"
+    },
+    {
+      "name": "trending_snapshot_pkey",
+      "table": "trending_snapshot",
+      "schema": "public",
+      "definition": "CREATE UNIQUE INDEX trending_snapshot_pkey ON public.trending_snapshot USING btree (kind, ref_id)"
+    }
+  ],
+  "database": {
+    "version": "PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "work_mem": "4MB",
+    "local_socket": true,
+    "database_bytes": 220591795,
+    "shared_buffers": "256MB",
+    "max_connections": "60"
+  },
+  "databaseStatsBefore": {
+    "commits": 209,
+    "blocksHit": 6786218,
+    "deadlocks": 0,
+    "rollbacks": 0,
+    "tempBytes": 65392576,
+    "blocksRead": 2374,
+    "observedAt": "2026-11-05T15:46:19.948849+00:00"
+  },
+  "initialFrontier": {
+    "candidates": 503,
+    "days": 45,
+    "fallback": false
+  },
+  "unpreparedFirstReadsMs": {
+    "count": 128,
+    "p50": 102.9155869999995,
+    "p95": 123.32417499999974,
+    "p99": 125.48620100000153,
+    "max": 125.9277060000004
+  },
+  "failure": {
+    "phase": "prepare_batch",
+    "code": "operation_failed"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "status": {
+    "failed": 0,
+    "queued": 0,
+    "enabled": false,
+    "oldest_due": null,
+    "fresh_seconds": 60,
+    "max_ranked_rows": 200,
+    "snapshot_seconds": 300
+  },
+  "migrations": [
+    {
+      "name": "prepared_feed_private_foundation",
+      "sql_md5": "a9917e024712366b3b55078b7644f53f",
+      "version": "20261105045800"
+    },
+    {
+      "name": "prepared_feed_private_rank",
+      "sql_md5": "b6eb121305ef1647d6d3d71ae2804dd2",
+      "version": "20261105050612"
+    },
+    {
+      "name": "prepared_feed_private_worker",
+      "sql_md5": "b21d1b8992bb5ffc2c577fb16a6a16c2",
+      "version": "20261105051130"
+    },
+    {
+      "name": "prepared_feed_private_controls",
+      "sql_md5": "d31a175ae1328a027a03d9f6ad37862e",
+      "version": "20261105051132"
+    },
+    {
+      "name": "prepared_feed_private_tail",
+      "sql_md5": "9a108173f0c568446eda53ced1ffd32c",
+      "version": "20261105051134"
+    },
+    {
+      "name": "prepared_feed_private_dispatch",
+      "sql_md5": "94c378842b18c29d1e454cc3ae513ba3",
+      "version": "20261105051139"
+    },
+    {
+      "name": "prepared_feed_activate_contract",
+      "sql_md5": "ce93257743c98000142f8ca7b18b951d",
+      "version": "20261105051149"
+    }
+  ],
+  "rank_owner": "prepared_feed_reader",
+  "observed_at": "2026-11-05T05:13:04.677668+00:00",
+  "rank_body_md5": "fd5913d2f91b93b5db4075280820496a"
+}

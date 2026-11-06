@@ -20,7 +20,7 @@ const makeProfile = (id, full_name, username, email) => ({
   counts: { posts: 1, followers: 0, following: 0, reposts: 0, media: 0, saved: 0 },
 });
 
-function createFixture(onChange = () => {}) {
+function createFixture(onChange = () => {}, { feedVideoSource, immersiveLive = false } = {}) {
   const profiles = [makeProfile(OWNER, 'Alex Rivera', 'qa_alex', 'qa.alex@example.invalid'),
     makeProfile(PEER, 'Jordan Ellis', 'qa_jordan', 'qa.jordan@example.invalid'),
     makeProfile(SECOND, 'Morgan Lee', 'qa_morgan', 'qa.morgan@example.invalid')];
@@ -66,7 +66,7 @@ function createFixture(onChange = () => {}) {
   // Each explicitly empty table represents an empty synthetic account state.
   for (const table of ['user_presence', 'notifications', 'follows', 'follow_requests', 'post_seen',
     'post_likes', 'post_comments', 'post_reposts', 'post_bookmarks', 'post_polls', 'post_collaborators',
-    'post_shares', 'post_media', 'hidden_posts', 'blocked_users', 'restricted_users', 'close_friends',
+    'post_shares', 'post_media', 'post_media_tags', 'hidden_posts', 'blocked_users', 'restricted_users', 'close_friends',
     'muted_stories', 'muted_users', 'conversation_members', 'conversation_settings', 'conversation_typing',
     'message_mentions', 'message_reactions', 'message_stars', 'message_saves', 'message_requests',
     'call_sessions', 'call_participants', 'user_push_tokens', 'job_saves', 'job_applications', 'job_recommendations',
@@ -74,14 +74,31 @@ function createFixture(onChange = () => {}) {
     'story_views', 'story_reactions', 'story_highlights', 'story_mutes', 'hidden_words', 'support_tickets',
     'user_devices', 'login_history', 'login_events', 'verification_applications', 'member_strikes', 'memory_album_access', 'announcements']) rows[table] = [];
   const savedBook = navigationBook();
+  const liveIds = ['90000000-0000-4000-8000-000000000001', '90000000-0000-4000-8000-000000000002'];
+  const liveSessions = liveIds.map((id, index) => ({ id,
+    title: index ? 'Guest approval rehearsal' : 'Community creator hour',
+    description: 'Isolated native layout and controls. No provider broadcast.', topic: 'irl', state: 'live',
+    audience: 'public', language: 'en', chat_mode: 'open', slow_mode_seconds: 0, recording_enabled: false,
+    started_at: created, ended_at: null, scheduled_at: null, has_cover: false, thumbnail_url: null,
+    viewer_count: 12, replay_available: false, host: profiles[index ? 2 : 1] }));
+  const liveTopic = id => 'live:' + id + ':91000000-0000-4000-8000-000000000001';
+  const liveRequests = new Map();
+  const liveMembers = [];
+  const liveMessages = liveIds.map((id, index) => ({ id: '92000000-0000-4000-8000-00000000000' + (index + 1),
+    session_id: id, user_id: PEER, author: profiles[1], body: 'Welcome to the live conversation.', created_at: created, removed: false }));
+  if (immersiveLive) liveRequests.set(liveIds[1] + ':' + PEER, { user_id: PEER, profile: profiles[1], status: 'pending', created_at: created });
   let owner = null;
   let sessionCounter = 0;
   let sessionId = '';
   let offline = false;
   let delayMs = 0;
   let memoryMode = 'normal';
+  let feedVideoReady;
   const issuedMedia = new Set();
-  const receipt = { mode: 'synthetic-native-ui', networkForwarded: false, requests: [], unhandled: [], mutations: [], media: [], bookReads: [], accountReadbacks: [] };
+  const receipt = { mode: 'synthetic-native-ui', networkForwarded: false,
+    featureConfiguration: { pagedReaders: { books: false, inbox: false }, feedBroadcast: { enabled: false } },
+    requests: [], unhandled: [], mutations: [], media: [], bookReads: [], accountReadbacks: [], feedRefreshes: [],
+    immersiveLive: { enabled: immersiveLive, providerAcceptance: false, providerStageConnected: false, commands: [], frames: [], progress: [] } };
   const recordCaptureBoundary = createCaptureBoundaryRecorder(receipt, onChange);
   const observeReaderResponse = createReaderResponseObserver(receipt, onChange);
   const record = (kind, value) => { receipt[kind].push(value); onChange(receipt); };
@@ -98,11 +115,111 @@ function createFixture(onChange = () => {}) {
     return { access_token: token, refresh_token: 'synthetic-refresh-' + owner, token_type: 'bearer', expires_in: 3600,
       expires_at: now + 3600, user: user() };
   }
+  function restoreSyntheticSession(headers) {
+    // A real backend outlives the application process. This in-process fixture
+    // must recognize its own still-valid saved bearer after a cold app launch.
+    // Never restore a real JWT, an expired fixture token, or a signed-out session
+    // in the current process. Production auth/storage code is not replaced.
+    if (owner || sessionId) return;
+    const match = /^Bearer ([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)\.synthetic-not-a-signature$/.exec(headers.get('authorization') || '');
+    if (!match) return;
+    try {
+      const decode = value => JSON.parse(atob(value.replace(/-/g, '+').replace(/_/g, '/')));
+      const header = decode(match[1]), claims = decode(match[2]), now = Math.floor(Date.now() / 1000);
+      const id = /^90000000-0000-4000-8000-([0-9]{12})$/.exec(claims.session_id || '');
+      if (header.alg !== 'HS256' || header.typ !== 'JWT' || claims.aud !== 'authenticated' || claims.role !== 'authenticated'
+        || claims.aal !== 'aal1' || !profiles.some(profile => profile.id === claims.sub) || !id || Number(id[1]) < 1
+        || !Number.isSafeInteger(claims.iat) || !Number.isSafeInteger(claims.exp)
+        || claims.iat > now + 60 || claims.exp <= now || claims.exp - claims.iat !== 3600) return;
+      owner = claims.sub; sessionId = claims.session_id; sessionCounter = Math.max(sessionCounter, Number(id[1]));
+      receipt.restoredSyntheticSession = true;
+    } catch { /* An unrelated or malformed token never authenticates this fixture. */ }
+  }
   const unknown = (method, path) => {
     record('unhandled', { method, path });
     return response({ code: 'NATIVE_UI_UNHANDLED', message: 'No synthetic contract for ' + method + ' ' + path }, 501);
   };
   function rpc(name, args, headers) {
+    const plainArgs = args !== null && typeof args === 'object' && !Array.isArray(args);
+    if (name === 'get_paged_reader_capabilities' || name === 'get_feed_live_capability') {
+      if (!plainArgs || Object.keys(args).length !== 0) return undefined;
+      // This established fixture exercises the supported legacy book/inbox readers.
+      // Feed broadcast is separate from Live video and this transport has no invalidation feed.
+      return name === 'get_paged_reader_capabilities'
+        ? { version: 1, books: false, inbox: false, books_window: false, book_page_limit: 40, inbox_page_limit: 50 }
+        : { version: 1, max_ids: 24, configured: false, recovery_generation: 0, enabled: false };
+    }
+    if (name === 'get_feed_rows_by_ids_v1' || name === 'get_post_engagement_counts_v1') {
+      if (!plainArgs || Object.keys(args).length !== 1 || !Object.hasOwn(args, 'p_ids')
+        || args.p_ids !== null && !Array.isArray(args.p_ids)) return undefined;
+      const ids = args.p_ids || [];
+      if (ids.length > 100 || ids.some(id => typeof id !== 'string'
+        || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))) return undefined;
+      const selected = posts.filter(post => ids.includes(post.post_id));
+      return name === 'get_feed_rows_by_ids_v1' ? selected : selected.map(post => ({
+        post_id: post.post_id, likes_count: post.likes_count, comments_count: post.comments_count,
+        reposts_count: post.reposts_count, bookmarks_count: post.bookmarks_count, views_count: post.views_count,
+        shares_count: post.shares_count || 0, quotes_count: posts.filter(quote => quote.quoted_post_id === post.post_id).length,
+      }));
+    }
+    if (name === 'live_directory') {
+      if (!['for_you', 'mine', 'following'].includes(args.p_filter) || args.p_state !== 'live' || args.p_topic !== null
+        || args.p_cursor !== null || ![1, 24].includes(args.p_limit)) return undefined;
+      if (immersiveLive) return { items: args.p_filter === 'mine' ? [] : liveSessions,
+        next_cursor: null, capabilities: { create: true, broadcast: true, view: true, reminders: true, recording: true } };
+      return { items: args.p_filter === 'mine' ? [] : [{ id: '90000000-0000-4000-8000-000000000001',
+        title: 'Community creator hour', description: 'A controlled native UI preview.', topic: 'irl', state: 'live',
+        audience: 'public', language: 'en', chat_mode: 'open', slow_mode_seconds: 0, recording_enabled: false,
+        started_at: created, ended_at: null, scheduled_at: null, has_cover: false, thumbnail_url: null,
+        viewer_count: 12, replay_available: false, host: profiles[1] }], next_cursor: null,
+        capabilities: { create: true, broadcast: true, view: true, reminders: true, recording: true } };
+    }
+    if (immersiveLive && name === 'live_session') {
+      const session = liveSessions.find(item => item.id === args.p_session_id);
+      if (!session) return undefined;
+      const manages = session.id === liveIds[1] && owner === OWNER;
+      return { session, role: manages ? 'producer' : 'viewer', capabilities: { view: true, chat: true },
+        chat_topic: liveTopic(session.id), guest_topic: '', pinned_message: null,
+        own_join_request: liveRequests.get(session.id + ':' + owner) || null,
+        join_requests: manages ? [...liveRequests.entries()].filter(([key]) => key.startsWith(session.id + ':')).map(([,row]) => row) : [],
+        members: manages ? liveMembers : [], stage: { maximum: 12, occupied: 1 + liveMembers.length, available: 11 - liveMembers.length } };
+    }
+    if (immersiveLive && name === 'live_messages' && liveIds.includes(args.p_session_id)) {
+      return { items: liveMessages.filter(row => row.session_id === args.p_session_id), next_cursor: null };
+    }
+    // Read-only Clip library entry for the existing non-recording viewer session.
+    // Match clip_library/clip_context SQL shapes without a renderer or mutation.
+    if (immersiveLive && owner === OWNER && plainArgs && args.p_session_id === liveIds[0]) {
+      if (name === 'live_clip_library' && Object.keys(args).sort().join(',') === 'p_cursor,p_limit,p_session_id,p_sort'
+        && args.p_cursor === null && args.p_limit === 24 && ['newest', 'top', 'shared'].includes(args.p_sort)) {
+        return { items: [], next_cursor: null };
+      }
+      if (name === 'live_clip_context' && Object.keys(args).join(',') === 'p_session_id') {
+        return { session_id: liveIds[0], can_clip: false, can_manage: false,
+          available_start_ms: 0, available_end_ms: Math.max(0, Date.now() - Date.parse(liveSessions[0].started_at) - 5000),
+          max_duration_ms: 600000, recording_available: false, viewer_clipping: false,
+          settings: { viewer_clipping: false, review_required: true, watermark_required: true, watermark: true,
+            brand_text: 'Platinum Circles', copyright_policy: 'standard', can_manage: false, approved_user_ids: [] } };
+      }
+    }
+    if (immersiveLive && name === 'live_viewer_heartbeat' && liveIds.includes(args.p_session_id)) return { ok: true, viewer_count: 12 };
+    if (immersiveLive && name === 'live_command' && liveIds.includes(args.p_session_id)) {
+      const id = args.p_session_id, action = args.p_action, payload = args.p_payload || {};
+      if (!/^[0-9a-f-]{36}$/i.test(args.p_request_id || '')) return undefined;
+      if (action === 'request_join' && id === liveIds[0]) liveRequests.set(id + ':' + owner, { user_id: owner, profile: profiles[0], status: 'pending', created_at: created });
+      else if (action === 'cancel_join_request' && id === liveIds[0]) liveRequests.delete(id + ':' + owner);
+      else if (action === 'accept_join_request' && id === liveIds[1] && owner === OWNER && payload.user_id === PEER) {
+        const request = liveRequests.get(id + ':' + PEER);
+        if (!request || request.status !== 'pending') return undefined;
+        request.status = 'accepted'; liveMembers.push({ user_id: PEER, role: 'guest', status: 'accepted', profile: profiles[1] });
+      } else if (action === 'chat' && typeof payload.body === 'string' && payload.body.trim()) {
+        const row = { id: '92000000-0000-4000-8000-' + String(liveMessages.length + 1).padStart(12, '0'),
+          session_id: id, user_id: owner, author: profiles.find(profile => profile.id === owner), body: payload.body.trim(), created_at: new Date().toISOString(), removed: false };
+        liveMessages.push(row); FixtureWebSocket.broadcast(liveTopic(id), 'message', row);
+      } else return undefined;
+      receipt.immersiveLive.commands.push({ sessionId: id, action, payload, owner }); onChange(receipt);
+      return { ok: true };
+    }
     if (name === 'get_feed' || name === 'get_discover_page' || name === 'get_trending_feed') return args.p_cursor_id || args.p_offset ? [] : posts;
     if (name === 'get_feed_visibility') return (args.p_ids || []).map(post_id => ({ post_id, snapshot_eligible: true }));
     if (name === 'get_profile') return profiles.find(profile => profile.id === args.p_profile_id) || null;
@@ -221,8 +338,9 @@ function createFixture(onChange = () => {}) {
       const timer = setTimeout(resolve, delayMs);
       init.signal?.addEventListener('abort', () => { clearTimeout(timer); reject(Object.assign(new Error('Aborted'), { name: 'AbortError' })); }, { once: true });
     });
-    record('requests', { method, path, owner });
     const headers = new Headers(init.headers || input.headers || {});
+    restoreSyntheticSession(headers);
+    record('requests', { method, path, owner });
     const body = typeof init.body === 'string' && init.body ? JSON.parse(init.body) : {};
     if (path === '/auth/v1/health' && method === 'GET') return response({ name: 'Synthetic native UI Auth health' });
     if (path === '/auth/v1/token' && method === 'POST') {
@@ -243,11 +361,36 @@ function createFixture(onChange = () => {}) {
     }
     if (path === '/auth/v1/factors') return response({ all: [], totp: [], phone: [] });
     if (!owner && path.startsWith('/rest/v1/')) return readerResponse(response({ message: 'Authentication required' }, 401));
+    if (path === '/rest/v1/rpc/get_feed' && feedVideoSource && !posts[0].media.length) {
+      if (!feedVideoReady) feedVideoReady = (async () => {
+        const url = await feedVideoSource();
+        if (typeof url !== 'string' || !url.startsWith('file://')) throw new Error('Native feed video must use the packaged local fixture.');
+        const media = { id: '21000000-0000-4000-8000-000000000001', post_id: posts[0].id,
+          url, media_type: 'video', sort_order: 0, width: 320, height: 240, edit: { aspect: 'original' } };
+        posts[0].media = [media]; posts[0].post_media = [media]; posts[0].media_url = url;
+        rows.post_media = [media];
+        for (let index = 3; index <= 8; index++) {
+          const id = '20000000-0000-4000-8000-' + String(index).padStart(12, '0');
+          const content = index === 8 ? 'Feed scroll checkpoint.' : 'A small moment from day ' + index + '.';
+          posts.push({ ...posts[1], id, post_id: id, user_id: PEER, author_id: PEER, content, body: content,
+            sort_key: 10 - index, created_at: new Date(Date.now() - index * 3600000).toISOString() });
+        }
+      })();
+      await feedVideoReady;
+    }
     if (path.startsWith('/rest/v1/rpc/')) {
       const value = rpc(path.slice('/rest/v1/rpc/'.length), body, headers);
       return readerResponse(value === undefined ? unknown(method, path) : value instanceof Response ? value : response(value));
     }
     if (path === '/functions/v1/crisp-bridge') return response({ success: true, linked: false, linked_at: null });
+    if (immersiveLive && path === '/functions/v1/live-playback' && liveIds.includes(body.sessionId)) {
+      if (!owner) return response({ error: 'AUTH_REQUIRED' }, 401);
+      const uri = await feedVideoSource?.();
+      if (!uri?.startsWith('file://')) throw new Error('Native Live layout requires the packaged local video.');
+      issuedMedia.add(uri);
+      return response({ format: 'hls', url: 'https://native-ui.invalid/packaged-live.m3u8',
+        live: true, expires_at: new Date(Date.now() + 5 * 60000).toISOString() });
+    }
     if (path === '/functions/v1/content-media-sign') {
       let claims;
       try { claims = JSON.parse(atob((headers.get('authorization') || '').replace(/^Bearer /, '').split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); } catch { /* Invalid claims are rejected by the ownership check below. */ }
@@ -282,6 +425,21 @@ function createFixture(onChange = () => {}) {
     return unknown(method, path);
   }
   return { fetch: fetchFixture, receipt, profiles, posts, recordCaptureBoundary,
+    nativeLiveVideoSource(grant) {
+      const uri = [...issuedMedia].find(value => value.startsWith('file://'));
+      if (!immersiveLive || grant.url !== 'https://native-ui.invalid/packaged-live.m3u8' || !uri) throw new Error('Unexpected native Live fixture source.');
+      return { uri, contentType: 'progressive', useCaching: false };
+    },
+    recordLiveFrame(id) { if (immersiveLive && liveIds.includes(id) && !receipt.immersiveLive.frames.includes(id)) { receipt.immersiveLive.frames.push(id); onChange(receipt); } },
+    recordLiveProgress(id, seconds) { if (immersiveLive && liveIds.includes(id) && seconds > 0.2 && !receipt.immersiveLive.progress.some(row => row.id === id)) { receipt.immersiveLive.progress.push({ id, seconds }); onChange(receipt); } },
+    observeFeedRefresh(work) {
+      const reads = () => receipt.requests.filter(row => row.path === '/rest/v1/rpc/get_feed').length;
+      const before = reads();
+      const result = work();
+      Promise.resolve(result).then(() => record('feedRefreshes', { before, after: reads(), completed: true }),
+        () => record('feedRefreshes', { before, after: reads(), completed: false }));
+      return result;
+    },
     authorizeMemoryMedia(url) {
       if (owner !== OWNER || offline || !issuedMedia.has(url)) {
         record('unhandled', { method: 'MEDIA', path: String(url).split('?')[0] });
@@ -305,8 +463,16 @@ function createFixture(onChange = () => {}) {
 
 class FixtureWebSocket {
   static CONNECTING = 0; static OPEN = 1; static CLOSING = 2; static CLOSED = 3;
+  static sockets = new Set();
+  static broadcast(topic, event, payload) {
+    for (const socket of this.sockets) for (const [name, join] of socket.topics) if (name === 'realtime:' + topic) {
+      const value = { type: 'broadcast', event, payload };
+      const message = join.array ? [join.ref, null, name, 'broadcast', value] : { topic: name, event: 'broadcast', payload: value };
+      setTimeout(() => { if (socket.readyState === 1) socket.emit('message', { data: JSON.stringify(message) }); }, 0);
+    }
+  }
   constructor() {
-    this.readyState = 0; this.bufferedAmount = 0; this.listeners = new Map();
+    this.readyState = 0; this.bufferedAmount = 0; this.listeners = new Map(); this.topics = new Map(); FixtureWebSocket.sockets.add(this);
     setTimeout(() => { this.readyState = 1; this.emit('open', {}); }, 0);
   }
   emit(type, event) {
@@ -318,13 +484,15 @@ class FixtureWebSocket {
   send(data) {
     const message = JSON.parse(data);
     const [joinRef, ref, topic, event] = Array.isArray(message) ? message : [null, message.ref, message.topic, message.event];
+    if (event === 'phx_join') this.topics.set(topic, { ref: joinRef, array: Array.isArray(message) });
+    if (event === 'phx_leave') this.topics.delete(topic);
     if (['phx_join', 'phx_leave', 'heartbeat'].includes(event)) {
       const payload = { status: 'ok', response: { postgres_changes: [] } };
       const reply = Array.isArray(message) ? [joinRef, ref, topic, 'phx_reply', payload] : { ref, topic, event: 'phx_reply', payload };
       setTimeout(() => this.emit('message', { data: JSON.stringify(reply) }), 0);
     }
   }
-  close() { this.readyState = 3; this.emit('close', { code: 1000, reason: 'Synthetic socket closed', wasClean: true }); }
+  close() { this.readyState = 3; this.topics.clear(); FixtureWebSocket.sockets.delete(this); this.emit('close', { code: 1000, reason: 'Synthetic socket closed', wasClean: true }); }
 }
 
 module.exports = { createFixture, FixtureWebSocket, OWNER, PEER, SECOND };

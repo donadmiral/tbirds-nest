@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "projectId": "uaulhuelcfkjwojtymmw",
+  "fixtureRunId": "554e817b-78b8-4e64-9a94-b2aa80fdca4d",
+  "status": "COMPLETE",
+  "recordedAt": "2026-11-05T19:52:51.188664+00:00",
+  "cleanupComplete": true,
+  "cleanupHeld": false,
+  "hostedFixtureCleanupComplete": true,
+  "postDeletionCommitted": true,
+  "postDeletionMethod": "Ordinary authenticated author API, exact row acknowledgement and independent absence readback",
+  "sourceObjectsAbsent": true,
+  "allFixtureMediaObjectsAbsent": true,
+  "normalDerivativeCleanupComplete": true,
+  "storageHelperEverDeployed": true,
+  "temporaryEndpoint": {
+    "name": "qa-physical-cache-cleanup-20261105",
+    "version": 2,
+    "verifyJwt": true,
+    "retired": true,
+    "activeSourceSha256": "c09dd43a8876199177868e9af56fce1477e4cd1a4014dd1abbd4a0a747c98147",
+    "retiredBundleSha256": "795f20ce1fd664f122d9fb258f97cbb8d0980be2e9ba87c9867202fbfd69bc01",
+    "readbackCode": "Deno.serve(() => new Response(JSON.stringify({ error: 'RETIRED' }), { status: 410, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } }));\n",
+    "authenticatedLiveReadback": {
+      "status": 410,
+      "result": {
+        "error": "RETIRED"
+      }
+    }
+  },
+  "identityDeletionOutcome": "COMMITTED_AND_INDEPENDENTLY_VERIFIED",
+  "identityCleanupOwner": "root",
+  "identityReceiptFile": "connected-identity-root-cleanup.json",
+  "remaining": {
+    "posts": 0,
+    "users": 0,
+    "follows": 0,
+    "profiles": 0,
+    "sessions": 0,
+    "identities": 0,
+    "attachments": 0,
+    "notifications": 0,
+    "refreshTokens": 0,
+    "sourceObjects": 0,
+    "allFixtureObjects": 0,
+    "activeAdaptiveJobs": 0,
+    "activeOriginalJobs": 0,
+    "pendingAdaptiveCleanup": 0,
+    "pendingOriginalCleanup": 0
+  },
+  "finalReadbackFile": "connected-cleanup-final-readback.json",
+  "privateTestUploadsDeleted": true,
+  "privateTestUploadCount": 3,
+  "privateUploadReceiptFile": "connected-private-upload-cleanup.json",
+  "localCredentialInputsRemoved": true,
+  "localPrivateInputCount": 7,
+  "localInputReceiptFile": "connected-local-private-input-cleanup.json",
+  "rawRunHistoryPreservedPrivately": true,
+  "rawLogsAndLoginVideoPublished": false,
+  "priorHistoryFile": "connected-cleanup-prior-history.json",
+  "priorIdentityInterruptionReconciliationFile": "connected-identity-cleanup-reconciliation.json"
+}

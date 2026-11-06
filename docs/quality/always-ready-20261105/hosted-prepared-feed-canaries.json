@@ -1,0 +1,42 @@
+{
+  "sourceCommit": "6f26e5f26210bf9d5cffdc7a0d2c9df9c3bdc019",
+  "scope": "Authenticated rollback-only canaries. Small hosted datasets, not a capacity certification.",
+  "qa": {
+    "passed": true,
+    "cold_ms": 277.27,
+    "warm_ms": 188.09,
+    "worker_ms": 75.67,
+    "first_count": 10,
+    "rollback_only": true,
+    "worker_failed": 0,
+    "prepared_count": 10,
+    "catalog_missing": 0,
+    "worker_prepared": 1,
+    "negative_cursors": true,
+    "catalog_rows_checked": 11,
+    "hidden_post_excluded": true,
+    "current_visibility_count": 10,
+    "indexed_canonical_parity": true,
+    "indexed_enabled_during_canary": true,
+    "existing_test_session_verified": true
+  },
+  "production": {
+    "passed": true,
+    "cold_ms": 5012.51,
+    "warm_ms": 500.49,
+    "worker_ms": 686.62,
+    "first_count": 20,
+    "rollback_only": true,
+    "worker_failed": 0,
+    "prepared_count": 20,
+    "catalog_missing": 0,
+    "worker_prepared": 1,
+    "negative_cursors": true,
+    "user_table_writes": false,
+    "catalog_rows_checked": 70,
+    "current_visibility_count": 20,
+    "indexed_canonical_parity": true,
+    "indexed_enabled_during_canary": true,
+    "existing_test_session_verified": true
+  }
+}

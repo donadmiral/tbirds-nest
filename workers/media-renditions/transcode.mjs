@@ -19,14 +19,18 @@ export async function command(binary,args,{signal,cwd,maxOutput=1048576}={}){
  });
 }
 export async function probe(file,options={}) {
- const raw=await command(process.env.FFPROBE_PATH||'ffprobe',['-v','error','-protocol_whitelist','file','-show_entries','format=duration,format_name:stream=codec_type,codec_name,width,height,r_frame_rate,sample_aspect_ratio,color_transfer:stream_side_data=rotation','-of','json',file],options);
+ const raw=await command(process.env.FFPROBE_PATH||'ffprobe',['-v','error','-protocol_whitelist','file','-show_entries','format=duration,format_name:stream=codec_type,codec_name,width,height,r_frame_rate,avg_frame_rate,sample_aspect_ratio,color_transfer:stream_side_data=rotation','-of','json',file],options);
  let p;try{p=JSON.parse(raw);}catch{throw fail('invalid_probe');}
  const video=p.streams?.find(s=>s.codec_type==='video');let width=Number(video?.width),height=Number(video?.height),duration=Number(p.format?.duration);
  const sar=(video?.sample_aspect_ratio||'1:1').split(':').map(Number);
  if(sar[0]>0&&sar[1]>0){const ratio=sar[0]/sar[1];if(ratio<.25||ratio>4)throw fail('sample_aspect_budget');width=Math.round(width*ratio);}
  const rotation=Number(video?.side_data_list?.find(s=>s.rotation!==undefined)?.rotation||0);
  if(Math.abs(rotation)%180===90)[width,height]=[height,width];
- const rate=(video?.r_frame_rate||'30/1').split('/').map(Number);const fps=rate[0]/(rate[1]||1);
+ // VFR files can advertise a timestamp-base rate (for example600fps) while
+ // their measured average is22fps. Bound actual frame work, not that timebase.
+ const rateOf=value=>{const [n,d]=String(value||'0/0').split('/').map(Number);return n/d;};
+ const average=rateOf(video?.avg_frame_rate);
+ const fps=Number.isFinite(average)&&average>0?average:rateOf(video?.r_frame_rate||'30/1');
  if(!video || !Number.isFinite(duration) || duration<0.05 || width<2 || height<2 || width>8192 || height>8192 || width*height>33554432 || !Number.isFinite(fps) || fps<1 || fps>120)throw fail('input_media_budget');
  if(!/^(mov,mp4|matroska|webm|mpegts|avi|ogg)/.test(p.format?.format_name||''))throw fail('unsupported_container');
  return {width,height,duration,fps:Math.min(60,fps),audio:!!p.streams.find(s=>s.codec_type==='audio'),hdr:['smpte2084','arib-std-b67'].includes(video.color_transfer)};

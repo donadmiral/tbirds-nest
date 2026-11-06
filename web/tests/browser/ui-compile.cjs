@@ -3,11 +3,11 @@ const fs=require('node:fs/promises'),path=require('node:path');
 const {webpack}=require('../../node_modules/next/dist/compiled/webpack/webpack');
 const postcss=require('postcss'),tailwind=require('@tailwindcss/postcss');
 const root=path.resolve(__dirname,'../..');
-async function compile({entry,output,aliases={},title='Platinum Circles synthetic UI verification'}){
+async function compile({entry,output,aliases={},environment={},title='Platinum Circles synthetic UI verification'}){
   entry=path.resolve(entry);output=path.resolve(output);await fs.mkdir(output,{recursive:true});
   const alias={...aliases,'@':root,'next/link':aliases['next/link']||path.join(__dirname,'ui-router-adapter.tsx'),'next/navigation':aliases['next/navigation']||path.join(__dirname,'ui-router-adapter.tsx'),react:aliases.react||path.join(root,'node_modules/react'),'react-dom':aliases['react-dom']||path.join(root,'node_modules/react-dom')};
   await new Promise((resolve,reject)=>webpack({mode:'development',devtool:false,context:root,target:'web',entry,plugins:[new webpack.DefinePlugin({
-    'process.env':JSON.stringify({NODE_ENV:'development',NEXT_PUBLIC_SUPABASE_URL:'https://synthetic.invalid',NEXT_PUBLIC_SUPABASE_ANON_KEY:'synthetic-only'}),
+    'process.env':JSON.stringify({NODE_ENV:'development',NEXT_PUBLIC_SUPABASE_URL:'https://synthetic.invalid',NEXT_PUBLIC_SUPABASE_ANON_KEY:'synthetic-only',...environment}),
     'process.env.__NEXT_IMAGE_OPTS':'undefined',
     'process.env.NEXT_DEPLOYMENT_ID':'undefined',
     'process.env.NEXT_SUPPORTS_IMMUTABLE_ASSETS':'false',

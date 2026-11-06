@@ -12,6 +12,9 @@ import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { themedSheet, useTheme } from '../../theme/useTheme';
+import { createScreenReadGuard, isReadAccessDenied, requireReadRows } from '../../../shared/readContinuity';
+import { orderTimeout } from '../../../shared/orderRequest';
+import { hydratePostMedia, withoutPrivateMedia } from '../../services/contentMedia';
 
 type Row = { id: string; content: string | null; body: string | null; article_title: string | null; archived_at: string; created_at: string; post_media: { url: string; media_type: string }[] | null };
 
@@ -19,17 +22,32 @@ export default function ArchiveScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { t, isDark } = useTheme();
-  const { profile } = useAuthStore();
+  const userId = useAuthStore(state => state.profile?.id ?? null);
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reads] = useState(() => createScreenReadGuard(userId));
+  reads.setScope(userId);
 
   const load = useCallback(async () => {
-    if (!profile?.id) return;
-    setLoading(true);
-    const { data } = await supabase.from('posts').select('id, content, body, article_title, archived_at, created_at, post_media(url, media_type)').eq('user_id', profile.id).not('archived_at', 'is', null).order('archived_at', { ascending: false });
-    setRows((data as Row[]) || []); setLoading(false);
-  }, [profile?.id]);
-  useEffect(() => { load(); }, [load]);
+    if (!userId) { setLoading(false); return; }
+    const current = reads.begin(userId);
+    if (!current()) return;
+    setLoading(true); setLoadError(null);
+    try {
+      const { data, error } = await orderTimeout(supabase.from('posts').select('id, content, body, article_title, archived_at, created_at, post_media(url, media_type)').eq('user_id', userId).not('archived_at', 'is', null).order('archived_at', { ascending: false }), 15000, 'Your archive could not be loaded.');
+      if (error) throw error;
+      if (!current()) return;
+      const secured = await hydratePostMedia(requireReadRows<Row>(data)).catch(() => {
+        if (current()) setLoadError('Some archived images could not load. Tap to retry.');
+        return withoutPrivateMedia(requireReadRows<Row>(data));
+      });
+      if (current()) setRows(secured);
+    } catch (error) {
+      if (current()) { if (isReadAccessDenied(error)) setRows([]); setLoadError('Your archive could not be refreshed. Tap to retry.'); }
+    } finally { if (current()) setLoading(false); }
+  }, [userId, reads]);
+  useEffect(() => { setRows([]); setLoading(!!userId); setLoadError(null); void load(); return () => reads.invalidate(); }, [load, userId, reads]);
 
   const restore = (r: Row) => {
     Alert.alert('Restore post?', 'It returns to your profile and feeds as it was.', [
@@ -46,9 +64,11 @@ export default function ArchiveScreen() {
         <Text style={s.title}>Archive</Text>
         <SettingsExit navigation={navigation} />
       </View>
-      {loading ? <ActivityIndicator color={t.ink.primary} style={{ marginTop: 30 }} /> : (
+      {loadError ? <TouchableOpacity accessibilityRole="button" onPress={() => { void load(); }}><Text accessibilityRole="alert" style={s.empty}>{loadError}</Text></TouchableOpacity> : null}
+      {loading && rows.length === 0 ? <ActivityIndicator color={t.ink.primary} style={{ marginTop: 30 }} /> : (
         <FlatList data={rows} keyExtractor={(r) => r.id} contentContainerStyle={{ paddingBottom: insets.bottom + 30 }}
-          ListEmptyComponent={<Text style={s.empty}>Nothing archived. Archive a post from its menu to hide it without deleting it.</Text>}
+          refreshing={loading} onRefresh={() => { void load(); }}
+          ListEmptyComponent={loadError ? null : <Text style={s.empty}>Nothing archived. Archive a post from its menu to hide it without deleting it.</Text>}
           renderItem={({ item }) => {
             const img = (item.post_media || []).find((m) => m.media_type === 'image')?.url || null;
             return (

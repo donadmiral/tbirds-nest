@@ -1,0 +1,78 @@
+{
+  "runId": "f760d34a",
+  "sourceCommit": "c8052ba7bb10f367a5e26337e94f3b080a48d7ce",
+  "videoSha256": "04bfbc4a74d32bfd0c495f780e909bd5b44d91a454297253fcdd2b6f83e392f4",
+  "nativeImageBounds": [
+    0,
+    1077,
+    1080,
+    1888
+  ],
+  "recordedViewport": [
+    220,
+    0,
+    360,
+    800
+  ],
+  "recordedCrop": [
+    220,
+    359,
+    360,
+    270
+  ],
+  "windowPTS": [
+    89.0,
+    97.48
+  ],
+  "decodedFrames": 213,
+  "visibleCanaryFrames": 211,
+  "blankMediaFrames": 2,
+  "blankPTS": [
+    92.88,
+    92.92
+  ],
+  "previousVisiblePTS": 92.84,
+  "nextVisiblePTS": 92.96,
+  "recordedBlankDisplayIntervalMs": 80,
+  "neighboringSampleBracketMs": 120,
+  "frameIntervalMs": 40,
+  "appiumRefreshGestureUTC": [
+    "2026-11-05T18:00:50.808Z",
+    "2026-11-05T18:00:51.775Z"
+  ],
+  "observerProcessStartedAtUTC": "2026-11-05T17:59:47.320000+00:00",
+  "observerRemoteImageOnDisplayElapsedMs": 67765,
+  "wallClockAlignment": "Recording status-bar clock at PTS 90 reads 18:00:50. This is coarse alignment only, not millisecond synchronization of host, phone and recording clocks.",
+  "frames": [
+    {
+      "pts": 92.84,
+      "file": "refresh-boundary-92.84.png",
+      "sha256": "c3851bab57d4d77a6d89fc54c1cea4fbc544f4a25bad643ea8936e0c94ef5ad6",
+      "state": "image-visible"
+    },
+    {
+      "pts": 92.88,
+      "file": "refresh-boundary-92.88.png",
+      "sha256": "5de5fdea1c6343c83789377a7b47a7adf1282da2a69aeebb36281caa8be42121",
+      "state": "blank-image-area"
+    },
+    {
+      "pts": 92.92,
+      "file": "refresh-boundary-92.92.png",
+      "sha256": "1f7821a1b0765c54334707aeed8467b18612a695e9a3a5c849dcc84365e6e0a2",
+      "state": "blank-image-area"
+    },
+    {
+      "pts": 92.96,
+      "file": "refresh-boundary-92.96.png",
+      "sha256": "61cbe87b84ae994ce5f8c5cad1fd5c273f47365811ef65713c8e7870f94e3849",
+      "state": "image-visible"
+    }
+  ],
+  "limitations": [
+    "One failed physical Pixel 8a QA recording, not a fleet or percentile measure.",
+    "Observed decoded recording blank confirmed visually. It is not an exact measurement of the physical display duration.",
+    "Duplicate and near-duplicate encoded frames do not establish native capture cadence.",
+    "Only public synthetic-media crops retained. Raw login video and Appium logs are not copied into the evidence output."
+  ]
+}

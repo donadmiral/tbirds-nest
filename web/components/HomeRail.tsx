@@ -11,6 +11,7 @@
  * hides itself rather than displaying zeroes, because an empty rail reads as
  * calm and a rail of zeroes reads as broken.
  */
+import { ResourceRefreshNotice } from "@/components/ResourceRefreshNotice";
 import { useAccountResource } from "@/lib/useAccountResource";
 import { Eye, Heart, PenLine, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -28,13 +29,14 @@ async function loadActivity(supabase: ReturnType<typeof createClient>, uid: stri
     supabase.from("posts").select("likes_count, comments_count, views_count").eq("user_id",uid).gte("created_at",since),
     supabase.from("follows").select("follower_id",{count:"exact",head:true}).eq("following_id",uid).gte("created_at",since),
   ]);
-  if(posts.error||mine.error||followers.error||posts.count===null||followers.count===null)throw new Error("Your activity could not load.");
+  if(posts.error||mine.error||followers.error)throw posts.error||mine.error||followers.error;
+  if(posts.count===null||followers.count===null)throw new Error("Your activity could not load.");
   const rows=(mine.data??[]) as {likes_count:number|null;comments_count:number|null;views_count:number|null}[];
   if(rows.length!==posts.count)throw new Error("Your complete activity could not load. Please try again.");
   return {posts:posts.count,views:rows.reduce((n,row)=>n+(row.views_count??0),0),engagement:rows.reduce((n,row)=>n+(row.likes_count??0)+(row.comments_count??0),0),followers:followers.count};
 }
 function YourActivity() {
-  const resource=useAccountResource<Activity|null>(loadActivity,null);
+  const resource=useAccountResource<Activity|null>(loadActivity,null, { cacheKey: "home:weekly-activity" });
   if(resource.error)return <Panel title="Your activity"><p className="text-sm text-muted" role="status">{resource.error}</p><button type="button" className="mt-2 min-h-11 text-sm font-semibold text-ink" onClick={resource.retry}>Try again</button></Panel>;
   const a=resource.data;
   if (!a || (a.posts === 0 && a.views === 0 && a.engagement === 0 && a.followers === 0)) return null;
@@ -48,6 +50,7 @@ function YourActivity() {
 
   return (
     <Panel title="Your activity" action="This week" actionHref="/studio">
+      <ResourceRefreshNotice error={resource.refreshError} refreshing={resource.refreshing} retry={resource.retry} />
       <div className="grid grid-cols-2 gap-3">
         {cells.map((c) => (
           <div key={c.label} className="rounded-xl bg-surface px-3 py-2.5">

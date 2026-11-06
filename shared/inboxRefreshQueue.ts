@@ -53,6 +53,11 @@ export function createInboxRefreshQueue(options: {
   return {
     changed(id: string) { if (disposed || !id) return; ids.add(id); if (ids.size > 200) { full = true; ids.clear(); } schedule(); },
     refresh() { if (disposed) return; full = true; ids.clear(); schedule(); },
+    refreshNow() {
+      if (disposed) return;
+      full = true; ids.clear(); clearTimeout(timer); timer = undefined;
+      void run();
+    },
     setActive(value: boolean) {
       if (disposed || active === value) return;
       active = value;

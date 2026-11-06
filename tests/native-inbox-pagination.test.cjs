@@ -15,9 +15,11 @@ const conversations = (active, archived = 0) => Array.from({ length: active + ar
   last_message: `Preview ${n}`, last_message_time: new Date(Date.UTC(2026, 10, 1) - n * 60000).toISOString(),
 }));
 
-function harness(rows) {
+function harness(rows, options = {}) {
   const slots = [], effects = [], calls = [], events = [], modules = new Map(), timers = new Map(), appEvents = new Set();
-  const scopeEvents = new Set();
+  const scopeEvents = new Set(), startupEvents = new Set();
+  let startupValue = options.startup ?? null;
+  const startupWrites = [];
   let cursor = 0, dirty = true, tree, owner = 'owner', scope = '1:owner', revision = 1, focused = true, disposed = false;
   let now = 0, nextTimer = 0, override;
   const same = (a,b) => a && b && a.length === b.length && a.every((value, n) => Object.is(value, b[n]));
@@ -93,6 +95,12 @@ function harness(rows) {
         useFocusEffect: fn => hooks.useEffect(() => focused ? fn() : undefined, [fn, focused]) };
       if (name.endsWith('lib/navigationCache')) return { navigationCache: cache, navigationScope: () => scope,
         subscribeNavigationScope(fn) { scopeEvents.add(fn); return () => scopeEvents.delete(fn); } };
+      if (name.endsWith('services/startupContentSnapshots')) return { inboxStartup: { peek: account => account === owner ? startupValue : null,
+        hydrate: async account => account === owner ? startupValue : null,
+        write: async (account, value) => { startupWrites.push({ account, value }); startupValue = value; startupEvents.forEach(fn => fn()); },
+        clear: async () => { startupValue = null; startupEvents.forEach(fn => fn()); },
+        subscribe(fn) { startupEvents.add(fn); return () => startupEvents.delete(fn); } } };
+      if (name.endsWith('services/inboxStartup')) return { readInboxStartup: rows => options.readStartup ? options.readStartup(rows) : Promise.resolve(rows) };
       if (name.endsWith('stores/authStore')) return { useAuthStore: auth };
       if (name.endsWith('stores/unreadStore')) return { useUnreadStore: { getState: () => ({ refresh() {} }) } };
       if (name.endsWith('stores/draftStore')) return { useDraftStore: Object.assign(selector => selector(draftState), { getState: () => draftState }) };
@@ -126,7 +134,8 @@ function harness(rows) {
   async function flush() { for (let n = 0; n < 12; n++) { render(); await new Promise(done => setImmediate(done)); } render(); }
   const nodes = () => walk(tree);
   render();
-  return { calls, events, navigation, cache, nodes, draftState, list: () => nodes().find(node => node.type === 'TapTopFlatList'), flush,
+  return { calls, events, navigation, cache, nodes, draftState, startupWrites,
+    setStartup(value) { startupValue = value; startupEvents.forEach(fn => fn()); render(); }, list: () => nodes().find(node => node.type === 'TapTopFlatList'), flush,
     async tick(ms) { const end = now + ms; while (true) { const entry = [...timers].filter(([, timer]) => timer.at <= end).sort((a,b) => a[1].at - b[1].at)[0];
       if (!entry) break; now = entry[1].at; timers.delete(entry[0]); entry[1].fn(); await flush(); } now = end; await flush(); },
     press(label) { const button = nodes().find(node => node.type === 'TouchableOpacity' && words(node).trim().startsWith(label)); assert.ok(button, `button ${label}`); button.props.onPress(); render(); },
@@ -273,4 +282,33 @@ test('a queued native full refresh retains its physical slot through timeout and
   assert.equal(h.calls.filter(call => call.name === 'get_inbox_page_v2').length, before + 1);
   gate.resolve({ data: null, error: Error('late abort') }); await h.flush(); await h.tick(200);
   assert.equal(h.calls.filter(call => call.name === 'get_inbox_page_v2').length, before + 2); h.dispose();
+});
+
+const savedInbox = (name = 'Saved Alice') => ({ actorId: 'owner', rows: [{ id: 'chat-0', other_user_id: 'person-0', other_name: name, other_username: null, other_avatar: null, last_message: 'Saved ordinary preview', last_message_time: new Date().toISOString(), unread_count: 2, is_group: false, is_pinned: false, is_muted: false, is_archived: false, context: 'personal' }] });
+test('cold native inbox paints saved names and previews before its first network response and persists the replacement', async () => {
+  const gate = deferred(), h = harness(conversations(2), { startup: savedInbox() });
+  h.setReply(call => call.name === 'get_inbox_page_v2' ? gate.promise : null);
+  assert.equal(h.list().props.data[0].other_name, 'Saved Alice');
+  assert.equal(h.list().props.data[0].last_message, 'Saved ordinary preview');
+  await h.flush(); assert.equal(h.list().props.data[0].other_name, 'Saved Alice');
+  assert.equal(h.cache.read('1:owner', 'inbox:personal'), null, 'disk-only rows keep their original expiry');
+  gate.resolve(null); await h.flush(); assert.equal(h.list().props.data[0].other_name, 'Member 0');
+  assert.equal(h.startupWrites.at(-1).value.rows.length, 2);
+  h.setStartup(savedInbox('STALE RESTORE')); assert.equal(h.list().props.data[0].other_name, 'Member 0'); h.dispose();
+});
+test('late native inbox disk restore stays useful during network delay and disappears on expiry', async () => {
+  const gate = deferred(), h = harness(conversations(1));
+  h.setReply(call => call.name === 'get_inbox_page_v2' ? gate.promise : null); await h.flush();
+  h.setStartup(savedInbox()); assert.equal(h.list().props.data[0].other_name, 'Saved Alice');
+  h.setStartup(null); assert.equal(h.list()?.props.data.length ?? 0, 0);
+  assert.ok(h.nodes().some(node => words(node).includes('Reconnect to refresh')));
+  gate.resolve(null); await h.flush(); assert.equal(h.list().props.data[0].other_name, 'Member 0'); h.dispose();
+});
+test('native inbox never transfers cached previews to a different account and clears confirmed access denial', async () => {
+  const gate = deferred(), h = harness(conversations(1), { startup: savedInbox() });
+  h.setReply(call => call.name === 'get_inbox_page_v2' ? gate.promise : null); await h.flush();
+  gate.resolve({ data: null, error: { code: '42501', message: 'Denied' } }); await h.flush();
+  assert.equal(h.list()?.props.data.length ?? 0, 0);
+  h.setStartup(savedInbox()); assert.equal(h.list()?.props.data.length ?? 0, 0);
+  h.changeOwner('another'); assert.ok(!h.nodes().some(node => words(node).includes('Saved Alice'))); h.dispose();
 });

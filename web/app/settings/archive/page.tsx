@@ -3,6 +3,7 @@ import NextImage from "next/image";
 // Archive: posts hidden from everyone without deleting. Restore returns one as it was.
 import { useState } from "react";
 import { hydratePostMedia } from "@/lib/contentMedia";
+import { ResourceRefreshNotice } from "@/components/ResourceRefreshNotice";
 import { useAccountResource } from "@/lib/useAccountResource";
 import { errorMessage } from "@/lib/errors";
 import { withTimeout } from "@/lib/withTimeout";
@@ -20,7 +21,7 @@ async function fetchRows(supabase: ReturnType<typeof createClient>, uid: string)
 }
 
 export default function ArchivePage() {
-  const { client: supabase, data: rows, setData: setRows, error: loadError, loading, retry, assertOwner } = useAccountResource<Row[]>(fetchRows, []);
+  const { client: supabase, data: rows, setData: setRows, error: loadError, loading, retry, assertOwner, refreshError, refreshing } = useAccountResource<Row[]>(fetchRows, []);
   const [actionError, setActionError] = useState("");
   const [restoring, setRestoring] = useState<string | null>(null);
   const restore = async (row: Row) => {
@@ -38,6 +39,7 @@ export default function ArchivePage() {
     <div className="mx-auto max-w-[640px] px-4 py-6">
       <h1 className="mt-4 font-display text-[24px] font-bold text-ink">Archive</h1>
       <p className="mt-1 text-[13.5px] text-ink/60">Posts you hid from everyone without deleting them.</p>
+      <ResourceRefreshNotice error={refreshError} refreshing={refreshing} retry={retry} />
       {loadError ? <ErrorState title={loadError} onRetry={retry} /> : null}
       {actionError ? <p role="alert" className="mt-3 text-sm text-danger">{actionError}</p> : null}
       {loading ? <p role="status">Loading archived posts…</p> : null}

@@ -9,6 +9,8 @@ import { RelativeTime } from "@/components/RelativeTime";
 import { Bookmark } from "lucide-react";
 import { Card, EmptyState } from "@/components/ui";
 import { ErrorState } from "@/components/ErrorState";
+import { ResourceRefreshNotice } from "@/components/ResourceRefreshNotice";
+import { isAccessDeniedError } from "@/lib/errors";
 
 type SavedPost = {
   id: string;
@@ -30,11 +32,13 @@ type Collection = { id: string; name: string };
 export default function SavedPage() {
   const [supabase] = useState(createClient);
   const [posts, setPosts] = useState<SavedPost[] | null>(null);
+  const [loadedCollection, setLoadedCollection] = useState<string | null>(null);
   const [cols, setCols] = useState<Collection[]>([]);
   const [colSel, setColSel] = useState<string>("all");
   const [uid, setUid] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
-  const [failed, setFailed] = useState(false);
+  const [failedCollection, setFailedCollection] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [total, setTotal] = useState<number | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -43,22 +47,31 @@ export default function SavedPage() {
   const [busy, setBusy] = useState<Set<string>>(new Set());
   const busyRef = useRef(new Set<string>());
   const generation = useRef(0);
+  const confirmedMutation = useRef(0);
   const loadingRef = useRef(false);
+  const account = useRef<string | null | undefined>(undefined);
+  const failed = failedCollection === colSel;
+  const visiblePosts = loadedCollection === colSel ? posts : null;
 
   const load = useCallback(async (after: { created_at: string; post_id: string } | null = null) => {
     if (after && loadingRef.current) return;
     const version = generation.current += 1;
+    const mutationAtStart = confirmedMutation.current;
     loadingRef.current = true;
-    setFailed(false);
+    setFailedCollection(null);
     setLoadingMore(!!after);
-    if (!after) { setPosts(null); setCursor(null); setHasMore(false); }
+    if (!after) setRefreshing(true);
     try {
       const { data: sess, error: sessionError } = await supabase.auth.getSession();
       if (sessionError) throw sessionError;
       const viewer = sess.session?.user.id;
       if (version !== generation.current) return;
+      if (account.current !== undefined && account.current !== (viewer ?? null)) {
+        setPosts(null); setLoadedCollection(null); setCols([]); setTotal(null); setCursor(null); setHasMore(false);
+      }
+      account.current = viewer ?? null;
       setUid(viewer ?? null);
-      if (!viewer) { setPosts([]); setCols([]); setTotal(0); return; }
+      if (!viewer) { setPosts([]); setLoadedCollection(colSel); setCols([]); setTotal(0); setCursor(null); setHasMore(false); return; }
       let query = supabase.from("post_bookmarks").select("post_id, created_at, collection_id").eq("user_id", viewer)
         .order("created_at", { ascending: false }).order("post_id", { ascending: false }).limit(40);
       if (colSel !== "all") query = query.eq("collection_id", colSel);
@@ -89,16 +102,21 @@ export default function SavedPage() {
           return post ? [{ ...post, author: authorMap.get(post.user_id) ?? null, saved_at: bookmark.created_at, collection_id: bookmark.collection_id }] : [];
         });
       }
-      if (version !== generation.current) return;
+      if (version !== generation.current || mutationAtStart !== confirmedMutation.current) return;
       setCols(collectionResult.data ?? []);
       setTotal(countResult.count);
-      setPosts((previous) => after ? [...(previous ?? []), ...rows.filter((row) => !(previous ?? []).some((p) => p.id === row.id))] : rows);
+      setPosts((previous) => version !== generation.current ? previous : after ? [...(previous ?? []), ...rows.filter((row) => !(previous ?? []).some((p) => p.id === row.id))] : rows);
+      setLoadedCollection(colSel);
       setCursor(bookmarks.length ? bookmarks[bookmarks.length - 1] : null);
       setHasMore(bookmarks.length === 40);
-    } catch {
-      if (version === generation.current) setFailed(true);
+    } catch (cause) {
+      if (version !== generation.current) return;
+      if (isAccessDeniedError(cause)) {
+        setPosts(null); setLoadedCollection(null); setCols([]); setTotal(null); setCursor(null); setHasMore(false);
+      }
+      setFailedCollection(colSel);
     } finally {
-      if (version === generation.current) { setLoadingMore(false); loadingRef.current = false; }
+      if (version === generation.current) { setRefreshing(false); setLoadingMore(false); loadingRef.current = false; }
     }
   }, [supabase, colSel]);
 
@@ -107,10 +125,15 @@ export default function SavedPage() {
     return () => { clearTimeout(timer); generation.current += 1; loadingRef.current = false; };
   }, [load, tick]);
   useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((event) => {
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_OUT" || event === "SIGNED_IN") {
+        const viewer = session?.user.id ?? null;
+        if (event === "SIGNED_IN" && account.current === viewer) return;
+        account.current = viewer;
         generation.current += 1;
-        setUid(null); setPosts(null); setCols([]); setTotal(null); setColSel("all"); setActionError(null);
+        loadingRef.current = false;
+        setUid(null); setPosts(null); setLoadedCollection(null); setCols([]); setTotal(null); setColSel("all"); setActionError(null);
+        setCursor(null); setHasMore(false); setLoadingMore(false); setRefreshing(false); setFailedCollection(null);
         setTick((value) => value + 1);
       }
     });
@@ -140,8 +163,9 @@ export default function SavedPage() {
       const { data, error } = await query.eq("user_id", uid).eq("post_id", postId).select("post_id").maybeSingle();
       if (error || (collectionId !== undefined && !data)) throw error || new Error("Saved item is no longer available");
       if (version !== generation.current) return;
-      setPosts((previous) => (previous ?? []).flatMap((post) => post.id !== postId ? [post] : collectionId === undefined || (colSel !== "all" && collectionId !== colSel) ? [] : [{ ...post, collection_id: collectionId }]));
-      if (collectionId === undefined) setTotal((value) => value === null ? null : Math.max(0, value - 1));
+      confirmedMutation.current += 1;
+      setPosts((previous) => version !== generation.current ? previous : (previous ?? []).flatMap((post) => post.id !== postId ? [post] : collectionId === undefined || (colSel !== "all" && collectionId !== colSel) ? [] : [{ ...post, collection_id: collectionId }]));
+      if (collectionId === undefined) setTotal((value) => version !== generation.current || value === null ? value : Math.max(0, value - 1));
     } catch { if (version === generation.current) setActionError("Could not update this saved item. Please try again."); }
     finally { busyRef.current.delete(postId); setBusy(new Set(busyRef.current)); }
   }
@@ -169,11 +193,12 @@ export default function SavedPage() {
         ))}
       </div>
       {actionError ? <p role="alert" className="mb-3 text-sm text-danger">{actionError}</p> : null}
-      {failed ? (
-        <ErrorState title="Could not load your saved items" onRetry={() => { setFailed(false); setTick(t => t + 1); }} />
-      ) : posts === null ? (
+      <ResourceRefreshNotice error={failed && visiblePosts !== null ? "Could not refresh your saved items." : ""} refreshing={refreshing} retry={() => setTick(t => t + 1)} />
+      {failed && visiblePosts === null ? (
+        <ErrorState title="Could not load your saved items" onRetry={() => { setFailedCollection(null); setTick(t => t + 1); }} />
+      ) : visiblePosts === null ? (
         <p className="py-16 text-center text-sm text-muted">Loading</p>
-      ) : posts.length === 0 ? (
+      ) : visiblePosts.length === 0 ? (
         <EmptyState
           icon={<Bookmark size={19} />}
           title={colSel === "all" ? "Nothing saved yet" : "This collection is empty"}
@@ -183,7 +208,7 @@ export default function SavedPage() {
         />
       ) : (
         (() => {
-          const inView = posts.filter((p) => colSel === "all" || p.collection_id === colSel);
+          const inView = visiblePosts.filter((p) => colSel === "all" || p.collection_id === colSel);
           if (inView.length === 0) {
             return (
               <EmptyState
@@ -237,7 +262,7 @@ export default function SavedPage() {
           });
         })()
       )}
-      {hasMore && !failed ? <button disabled={loadingMore} onClick={() => void load(cursor)} className="mx-auto my-4 block rounded-full border border-ink/15 px-4 py-2 text-sm text-ink/70">{loadingMore ? "Loading" : "Load more"}</button> : null}
+      {visiblePosts !== null && hasMore && !failed ? <button disabled={loadingMore || refreshing} onClick={() => void load(cursor)} className="mx-auto my-4 block rounded-full border border-ink/15 px-4 py-2 text-sm text-ink/70">{loadingMore ? "Loading" : "Load more"}</button> : null}
     </div>
   );
 }

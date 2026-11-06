@@ -43,6 +43,7 @@ function load(file, { width = 320, height = 568, thumbnail = async () => ({ uri:
       if (name.endsWith('/storyPanels')) return { MiniSlider:'MiniSlider',AdjustLayer: 'AdjustLayer', AdjustPanel: 'AdjustPanel' };
       if (name === 'expo-video-thumbnails') return { getThumbnailAsync: thumbnail };
       if (name === 'expo-video') return { VideoView: 'VideoView', useVideoPlayer: () => ({ play() {}, pause() {} }) };
+      if (name.endsWith('/useAdaptiveVideoPlayer')) return { useAdaptiveVideoPlayer: () => ({ play() {}, pause() {} }) };
       if (name.endsWith('/supabase')) return { supabase: {} };
       return { __esModule: true, default: name, ...Object.fromEntries(['Heart', 'MessageCircle', 'Repeat2', 'Bookmark', 'VolumeX', 'BadgeCheck'].map(n => [n,n])) };
     }, setTimeout(fn) { const id = ++timerId; timers.set(id, () => { timers.delete(id); return fn(); }); return id; }, clearTimeout(id) { timers.delete(id); },

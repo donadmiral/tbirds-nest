@@ -1,3 +1,6 @@
+import { useLiveStoryPresence } from '../../hooks/useLiveStoryPresence';
+import LiveStoryBubble from './LiveStoryBubble';
+import StoryRing from './PlatinumRing';
 import { themedSheet } from '../../theme/useTheme';
 import TierName from '../TierName';
 import VerifiedBadge from '../VerifiedBadge';
@@ -8,11 +11,12 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { storiesService, CatchupUser } from '../../services/storiesService';
 import { useAuthStore } from '../../stores/authStore';
+import { navigationScope } from '../../lib/navigationCache';
+import { storyStartup } from '../../services/startupContentSnapshots';
+import { readStoryStartup } from '../../services/storyStartup';
 import { supabase } from '../../services/supabase';
 import { flagsService } from '../../services/flagsService';
 import { prefetchStoryEntry, invalidateStoryEntries } from '../../services/storyReadiness';
-
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 type Props = {
   mode?: 'primary' | 'all' | 'global';
@@ -30,9 +34,6 @@ const RING_SIZE = 66;
 const RING_CENTER = RING_SIZE / 2;
 const RING_RADIUS = 30;
 const AVATAR_SIZE = 54;
-const ARC_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
-const ARC_DASH = 35;
-const ARC_GAP = ARC_CIRCUMFERENCE - ARC_DASH;
 
 function initials(name?: string | null) {
   if (!name) return 'U';
@@ -40,72 +41,8 @@ function initials(name?: string | null) {
   return p.length === 1 ? p[0][0].toUpperCase() : `${p[0][0]}${p[1][0]}`.toUpperCase();
 }
 
-function hashSpeed(userId: string): number {
-  let hash = 0;
-  for (let i = 0; i < userId.length; i++) {
-    hash = ((hash << 5) - hash + userId.charCodeAt(i)) | 0;
-  }
-  return 3500 + (Math.abs(hash) % 1500);
-}
-
 function PlatinumRing({ userId }: { userId: string }) {
-  const arcOffset = useRef(new Animated.Value(0)).current;
-  const speed = hashSpeed(userId);
-  const safeId = `plat_${userId.replace(/[^a-zA-Z0-9_]/g, '_')}`;
-
-  useEffect(() => {
-    const anim = Animated.loop(
-      Animated.timing(arcOffset, {
-        toValue: ARC_CIRCUMFERENCE,
-        duration: speed,
-        useNativeDriver: false,
-      })
-    );
-    anim.start();
-    return () => anim.stop();
-  }, [arcOffset, speed]);
-
-  return (
-    <Svg width={RING_SIZE} height={RING_SIZE} viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}>
-      <Defs>
-        <LinearGradient id={safeId} x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0" stopColor={PLATINUM_GLOW} />
-          <Stop offset="0.4" stopColor={PLATINUM_START} />
-          <Stop offset="1" stopColor={PLATINUM_END} />
-        </LinearGradient>
-      </Defs>
-      {/* Layer 1: Platinum gradient ring */}
-      <Circle
-        cx={RING_CENTER}
-        cy={RING_CENTER}
-        r={RING_RADIUS}
-        fill="none"
-        stroke={`url(#${safeId})`}
-        strokeWidth={2.5}
-      />
-      {/* Layer 2: Inner glow edge */}
-      <Circle
-        cx={RING_CENTER}
-        cy={RING_CENTER}
-        r={RING_RADIUS - 1.5}
-        fill="none"
-        stroke="rgba(255,255,255,0.25)"
-        strokeWidth={0.5}
-      />
-      {/* Layer 3: Moving highlight arc */}
-      <AnimatedCircle
-        cx={RING_CENTER}
-        cy={RING_CENTER}
-        r={RING_RADIUS}
-        fill="none"
-        stroke="rgba(255,255,255,0.45)"
-        strokeWidth={1.5}
-        strokeDasharray={`${ARC_DASH} ${ARC_GAP}`}
-        strokeLinecap="round"
-        strokeDashoffset={arcOffset}
-      />
-    </Svg>
-  );
+  return <StoryRing userId={userId} size={RING_SIZE} />;
 }
 
 function SeenRing() {
@@ -216,15 +153,23 @@ function StoryStrip({ mode = 'all' }: Props) {
   const [flagOff, setFlagOff] = useState(false);
   useEffect(() => { flagsService.isEnabled('stories').then(on => setFlagOff(!on)).catch(() => {}); }, []);
   const navigation = useNavigation<any>();
-  const { profile } = useAuthStore();
+  const { profile, session } = useAuthStore();
+  const authOwner = session?.user.id ?? null;
   const myId = profile?.id ?? null;
+  const liveSessions = useLiveStoryPresence();
+  const liveByHost = new Map(liveSessions.map(session => [session.host.id, session]));
   const loadGeneration = useRef(0);
   const ownerRef = useRef(myId); ownerRef.current = myId;
   useEffect(() => () => { loadGeneration.current++; }, []);
 
-  const [catchup, setCatchup] = useState<CatchupUser[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [myHasStories, setMyHasStories] = useState(false);
+  const [initialStories] = useState(() => {
+    const cached = authOwner ? storyStartup[mode].peek(authOwner) : null;
+    return cached?.actorId === myId ? cached.rows : null;
+  });
+  const [catchup, setCatchup] = useState<CatchupUser[]>(initialStories ?? []);
+  const [loading, setLoading] = useState(initialStories === null);
+  const [myHasStories, setMyHasStories] = useState(!!myId && !!initialStories?.some(row => row.user_id === myId));
+  const networkStoriesReady = useRef(false);
   const [spotlight, setSpotlight] = useState<{ story_id: string; user_id: string; full_name: string; username: string; avatar_url: string | null; views: number }[]>([]);
 
   // Phase 4.0A: Track which userIds were sent to the viewer
@@ -232,13 +177,18 @@ function StoryStrip({ mode = 'all' }: Props) {
   const viewerOpenedForRef = useRef<Set<string> | null>(null);
 
   const load = useCallback(async () => {
-    const request = ++loadGeneration.current;
-    const current = () => request === loadGeneration.current && ownerRef.current === myId;
+    const request = ++loadGeneration.current, scope = navigationScope();
+    const current = () => request === loadGeneration.current && ownerRef.current === myId && navigationScope() === scope;
     try {
       const rows = await storiesService.getCatchupFeed(mode, 30);
       if (!current()) return;
+      networkStoriesReady.current = true;
+      if (authOwner && myId) void readStoryStartup(rows).then(saved => {
+        if (current()) return storyStartup[mode].write(authOwner, { actorId: myId, rows: saved });
+      }).catch(() => { if (current()) void storyStartup[mode].clear(authOwner).catch(() => {}); });
       setCatchup(rows);
       setMyHasStories(!!myId && rows.some(r => r.user_id === myId));
+      setLoading(false);
       // The first unseen ring is the likely next tap. Warm one author without
       // competing with the feed for every ring's videos at startup.
       const next = rows.find(row => row.has_unseen && row.user_id !== myId) || rows[0];
@@ -247,8 +197,10 @@ function StoryStrip({ mode = 'all' }: Props) {
       // engagement, after your own and followed rings. A story posted to
       // Everyone is eligible on its own.
       try {
-        const { data: hot } = await supabase.rpc('get_trending_stories', { p_limit: 12 });
+        const { data: hot, error, status } = await supabase.rpc('get_trending_stories', { p_limit: 12 });
         if (!current()) return;
+        if (status === 401 || status === 403 || error?.code === '42501') { setSpotlight([]); return; }
+        if (error || !Array.isArray(hot)) return;
         const known = new Set<string>(rows.map(r => r.user_id));
         if (myId) known.add(myId);
         setSpotlight(((hot ?? []) as any[]).filter(h => h?.user_id && !known.has(h.user_id)));
@@ -258,12 +210,31 @@ function StoryStrip({ mode = 'all' }: Props) {
     } finally {
       if (current()) setLoading(false);
     }
-  }, [mode, myId]);
+  }, [mode, myId, authOwner]);
 
   useEffect(() => {
-    setLoading(true);
-    load();
-  }, [load]);
+    networkStoriesReady.current = false;
+    const saved = authOwner ? storyStartup[mode].peek(authOwner) : null;
+    const cached = saved?.actorId === myId ? saved.rows : null;
+    setCatchup(cached ?? []); setSpotlight([]); setMyHasStories(!!myId && !!cached?.some(row => row.user_id === myId));
+    setLoading(cached === null);
+    if (!authOwner || !myId) return;
+    const scope = navigationScope();
+    let restored = cached !== null;
+    const restore = () => {
+      if (networkStoriesReady.current || navigationScope() !== scope || ownerRef.current !== myId) return;
+      const value = storyStartup[mode].peek(authOwner);
+      if (value?.actorId !== myId) {
+        if (restored) { restored = false; setCatchup([]); setMyHasStories(false); }
+        return;
+      }
+      restored = true;
+      setCatchup(value.rows); setMyHasStories(value.rows.some(row => row.user_id === myId)); setLoading(false);
+    };
+    const stop = storyStartup[mode].subscribe(restore);
+    void storyStartup[mode].hydrate(authOwner).then(restore).catch(() => {});
+    return stop;
+  }, [myId, mode, authOwner]);
 
   useFocusEffect(
     useCallback(() => {
@@ -317,6 +288,8 @@ function StoryStrip({ mode = 'all' }: Props) {
   };
 
   const renderSelfBubble = () => {
+    const live = myId ? liveByHost.get(myId) : undefined;
+    if (live) return <LiveStoryBubble session={live} onStory={myHasStories ? () => openViewer(myId!) : undefined} onCreate={openCreationMenu} />;
     const myCatchup = catchup.find(c => c.user_id === myId);
     const hasUnseen = myCatchup?.has_unseen ?? false;
 
@@ -379,6 +352,8 @@ function StoryStrip({ mode = 'all' }: Props) {
     );
   };
   const renderUserBubble = (user: CatchupUser) => {
+    const live = liveByHost.get(user.user_id);
+    if (live) return <LiveStoryBubble key={user.user_id} session={live} onStory={() => openViewer(user.user_id)} />;
     return (
       <TouchableOpacity
         key={user.user_id}
@@ -404,7 +379,7 @@ function StoryStrip({ mode = 'all' }: Props) {
     );
   };
 
-  if (loading && catchup.length === 0) {
+  if (loading && catchup.length === 0 && liveSessions.length === 0) {
     return (
       <View style={s.container}>
         <ScrollView
@@ -421,10 +396,12 @@ function StoryStrip({ mode = 'all' }: Props) {
   }
 
   const others = catchup.filter(c => c.user_id !== myId);
+  const storyHosts = new Set([...catchup, ...spotlight].map(user => user.user_id));
+  const liveOnly = liveSessions.filter(session => session.host.id !== myId && !storyHosts.has(session.host.id));
 
   // After every hook, never before one: a flag that flips at runtime must
   // not change how many hooks this component calls.
-  if (flagOff) return null;
+  if (flagOff) return liveSessions.length ? <View style={s.container}><ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.scrollContent}>{liveSessions.map(session => <LiveStoryBubble key={session.id} session={session} />)}</ScrollView></View> : null;
   return (
     <View style={s.container}>
       <ScrollView
@@ -433,11 +410,12 @@ function StoryStrip({ mode = 'all' }: Props) {
         contentContainerStyle={s.scrollContent}
       >
         {renderSelfBubble()}
+        {liveOnly.map(session => <LiveStoryBubble key={session.id} session={session} />)}
         {others.map(renderUserBubble)}
         {spotlight.length > 0 ? (
           <>
             <View style={s.spotDivider} accessibilityLabel="Spotlight"><View style={s.spotLine} /><Text style={s.spotFlameTxt}>{'\u{1F525}'}</Text><View style={s.spotLine} /></View>
-            {spotlight.map(h => (
+            {spotlight.map(h => liveByHost.has(h.user_id) ? <LiveStoryBubble key={'spot-' + h.user_id} session={liveByHost.get(h.user_id)!} onStory={() => { viewerOpenedForRef.current = new Set([h.user_id]); navigation.navigate('StoryViewer', { userIds: spotlight.map(x => x.user_id), startUserId: h.user_id }); }} /> : (
               <TouchableOpacity key={'spot-' + h.user_id} style={s.bubble} activeOpacity={0.75}
                 onPressIn={() => { void prefetchStoryEntry(h.user_id, h); }}
                 onPress={() => { viewerOpenedForRef.current = new Set([h.user_id]); navigation.navigate('StoryViewer', { userIds: spotlight.map(x => x.user_id), startUserId: h.user_id }); }}>

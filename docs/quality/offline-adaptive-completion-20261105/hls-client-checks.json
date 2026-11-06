@@ -1,0 +1,87 @@
+{
+  "recordedAt": "2026-11-05T17:04:26.401607+00:00",
+  "baseCommit": "7f804a32ce66c8f7f817409f15f56ae913256f86",
+  "status": "local_client_gates_pass_hosted_private_probe_in_progress_graded_ios_rerun_pending",
+  "groups": [
+    {
+      "name": "Graded native controller",
+      "tests": 5,
+      "failed": 0
+    },
+    {
+      "name": "Private transport and native/web clients",
+      "tests": 26,
+      "failed": 0
+    },
+    {
+      "name": "Published clips and story consumers",
+      "tests": 7,
+      "failed": 0
+    }
+  ],
+  "totalTests": 38,
+  "failed": 0,
+  "driverRegression": {
+    "newCompletePngFromLingeringProcess": "passed",
+    "stalePngRejected": "passed",
+    "independentGreenPixelsAndOrientation": "passed"
+  },
+  "priorGradedRuntime": {
+    "runId": 42061116341,
+    "jobId": 127362779969,
+    "artifactId": 13432725868,
+    "status": "failed",
+    "nativeCompilation": "passed",
+    "manifestGETs": 1,
+    "segmentGETs": 8,
+    "completedCases": 0,
+    "failure": "simctl screenshot wrote a complete PNG but did not exit within 15 seconds",
+    "independentArtifactInspection": {
+      "greenRGB": [
+        0,
+        255,
+        0
+      ],
+      "topLeftBlackMarker": [
+        0,
+        0,
+        0
+      ],
+      "orientation": "passed"
+    },
+    "acceptanceEstablished": false
+  },
+  "sources": {
+    "shared/privateAdaptiveMedia.ts": "1039ba227034f3badf426f7d96c4796571c6a5d64399d854654c4b37be253ad6",
+    "web/lib/privateAdaptiveVideo.ts": "ef34a59d9dc6f505eb1b65f5dd7a27c271ab76d8c32bd702459c75c6f6ee97ad",
+    "src/components/messages/PrivateChatVideo.tsx": "cc024b4d11ead7be413693c51a38a54beaf454886753a9e3ca43e7cd7db935e3",
+    "tests/private-adaptive-media.test.cjs": "7e3ca311e10494ebe63ac27840a4b10441b39f60921688be1fa84d29e904feee",
+    "tests/quality/native-private-hls.cjs": "c4a77c594d6cd3ab128b13068d93fa79c7b377ba3489b50a9dd9ee6f84f6bbd0",
+    "web/tests/private-adaptive-video.cjs": "79b33732d9f31b63d6f21a36788af34e8f6b41aa3dfe27a236d95948e892be1d",
+    "tests/quality/story-hls-grade.cjs": "5053088957d80c1e810899bc03ada6427fdd6d7d25f1a612932509622ab4ef4d",
+    "tests/published-clip-adaptive.test.cjs": "0acf2812e42078ad322ebdc8f25b1a533ade06a27a4cc05044f4c524fbd79e78",
+    "web/tests/adaptive-story-consumers.cjs": "3004a73f1842aa6498c5c9dbf5b90eb178e873f3b826dc9b7e499aec7e4c47e8",
+    "scripts/quality/story-hls-grade-runtime.py": "851bbae2f0fcda9128a8c05dc8bbb60a5168ffec17982a2ed6f46ae854fa9faf"
+  },
+  "limitations": [
+    "Real graded iOS runtime still requires a new passing receipt.",
+    "Private HLS client flags remain default-off.",
+    "Local client tests do not prove physical private video playback or 5M-user capacity."
+  ],
+  "webLegacyProtocol": {
+    "tests": 11,
+    "failed": 0,
+    "typescript": "passed",
+    "browserFixtureCompilation": "passed",
+    "browserRuntime": "pending CI"
+  },
+  "snapshotScope": "Historical observations at the recorded source. Pending and flag states below describe that checkpoint, not the final deployment.",
+  "currentEvidence": {
+    "release": "release.md",
+    "progress": "deployment-progress.json",
+    "hostedPrivateMedia": "private-media-production-rollout.json",
+    "contentVersionCorrection": "content-version-continuity-fix.json",
+    "gradedIos": "graded-hls-c8052ba-pass/verified-evidence.json",
+    "nativePrivateHlsProductionEnabled": false
+  }
+}

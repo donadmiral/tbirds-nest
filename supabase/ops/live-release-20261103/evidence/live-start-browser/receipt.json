@@ -1,0 +1,16 @@
+{
+  "checks": [
+    "Real create form remains within 320,390,768,1440 viewport widths",
+    "Immediate create opens actual Studio with playable synthetic camera and muted microphone, without broadcasting",
+    "Explicit Go live sends one confirmed start request",
+    "Watch and Studio tab switches preserve the connected camera instance",
+    "End broadcast confirms stop and releases media",
+    "Schedule entry saves a future session without requesting camera access",
+    "Switching to Live now never retains a scheduled timestamp",
+    "Unavailable broadcasting is explained while authorized scheduling remains usable",
+    "Failed creation retries preserve the request identity and do not duplicate drafts"
+  ],
+  "errors": [],
+  "failure": null,
+  "scope": "Actual web create/session/studio components with synthetic API responses and canvas video. Not real Daily/provider or physical-phone acceptance."
+}

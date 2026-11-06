@@ -1,0 +1,63 @@
+{
+  "recordedAt": "2026-11-05T16:07:09.274706+00:00",
+  "baseCommit": "5e5eb8a4b692cc082fe9edd3fbdf5db026a61c87",
+  "status": "historical_local_and_real_pg_pass",
+  "tests": {
+    "edgeAndWorker": 14,
+    "database": 12,
+    "total": 26,
+    "failed": 0,
+    "databaseEngine": "PGlite 0.5.10, actual migration chain",
+    "realPostgres17": {
+      "version": "17.11",
+      "commit": "7f804a32ce66c8f7f817409f15f56ae913256f86",
+      "runId": 42061116446,
+      "jobId": 127362779647,
+      "conclusion": "success",
+      "privateHlsCases": 12,
+      "tcpListener": false
+    },
+    "physicalPlayer": "not executed"
+  },
+  "command": "node --test tests/private-hls.test.cjs supabase/tests/private-hls-db.test.cjs",
+  "proof": [
+    "ordinary and new legacy limited-view grants",
+    "terminal close before delayed open",
+    "unchanged original view counter",
+    "group and delegated business membership revocation",
+    "source/session/expiry/block rejection",
+    "registered SHA256 segment verification and post-fetch authorization",
+    "generic gateway excludes chat",
+    "20,000-message partial index EXPLAIN",
+    "conditional account-erasure completion waits for derivatives"
+  ],
+  "scopeLimits": [
+    "Existing unbound legacy grants use original fallback",
+    "Future private_media v2 limited-view cutover remains fail-closed until adapter installed",
+    "Production lacked original private_media/account_erasure programmes at inspection",
+    "New lane defaults disabled pending coordinated rollout"
+  ],
+  "sha256": {
+    "supabase/migrations/20261105155600_private_chat_adaptive_delivery.sql": "5b42ffa1cae062948c4cd55c4575325fa3e26c651495a5e2b2b86bc8e0e07b96",
+    "supabase/functions/private-hls/handler.ts": "aae4b8a8b6eec6fafd52926f8005f9800fd92a44f8a0d2a561642a5388c09514",
+    "supabase/functions/private-hls/index.ts": "dc3bed1a0d8a2b2b80e8390f1cabc5c6d4b8b20ad74bffb1d96083c92827ef6b",
+    "workers/media-renditions/config.mjs": "784d069c161aa67e62dbbc54736aab4983471d09495f03a743d9b6ba05c2a188",
+    "supabase/tests/private-hls-db.test.cjs": "304d2a65c613cfe9ea1691e8d79dc11722d087003f8bf8c498cc2b100228068e",
+    "supabase/tests/private-hls-deployed-contracts-20261105.sql": "9b2d0833b12fb5983c30436d39e9c04dc07f142bd8c2b865ce2d0f7ae9493a83",
+    "tests/private-hls.test.cjs": "e0d630aea5692fd777f7d8042577e55dbb0ef74eb567ec5adf516fab1bac09ce"
+  },
+  "edgeTypecheck": {
+    "commit": "7f804a32ce66c8f7f817409f15f56ae913256f86",
+    "jobId": 127362779974,
+    "conclusion": "success"
+  },
+  "laterEvidence": {
+    "privateHlsPostgresCases": 18,
+    "ordinaryChatPostgresCases": 19,
+    "browserCases": 6,
+    "hostedCases": 20,
+    "hostedReceipt": "private-hls-original-hosted-canary.json",
+    "physicalPrivatePlayer": "not executed",
+    "productionNativePrivateHls": false
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-03T08:02:47.364630+00:00",
+  "scope": "Local synthetic production operator recipe rehearsal; no hosted acceptance",
+  "local_media_generated_and_decoded": true,
+  "media_duration_ms": 3000,
+  "clip_duration_ms": 2000,
+  "media_files": 5,
+  "pglite_checks_passed": 6,
+  "checks": [
+    "invite-only synthetic fixture",
+    "disabled render admission denies enqueue",
+    "one idempotent two-format clip",
+    "queued state without fabricated completion",
+    "zero publications",
+    "exact fixture identity cleanup"
+  ],
+  "cloud_calls_performed": false,
+  "real_users_used": false,
+  "local_plan_file": "/tmp/platinum-live-cdn-fixture-AP6aiz/renderer-queue-plan.json",
+  "source_sha256": {
+    "supabase/ops/live-release-20261103/prepare-renderer-queue-smoke.mjs": "cf0a8f1a15bbbf4e9cace30718c84f8e7658ace4368c4a903019ea74513f8a1e",
+    "supabase/ops/live-release-20261103/renderer-queue-smoke.md": "98d22da5eee1fe7d39d7cb9b7cd9ae27f5136e629960419cfe6cdfd407bfa7e3"
+  },
+  "sql_sha256": {
+    "prepare": "5b633064b363fb071b652d06c40174e45c4ee3e1061c90e358428b288431d063",
+    "enqueue": "15d37652d4b537d6e5fe5564956b0a681a781da4aac6ddfa3fb490dca7cce6cd",
+    "inspect": "826a8be8b4aac15a2783eefc08e2f0250c91170cd9a0781963475bd9652c0276",
+    "cleanup": "b5e6f4ae097f86aa4bb0663b0c8ae25bb6b2243479f84a92e9788aac4d815862"
+  },
+  "limitations": [
+    "Does not attest to hosted rendering, Daily operation or load capacity",
+    "Output object cleanup retains existing2h10m capability-expiry delay"
+  ]
+}

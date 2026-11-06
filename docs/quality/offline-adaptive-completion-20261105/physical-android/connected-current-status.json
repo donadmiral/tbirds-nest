@@ -1,0 +1,15 @@
+{
+  "state": "COMPLETE_CORRECTED_FUNCTIONAL_AND_RECORDED_VISUAL_PASS",
+  "runId": "5e9ac2ed-7dac-47db-b033-4cbee2c273af",
+  "sourceCommit": "1aa2b521231fd24bf6f7e6d9aae6f4e11f6de8b3",
+  "passedDeviceChecks": 7,
+  "requiredDeviceChecks": 7,
+  "candidateFunctionalAcceptanceComplete": true,
+  "candidateVisualAcceptanceComplete": true,
+  "cleanupHeld": false,
+  "cleanupComplete": true,
+  "coldImageOnDisplayElapsedMs": 5769,
+  "refreshRecordingFrames": 402,
+  "recordedAt": "2026-11-05T19:52:51.188664+00:00",
+  "cleanupReceiptFile": "connected-cleanup-status.json"
+}

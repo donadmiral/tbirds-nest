@@ -1,0 +1,326 @@
+{
+  "actualOSBackground": true,
+  "commands": [
+    {
+      "exitCode": 0,
+      "stage": "background"
+    },
+    {
+      "exitCode": 0,
+      "stage": "foreground"
+    }
+  ],
+  "completedCases": 8,
+  "device": "FF05602E-3426-42C6-BC9D-52D4BA3D3D9D",
+  "evidenceHashes": {
+    "ffmpeg-install.log": "a9c0e3c303eb5ca3ae44a53cb7015137abc4a0d6ad23c62194675e04cb312e06",
+    "fixture-signing.log": "bb66d94e0d298b087116217392ac31b10d81fef6b460007453c8a64cfc29b079",
+    "foreground-green.png": "4d70d21f58715f52d332ccc170fd9e515a6ccfa7e93aeb79a3767e20d48a71bb",
+    "host-adapter-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "inactive-resume-red.png": "8bc8399426f3c220d970802872772f48d4e7bf552dfcd5e4be92d630523c021c",
+    "media-encode.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "media-probe.json": "d48e6640820adaae6bd73cb789fee0b4a15e8d7814fe848fda9cc2b27af05702",
+    "media/fixture.m3u8": "f0a5b9f35c3380572b25077077b445ea7860c91483ea223377f09fe6af90722d",
+    "media/segment-000.ts": "88d15622ac6b93e17269f8e2588e50003bd67d5030e103c01623967f87f133bd",
+    "media/segment-001.ts": "acb4f58b87fd1773f36d0a582e314e9e55e6492f621d457916b40b5d0f2524f0",
+    "media/segment-002.ts": "294ccc464b1b3bd012c7d4404b04a8a21ed622bb400966f001d9aea5b1ad6203",
+    "media/segment-003.ts": "146e45760d62837effbe3b9c688f8f7ef9be2a2af48ff5fb973e649d7ab0d2ca",
+    "media/segment-004.ts": "3058a00e7b0d4a5ad2dcd89b7e4cb425f35ac7780549d248fe6c326707d7e7d7",
+    "media/segment-005.ts": "25ca3b982e8584c52931d137c6887ded791c28867cc041ccebead716e9e714db",
+    "media/segment-006.ts": "8987a949301fa8439b5e8f99d74e73a1206b8ecc9f08673683782f09c7cde912",
+    "media/segment-007.ts": "f194e23ea7257c3a5c571c01bf15d282eb4b2fa1b53ea871148292d4ec20afbd",
+    "paused-blue.png": "bb7a81198850774b4c5ce5e457ef12d5b754d4da3195e24eb79838cdced13190",
+    "paused-red.png": "8bc8399426f3c220d970802872772f48d4e7bf552dfcd5e4be92d630523c021c",
+    "reset-green.png": "c17334b0917531016fdf5b29df1f4abc8d6739a5c6ec92aec1071808ca635f8d",
+    "runtime.json": "19c5f8a5f48d8f950df0ef824bffccaacdacf4fabbb8b1e6fbd0c0f8d890a548",
+    "simulator.log": "e2717eda664371f28c77e67b5d9c882c9953b1aac5a3ef716663cda37bd9e9ce",
+    "source.json": "891863786241ae64aa4886f6255824aa210e859532d7201686fac7756fa8e663",
+    "sources/StoryHLSGradeSurface.swift": "cb4788a654323a2bc2c5ced934923a31ab50fbeb4bf3dd40d6bf0c075e142d35",
+    "sources/StoryVideoComposition.swift": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+    "sources/StoryVideoView.swift": "de00cb001aab799a4c98a3389f92a98375ccc86443b97e5c3ef823afe3451e3a",
+    "story-hls-grade-ack.json": "301a33ee885c61d41a4cca7f6567363c5735cd7c7a11dba3b0855fd4bd123dd1",
+    "story-hls-grade-phase.json": "7072421b24807aab9e54fcd2bbeda48487c1c62b1742c2b2e84b63c2e54f4004",
+    "story-hls-grade-receipt.json": "b0dc1b72b21128d68dde6c028c363aa6d007c72d004707ccb3c7431314e86015",
+    "swift-build.log": "19f3dcd2724039b4495f2f51b1455f9a9eddc9fe1e44e6f8809d79a9b00c5924",
+    "tls-setup.log": "29fe1777d3df55cac1ec6c7f7f0ea160137deffca9ee4ab560f59cf12f21e0e5",
+    "toolchain.log": "46fcbdccea175fe6f225bc26d386acddbc98c7b9efbae6df20e7089a2b6583c2",
+    "trim-green.png": "c17334b0917531016fdf5b29df1f4abc8d6739a5c6ec92aec1071808ca635f8d",
+    "wrapper-blue.png": "167e965b35e257ee0a539da4fca87ce1675f18d96f3e82642419a2538b41c962",
+    "wrapper-green.png": "c17334b0917531016fdf5b29df1f4abc8d6739a5c6ec92aec1071808ca635f8d",
+    "wrapper-red.png": "8bc8399426f3c220d970802872772f48d4e7bf552dfcd5e4be92d630523c021c"
+  },
+  "launchExitCode": 0,
+  "manifestGETs": 19,
+  "nativeError": null,
+  "passed": true,
+  "passedCases": 8,
+  "pixels": {
+    "foreground-green": {
+      "bottomRightMeanRGB": [
+        0.0,
+        255.0,
+        0.0
+      ],
+      "captures": [
+        {
+          "captureExitCode": 0,
+          "captureSeconds": 5.833,
+          "completePng": true
+        }
+      ],
+      "centerMeanRGB": [
+        0.0,
+        255.0,
+        0.0
+      ],
+      "expected": "green",
+      "height": 2556,
+      "passed": true,
+      "sampleCount": 3400,
+      "topLeftMarkerMeanRGB": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "width": 1179
+    },
+    "inactive-resume-red": {
+      "bottomRightMeanRGB": [
+        255.0,
+        0.0,
+        0.0
+      ],
+      "captures": [
+        {
+          "captureExitCode": 0,
+          "captureSeconds": 3.388,
+          "completePng": true
+        }
+      ],
+      "centerMeanRGB": [
+        255.0,
+        0.0,
+        0.0
+      ],
+      "expected": "red",
+      "height": 2556,
+      "passed": true,
+      "sampleCount": 3400,
+      "topLeftMarkerMeanRGB": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "width": 1179
+    },
+    "paused-blue": {
+      "bottomRightMeanRGB": [
+        26.0,
+        35.0,
+        255.0
+      ],
+      "captures": [
+        {
+          "captureExitCode": 0,
+          "captureSeconds": 3.114,
+          "completePng": true
+        }
+      ],
+      "centerMeanRGB": [
+        26.0,
+        35.0,
+        255.0
+      ],
+      "expected": "blue",
+      "height": 2556,
+      "passed": true,
+      "sampleCount": 3400,
+      "topLeftMarkerMeanRGB": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "width": 1179
+    },
+    "paused-red": {
+      "bottomRightMeanRGB": [
+        255.0,
+        0.0,
+        0.0
+      ],
+      "captures": [
+        {
+          "captureExitCode": 0,
+          "captureSeconds": 2.531,
+          "completePng": true
+        }
+      ],
+      "centerMeanRGB": [
+        255.0,
+        0.0,
+        0.0
+      ],
+      "expected": "red",
+      "height": 2556,
+      "passed": true,
+      "sampleCount": 3400,
+      "topLeftMarkerMeanRGB": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "width": 1179
+    },
+    "reset-green": {
+      "bottomRightMeanRGB": [
+        0.0,
+        255.0,
+        0.0
+      ],
+      "captures": [
+        {
+          "captureExitCode": 0,
+          "captureSeconds": 4.045,
+          "completePng": true
+        }
+      ],
+      "centerMeanRGB": [
+        0.0,
+        255.0,
+        0.0
+      ],
+      "expected": "green",
+      "height": 2556,
+      "passed": true,
+      "sampleCount": 3400,
+      "topLeftMarkerMeanRGB": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "width": 1179
+    },
+    "trim-green": {
+      "bottomRightMeanRGB": [
+        0.0,
+        255.0,
+        0.0
+      ],
+      "captures": [
+        {
+          "captureExitCode": 0,
+          "captureSeconds": 3.625,
+          "completePng": true
+        }
+      ],
+      "centerMeanRGB": [
+        0.0,
+        255.0,
+        0.0
+      ],
+      "expected": "green",
+      "height": 2556,
+      "passed": true,
+      "sampleCount": 3400,
+      "topLeftMarkerMeanRGB": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "width": 1179
+    },
+    "wrapper-blue": {
+      "bottomRightMeanRGB": [
+        0.0,
+        0.0,
+        255.0
+      ],
+      "captures": [
+        {
+          "captureExitCode": 0,
+          "captureSeconds": 2.799,
+          "completePng": true
+        }
+      ],
+      "centerMeanRGB": [
+        0.0,
+        0.0,
+        255.0
+      ],
+      "expected": "blue",
+      "height": 2556,
+      "passed": true,
+      "sampleCount": 3400,
+      "topLeftMarkerMeanRGB": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "width": 1179
+    },
+    "wrapper-green": {
+      "bottomRightMeanRGB": [
+        0.0,
+        255.0,
+        0.0
+      ],
+      "captures": [
+        {
+          "captureExitCode": 0,
+          "captureSeconds": 2.554,
+          "completePng": true
+        }
+      ],
+      "centerMeanRGB": [
+        0.0,
+        255.0,
+        0.0
+      ],
+      "expected": "green",
+      "height": 2556,
+      "passed": true,
+      "sampleCount": 3400,
+      "topLeftMarkerMeanRGB": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "width": 1179
+    },
+    "wrapper-red": {
+      "bottomRightMeanRGB": [
+        255.0,
+        0.0,
+        0.0
+      ],
+      "captures": [
+        {
+          "captureExitCode": null,
+          "captureSeconds": 3.56,
+          "completePng": true
+        }
+      ],
+      "centerMeanRGB": [
+        255.0,
+        0.0,
+        0.0
+      ],
+      "expected": "red",
+      "height": 2556,
+      "passed": true,
+      "sampleCount": 3400,
+      "topLeftMarkerMeanRGB": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "width": 1179
+    }
+  },
+  "resumedSameProcess": true,
+  "runtimeSeconds": 60.90358114242554,
+  "schemaVersion": 1,
+  "scope": "Real simulator UIKit/AVFoundation HLS/Metal rendering and compositor pixels, not physical-device verification",
+  "segmentGETs": 149,
+  "startedAtUnix": 1793905283.088743
+}

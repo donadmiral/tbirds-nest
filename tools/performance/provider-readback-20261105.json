@@ -1,0 +1,402 @@
+{
+  "version": 1,
+  "kind": "read-only-provider-capacity-snapshot",
+  "measuredCapacity": false,
+  "projects": {
+    "production": {
+      "projectRef": "prlkikhckbifseosbukl",
+      "version": "PostgreSQL 17.6 on aarch64-unknown-linux-gnu, compiled by gcc (GCC) 15.2.0, 64-bit",
+      "settings": {
+        "work_mem": {
+          "unit": "kB",
+          "setting": "2184"
+        },
+        "shared_buffers": {
+          "unit": "8kB",
+          "setting": "28672"
+        },
+        "max_connections": {
+          "unit": null,
+          "setting": "60"
+        },
+        "statement_timeout": {
+          "unit": "ms",
+          "setting": "120000"
+        },
+        "effective_cache_size": {
+          "unit": "8kB",
+          "setting": "49152"
+        },
+        "max_parallel_workers": {
+          "unit": null,
+          "setting": "2"
+        },
+        "max_worker_processes": {
+          "unit": null,
+          "setting": "6"
+        },
+        "reserved_connections": {
+          "unit": null,
+          "setting": "0"
+        },
+        "superuser_reserved_connections": {
+          "unit": null,
+          "setting": "3"
+        }
+      },
+      "functions": {
+        "media": true,
+        "capacity": true,
+        "prepared_feed": false
+      },
+      "connections": {
+        "active": 1,
+        "clients": 21,
+        "lock_waiters": 0
+      },
+      "observed_at": "2026-11-05T04:48:47.471022+00:00",
+      "role_limits": {
+        "anon": -1,
+        "service_role": -1,
+        "authenticated": -1,
+        "authenticator": -1
+      },
+      "database_bytes": 249826451
+    },
+    "qa": {
+      "projectRef": "uaulhuelcfkjwojtymmw",
+      "version": "PostgreSQL 17.11 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 15.2.0, 64-bit",
+      "settings": {
+        "work_mem": {
+          "unit": "kB",
+          "setting": "3500"
+        },
+        "shared_buffers": {
+          "unit": "8kB",
+          "setting": "32768"
+        },
+        "max_connections": {
+          "unit": null,
+          "setting": "60"
+        },
+        "statement_timeout": {
+          "unit": "ms",
+          "setting": "120000"
+        },
+        "effective_cache_size": {
+          "unit": "8kB",
+          "setting": "98304"
+        },
+        "max_parallel_workers": {
+          "unit": null,
+          "setting": "2"
+        },
+        "max_worker_processes": {
+          "unit": null,
+          "setting": "6"
+        },
+        "reserved_connections": {
+          "unit": null,
+          "setting": "0"
+        },
+        "superuser_reserved_connections": {
+          "unit": null,
+          "setting": "3"
+        }
+      },
+      "functions": {
+        "media": true,
+        "capacity": true,
+        "prepared_feed": false
+      },
+      "connections": {
+        "active": 1,
+        "clients": 20,
+        "lock_waiters": 0
+      },
+      "observed_at": "2026-11-05T04:48:46.618797+00:00",
+      "role_limits": {
+        "anon": -1,
+        "service_role": -1,
+        "authenticated": -1,
+        "authenticator": -1
+      },
+      "database_bytes": 200513203
+    }
+  },
+  "operationalReadbacks": {
+    "production": {
+      "observedAt": "2026-11-05T04:52:14.746435+00:00",
+      "sampledAt": "2026-11-05T04:52:00+00:00",
+      "stale": false,
+      "providers": [
+        {
+          "unit": "requests_per_second",
+          "provider": "auth",
+          "valid_until": null,
+          "confirmed_at": null,
+          "reserved_peak": null,
+          "observed_limit": null,
+          "budget_approved": false,
+          "budget_approved_at": null,
+          "monthly_budget_usd": null,
+          "reservation_current": false,
+          "reservation_evidence": null,
+          "budget_approval_evidence": null
+        },
+        {
+          "unit": "requests_per_second",
+          "provider": "calls",
+          "valid_until": null,
+          "confirmed_at": null,
+          "reserved_peak": null,
+          "observed_limit": null,
+          "budget_approved": false,
+          "budget_approved_at": null,
+          "monthly_budget_usd": null,
+          "reservation_current": false,
+          "reservation_evidence": null,
+          "budget_approval_evidence": null
+        },
+        {
+          "unit": "connections",
+          "provider": "database",
+          "valid_until": null,
+          "confirmed_at": null,
+          "reserved_peak": null,
+          "observed_limit": 60,
+          "budget_approved": false,
+          "budget_approved_at": null,
+          "monthly_budget_usd": null,
+          "reservation_current": false,
+          "reservation_evidence": null,
+          "budget_approval_evidence": null
+        },
+        {
+          "unit": "requests_per_second",
+          "provider": "frontend",
+          "valid_until": null,
+          "confirmed_at": null,
+          "reserved_peak": null,
+          "observed_limit": null,
+          "budget_approved": false,
+          "budget_approved_at": null,
+          "monthly_budget_usd": null,
+          "reservation_current": false,
+          "reservation_evidence": null,
+          "budget_approval_evidence": null
+        },
+        {
+          "unit": "bytes_per_second",
+          "provider": "media",
+          "valid_until": null,
+          "confirmed_at": null,
+          "reserved_peak": null,
+          "observed_limit": null,
+          "budget_approved": false,
+          "budget_approved_at": null,
+          "monthly_budget_usd": null,
+          "reservation_current": false,
+          "reservation_evidence": null,
+          "budget_approval_evidence": null
+        },
+        {
+          "unit": "requests_per_second",
+          "provider": "push",
+          "valid_until": null,
+          "confirmed_at": null,
+          "reserved_peak": null,
+          "observed_limit": null,
+          "budget_approved": false,
+          "budget_approved_at": null,
+          "monthly_budget_usd": null,
+          "reservation_current": false,
+          "reservation_evidence": null,
+          "budget_approval_evidence": null
+        },
+        {
+          "unit": "connections",
+          "provider": "realtime",
+          "valid_until": null,
+          "confirmed_at": null,
+          "reserved_peak": null,
+          "observed_limit": null,
+          "budget_approved": false,
+          "budget_approved_at": null,
+          "monthly_budget_usd": null,
+          "reservation_current": false,
+          "reservation_evidence": null,
+          "budget_approval_evidence": null
+        }
+      ],
+      "media": {
+        "states": {
+          "retry": 0,
+          "failed": 0,
+          "blocked": 0,
+          "pending": 0,
+          "cancelled": 0,
+          "processing": 0,
+          "retry_capped": false,
+          "failed_capped": false,
+          "blocked_capped": false,
+          "pending_capped": false,
+          "cancelled_capped": false,
+          "processing_capped": false
+        },
+        "profile": "hls-v2",
+        "sample_limit": 10000,
+        "expired_leases": 0,
+        "worker_enabled": false,
+        "cleanup_pending": 0,
+        "delivery_enabled": false,
+        "worker_last_seen_at": null,
+        "faststart_v1_pending": 0,
+        "oldest_pending_seconds": 0
+      }
+    },
+    "qa": {
+      "observedAt": "2026-11-05T04:52:15.841945+00:00",
+      "sampledAt": "2026-11-02T18:13:00+00:00",
+      "stale": true,
+      "providers": [
+        {
+          "unit": "requests_per_second",
+          "provider": "auth",
+          "valid_until": null,
+          "confirmed_at": null,
+          "reserved_peak": null,
+          "observed_limit": null,
+          "budget_approved": false,
+          "budget_approved_at": null,
+          "monthly_budget_usd": null,
+          "reservation_current": false,
+          "reservation_evidence": null,
+          "budget_approval_evidence": null
+        },
+        {
+          "unit": "requests_per_second",
+          "provider": "calls",
+          "valid_until": null,
+          "confirmed_at": null,
+          "reserved_peak": null,
+          "observed_limit": null,
+          "budget_approved": false,
+          "budget_approved_at": null,
+          "monthly_budget_usd": null,
+          "reservation_current": false,
+          "reservation_evidence": null,
+          "budget_approval_evidence": null
+        },
+        {
+          "unit": "connections",
+          "provider": "database",
+          "valid_until": null,
+          "confirmed_at": null,
+          "reserved_peak": null,
+          "observed_limit": null,
+          "budget_approved": false,
+          "budget_approved_at": null,
+          "monthly_budget_usd": null,
+          "reservation_current": false,
+          "reservation_evidence": null,
+          "budget_approval_evidence": null
+        },
+        {
+          "unit": "requests_per_second",
+          "provider": "frontend",
+          "valid_until": null,
+          "confirmed_at": null,
+          "reserved_peak": null,
+          "observed_limit": null,
+          "budget_approved": false,
+          "budget_approved_at": null,
+          "monthly_budget_usd": null,
+          "reservation_current": false,
+          "reservation_evidence": null,
+          "budget_approval_evidence": null
+        },
+        {
+          "unit": "bytes_per_second",
+          "provider": "media",
+          "valid_until": null,
+          "confirmed_at": null,
+          "reserved_peak": null,
+          "observed_limit": null,
+          "budget_approved": false,
+          "budget_approved_at": null,
+          "monthly_budget_usd": null,
+          "reservation_current": false,
+          "reservation_evidence": null,
+          "budget_approval_evidence": null
+        },
+        {
+          "unit": "requests_per_second",
+          "provider": "push",
+          "valid_until": null,
+          "confirmed_at": null,
+          "reserved_peak": null,
+          "observed_limit": null,
+          "budget_approved": false,
+          "budget_approved_at": null,
+          "monthly_budget_usd": null,
+          "reservation_current": false,
+          "reservation_evidence": null,
+          "budget_approval_evidence": null
+        },
+        {
+          "unit": "connections",
+          "provider": "realtime",
+          "valid_until": null,
+          "confirmed_at": null,
+          "reserved_peak": null,
+          "observed_limit": null,
+          "budget_approved": false,
+          "budget_approved_at": null,
+          "monthly_budget_usd": null,
+          "reservation_current": false,
+          "reservation_evidence": null,
+          "budget_approval_evidence": null
+        }
+      ],
+      "media": {
+        "states": {
+          "retry": 0,
+          "failed": 0,
+          "blocked": 0,
+          "pending": 0,
+          "cancelled": 3,
+          "processing": 0,
+          "retry_capped": false,
+          "failed_capped": false,
+          "blocked_capped": false,
+          "pending_capped": false,
+          "cancelled_capped": false,
+          "processing_capped": false
+        },
+        "profile": "hls-v2",
+        "sample_limit": 10000,
+        "expired_leases": 0,
+        "worker_enabled": false,
+        "cleanup_pending": 0,
+        "delivery_enabled": false,
+        "worker_last_seen_at": "2026-11-02T18:42:54.178039+00:00",
+        "faststart_v1_pending": 0,
+        "oldest_pending_seconds": 0
+      }
+    }
+  },
+  "unconfirmed": [
+    "Supabase compute SKU",
+    "PostgREST pool limit",
+    "Realtime concurrent connection and event quotas",
+    "Vercel Sandbox concurrent jobs and monthly allowance",
+    "CDN reserved throughput",
+    "approved operating budget"
+  ],
+  "limitations": [
+    "Connection snapshots are instantaneous observations, not peak utilization.",
+    "No requests were issued as a load test to either hosted project.",
+    "Configured connections do not establish throughput or supported daily active users."
+  ]
+}

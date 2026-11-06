@@ -1,0 +1,163 @@
+{
+  "sourceCommit": "1aa2b521231fd24bf6f7e6d9aae6f4e11f6de8b3",
+  "deviceFarmRunId": "5e9ac2ed-7dac-47db-b033-4cbee2c273af",
+  "process": "mw3xltwn-ex4rhcwo",
+  "processStartedAt": 1793906489255,
+  "elapsedMeaning": "processElapsedMs is event wall time minus JS observer start. HTTP elapsedMs is request duration.",
+  "coldImageCacheOpenElapsedMs": [
+    1225,
+    5623
+  ],
+  "coldImageOnDisplayElapsedMs": [
+    5769
+  ],
+  "failedHostedRequestsBeforeReconnect": 88,
+  "successfulSelectedHostedRequestsBeforeReconnect": 0,
+  "reconnectNetworkElapsedMs": 29668,
+  "fixtureImageDisplayCallbacksAfterReconnect": 0,
+  "fixtureCacheOpenEventsAfterReconnect": 0,
+  "events": [
+    {
+      "type": "process-started",
+      "at": 1793906489255,
+      "elapsedMs": 0,
+      "processElapsedMs": 0
+    },
+    {
+      "type": "network-state",
+      "at": 1793906489477,
+      "elapsedMs": 222,
+      "isConnected": true,
+      "isInternetReachable": true,
+      "processElapsedMs": 222
+    },
+    {
+      "type": "cache-opened",
+      "at": 1793906490480,
+      "elapsedMs": 1225,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+      "kind": "image",
+      "sourceVersion": "cdb229b3-357e-4f16-bb9c-15c71eee44fe",
+      "cipherFile": "9163a594a878444052d83abfe3ff5d27c09273b835a605c52b58eb026cdf90df.bin",
+      "plainFile": "9163a594a878444052d83abfe3ff5d27c09273b835a605c52b58eb026cdf90df.png",
+      "bytes": 1564,
+      "sourceClass": "decrypted-local",
+      "processElapsedMs": 1225
+    },
+    {
+      "type": "network-state",
+      "at": 1793906494774,
+      "elapsedMs": 5519,
+      "isConnected": false,
+      "isInternetReachable": false,
+      "processElapsedMs": 5519
+    },
+    {
+      "type": "cache-opened",
+      "at": 1793906494878,
+      "elapsedMs": 5623,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+      "kind": "image",
+      "sourceVersion": "cdb229b3-357e-4f16-bb9c-15c71eee44fe",
+      "cipherFile": "9163a594a878444052d83abfe3ff5d27c09273b835a605c52b58eb026cdf90df.bin",
+      "plainFile": "9163a594a878444052d83abfe3ff5d27c09273b835a605c52b58eb026cdf90df.png",
+      "bytes": 1564,
+      "sourceClass": "decrypted-local",
+      "processElapsedMs": 5623
+    },
+    {
+      "type": "image-displayed",
+      "at": 1793906495024,
+      "elapsedMs": 5769,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+      "sourceClass": "decrypted-local",
+      "processElapsedMs": 5769
+    },
+    {
+      "type": "cache-opened",
+      "at": 1793906499329,
+      "elapsedMs": 10074,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+      "kind": "video",
+      "sourceVersion": "1acc0815-974c-4a7c-992f-cb99d46ada96",
+      "cipherFile": "ce52d5f9d67e9fd86f3663de9cda7f7125c9b742a6cd10941424b9a04c47014e.bin",
+      "plainFile": "ce52d5f9d67e9fd86f3663de9cda7f7125c9b742a6cd10941424b9a04c47014e.mp4",
+      "bytes": 74058,
+      "sourceClass": "decrypted-local",
+      "processElapsedMs": 10074
+    },
+    {
+      "type": "video-progress",
+      "at": 1793906500317,
+      "elapsedMs": 11062,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+      "currentTime": 0.42500001192092896,
+      "playing": true,
+      "firstFrame": true,
+      "sourceClass": "decrypted-local",
+      "processElapsedMs": 11062
+    },
+    {
+      "type": "video-progress",
+      "at": 1793906500533,
+      "elapsedMs": 11278,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+      "currentTime": 0.671999990940094,
+      "playing": true,
+      "firstFrame": true,
+      "sourceClass": "decrypted-local",
+      "processElapsedMs": 11278
+    },
+    {
+      "type": "network-state",
+      "at": 1793906518923,
+      "elapsedMs": 29668,
+      "isConnected": true,
+      "isInternetReachable": true,
+      "processElapsedMs": 29668
+    },
+    {
+      "type": "http-result",
+      "at": 1793906520253,
+      "elapsedMs": 419,
+      "path": "/rest/v1/rpc/get_feed",
+      "status": 200,
+      "processElapsedMs": 30998
+    },
+    {
+      "type": "http-result",
+      "at": 1793906522466,
+      "elapsedMs": 1689,
+      "path": "/functions/v1/content-media-sign",
+      "status": 200,
+      "processElapsedMs": 33211
+    },
+    {
+      "type": "http-result",
+      "at": 1793906522786,
+      "elapsedMs": 117,
+      "path": "/rest/v1/rpc/get_feed_rows_by_ids_v1",
+      "status": 200,
+      "processElapsedMs": 33531
+    },
+    {
+      "type": "http-result",
+      "at": 1793906524353,
+      "elapsedMs": 410,
+      "path": "/functions/v1/content-media-sign",
+      "status": 200,
+      "processElapsedMs": 35098
+    }
+  ],
+  "limits": [
+    "Single debuggable QA Android run, not release fleet startup latency.",
+    "No snapshot-restored, auth-ready or app-state callback was instrumented.",
+    "Recording review remains necessary to establish refresh visual continuity."
+  ]
+}

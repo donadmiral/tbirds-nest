@@ -1,0 +1,15 @@
+{
+  "playerSourceCommit": "1aa2b521231fd24bf6f7e6d9aae6f4e11f6de8b3",
+  "harnessSourceCommit": "1aa2b521231fd24bf6f7e6d9aae6f4e11f6de8b3",
+  "workflowRun": "42089357028",
+  "adaptedBoundary": "Standalone UIKit host drives production HLS Metal surface with real AVPlayer; no React Native bridge",
+  "sources": {
+    "sources/StoryHLSGradeSurface.swift": "cb4788a654323a2bc2c5ced934923a31ab50fbeb4bf3dd40d6bf0c075e142d35",
+    "sources/StoryVideoComposition.swift": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+    "sources/StoryVideoView.swift": "de00cb001aab799a4c98a3389f92a98375ccc86443b97e5c3ef823afe3451e3a",
+    "scripts/quality/StoryPlaybackExpoAdapter.swift": "5a0c723c78b8fa7ba981ff23df294485dde5cbf5b05806621b8ad89b3ef63886",
+    "scripts/quality/StoryHLSGradeHarness.swift": "8e197a8758efac8681cdb22cdef0f30f201e19adc4be1bebf60a9b8cc0441314",
+    "scripts/quality/story-hls-grade-runtime.py": "14d53fd3c062dceb4bea10317865b80bea26bc0dfc551cfc55f96fb0bd5e0719",
+    "scripts/quality/test-ios-story-hls-grade.sh": "4bbe1fbc3394301812ecf2bcaa6687cc91c324a8796e6ca6c169cea0d38941b0"
+  }
+}

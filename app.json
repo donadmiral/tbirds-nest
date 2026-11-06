@@ -75,10 +75,24 @@
         }
       ],
       "@config-plugins/react-native-callkeep",
+      [
+        "@daily-co/config-plugin-rn-daily-js",
+        {
+          "enableCamera": true,
+          "enableMicrophone": true,
+          "enableScreenShare": true
+        }
+      ],
       "./plugins/withVoipPushKit",
       "expo-secure-store",
       "expo-image-picker",
-      "expo-video",
+      [
+        "expo-video",
+        {
+          "supportsBackgroundPlayback": true,
+          "supportsPictureInPicture": true
+        }
+      ],
       "./plugins/withMedia3Compatibility",
       [
         "expo-av",

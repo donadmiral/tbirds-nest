@@ -1,0 +1,479 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Platinum Live clip renderer: isolated image build and encrypted broker-secret bootstrap.",
+  "Resources": {
+    "BrokerKey": {
+      "Type": "AWS::KMS::Key",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "Description": "Encrypt only the dedicated Live clip broker credential through Secrets Manager.",
+        "EnableKeyRotation": true,
+        "PendingWindowInDays": 30,
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveClipRenderer"
+          }
+        ],
+        "KeyPolicy": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "AccountKeyAdministration",
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:root"
+                }
+              },
+              "Action": [
+                "kms:Create*",
+                "kms:Describe*",
+                "kms:Enable*",
+                "kms:List*",
+                "kms:Put*",
+                "kms:Update*",
+                "kms:Revoke*",
+                "kms:Disable*",
+                "kms:Get*",
+                "kms:Delete*",
+                "kms:TagResource",
+                "kms:UntagResource",
+                "kms:ScheduleKeyDeletion",
+                "kms:CancelKeyDeletion"
+              ],
+              "Resource": "*"
+            },
+            {
+              "Sid": "AccountUseOnlyThroughSecretsManager",
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:root"
+                }
+              },
+              "Action": [
+                "kms:Encrypt",
+                "kms:Decrypt",
+                "kms:ReEncrypt*",
+                "kms:GenerateDataKey*",
+                "kms:DescribeKey"
+              ],
+              "Resource": "*",
+              "Condition": {
+                "StringEquals": {
+                  "kms:CallerAccount": {
+                    "Ref": "AWS::AccountId"
+                  },
+                  "kms:ViaService": {
+                    "Fn::Sub": "secretsmanager.${AWS::Region}.${AWS::URLSuffix}"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "BrokerSecret": {
+      "Type": "AWS::SecretsManager::Secret",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}/broker"
+        },
+        "Description": "Dedicated LIVE_CLIP_WORKER_SECRET; install the same value in the Supabase clip broker.",
+        "KmsKeyId": {
+          "Fn::GetAtt": [
+            "BrokerKey",
+            "Arn"
+          ]
+        },
+        "GenerateSecretString": {
+          "PasswordLength": 64,
+          "ExcludePunctuation": true,
+          "IncludeSpace": false
+        },
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveClipRenderer"
+          }
+        ]
+      }
+    },
+    "SourceBucket": {
+      "Type": "AWS::S3::Bucket",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true
+        },
+        "OwnershipControls": {
+          "Rules": [
+            {
+              "ObjectOwnership": "BucketOwnerEnforced"
+            }
+          ]
+        },
+        "VersioningConfiguration": {
+          "Status": "Enabled"
+        },
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              }
+            }
+          ]
+        },
+        "LifecycleConfiguration": {
+          "Rules": [
+            {
+              "Id": "ExpireBuildInputs",
+              "Status": "Enabled",
+              "Prefix": "source/",
+              "ExpirationInDays": 30,
+              "NoncurrentVersionExpiration": {
+                "NoncurrentDays": 7
+              },
+              "AbortIncompleteMultipartUpload": {
+                "DaysAfterInitiation": 1
+              }
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveClipRenderer"
+          }
+        ]
+      }
+    },
+    "SourceBucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": {
+          "Ref": "SourceBucket"
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "RequireTls",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Action": "s3:*",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "SourceBucket",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Sub": "${SourceBucket.Arn}/*"
+                }
+              ],
+              "Condition": {
+                "Bool": {
+                  "aws:SecureTransport": "false"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "Images": {
+      "Type": "AWS::ECR::Repository",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "ImageTagMutability": "IMMUTABLE",
+        "ImageScanningConfiguration": {
+          "ScanOnPush": true
+        },
+        "EncryptionConfiguration": {
+          "EncryptionType": "AES256"
+        },
+        "LifecyclePolicy": {
+          "LifecyclePolicyText": "{\"rules\":[{\"rulePriority\":1,\"description\":\"Remove only old untagged layers\",\"selection\":{\"tagStatus\":\"untagged\",\"countType\":\"sinceImagePushed\",\"countUnit\":\"days\",\"countNumber\":7},\"action\":{\"type\":\"expire\"}}]}"
+        },
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveClipRenderer"
+          }
+        ]
+      }
+    },
+    "BuildLogs": {
+      "Type": "AWS::Logs::LogGroup",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Sub": "/platinum/live-clips/${AWS::StackName}/build"
+        },
+        "RetentionInDays": 14,
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveClipRenderer"
+          }
+        ]
+      }
+    },
+    "BuildRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "codebuild.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole",
+              "Condition": {
+                "StringEquals": {
+                  "aws:SourceAccount": {
+                    "Ref": "AWS::AccountId"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "BuildOnlyThisRenderer",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetObject",
+                    "s3:GetObjectVersion"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "${SourceBucket.Arn}/source/renderer-source.zip"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetBucketLocation"
+                  ],
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "SourceBucket",
+                      "Arn"
+                    ]
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "ecr:GetAuthorizationToken"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "ecr:BatchCheckLayerAvailability",
+                    "ecr:CompleteLayerUpload",
+                    "ecr:InitiateLayerUpload",
+                    "ecr:PutImage",
+                    "ecr:UploadLayerPart",
+                    "ecr:BatchGetImage",
+                    "ecr:DescribeImages"
+                  ],
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "Images",
+                      "Arn"
+                    ]
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "${BuildLogs.Arn}:*"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveClipRenderer"
+          }
+        ]
+      }
+    },
+    "Builder": {
+      "Type": "AWS::CodeBuild::Project",
+      "Properties": {
+        "Description": "Build and locally test only the reviewed Live renderer source package. Never reads application secrets.",
+        "ServiceRole": {
+          "Fn::GetAtt": [
+            "BuildRole",
+            "Arn"
+          ]
+        },
+        "ConcurrentBuildLimit": 1,
+        "TimeoutInMinutes": 30,
+        "QueuedTimeoutInMinutes": 5,
+        "Artifacts": {
+          "Type": "NO_ARTIFACTS"
+        },
+        "Cache": {
+          "Type": "NO_CACHE"
+        },
+        "Source": {
+          "Type": "S3",
+          "Location": {
+            "Fn::Sub": "${SourceBucket}/source/renderer-source.zip"
+          },
+          "BuildSpec": "infrastructure/live-clips/buildspec.yml"
+        },
+        "Environment": {
+          "Type": "LINUX_CONTAINER",
+          "Image": "aws/codebuild/standard:7.0",
+          "ComputeType": "BUILD_GENERAL1_MEDIUM",
+          "PrivilegedMode": true,
+          "ImagePullCredentialsType": "CODEBUILD",
+          "EnvironmentVariables": [
+            {
+              "Name": "RENDERER_REPOSITORY_URI",
+              "Value": {
+                "Fn::GetAtt": [
+                  "Images",
+                  "RepositoryUri"
+                ]
+              }
+            },
+            {
+              "Name": "EXPECTED_MANIFEST_SHA256",
+              "Value": "REQUIRED_OPERATOR_OVERRIDE"
+            }
+          ]
+        },
+        "LogsConfig": {
+          "CloudWatchLogs": {
+            "Status": "ENABLED",
+            "GroupName": {
+              "Ref": "BuildLogs"
+            },
+            "StreamName": "image"
+          },
+          "S3Logs": {
+            "Status": "DISABLED"
+          }
+        },
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveClipRenderer"
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "SourceBucket": {
+      "Value": {
+        "Ref": "SourceBucket"
+      }
+    },
+    "SourceObjectKey": {
+      "Value": "source/renderer-source.zip"
+    },
+    "RepositoryUri": {
+      "Value": {
+        "Fn::GetAtt": [
+          "Images",
+          "RepositoryUri"
+        ]
+      }
+    },
+    "RepositoryArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "Images",
+          "Arn"
+        ]
+      }
+    },
+    "BuildProjectName": {
+      "Value": {
+        "Ref": "Builder"
+      }
+    },
+    "BuildLogGroup": {
+      "Value": {
+        "Ref": "BuildLogs"
+      }
+    },
+    "BrokerSecretArn": {
+      "Value": {
+        "Ref": "BrokerSecret"
+      }
+    },
+    "BrokerKeyArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "BrokerKey",
+          "Arn"
+        ]
+      }
+    }
+  }
+}

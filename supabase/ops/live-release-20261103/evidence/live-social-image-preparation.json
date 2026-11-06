@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-03T07:26:23.796675+00:00",
+  "bundle": {
+    "schema_version": 1,
+    "archive_path": "/tmp/platinum-social-source-udg6304m/social-source.zip",
+    "bytes": 24553,
+    "archive_sha256": "ab24b8487539b86444b25adc1a5737cad2ebe752de7a000ed0cf26318e6979eb",
+    "manifest_sha256": "6ea5eda62608811fb97db7b2dbe7e08bdcd9e24e8791bec08c0b27ff7b1eb39a",
+    "file_count": 13,
+    "repository_head": "57a0553421df911dfa977f593b4e606c00c0bba8",
+    "contains_credentials": false
+  },
+  "local_worker_and_build_tests": {
+    "passed": 35,
+    "failed": 0
+  },
+  "archive_and_extracted_source_manifest_verified": true,
+  "actual_container_tests": "first_build_failed_runtime_metadata_read; fixed_source_awaits_owner_CodeBuild_rerun",
+  "actual_image_scan": "pending_owner_ECR_review",
+  "local_container_engine_available": false,
+  "cloud_mutations_by_this_agent": false,
+  "shared_codebuild": {
+    "source_object_key": "source/renderer-source.zip",
+    "source_version": "owner_must_pin_returned_S3_VersionId",
+    "buildspec_override": "infrastructure/live-social/buildspec.yml",
+    "checksum_environment": "EXPECTED_MANIFEST_SHA256",
+    "repository_environment": "RENDERER_REPOSITORY_URI",
+    "tag": "social-source-6ea5eda62608811fb97db7b2dbe7e08b"
+  },
+  "previously_frozen_publishing_sql_edge_and_worker_behavior_unchanged": true,
+  "superseded_bundle": {
+    "schema_version": 1,
+    "archive_path": "/tmp/platinum-social-source-pm0gpgdp/social-source.zip",
+    "bytes": 24062,
+    "archive_sha256": "b11ba996c5b631c144a80e409048197dcbc8319992671d2b855b97b258228011",
+    "manifest_sha256": "8de1704702e42889f34390098a03b9bfc732e6628bea7aa2dbdefa8084ccc0b9",
+    "file_count": 13,
+    "repository_head": "57a0553421df911dfa977f593b4e606c00c0bba8",
+    "contains_credentials": false
+  },
+  "prior_build_failure": {
+    "build_id": "03dd18aa-0303-44bf-83c3-6d32e2500902",
+    "log_group": "/platinum/live-clips/platinum-live-clips-build-production/build",
+    "log_stream": "image/03dd18aa-0303-44bf-83c3-6d32e2500902",
+    "read_via": "AWS Agent Toolkit logs:GetLogEvents",
+    "api_call_status": "success",
+    "docker_build_succeeded": true,
+    "observed_failure_at": "2026-11-03T07:19:02Z",
+    "observed_error": "social_runtime_policy_failed",
+    "image_pushed": false,
+    "concrete_source_defect": "Generated public base metadata is0600/root-owned; plain Docker COPY preserves it while runtime asserts UID1000 and reads it. The generic hosted failure does not identify an inner exception.",
+    "fix": "COPY --chmod=0444 keeps public metadata root-owned, readable and nonwritable. Actual-container acceptance now verifies owner UID0 and mode0444; image publication requires this receipt. Finite reason codes diagnose any remaining policy failure without raw error text.",
+    "bounds_weakened": false,
+    "local_uid_switch_reproduction": "unavailable: process.setuid(1000) returned EINVAL in this workspace; not claimed as passed",
+    "actual_fixed_image_acceptance": "pending"
+  }
+}

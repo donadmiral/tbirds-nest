@@ -119,21 +119,33 @@ async function rpc(name: string, args: FixtureRow = {}): Promise<FixtureResult> 
 }
 
 function from(table: string) {
-  let ids: string[] | null = null;
+  let ids: string[] | null = null, signal: AbortSignal | undefined;
   const value = () => table === "profiles" ? { id: uid(), full_name: state.actor === "creator" ? "Maya Ndlovu" : "Atlas Football", username: state.actor === "creator" ? "mayan" : "atlasfootball", avatar_url: null, is_verified: true, verified_tier: state.actor === "creator" ? "public_figure" : "business" } : table === "organizations" ? { id: "org-1", kind: "business", name: "Atlas Football", slug: "atlasfootball", profile_id: BUSINESS, parent_id: null } : table === "org_memberships" ? [{ id: MEMBER, user_id: BUSINESS, role: "owner", expires_at: null, created_at: now(), profile: { full_name: "Jordan Ellis", username: "jordan", avatar_url: null } }, { id: EDITOR, user_id: CREATOR, role: "editor", expires_at: null, created_at: now(), profile: { full_name: "Riya Patel", username: "riya", avatar_url: null } }] : [];
   const chain = {
     then<A = FixtureResult, B = never>(resolve?: ((result: FixtureResult) => A | PromiseLike<A>) | null, reject?: ((reason: unknown) => B | PromiseLike<B>) | null): Promise<A | B> {
       return Promise.resolve(ok(ids && table === "profiles" ? ids.map(id => ({ ...value(), id })) : value())).then(resolve, reject);
     },
+    abortSignal(value: AbortSignal) { signal = value; return this; },
     select() { return this; }, eq() { return this; }, order() { return this; },
     limit() { return this; }, or() { return this; }, update() { return this; },
     in(_key: string, values: string[]) { ids = values; return this; },
-    maybeSingle: async () => ok(value()), single: async () => ok(value()),
+    maybeSingle: async () => { signal?.throwIfAborted(); return ok(value()); }, single: async () => { signal?.throwIfAborted(); return ok(value()); },
   };
   return chain;
 }
 const client = {
-  rpc, from,
+  rpc(name: string, args?: FixtureRow) {
+    let signal: AbortSignal | undefined;
+    let result: Promise<FixtureResult> | undefined;
+    const request = {
+      abortSignal(value: AbortSignal) { signal = value; return request; },
+      then<A = FixtureResult, B = never>(resolve?: ((value: FixtureResult) => A | PromiseLike<A>) | null, reject?: ((reason: unknown) => B | PromiseLike<B>) | null) {
+        result ??= Promise.resolve().then(() => { signal?.throwIfAborted(); return rpc(name, args); });
+        return result.then(value => { signal?.throwIfAborted(); return value; }).then(resolve, reject);
+      },
+    };
+    return request;
+  }, from,
   auth: { getSession: async () => ({ data: { session: session() }, error: null }), onAuthStateChange: (callback: (event: string, value: ReturnType<typeof session>) => void) => { listeners.add(callback); return { data: { subscription: { unsubscribe: () => listeners.delete(callback) } } }; } },
   channel: () => ({ on() { return this; }, subscribe() { return this; } }), removeChannel() {},
 };

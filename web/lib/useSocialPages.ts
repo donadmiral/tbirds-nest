@@ -33,9 +33,9 @@ export function useSocialPages<T extends object>(rpc: string, args: Record<strin
         });
         const { data, error } = await withTimeout(signal ? query.abortSignal(signal) : query);
         if (!current()) throw new Error("The profile session changed. Please try again.");
-        if (error) throw new Error("Could not load this page. Please try again.");
+        if (error) throw error;
         const rows = (data ?? []) as T[];
-        return postMedia ? withTimeout(hydratePostMedia(rows, client)) : rows;
+        return postMedia ? withTimeout(hydratePostMedia(rows, client, signal)) : rows;
       },
     });
   }, [client, rpc, serialized, key, size, postMedia, navigationStore, cacheScope, cacheKey, profileRevision, ownProfileId]);
@@ -45,7 +45,14 @@ export function useSocialPages<T extends object>(rpc: string, args: Record<strin
     if (ownProfileId) {
       if (!session.initialized) return;
       const remember = () => {
-        if (reader.snapshot().loading || reader.snapshot().error) return;
+        const current = reader.snapshot();
+        if (current.loading) return;
+        if (current.error) {
+          // A denied read clears the reader. Remove its old navigation memory
+          // too so returning to this route cannot restore revoked content.
+          if (current.items.length === 0) navigationStore.cache.remove(cacheScope, cacheKey);
+          return;
+        }
         const memory = reader.remember();
         if (memory) navigationStore.cache.save(cacheScope, cacheKey, memory);
       };
@@ -90,6 +97,11 @@ export function useSocialPages<T extends object>(rpc: string, args: Record<strin
   useEffect(() => {
     if (!postMedia || !enabled) return;
     let alive = true, pending = false;
+    let request: { controller: AbortController; version: number } | null = null;
+    // A replacement page owns its own grants. Stop signing an obsolete snapshot.
+    const unsubscribe = reader.subscribe(() => {
+      if (request && request.version !== reader.version()) request.controller.abort();
+    });
     const renew = async () => {
       if (pending || document.visibilityState !== "visible") return;
       const snapshot = reader.snapshot().items;
@@ -100,22 +112,24 @@ export function useSocialPages<T extends object>(rpc: string, args: Record<strin
       if (!expiring.length) return;
       pending = true;
       const version = reader.version();
+      const controller = new AbortController();
+      request = { controller, version };
       const original = new Map(expiring.map(row => [String((row as Record<string, unknown>)[key]), row]));
       try {
-        const hydrated = await withTimeout(hydratePostMedia(expiring, client));
-        if (!alive || version !== reader.version()) return;
+        const hydrated = await withTimeout(hydratePostMedia(expiring, client, controller.signal));
+        if (!alive || controller.signal.aborted || version !== reader.version()) return;
         const byId = new Map(hydrated.map((row) => [String((row as Record<string, unknown>)[key]), row]));
         reader.setItems((previous) => previous.map((row) => {
           const id = String((row as Record<string, unknown>)[key]);
           return original.get(id) === row ? byId.get(id) ?? row : row;
         }));
       } catch { /* Expired capabilities fail closed; retry when connectivity returns. */ }
-      finally { pending = false; }
+      finally { controller.abort(); request = null; pending = false; }
     };
     const timer = setInterval(() => { void renew(); }, 60000);
     document.addEventListener("visibilitychange", renew);
     window.addEventListener("online", renew);
-    return () => { alive = false; clearInterval(timer); document.removeEventListener("visibilitychange", renew); window.removeEventListener("online", renew); };
+    return () => { alive = false; request?.controller.abort(); unsubscribe(); clearInterval(timer); document.removeEventListener("visibilitychange", renew); window.removeEventListener("online", renew); };
   }, [client, reader, postMedia, enabled, key]);
   return { ...state, loading: enabled && (state.loading || (state.items.length === 0 && state.hasMore && !state.error)), loadMore: reader.next, reload: reader.reload, setItems: reader.setItems, version: reader.version };
 }

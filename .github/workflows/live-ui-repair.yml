@@ -1,0 +1,41 @@
+name: Live mobile UI checks
+on:
+  push:
+    branches: [codex/live-completion-20261102, master]
+    paths:
+      - src/components/Live*.tsx
+      - src/components/RemoteCallMedia.tsx
+      - src/hooks/useLiveStudioEvents.ts
+      - src/screens/feed/*Live*.tsx
+      - src/screens/feed/FeedScreen.tsx
+      - tests/live-*.test.cjs
+      - .github/workflows/live-ui-repair.yml
+  pull_request:
+    paths:
+      - src/components/Live*.tsx
+      - src/components/RemoteCallMedia.tsx
+      - src/hooks/useLiveStudioEvents.ts
+      - src/screens/feed/*Live*.tsx
+      - tests/live-*.test.cjs
+permissions:
+  contents: read
+concurrency:
+  group: live-mobile-ui-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify mobile Live UI, media lifecycle, and existing service contracts
+        run: node --test tests/live-ui-repair.test.cjs tests/live-studio-events.test.cjs tests/live-native-contracts.test.cjs tests/live-native-clips.test.cjs
+      - name: Check native TypeScript
+        run: npx tsc --noEmit --incremental false

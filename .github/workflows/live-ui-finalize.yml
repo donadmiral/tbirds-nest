@@ -1,0 +1,114 @@
+name: Complete Live UI and QA delivery
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/live-completion-20261102]
+    paths:
+      - .github/workflows/live-ui-finalize.yml
+permissions:
+  contents: read
+concurrency:
+  group: complete-live-ui-qa
+  cancel-in-progress: false
+jobs:
+  verify:
+    if: github.repository == 'donadmiral/tbirds-nest' && github.ref == 'refs/heads/codex/live-completion-20261102'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify Live UI and media lifecycle without changing source
+        run: node --test tests/live-ui-repair.test.cjs tests/live-studio-events.test.cjs tests/live-native-contracts.test.cjs tests/live-native-clips.test.cjs
+      - name: Full native TypeScript check
+        run: npx tsc --noEmit --incremental false
+      - name: Confirm the checked-out source is unchanged
+        run: |
+          git diff --exit-code
+          printf 'Verified Live UI source: %s\n' "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+  qa-build:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check Expo authorization without displaying credentials
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo '::error::QA_BUILD_AUTH_MISSING: add the Expo access token as the repository Actions secret EXPO_TOKEN, then re-run only this failed job. Source verification has passed.'
+            printf '%s\n' 'QA build blocked before submission: EXPO_TOKEN is not available to this job.' 'Add the token in repository Settings > Secrets and variables > Actions. Never put it in source, workflow inputs, logs, or chat.' 'After saving it, choose Re-run failed jobs for this run. No code patch or Apple agreement needs repeating.' >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Build or resume the exact verified iPhone QA revision
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_PUBLIC_APP_ENV: qa
+          EXPO_PUBLIC_SUPABASE_URL: https://uaulhuelcfkjwojtymmw.supabase.co
+          CI: '1'
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const { execFileSync } = require('node:child_process');
+          const assert = require('node:assert/strict');
+          const eas = require('./eas.json');
+          const app = require('./app.json').expo;
+          const profile = eas.build.preview;
+          assert.equal(app.extra.eas.projectId, '6962a2bb-3ebe-4ff8-8d35-e4fb58271259');
+          assert.equal(app.owner, 'donadmiral');
+          assert.equal(profile.distribution, 'internal');
+          assert.equal(profile.ios.simulator, false);
+          assert.equal(profile.channel, 'qa-preview');
+          assert.equal(profile.env.EXPO_PUBLIC_APP_ENV, 'qa');
+          assert.equal(profile.env.EXPO_PUBLIC_SUPABASE_URL, process.env.EXPO_PUBLIC_SUPABASE_URL);
+          const sha = process.env.GITHUB_SHA;
+          assert.match(sha, /^[a-f0-9]{40}$/);
+          const run = args => JSON.parse(execFileSync('npx', ['--yes', 'eas-cli@27.3.0', ...args], {
+            encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'], maxBuffer: 4 * 1024 * 1024,
+            timeout: 180000,
+          }));
+          const list = run(['build:list', '--platform', 'ios', '--build-profile', 'preview',
+            '--git-commit-hash', sha, '--limit', '10', '--json', '--non-interactive']);
+          assert.ok(Array.isArray(list), 'Unexpected Expo build list');
+          const reusable = new Set(['FINISHED', 'NEW', 'IN_QUEUE', 'IN_PROGRESS']);
+          const sameRevision = b => b && b.gitCommitHash === sha && b.platform === 'IOS'
+            && b.buildProfile === 'preview' && b.distribution === 'INTERNAL';
+          let build = list.find(b => sameRevision(b) && reusable.has(b.status));
+          if (!build) {
+            const submitted = run(['build', '--platform', 'ios', '--profile', 'preview',
+              '--non-interactive', '--no-wait', '--json']);
+            build = Array.isArray(submitted) ? submitted[0] : submitted;
+          }
+          assert.ok(sameRevision(build), 'Expo returned a different source, platform, or profile');
+          assert.match(build.id, /^[a-f0-9-]{36}$/i);
+          const url = `https://expo.dev/accounts/donadmiral/projects/platinum-circles/builds/${build.id}`;
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `\nQA build: ${url}\nSource: ${sha}\n`);
+          const deadline = Date.now() + 22 * 60 * 1000;
+          (async () => {
+            while (build.status !== 'FINISHED') {
+              if (!reusable.has(build.status)) throw new Error(`QA build did not finish successfully: ${build.status}. Inspect ${url}`);
+              if (Date.now() >= deadline) throw new Error(`QA build is still pending. Re-run this job to resume the same build: ${url}`);
+              await new Promise(resolve => setTimeout(resolve, 20000));
+              build = run(['build:view', build.id, '--json']);
+              assert.ok(sameRevision(build), 'Expo build identity changed');
+            }
+            assert.ok(typeof build.artifacts?.buildUrl === 'string', 'Finished build has no installation artifact');
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `\nReady to install: ${url}\nVerified FINISHED iPhone internal QA build for ${sha}. Physical-device testing remains pending.\n`);
+            console.log(JSON.stringify({status: 'FINISHED', source: sha, buildId: build.id, installPage: url}));
+          })().catch(error => { console.error(error.message); process.exitCode = 1; });
+          NODE

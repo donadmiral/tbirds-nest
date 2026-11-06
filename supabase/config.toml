@@ -480,3 +480,91 @@ verify_jwt = false
 # Separate hashed worker/gateway capabilities, replay fences and fixed media operations.
 [functions.media-broker]
 verify_jwt = false
+
+[functions.live-stage]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/live-stage/index.ts"
+
+[functions.live-control]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/live-control/index.ts"
+
+[functions.live-playback]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/live-playback/index.ts"
+
+[functions.live-provider-webhook]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/live-provider-webhook/index.ts"
+
+[functions.live-cover]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/live-cover/index.ts"
+
+[functions.live-maintenance]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/live-maintenance/index.ts"
+
+# The owner-only SQL enqueue issues a dedicated single-use operation token.
+# The handler atomically claims that token before any provider request.
+[functions.live-provider-configure]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/live-provider-configure/index.ts"
+
+[functions.live-sign]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/live-sign/index.ts"
+
+[functions.live-clip-media]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/live-clip-media/index.ts"
+
+[functions.live-clip-worker]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/live-clip-worker/index.ts"
+
+[functions.live-clip-scaler]
+enabled = true
+# Dedicated queue-read secret; the handler rejects user JWTs and anonymous keys.
+verify_jwt = false
+entrypoint = "./functions/live-clip-scaler/index.ts"
+
+[functions.live-connect]
+enabled = true
+# getUser plus a database Auth-session/business-role check protects each action.
+verify_jwt = false
+entrypoint = "./functions/live-connect/index.ts"
+
+[functions.live-transcription-worker]
+enabled = true
+# Dedicated server-only bearer; no user JWT, anonymous key, or caller media URLs.
+verify_jwt = false
+entrypoint = "./functions/live-transcription-worker/index.ts"
+
+[functions.live-social]
+enabled = true
+# Auth.getUser plus active database Auth-session validation; metadata only.
+verify_jwt = false
+entrypoint = "./functions/live-social/index.ts"
+
+[functions.live-social-worker]
+enabled = true
+# Dedicated server-only bearer; encrypted durable progress and current clip grants.
+verify_jwt = false
+entrypoint = "./functions/live-social-worker/index.ts"
+
+[functions.live-social-pull]
+enabled = true
+# Exact publication capability, current source/account rights, streaming MP4 only.
+verify_jwt = false
+entrypoint = "./functions/live-social-pull/index.ts"

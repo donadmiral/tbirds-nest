@@ -1,3 +1,5 @@
+import { useLiveStoryPresence } from '../hooks/useLiveStoryPresence';
+import LiveStoryBubble from './stories/LiveStoryBubble';
 import { privateImageCachePolicy } from '../../shared/mediaDelivery';
 /**
  * TrendingStoriesRail - a handful of the hottest public stories right now.
@@ -23,6 +25,7 @@ type Hot = TrendingStory;
 export default function TrendingStoriesRail() {
   useTheme();
   const nav = useNavigation<any>();
+  const liveSessions = useLiveStoryPresence();
   const [rows, setRows] = useState<Hot[]>([]);
 
   useFocusEffect(useCallback(() => {
@@ -58,11 +61,20 @@ export default function TrendingStoriesRail() {
     return () => { alive = false; generation++; clearInterval(timer); appState.remove(); subscription.unsubscribe(); };
   }, []));
 
-  if (rows.length === 0) return null;
+  if (rows.length === 0 && liveSessions.length === 0) return null;
 
   return (
     <View style={s.wrap}>
-      <Text style={s.title}>Trending stories</Text>
+      {liveSessions.length > 0 ? <>
+        <Text style={s.title}>Live now</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.rail}>
+          {liveSessions.map(session => {
+            const story = rows.find(row => row.user_id === session.host.id);
+            return <LiveStoryBubble key={session.id} session={session} testPrefix="trending-story" onStory={story ? () => nav.navigate('StoryViewer', { userIds: rows.map(row => row.user_id), startUserId: story.user_id, startStoryId: story.story_id }) : undefined} />;
+          })}
+        </ScrollView>
+      </> : null}
+      {rows.length > 0 ? <Text style={s.title}>Trending stories</Text> : null}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.rail}>
         {rows.map((r) => (
           <TouchableOpacity key={r.story_id} style={s.tile} activeOpacity={0.85}

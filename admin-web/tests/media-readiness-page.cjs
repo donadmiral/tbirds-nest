@@ -83,3 +83,14 @@ test('failed post, author, report or trend reads cannot become an empty or false
     assert.match(r.error, /Synthetic read unavailable/);
   }
 });
+test('legacy thumbnail and generated representations on content desk consume only same-post approved media',async()=>{
+ const vid=raw('v.mp4'),legacy=raw('thumb.jpg'),alien='https://example.invalid/not-our-frame.jpg';
+ for(const [recipe,expectation] of [[{thumbnail:legacy},'alias'],[{thumbnail:alien},'refused'],[{generatedPosterV1:true},'generated']]){
+  const r=rendered(await page({tables:{posts:posts(1),post_media:[{id:id(50),post_id:id(0),url:vid,media_type:'video',sort_order:0,edit:recipe}]},
+    rpc:{admin_bound_content_media_manifest:()=>['v.mp4','thumb.jpg'].map(n=>({entity_id:id(0),bucket_id:'post-media',object_path:TARGET+'/'+n}))}}));
+  const row=r.desks[0].rows[0],media=row.detail.gallery[0];assert.doesNotMatch(JSON.stringify(row.detail.gallery),/object\/public|example\.invalid/);
+  if(expectation==='alias'){assert.match(media.edit.thumbnail,/^\/api\/moderation-media\?/);assert.equal(row.cells[0].poster,media.edit.thumbnail);}
+  else if(expectation==='refused'){assert.equal(media.edit.thumbnail,null);assert.ok(!row.cells[0].poster);}
+  else {assert.match(media.url,/representation=compatible$/);assert.match(row.cells[0].poster,/representation=poster$/);}
+ }
+});

@@ -1,3 +1,4 @@
+import { LivePlaybackProvider } from "@/components/LivePlaybackProvider";
 import { ClientDiagnostics } from "@/components/ClientDiagnostics";
 import type { Metadata } from "next";
 import { ConnectionBanner } from "@/components/ConnectionBanner";
@@ -44,7 +45,7 @@ export default function RootLayout({
         />
       </head>
       <body suppressHydrationWarning>
-        <ThemeProvider><NavigationSessionBoundary>{children}</NavigationSessionBoundary></ThemeProvider><ClientDiagnostics />
+        <ThemeProvider><NavigationSessionBoundary><LivePlaybackProvider>{children}</LivePlaybackProvider></NavigationSessionBoundary></ThemeProvider><ClientDiagnostics />
         {/* Global, so a dropped connection is reported on every route. */}
         <ConnectionBanner />
       </body>

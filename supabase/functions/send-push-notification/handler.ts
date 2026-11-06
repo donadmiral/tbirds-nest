@@ -82,6 +82,7 @@ export function createPushNotificationHandler(deps: Dependencies) {
       for (const key of ['post_id', 'story_id', 'comment_id', 'conversation_id', 'call_id', 'job_id', 'listing_id', 'community_id', 'business_id', 'channel_id']) {
         if (validUuid(data[key])) route[key] = data[key];
       }
+      if(type==='live_stream' && validUuid(data.live_session_id ?? data.sessionId))route.live_session_id=data.live_session_id ?? data.sessionId;
       const payload = { ...route, type, category, notificationId: record.id, recipient_id: recipient };
       const { data: badge, error: badgeError } = await db.rpc('get_notification_badge_count', { p_recipient: recipient }).abortSignal(signal);
       // An unavailable badge must not clear an existing valid icon count.

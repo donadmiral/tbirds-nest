@@ -1,0 +1,22 @@
+appId: com.apple.Preferences
+name: Open the documented Simulator Password AutoFill setting
+---
+- launchApp:
+    clearState: false
+    clearKeychain: false
+    permissions: {}
+- scrollUntilVisible:
+    element:
+      text: '^General$'
+    direction: DOWN
+    timeout: 20000
+    centerElement: false
+- tapOn: '^General$'
+- scrollUntilVisible:
+    element:
+      text: '^AutoFill & Passwords$'
+    direction: DOWN
+    timeout: 20000
+    centerElement: false
+- tapOn: '^AutoFill & Passwords$'
+- assertVisible: '^AutoFill Passwords and Passkeys$'

@@ -6,6 +6,8 @@ export function createLegacyLimitedViewSession(options: {
   fetch: typeof fetch; current: () => boolean; hide: () => void;
 }) {
   let closed = false, mediaUrl = '';
+  // Browser fetch rejects being called with the options object as `this`.
+  const transport = options.fetch;
   const controller = new AbortController();
   const origin = new URL(options.endpoint).origin;
   return {
@@ -18,7 +20,7 @@ export function createLegacyLimitedViewSession(options: {
       if (closed || !options.current()) return null;
       const timer = setTimeout(() => controller.abort(), 20000);
       try {
-        const response = await options.fetch(options.endpoint, {
+        const response = await transport(options.endpoint, {
           method: 'POST', signal: controller.signal,
           headers: { Authorization: `Bearer ${options.token}`, apikey: options.apiKey, 'Content-Type': 'application/json' },
           body: JSON.stringify({ messageIds: [options.messageId], consume: true, requestId: options.requestId, delivery: 'no-store' }),
@@ -46,7 +48,7 @@ export function createLegacyLimitedViewSession(options: {
       const closing = new AbortController();
       const timer = setTimeout(() => closing.abort(), 10000);
       try {
-        await options.fetch(`${origin}/functions/v1/limited-media-file`, {
+        await transport(`${origin}/functions/v1/limited-media-file`, {
           method: 'POST', signal: closing.signal, keepalive: true,
           headers: { Authorization: `Bearer ${options.token}`, apikey: options.apiKey, 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'close', messageId: options.messageId, requestId: options.requestId }),

@@ -38,6 +38,11 @@ source_commit="$(git rev-parse --verify --end-of-options "${source_ref}^{commit}
 for name in StoryVideoView.swift StoryVideoComposition.swift; do
   git show "$source_commit:modules/boomerang/ios/$name" > "$evidence/sources/$name"
 done
+grade_sources=()
+if git cat-file -e "$source_commit:modules/boomerang/ios/StoryHLSGradeSurface.swift" 2>/dev/null; then
+  git show "$source_commit:modules/boomerang/ios/StoryHLSGradeSurface.swift" > "$evidence/sources/StoryHLSGradeSurface.swift"
+  grade_sources+=("$evidence/sources/StoryHLSGradeSurface.swift")
+fi
 python3 - "$source_commit" "$evidence" <<'PY'
 import hashlib,json,os,subprocess,sys
 from pathlib import Path
@@ -113,8 +118,9 @@ xcrun --sdk iphonesimulator swiftc -O -swift-version 5 -sdk "$sdk" -target "$arc
 xcrun --sdk iphonesimulator swiftc -O -swift-version 5 -sdk "$sdk" -target "$arch-apple-ios15.1-simulator" \
   -parse-as-library -I "$fixture_dir" "$fixture_dir/ExpoModulesCore.o" \
   "$evidence/sources/StoryVideoComposition.swift" "$evidence/sources/StoryVideoView.swift" \
+  "${grade_sources[@]}" \
   scripts/quality/StoryVideoPlaybackHarness.swift \
-  -framework UIKit -framework AVFoundation -framework CoreImage -framework CoreMedia -framework CoreVideo \
+  -framework UIKit -framework AVFoundation -framework CoreImage -framework CoreMedia -framework CoreVideo -framework Metal \
   -o "$app/StoryVideoPlaybackHarness" 2>&1 | tee "$evidence/swift-build.log"
 codesign --force --sign - "$app" 2>&1 | tee "$evidence/fixture-signing.log"
 simulator="$(xcrun simctl create "Story playback ${GITHUB_RUN_ID:-local} ${source_commit:0:8}" "$device_type" "$runtime")"

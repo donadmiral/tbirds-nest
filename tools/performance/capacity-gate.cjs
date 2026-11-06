@@ -3,6 +3,9 @@
 // Evaluates recorded measurements. It neither generates load nor purchases
 // capacity. Unknown observations and expired reservations always fail closed.
 const fs = require('node:fs');
+const crypto = require('node:crypto');
+const { model } = require('./capacity-model.cjs');
+const scenarios = require('./capacity-scenarios.json');
 const STAGES = [100000, 250000, 500000, 1000000, 2500000, 5000000, 10000000, 20000000];
 const METRICS = {
   feed_p95_ms: 500,
@@ -23,6 +26,25 @@ const METRICS = {
 const CAPACITIES = ['api_requests_per_second', 'realtime_connections', 'realtime_events_per_second', 'media_bytes_per_second', 'media_jobs_per_second', 'push_requests_per_second'];
 const finite = value => typeof value === 'number' && Number.isFinite(value) && value >= 0;
 
+// A DAU label is not evidence of the corresponding offered load. Pin the
+// existing base assumptions and require measured arrivals/bytes/connections.
+// This remains an evidence validator, not a trust mechanism for fabricated JSON.
+const baseScenario = scenarios.scenarios.find(s => s.name === 'base');
+const scenarioSha256 = crypto.createHash('sha256').update(JSON.stringify(baseScenario)).digest('hex');
+function demandFor(dau) {
+  const result = model(dau, baseScenario);
+  return {
+    scenario: 'base', scenarioSha256,
+    averageApiRps: result.applicationRequests.averagePerSecond,
+    peakApiRps: result.applicationRequests.peakPerSecond,
+    averageMediaBytesPerSecond: result.media.totalBytesPerDay / 86400,
+    peakMediaBytesPerSecond: result.media.totalBytesPerDay / 86400 * baseScenario.peakFactor,
+    peakRealtimeConnections: Math.ceil(result.concurrency.peakRealtimeConnections),
+    minimumDistinctAccounts: Math.ceil(result.concurrency.peakActive),
+    minimumPeakHoldSeconds: 900,
+  };
+}
+
 function evaluate(receipt, now = Date.now()) {
   const failures = [];
   const fail = (ok, reason) => { if (!ok) failures.push(reason); };
@@ -34,6 +56,40 @@ function evaluate(receipt, now = Date.now()) {
   fail(Number.isFinite(endedAt) && endedAt <= now && now - endedAt <= 7 * 86400000, 'Measurements must be dated, complete, and no more than seven days old');
   const minimumDuration = receipt?.dauEquivalent >= 5000000 ? 86400 : 1800;
   fail(finite(receipt?.durationSeconds) && receipt.durationSeconds >= minimumDuration, `This stage requires at least ${minimumDuration} measured seconds`);
+  if (STAGES.includes(receipt?.dauEquivalent)) {
+    const demand = demandFor(receipt.dauEquivalent), traffic = receipt.traffic;
+    fail(traffic?.scenarioSha256 === demand.scenarioSha256, 'Measured traffic must bind to the versioned base workload assumptions');
+    fail(Number.isSafeInteger(traffic?.distinctAuthenticatedAccounts) && traffic.distinctAuthenticatedAccounts >= demand.minimumDistinctAccounts,
+      `At least ${demand.minimumDistinctAccounts} distinct authenticated accounts must exercise this stage`);
+    fail(finite(traffic?.successfulApiOperations) && traffic.successfulApiOperations >= Math.ceil(demand.averageApiRps * receipt.durationSeconds),
+      'Completed API operations must cover the modeled sustained demand, not only a short peak');
+    fail(finite(traffic?.deliveredMediaBytes) && traffic.deliveredMediaBytes >= Math.ceil(demand.averageMediaBytesPerSecond * receipt.durationSeconds),
+      'Delivered media bytes must cover modeled sustained demand');
+    fail(traffic?.droppedArrivals === 0 && finite(traffic?.scheduleLagP95Ms) && traffic.scheduleLagP95Ms <= 1000,
+      'Offered arrivals must not be silently dropped or delayed by a saturated generator');
+    const windows = traffic?.peakWindows;
+    let validWindows = Array.isArray(windows) && windows.length > 0 && windows.length <= 1440;
+    let previousEnd = -1, peakSeconds = 0;
+    if (validWindows) {
+      for (const window of windows) {
+        if (!finite(window?.startedAtSeconds) || !finite(window?.durationSeconds) || window.durationSeconds < 1
+          || window.startedAtSeconds < previousEnd || window.startedAtSeconds + window.durationSeconds > receipt.durationSeconds
+          || !finite(window.apiRequestsPerSecond) || window.apiRequestsPerSecond < demand.peakApiRps
+          || !finite(window.mediaBytesPerSecond) || window.mediaBytesPerSecond < demand.peakMediaBytesPerSecond
+          || !finite(window.realtimeConnections) || window.realtimeConnections < demand.peakRealtimeConnections) {
+          validWindows = false; break;
+        }
+        previousEnd = window.startedAtSeconds + window.durationSeconds;
+        peakSeconds += window.durationSeconds;
+      }
+    }
+    fail(validWindows && peakSeconds >= demand.minimumPeakHoldSeconds,
+      'Non-overlapping measured windows must hold API, media and realtime peak demand together for at least 900 seconds');
+    for (const [key, minimum] of Object.entries({ api_requests_per_second: demand.peakApiRps,
+      media_bytes_per_second: demand.peakMediaBytesPerSecond, realtime_connections: demand.peakRealtimeConnections })) {
+      fail(finite(receipt?.observedPeaks?.[key]) && receipt.observedPeaks[key] >= minimum, `Observed ${key} must reach the modeled stage demand of ${minimum}`);
+    }
+  }
   for (const surface of ['web', 'native', 'admin', 'backend']) {
     fail(receipt?.releases?.[surface] === receipt?.sourceCommit && /^[0-9a-f]{40}$/.test(receipt?.releases?.[surface] ?? ''), `${surface} release must match the tested commit`);
   }
@@ -74,4 +130,4 @@ if (require.main === module) {
     if (!result.passed) process.exitCode = 2;
   } catch (error) { console.error(error.message); process.exitCode = 1; }
 }
-module.exports = { evaluate, STAGES, METRICS, CAPACITIES };
+module.exports = { evaluate, demandFor, STAGES, METRICS, CAPACITIES };

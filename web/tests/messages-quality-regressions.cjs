@@ -17,6 +17,7 @@ const sources = {
   '@/lib/profileLookup': compile(path.join(root, 'lib/profileLookup.ts')),
   '@/lib/withTimeout': compile(path.join(root, 'lib/withTimeout.ts')),
   '@/components/MessagesApp': compile(path.join(root, 'components/MessagesApp.tsx')),
+  '@/components/ChatVideo': compile(path.join(root, 'components/ChatVideo.tsx')),
   '@/components/ForwardConversationPicker': compile(path.join(root, 'components/ForwardConversationPicker.tsx')),
   '@/components/MarketUnreadDot': compile(path.join(root, 'components/MarketUnreadDot.tsx')),
   '@/lib/messagesActual': compile(path.join(root, 'lib/messages.ts')),

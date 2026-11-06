@@ -63,6 +63,7 @@ function lineFor(n: Notif): { lead: string; rest: string } {
   const c = n.body_preview ? quote(n.body_preview) : "";
   const emoji = (n.body_preview || "").trim();
   switch (n.type) {
+    case "live_stream": return {lead:n.message || "Live update",rest:""};
     case "market_order": return { lead: n.message || "Marketplace order updated", rest: "" };
     case "like": return { lead, rest: " liked your post" };
     case "market_alert": return { lead, rest: " listed a match for your alert" + (((n.data as { title?: string } | null)?.title) ? ": " + (n.data as { title?: string }).title : "") };

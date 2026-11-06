@@ -6,10 +6,12 @@ import {pathToFileURL} from 'node:url';
 import {serviceConfig} from './config.mjs';
 import {backend} from './backend.mjs';
 import {createWorker} from './worker.mjs';
+import {createPosterWorker} from './poster.mjs';
 export function createWorkerHandler({config,api,worker,env=process.env,stopping=new AbortController(),
  dispatcherFactory=async()=>(await import('./sandbox-dispatcher.mjs')).configuredSandboxDispatcher(env),
  controllerMetrics=async()=>{const disk=await statfs(os.tmpdir());return{scratch_available_bytes:Number(disk.bavail)*Number(disk.bsize),process_rss_bytes:process.memoryUsage().rss};},
 }){
+const runPoster=createPosterWorker(api);
 let dispatcherPromise;
 const sandboxMode=env.MEDIA_WORKER_RUNTIME==='sandbox';
 const authorized=value=>{const expected=`Bearer ${config.cronSecret}`;return typeof value==='string'&&Buffer.byteLength(value)===Buffer.byteLength(expected)&&timingSafeEqual(Buffer.from(value),Buffer.from(expected));};
@@ -18,6 +20,15 @@ return async(req,res)=>{
  try{
   const path=new URL(req.url||'/','http://worker.internal').pathname;
   if(path==='/health'){json(200,{ok:!stopping.signal.aborted,profile:'hls-v2',runtime:sandboxMode?'sandbox':'local',...(!sandboxMode?{busy:worker.active}:{})});return;}
+  if(path==='/poster'){
+   if(req.method!=='POST'){json(405,{error:'method_not_allowed'});return;}
+   if(!authorized(req.headers.authorization)){json(401,{error:'unauthorized'});return;}
+   if(stopping.signal.aborted){json(503,{state:'stopping'});return;}
+   // pg_net supplies an empty JSON object. The caller cannot select an item or a URL.
+   if(req.url!=='/poster'||req.headers['transfer-encoding']||!['0','2',undefined].includes(req.headers['content-length'])){json(400,{error:'invalid_request'});return;}
+   if(req.headers['content-length']==='2'){let body='';for await(const chunk of req){body+=chunk.toString('utf8');if(body.length>2)break;}if(body!=='{}'){json(400,{error:'invalid_request'});return;}}
+   const result=await runPoster(stopping.signal);json(result.state==='unavailable'?503:result.state==='rejected'?409:200,result);return;
+  }
   if(path==='/drain'&&['GET','POST'].includes(req.method)){
    if(!authorized(req.headers.authorization)){json(401,{error:'unauthorized'});return;}
    if(stopping.signal.aborted){json(503,{state:'stopping'});return;}

@@ -1,0 +1,36 @@
+{
+  "recordedAt": "2026-11-05T18:58:55Z",
+  "sourceCommit": "1aa2b521231fd24bf6f7e6d9aae6f4e11f6de8b3",
+  "executionBinding": "Executed on the five unchanged working files immediately before publication. Post-publication git diff --exit-code confirmed these files equal the recorded commit. No passed gate was rerun to produce this receipt.",
+  "focusedTests": {
+    "command": "node --test tests/quality/feed-history-continuity.cjs tests/feed-capacity.test.cjs tests/quality/native-feed-video.cjs tests/session-history.test.cjs tests/quality/feed-refresh-preview.cjs",
+    "exitCode": 0,
+    "tests": 74,
+    "passed": 74,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "durationMs": 2950.062475,
+    "newContinuityTests": 5,
+    "evidence": "Original successful command output retained in the conversation tool transcript, exec chunk a76074. This JSON is a concise result receipt, not a copied full TAP log."
+  },
+  "typecheck": {
+    "command": "./node_modules/.bin/tsc --noEmit",
+    "exitCode": 0,
+    "diagnostics": 0,
+    "evidence": "Original execution session 48535 completed with exit code 0 in chunk 78b5f3."
+  },
+  "diffCheck": {
+    "command": "git diff --check",
+    "exitCode": 0
+  },
+  "fileSha256": {
+    "src/screens/feed/FeedScreen.tsx": "0771d9f3eeaed5f1c65d7adb8b942907274ea34c07b86980046bec72081944b8",
+    "shared/feedHistoryPages.ts": "fdc3dcae0c9d12535dd6f8bc729a60b38a0f6bbd181b244b49bd6da9cd7d3287",
+    "tests/quality/feed-history-continuity.cjs": "91e5cf13cbf409dfc4de5f42b39350ea688c42078db5c100853ef5ab1b9263c6",
+    "tests/feed-capacity.test.cjs": "33e76728196b373b185d7045033b28cfc25dd881b7b1feaf5969377ce3abec9f",
+    "tests/quality/native-feed-video.cjs": "9ed8bdd9e264f02dbed9dd5a34de8b2b9bf8b9ded45d11ccd334a6298dc8bbfc"
+  },
+  "physicalAcceptance": "Pending corrected-source phone recording. These local tests prove React identity and callback behavior, not absence of blank pixels on a physical device."
+}

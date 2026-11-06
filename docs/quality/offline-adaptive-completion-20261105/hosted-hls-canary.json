@@ -1,0 +1,55 @@
+{
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "ok": true,
+  "requests": [
+    {
+      "label": "readiness",
+      "status": 200,
+      "headerMs": 11233
+    },
+    {
+      "label": "master",
+      "status": 200,
+      "headerMs": 4184
+    },
+    {
+      "label": "lowest_variant",
+      "status": 200,
+      "headerMs": 4511
+    },
+    {
+      "label": "first_segment",
+      "status": 200,
+      "headerMs": 4775
+    },
+    {
+      "label": "invalid_capability",
+      "status": 403,
+      "headerMs": 4158
+    },
+    {
+      "label": "expired_capability",
+      "status": 403,
+      "headerMs": 4381
+    }
+  ],
+  "downloadedBytes": 246842,
+  "sourceHash": "c8bfa0f0d75f6b7fb22d7fea338d8de915bda2e9b2680c055953849fca90fa16",
+  "decode": {
+    "codec": "h264",
+    "width": 480,
+    "height": 270,
+    "segmentBytes": 244024,
+    "segmentSha256": "f981283d120a069c3ae0166d78a128a53b7821830edd0d39cf84cb8d3c0e5439",
+    "firstFrameDecoded": true
+  },
+  "cleanup": {
+    "deletedTickets": 1,
+    "temporarySegmentRemoved": true
+  },
+  "checkedAt": "2026-11-05T15:48:05.761Z",
+  "gatewayOrigin": "https://platinum-media-gateway-git-e221ffc18f70c36d1b27-26208f-intobank.vercel.app",
+  "scope": "One existing owned QA post, lowest HLS rendition and first segment only. No new content or production content mutation.",
+  "capabilityLifetimeSeconds": 45,
+  "observation": "Functional delivery and authorization passed. Header latency from this execution environment was 4.158-11.233 seconds and does not establish instant-start or physical-device performance."
+}

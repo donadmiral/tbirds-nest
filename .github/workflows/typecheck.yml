@@ -10,7 +10,7 @@ name: Type and quality gates
 
 on:
   push:
-    branches: [master, codex/completion-20261101, codex/web-admin-media-parity-20261101]
+    branches: [master, codex/completion-20261101, codex/web-admin-media-parity-20261101, codex/live-completion-20261102, codex/loading-foundation-20261105]
   pull_request:
   workflow_dispatch:
 
@@ -47,12 +47,16 @@ jobs:
             postgres:17.11 -c listen_addresses='' -c jit=off
           ready=false
           for attempt in $(seq 1 60); do
-            if pg_isready --dbname=postgres; then ready=true; break; fi
+            # Ignore the temporary initdb server, which shuts down before the
+            # final database starts accepting the contract test connections.
+            if docker logs pc-capacity-postgres 2>&1 | grep -F 'PostgreSQL init process complete; ready for start up.' > /dev/null; then
+              if pg_isready --dbname=postgres; then ready=true; break; fi
+            fi
             sleep 1
           done
           test "$ready" = true
           psql --dbname=postgres --command='select version(), inet_server_addr();'
-          for database in pc_scale_counters pc_scale_feed pc_scale_paging pc_scale_context pc_scale_business pc_scale_mentions pc_scale_media_jobs pc_scale_service_proof pc_scale_feed_rank pc_scale_distributed_counters pc_scale_notification_fanout pc_scale_admin_projection pc_scale_media_v2 pc_scale_observability pc_scale_book_window pc_scale_unique_reach pc_scale_push_badge pc_scale_notification_worker pc_scale_media_tickets; do
+          for database in pc_scale_counters pc_scale_feed pc_scale_paging pc_scale_context pc_scale_business pc_scale_mentions pc_scale_media_jobs pc_scale_service_proof pc_scale_feed_rank pc_scale_distributed_counters pc_scale_notification_fanout pc_scale_admin_projection pc_scale_media_v2 pc_scale_private_hls pc_scale_observability pc_scale_book_window pc_scale_unique_reach pc_scale_push_badge pc_scale_notification_worker pc_scale_media_tickets pc_scale_live_cancel; do
             createdb "$database"
           done
       - name: Verify real lock waits, retries, access boundaries and cleanup
@@ -70,12 +74,14 @@ jobs:
           PGDATABASE=pc_scale_notification_fanout node supabase/tests/notification-fanout-db.test.cjs
           PGDATABASE=pc_scale_admin_projection node supabase/tests/admin-projection-db.test.cjs
           PGDATABASE=pc_scale_media_v2 node supabase/tests/media-renditions-db.test.cjs
+          PGDATABASE=pc_scale_private_hls node supabase/tests/private-hls-db.test.cjs
           PGDATABASE=pc_scale_observability node supabase/tests/capacity-observability.test.cjs
           PGDATABASE=pc_scale_book_window node supabase/tests/memory-book-window-db.test.cjs
           PGDATABASE=pc_scale_unique_reach node supabase/tests/unique-view-share-db.test.cjs
           PGDATABASE=pc_scale_push_badge node supabase/tests/push-badge-db.test.cjs
           PGDATABASE=pc_scale_notification_worker node supabase/tests/notification-worker-db.test.cjs
           PGDATABASE=pc_scale_media_tickets node supabase/tests/media-content-tickets-db.test.cjs
+          PGDATABASE=pc_scale_live_cancel node supabase/tests/live-cancel-cleanup-db.test.cjs
       - name: Remove the disposable database
         if: always()
         run: docker rm --force pc-capacity-postgres || true
@@ -93,8 +99,35 @@ jobs:
           deno-version: 2.1.4
       - name: Verify Edge runtime version
         run: deno --version
-      - name: Check authenticated push handlers and their pinned dependencies
-        run: deno check --no-lock --node-modules-dir=none supabase/functions/send-push-notification/index.ts supabase/functions/send-push-notification/compatibility-index.ts supabase/functions/send-voip-push/index.ts supabase/functions/send-voip-push/compatibility-index.ts supabase/functions/daily-get-token/compatibility-index.ts supabase/functions/process-notification-outbox/index.ts supabase/functions/media-content/index.ts supabase/functions/media-broker/index.ts
+      - name: Check authenticated push, media and Live handlers and their pinned dependencies
+        run: |
+          deno check --no-lock --node-modules-dir=none \
+            supabase/functions/private-hls/index.ts \
+            supabase/functions/send-push-notification/index.ts \
+            supabase/functions/send-push-notification/compatibility-index.ts \
+            supabase/functions/send-voip-push/index.ts \
+            supabase/functions/send-voip-push/compatibility-index.ts \
+            supabase/functions/daily-get-token/compatibility-index.ts \
+            supabase/functions/process-notification-outbox/index.ts \
+            supabase/functions/media-content/index.ts \
+            supabase/functions/content-media-sign/index.ts \
+            supabase/functions/media-broker/index.ts \
+            supabase/functions/live-playback/index.ts \
+            supabase/functions/live-stage/index.ts \
+            supabase/functions/live-control/index.ts \
+            supabase/functions/live-cover/index.ts \
+            supabase/functions/live-provider-webhook/index.ts \
+            supabase/functions/live-maintenance/index.ts \
+            supabase/functions/live-provider-configure/index.ts \
+            supabase/functions/live-sign/index.ts \
+            supabase/functions/live-clip-media/index.ts \
+            supabase/functions/live-clip-worker/index.ts \
+            supabase/functions/live-clip-scaler/index.ts \
+            supabase/functions/live-connect/index.ts \
+            supabase/functions/live-social/index.ts \
+            supabase/functions/live-social-worker/index.ts \
+            supabase/functions/live-social-pull/index.ts \
+            supabase/functions/live-transcription-worker/index.ts
       - name: Test actual pinned-IP HTTPS and cancellation
         env:
           PLATINUM_LINK_TLS_FIXTURE: ${{ runner.temp }}/platinum-link-tls
@@ -140,7 +173,13 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: web/package-lock.json
+          cache-dependency-path: |
+            package-lock.json
+            web/package-lock.json
+      # The feed continuity test mounts React with the matching reconciler
+      # resolved from the root lockfile. Each Actions job checks out a clean tree.
+      - name: Install root test renderer
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm ci
         working-directory: web
       - run: npx tsc --noEmit
@@ -164,6 +203,7 @@ jobs:
             web/package-lock.json
             admin-web/package-lock.json
             supabase/tests/rpc-authorization/package-lock.json
+            workers/media-renditions/package-lock.json
       - run: npm ci
       - run: npx tsc --noEmit
       - name: Install dependencies for cross-app and database regressions
@@ -171,19 +211,57 @@ jobs:
           npm ci --prefix web
           npm ci --prefix admin-web
           npm ci --prefix supabase/tests/rpc-authorization
+          npm ci --prefix workers/media-renditions
       - name: Test phone, diagnostics, feed and call regressions
         run: node --test --test-concurrency=2 tests/*.cjs tests/quality/*.cjs
-      - name: Test adaptive media processing and delivery
+      - name: Test adaptive media processing
         run: |
-          if ! command -v ffmpeg >/dev/null; then
-            sudo apt-get update
-            sudo apt-get install --yes ffmpeg
-          fi
+          timeout --signal=TERM --kill-after=10s 300s bash scripts/quality/install-linux-test-runtime.sh media
           node --test workers/media-renditions/test/*.test.mjs
-      - name: Test payment recovery and database boundaries
+      - name: Test payment recovery, Live Edge authorization and database boundaries
         env:
           PGLITE_MODULE: ${{ github.workspace }}/supabase/tests/rpc-authorization/node_modules/@electric-sql/pglite/dist/index.cjs
           TRINITI_PGLITE_MODULE: ${{ github.workspace }}/supabase/tests/rpc-authorization/node_modules/@electric-sql/pglite/dist/index.js
+        # The glob covers Live core, clip/queue, OAuth/social/pull and transcription
+        # authorization suites; do not duplicate them in the worker job.
         run: node --experimental-strip-types --test --test-concurrency=2 supabase/tests/*.test.*
       - name: Test RPC authorization
         run: npm test --prefix supabase/tests/rpc-authorization
+
+  live-workers:
+    name: Live workers, finite launcher and infrastructure
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.22.2
+          cache: npm
+          cache-dependency-path: workers/live-transcription/package-lock.json
+      - name: Install fixed worker dependencies and synthetic-media tools
+        run: |
+          npm ci --prefix workers/live-transcription --ignore-scripts --no-audit --no-fund
+          timeout --signal=TERM --kill-after=10s 300s bash scripts/quality/install-linux-test-runtime.sh media
+          python3 -m venv /tmp/platinum-live-cfnlint
+          /tmp/platinum-live-cfnlint/bin/pip install cfn-lint==1.59.0
+      - name: Test bounded render, publishing and transcription workers
+        run: |
+          node --test --test-concurrency=2 workers/live-clips/test/*.test.mjs
+          npm test --prefix workers/live-social
+          npm test --prefix workers/live-transcription
+      - name: Test shared runtime admission and deployment boundaries
+        run: |
+          python3 infrastructure/live-clips/test/launcher_test.py
+          node --test infrastructure/live-clips/test/*.test.mjs infrastructure/live-social/test/*.test.mjs infrastructure/live-transcription/test/*.test.mjs infrastructure/live-integrations/test/*.test.mjs
+      - name: Validate reviewed templates in the selected AWS region
+        run: |
+          /tmp/platinum-live-cfnlint/bin/cfn-lint \
+            infrastructure/live-clips/*-cloudformation.json \
+            infrastructure/live-social/*-cloudformation.json \
+            infrastructure/live-transcription/*-cloudformation.json \
+            infrastructure/live-integrations/*-cloudformation.json -r us-east-2
+        # Fixture encodes/template checks are not production image scans,
+        # hosted-provider acceptance, deployment, or a capacity certification.

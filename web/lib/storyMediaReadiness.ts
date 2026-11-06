@@ -1,6 +1,7 @@
 /** A loaded header or the frame before a trim is not a displayable story frame. */
 export function watchStoryVideoFrame(video: HTMLVideoElement, options: {
   source: string;
+  matchesSource?: () => boolean;
   start: () => number;
   current: () => boolean;
   ready: () => void;
@@ -8,6 +9,7 @@ export function watchStoryVideoFrame(video: HTMLVideoElement, options: {
   let disposed = false, delivered = false, frame: number | null = null;
   const current = () => {
     if (disposed || !video.isConnected || !options.current()) return false;
+    if (options.matchesSource) return options.matchesSource();
     if (!video.currentSrc) return true;
     try { return video.currentSrc === new URL(options.source, video.ownerDocument.baseURI).href; }
     catch { return video.currentSrc === options.source; }

@@ -114,6 +114,7 @@ function harness(options = {}) {
     if (name.endsWith('/KeyboardSafe')) return { __esModule: true, default: 'KeyboardSafe' };
     if (name.endsWith('/supabase')) return { supabase: client };
     if (name.endsWith('/businessSessionService')) return service;
+    if (name.endsWith('/readContinuity')) return compile('shared/readContinuity.ts', () => { throw new Error('Unexpected continuity dependency'); });
     throw new Error('Unexpected screen dependency ' + name);
   }, environment).default;
   const render = () => { if (!mounted) return; cursor = 0; tree = component({ navigation }); const running = effects; effects = []; running.forEach(fn => fn()); };

@@ -1,7 +1,7 @@
 import { ListRowSkeleton } from '../../components/skeletons';
 import { themedSheet, useTheme } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image, StatusBar, RefreshControl } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
@@ -10,6 +10,8 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { callService, CallRecord } from '../../services/callService';
+import { createScreenReadGuard, isReadAccessDenied, requireReadRows } from '../../../shared/readContinuity';
+import { orderTimeout } from '../../../shared/orderRequest';
 
 type Row = CallRecord & {
   other_profile?: {
@@ -59,12 +61,19 @@ export default function CallLogScreen() {
   const [calls, setCalls] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reads] = useState(() => createScreenReadGuard(userId));
+  reads.setScope(userId);
+  useEffect(() => { setCalls([]); setLoading(!!userId); setRefreshing(false); setLoadError(null); }, [userId]);
 
   const load = useCallback(async () => {
     if (!userId) { setLoading(false); return; }
+    const current = reads.begin(userId);
+    if (!current()) return;
+    setLoadError(null);
     try {
-      const records = await callService.listRecentCalls(userId, 100);
-      console.log('[CALL_LOG_LOAD]', { count: records.length });
+      const records = requireReadRows<CallRecord>(await orderTimeout(callService.listRecentCalls(userId, 100), 15000, 'Your calls could not be loaded.'));
+      if (!current()) return;
 
       if (records.length === 0) { setCalls([]); return; }
 
@@ -75,27 +84,27 @@ export default function CallLogScreen() {
 
       const pMap: Record<string, any> = {};
       if (unique.length > 0) {
-        const { data: profiles } = await supabase
+        const { data: profiles, error } = await orderTimeout(supabase
           .from('profiles')
           .select('id, full_name, username, avatar_url')
-          .in('id', unique);
-        (profiles || []).forEach((p: any) => { pMap[p.id] = p; });
+          .in('id', unique), 15000, 'Call profiles could not be loaded.');
+        if (error) throw error;
+        requireReadRows<any>(profiles).forEach((p: any) => { pMap[p.id] = p; });
       }
 
       const rows: Row[] = records.map(c => {
         const otherId = c.caller_id === userId ? c.receiver_id : c.caller_id;
         return { ...c, other_profile: otherId ? pMap[otherId] : undefined };
       });
-      setCalls(rows);
+      if (current()) setCalls(rows);
     } catch (e) {
-      console.log('[CALL_LOG_ERR]', e);
+      if (current()) { if (isReadAccessDenied(e)) setCalls([]); setLoadError('Your calls could not be refreshed. Tap to retry.'); }
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (current()) { setLoading(false); setRefreshing(false); }
     }
-  }, [userId]);
+  }, [userId, reads]);
 
-  useFocusEffect(useCallback(() => { load(); }, [load]));
+  useFocusEffect(useCallback(() => { void load(); return () => reads.invalidate(); }, [load, reads]));
 
   const startCall = (call: Row, isVideo: boolean) => {
     const other = call.other_profile;
@@ -199,16 +208,18 @@ export default function CallLogScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      {loading ? (
+      {loadError ? <TouchableOpacity accessibilityRole="button" onPress={() => { void load(); }}><Text accessibilityRole="alert" style={{ padding: 16, color: t.status.danger }}>{loadError}</Text></TouchableOpacity> : null}
+      {loading && calls.length === 0 ? (
         <ListRowSkeleton />
-      ) : calls.length === 0 ? (
+      ) : calls.length === 0 && !loadError ? (
         <View style={s.empty}>
           <Feather name="phone" size={48} color="#E5E5EA" />
           <Text style={s.emptyTitle}>No calls yet</Text>
           <Text style={s.emptySub}>Your call history will appear here.</Text>
         </View>
       ) : (
-        <FlatList ListEmptyComponent={<EmptyState icon="phone" title="No calls yet" line="Your call history appears here." />}
+        <FlatList
+ ListEmptyComponent={loadError ? null : <EmptyState icon="phone" title="No calls yet" line="Your call history appears here." />}
           data={calls}
           keyExtractor={c => c.id}
           renderItem={renderItem}

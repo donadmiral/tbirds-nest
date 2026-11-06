@@ -1,0 +1,47 @@
+name: iOS graded HLS runtime and pixels
+
+on:
+  push:
+    branches: ['codex/loading-foundation-20261105']
+    paths:
+      - 'modules/boomerang/ios/StoryHLSGradeSurface.swift'
+      - 'modules/boomerang/ios/StoryVideoView.swift'
+      - 'modules/boomerang/ios/StoryVideoComposition.swift'
+      - 'scripts/quality/StoryHLSGradeHarness.swift'
+      - 'scripts/quality/StoryPlaybackExpoAdapter.swift'
+      - 'scripts/quality/story-hls-grade-runtime.py'
+      - 'scripts/quality/test-ios-story-hls-grade.sh'
+      - '.github/workflows/ios-graded-hls-runtime.yml'
+      - '.github/workflows/foundation-qa-delivery.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-graded-hls-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  graded-hls-runtime:
+    name: Decode and grade HLS in the real iOS renderer
+    runs-on: macos-15
+    timeout-minutes: 20
+    env:
+      CI: 'true'
+      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+    steps:
+      - name: Read exact candidate source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Verify decoded pixels trims transitions cancellation and OS lifecycle
+        run: bash scripts/quality/test-ios-story-hls-grade.sh
+      - name: Keep source hashes receipts and compositor screenshots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ios-graded-hls-runtime
+          path: native-story-hls-grade-logs/
+          if-no-files-found: warn
+          retention-days: 7

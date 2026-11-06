@@ -1,0 +1,29 @@
+{
+  "result": "passed",
+  "exit_code": 0,
+  "framework": "Next.js 16.4.3",
+  "bundler": "Turbopack",
+  "command": "npm run build",
+  "environment": "Explicit temporary build-only public Supabase URL and synthetic anon key; no credential file saved; not a deployment.",
+  "compiled_seconds": 13.2,
+  "typescript_seconds": 26.0,
+  "static_generation_seconds": 27.9,
+  "static_generation_completed": 93,
+  "static_generation_total": 93,
+  "live_routes": [
+    "/live",
+    "/live/[id]",
+    "/live/[id]/clips",
+    "/live/[id]/settings",
+    "/live/clips",
+    "/live/clips/[id]",
+    "/live/new",
+    "/live/settings"
+  ],
+  "non_blocking_warnings": [
+    "Existing Edge Runtime deprecation",
+    "Existing edge-runtime page excludes static generation",
+    "npm inherited http-proxy configuration warning"
+  ],
+  "runner_note": "Initial restricted runner could not reach its configured proxy for Google font downloads. It was stopped. The same unmodified production build passed with permitted network access."
+}

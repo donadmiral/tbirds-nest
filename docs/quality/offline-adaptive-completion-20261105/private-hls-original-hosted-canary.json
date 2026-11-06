@@ -1,0 +1,209 @@
+{
+  "passed": true,
+  "projectId": "uaulhuelcfkjwojtymmw",
+  "runId": "8b8d5850-2b76-4e96-9d41-2e77bc74edce",
+  "checks": [
+    {
+      "check": "ordinary-original-no-store-decode",
+      "passed": true,
+      "bytes": 64579,
+      "sha256": "905e51b7e9aebe13c303c1b7fcc088f1fdcdb8d87242b8b12d213394f30bd85f",
+      "elapsedMs": 1625
+    },
+    {
+      "check": "ordinary-original-forged-ticket-denied",
+      "passed": true,
+      "status": 403
+    },
+    {
+      "check": "ordinary-hls-decode",
+      "passed": true,
+      "masterMs": 833,
+      "variantMs": 450,
+      "segmentMs": 1973,
+      "segmentBytes": 120884,
+      "segmentSha256": "52137cf26b1383bd21ce362a284946c79280f3b6be5dbb66fe41121ebe86b728"
+    },
+    {
+      "check": "ordinary-wrong-user",
+      "passed": true,
+      "status": 410
+    },
+    {
+      "check": "ordinary-no-auth",
+      "passed": true,
+      "status": 401
+    },
+    {
+      "check": "ordinary-source-version-tamper",
+      "passed": true,
+      "status": 410
+    },
+    {
+      "check": "ordinary-close-terminal",
+      "passed": true
+    },
+    {
+      "check": "ordinary-close-before-open-terminal",
+      "passed": true
+    },
+    {
+      "check": "limited-original-no-store-decode",
+      "passed": true,
+      "bytes": 64579,
+      "sha256": "905e51b7e9aebe13c303c1b7fcc088f1fdcdb8d87242b8b12d213394f30bd85f",
+      "elapsedMs": 1502
+    },
+    {
+      "check": "limited-original-range",
+      "passed": true,
+      "status": 206,
+      "bytes": 16,
+      "sha256": "9ed32ed8c758438dcb73636d080fa4ffe65b94b8c737e0c3aa5199a3a7fb36b5"
+    },
+    {
+      "check": "limited-original-full-range",
+      "passed": true,
+      "status": 206,
+      "bytes": 64579,
+      "sha256": "905e51b7e9aebe13c303c1b7fcc088f1fdcdb8d87242b8b12d213394f30bd85f"
+    },
+    {
+      "check": "limited-original-wrong-user",
+      "passed": true,
+      "status": 410
+    },
+    {
+      "check": "limited-original-no-auth",
+      "passed": true,
+      "status": 401
+    },
+    {
+      "check": "limited-hls-decode",
+      "passed": true,
+      "masterMs": 513,
+      "variantMs": 520,
+      "segmentMs": 1225,
+      "segmentBytes": 120884,
+      "segmentSha256": "52137cf26b1383bd21ce362a284946c79280f3b6be5dbb66fe41121ebe86b728"
+    },
+    {
+      "check": "limited-wrong-user",
+      "passed": true,
+      "status": 410
+    },
+    {
+      "check": "limited-no-auth",
+      "passed": true,
+      "status": 401
+    },
+    {
+      "check": "limited-source-version-tamper",
+      "passed": true,
+      "status": 410
+    },
+    {
+      "check": "limited-counter-once",
+      "passed": true,
+      "views": 1
+    },
+    {
+      "check": "natural-expiry",
+      "passed": true
+    },
+    {
+      "check": "limited-original-natural-expiry",
+      "passed": true,
+      "status": 410
+    }
+  ],
+  "physicalPhone": false,
+  "providerCapacity": false,
+  "recordedAt": "2026-11-05T17:57:00.316674+00:00",
+  "receiptScope": "Genuine GoTrue identities and live QA Storage/Edge/SQL, exact synthetic original bytes and actual ffmpeg HLS frame decode. Separate real-browser fixture uses synthetic auth. No physical private-player runtime claim.",
+  "fixture": {
+    "runId": "8b8d5850-2b76-4e96-9d41-2e77bc74edce",
+    "projectId": "uaulhuelcfkjwojtymmw",
+    "createdAt": "2026-11-05T17:36:26.675722+00:00",
+    "conversationId": "6cf46ee5-07b5-41df-8e1e-3ff4f51056c5",
+    "media": {
+      "ordinary": {
+        "id": "e31f8916-0aaa-4d66-86a0-d5b55b74d8d2",
+        "requestId": "6c08f77e-b85b-4f7d-b75d-db89700adc45",
+        "path": "aca11d41-fc99-457a-8152-c4dfc9fcc9ed/8b8d5850-2b76-4e96-9d41-2e77bc74edce/ordinary.mp4"
+      },
+      "limited": {
+        "id": "9433491c-cf80-4064-93fe-bd9b1a903414",
+        "requestId": "3d9d0dbc-2f1f-409a-b966-b1ae49a0a555",
+        "path": "aca11d41-fc99-457a-8152-c4dfc9fcc9ed/8b8d5850-2b76-4e96-9d41-2e77bc74edce/limited.mp4"
+      }
+    },
+    "accounts": {
+      "sender": {
+        "id": "aca11d41-fc99-457a-8152-c4dfc9fcc9ed"
+      },
+      "receiver": {
+        "id": "540b7ccd-30b5-4d75-9c45-dd038c565b4f"
+      }
+    },
+    "clip": {
+      "bytes": 64579,
+      "sha256": "905e51b7e9aebe13c303c1b7fcc088f1fdcdb8d87242b8b12d213394f30bd85f",
+      "durationSeconds": 4,
+      "width": 320,
+      "height": 180
+    }
+  },
+  "source": {
+    "recordedAt": "2026-11-05T17:40:51.200941+00:00",
+    "publishedBase": "c8052ba7bb10f367a5e26337e94f3b080a48d7ce",
+    "additionalLocalAssertion": "Full and partial HTTP 206 range hashes plus exact existing media-content forged-ticket HTTP 403 denial",
+    "sourceSha256": {
+      "scripts/quality/private-hls-canary.mjs": "cc0c981372125d1c06853fff12f20b59777c0d444aa01a334c236a37934f4ac9",
+      "supabase/migrations/20261105172326_chat_media_ticket_delivery_completion.sql": "6d1411bfead01270e1978cb6634d8419efae14ac923225024af445ae0cad43fb",
+      "supabase/functions/chat-media-sign/index.ts": "ccc74a28ae1330763e9a0a1bddef8df51503ff28a168ddf0cda7c6e485b9a4e1",
+      "supabase/functions/limited-media-file/index.ts": "7ff81f4742a4a6501abf9fcf9c12985363134580f551179bdcaa6598d2a4477d",
+      "supabase/functions/private-media-session/handler.ts": "11b53d74da4607c6a89bc5ef11d258694a8d4e6409f3c2f5606c00e133add1ac",
+      "supabase/functions/private-hls/index.ts": "dc3bed1a0d8a2b2b80e8390f1cabc5c6d4b8b20ad74bffb1d96083c92827ef6b",
+      "supabase/functions/private-hls/handler.ts": "aae4b8a8b6eec6fafd52926f8005f9800fd92a44f8a0d2a561642a5388c09514"
+    }
+  },
+  "cleanup": {
+    "complete": true,
+    "owner": "root",
+    "status": "Exact fixture absent. Cleanup helper retired and credential files removed.",
+    "sourceHelper": "cleanup-source.mjs",
+    "normalAuthInvoker": "invoke-cleanup.mjs",
+    "sourceHelperExpiresAt": "2026-11-05T18:19:24.778052+00:00",
+    "sourceHelperSha256": "c421d0ad1faa48fed2d542070bc643eaeb8983e89221fc0b73752cfc3396c03c",
+    "receipt": "private-hls-original-canary-cleanup.json",
+    "completedAt": "2026-11-05 18:00:39 UTC",
+    "finalAbsence": {
+      "users": 0,
+      "messages": 0,
+      "profiles": 0,
+      "sessions": 0,
+      "identities": 0,
+      "conversations": 0,
+      "pendingCleanup": 0,
+      "storageObjects": 0
+    },
+    "retiredVersion": 2,
+    "credentialFilesAbsent": true
+  },
+  "proofs": {
+    "originalSourceSha256": "905e51b7e9aebe13c303c1b7fcc088f1fdcdb8d87242b8b12d213394f30bd85f",
+    "originalBytes": 64579,
+    "viewCount": 1,
+    "partialRangeBytes": 16,
+    "fullRangeBytes": 64579,
+    "actualNaturalExpiry": true,
+    "naturalExpiryHlsStatus": 410,
+    "naturalExpiryOriginalStatus": 410,
+    "originalNoStoreHeadersVerified": true,
+    "noCredentialsOrCapabilityUrlsInReceipt": true
+  },
+  "productionRolloutOwner": "root",
+  "productionRolloutReceipt": "private-media-production-rollout.json",
+  "nativeProductionPrivateHlsFlag": "disabled pending actual private-player runtime proof"
+}

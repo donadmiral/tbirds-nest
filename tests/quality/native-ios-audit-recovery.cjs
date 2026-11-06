@@ -193,7 +193,8 @@ class RecoveryTests(unittest.TestCase):
   # SIGKILL delivery is asynchronous even after the direct parent is reaped.
   def state():
    try:return proc.read_text().split()[2]
-   except FileNotFoundError:return None
+   # A reaped process can disappear either before opening stat or during its read.
+   except (FileNotFoundError,ProcessLookupError):return None
   deadline=time.monotonic()+.5
   while state() not in [None,'Z'] and time.monotonic()<deadline:time.sleep(.01)
   self.assertIn(state(),[None,'Z'])

@@ -36,6 +36,7 @@ cleanup() {
     fi
     "$adb_bin" exec-out cat /data/user/0/app.platinumcircles.mobile.qa/files/native-ui-receipt.json > native-ui-logs/native-ui-receipt-final.json 2>/dev/null || true
     "$adb_bin" exec-out cat /data/user/0/app.platinumcircles.mobile.qa/files/native-ui-auth-diagnostics.json > native-ui-logs/native-ui-auth-diagnostics-final.json 2>/dev/null || true
+    "$adb_bin" exec-out cat /data/user/0/app.platinumcircles.mobile.qa/files/native-ui-input-diagnostics.json > native-ui-logs/native-ui-input-diagnostics-final.json 2>/dev/null || true
     mkdir -p native-ui-logs/memory-capture
     "$adb_bin" pull /data/user/0/app.platinumcircles.mobile.qa/files/native-memory-capture/. native-ui-logs/memory-capture/ >/dev/null 2>&1 || true
     timeout 10 "$adb_bin" emu kill >/dev/null 2>&1 || true
@@ -73,13 +74,10 @@ dpkg-query -W xvfb mesa-utils libgl1-mesa-dri libglx-mesa0 libegl-mesa0 > native
 Xvfb -displayfd 3 -screen 0 1024x768x24 -nolisten tcp \
   3> "$work_dir/xvfb-display" > native-ui-logs/xvfb.log 2>&1 &
 xvfb_pid=$!
-for ((attempt=0; attempt<50; attempt++)); do
-  if [[ -s "$work_dir/xvfb-display" ]]; then break; fi
-  kill -0 "$xvfb_pid"
-  sleep 0.1
-done
-read -r native_ui_display_number < "$work_dir/xvfb-display"
-[[ "$native_ui_display_number" =~ ^[0-9]+$ ]]
+# One launch has a 30-second host-setup budget. Require its complete numeric
+# display line and live process, retaining the exact readiness outcome first.
+native_ui_display_number="$(python3 scripts/quality/native-ui-xvfb-readiness.py \
+  --pid "$xvfb_pid" --display-file "$work_dir/xvfb-display")"
 native_ui_display=":$native_ui_display_number"
 DISPLAY="$native_ui_display" LIBGL_ALWAYS_SOFTWARE=true GALLIUM_DRIVER=llvmpipe LC_ALL=C \
   timeout 10 glxinfo -B > native-ui-logs/host-graphics.log 2>&1
@@ -134,6 +132,21 @@ if [[ "$audit_build_only" == 1 ]]; then
   cp native-ui-logs/source.json native-audit-build/source.json
   exit 0
 fi
+# Keep the exact synthetic Emulator bytes even when a later UI gesture fails.
+# This authenticated CI artifact is test evidence, never a user install build.
+binary_retention_status=0
+mkdir -p native-ui-logs/test-only-binary || binary_retention_status=$?
+cp "$apk" native-ui-logs/test-only-binary/app-release.apk || binary_retention_status=$?
+cp native-ui-logs/source.json native-ui-logs/test-only-binary/source.json || binary_retention_status=$?
+python3 scripts/quality/native-ui-audit-binary.py --platform android \
+  --kind disposable-native-full-app --binary native-ui-logs/test-only-binary/app-release.apk \
+  --source "$GITHUB_SHA" --tree "$(git rev-parse 'HEAD^{tree}')" \
+  --output native-ui-logs/test-only-binary/binary-manifest.pending.json || binary_retention_status=$?
+if (( binary_retention_status == 0 )); then
+  mv native-ui-logs/test-only-binary/binary-manifest.pending.json \
+    native-ui-logs/test-only-binary/binary-manifest.json || binary_retention_status=$?
+fi
+printf '{"exitCode":%s}\n' "$binary_retention_status" > native-ui-logs/binary-retention.json || binary_retention_status=$?
 printf 'no\n' | "$avd_manager" create avd --force --name platinum_app_ui --package 'system-images;android-35;default;x86_64' --path "$ANDROID_AVD_HOME/platinum_app_ui.avd"
 # Isolate the common packaged SwiftShader GLES path observed in both crashes.
 # This QA app compiles Skia Ganesh/OpenGL and its movie effects use GLES.
@@ -161,9 +174,7 @@ kill -0 "$xvfb_pid"
 python3 scripts/quality/native-ui-emulator-graphics.py emulator
 # The disposable AOSP image permits diagnostic root access. Keep the actual
 # release app non-debuggable and read only its synthetic acceptance receipt.
-"$adb_bin" root
-timeout 30 "$adb_bin" wait-for-device
-test "$("$adb_bin" shell id -u | tr -d '\r')" = 0
+python3 scripts/quality/native-ui-android-root.py --adb "$adb_bin"
 "$adb_bin" install -r "$apk"
 "$adb_bin" logcat -c
 "$adb_bin" logcat > native-ui-logs/app.log 2>&1 &
@@ -175,16 +186,23 @@ timeout 3 python3 scripts/quality/native-ui-emulator-host-diagnostics.py snapsho
   > native-ui-logs/emulator-host-snapshot.log 2>&1 || true
 flow_status=0
 bash scripts/quality/run-native-ui-flows.sh "$ANDROID_SERIAL" || flow_status=$?
+if (( flow_status != 0 )); then
+  # Both flows have finished. Diagnostics cannot replace their result or retry them.
+  timeout --signal=TERM --kill-after=1s 15s python3 scripts/quality/native-ui-android-stack-diagnostics.py \
+    --adb "$adb_bin" --device "$ANDROID_SERIAL" --flow-exit "$flow_status" \
+    > native-ui-logs/android-failure-stack-collector.log 2>&1 || true
+fi
 evidence_status=0
 "$adb_bin" exec-out cat /data/user/0/app.platinumcircles.mobile.qa/files/native-ui-receipt.json > native-ui-logs/native-ui-receipt.json || evidence_status=1
 "$adb_bin" exec-out cat /data/user/0/app.platinumcircles.mobile.qa/files/native-ui-auth-diagnostics.json > native-ui-logs/native-ui-auth-diagnostics.json || evidence_status=1
+"$adb_bin" exec-out cat /data/user/0/app.platinumcircles.mobile.qa/files/native-ui-input-diagnostics.json > native-ui-logs/native-ui-input-diagnostics.json || evidence_status=1
 mkdir -p native-ui-logs/memory-capture
 "$adb_bin" pull /data/user/0/app.platinumcircles.mobile.qa/files/native-memory-capture/. native-ui-logs/memory-capture/ || evidence_status=1
 memory_status=0
-python3 scripts/quality/verify-native-ui-memory.py || memory_status=$?
+python3 scripts/quality/verify-native-ui-memory.py native-ui-logs/memory-capture android || memory_status=$?
 verification_status=0
 node scripts/quality/verify-native-ui.cjs android || verification_status=$?
 cat > native-ui-logs/phase-results.json <<EOF
-{"flows":$flow_status,"evidence":$evidence_status,"memoryDecoder":$memory_status,"fullAppVerifier":$verification_status}
+{"flows":$flow_status,"evidence":$evidence_status,"memoryDecoder":$memory_status,"fullAppVerifier":$verification_status,"binaryRetention":$binary_retention_status}
 EOF
-if (( flow_status != 0 || evidence_status != 0 || memory_status != 0 || verification_status != 0 )); then exit 1; fi
+if (( flow_status != 0 || evidence_status != 0 || memory_status != 0 || verification_status != 0 || binary_retention_status != 0 )); then exit 1; fi

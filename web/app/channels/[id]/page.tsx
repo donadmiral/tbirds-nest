@@ -8,7 +8,8 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ArrowLeft, BarChart2, Camera, ChevronDown, ChevronUp, HelpCircle, Image as ImageIcon, Plus, Radio, Send, Settings2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { channelMediaObject } from "@/lib/channelMedia";
+import { channelAttachmentUrls } from "@/lib/liveChannelMedia";
+import { ChannelVideo } from "@/components/ChannelVideo";
 import { useSocialPages } from "@/lib/useSocialPages";
 import { SocialPageFooter } from "@/components/SocialPageFooter";
 import { withTimeout } from "@/lib/withTimeout";
@@ -66,6 +67,7 @@ function ChannelInner() {
   const activeLoads = useRef(false);
   const pendingRefresh = useRef(false);
   const locks = useRef(new Set<string>());
+  const renewedMedia = useRef(new Set<string>());
   const cursor = useRef<Msg | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -157,14 +159,9 @@ function ChannelInner() {
         cursor.current = rows.at(-1) ?? cursor.current;
         setHasMore(rows.length === 40);
       }
-      const signed = await Promise.all(rows.filter((row) => row.media_url).map(async (row) => {
-        const object = channelMediaObject(row.media_url!, process.env.NEXT_PUBLIC_SUPABASE_URL ?? "");
-        if (!object) return [row.id, ""] as const;
-        const response = await withTimeout(supabase.storage.from(object.bucket).createSignedUrl(object.path, 300));
-        return [row.id, response.error ? "" : response.data?.signedUrl ?? ""] as const;
-      }));
+      const signed = await channelAttachmentUrls(supabase, process.env.NEXT_PUBLIC_SUPABASE_URL ?? "", rows);
       if (version !== epoch.current) return;
-      setMediaUrls((previous) => ({ ...previous, ...Object.fromEntries(signed) }));
+      setMediaUrls((previous) => ({ ...previous, ...signed }));
     } catch (cause) {
       if (version === epoch.current) setError(cause instanceof Error ? cause.message : "Could not load this channel. Please try again.");
     } finally {
@@ -180,15 +177,16 @@ function ChannelInner() {
     window.scrollTo({ top: historyScroll.current.top + document.documentElement.scrollHeight - historyScroll.current.height, behavior: "instant" });
     historyScroll.current = null;
   }, [messages]);
-  const renewMedia = async (row: Msg) => {
-    if (!row.media_url) return;
-    const object = channelMediaObject(row.media_url, process.env.NEXT_PUBLIC_SUPABASE_URL ?? "");
-    if (!object) return;
+  const renewMedia = async (row: Msg, manual = false) => {
+    const key = 'media:' + row.id;
+    if (!row.media_url || locks.current.has(key) || !manual && renewedMedia.current.has(row.id)) return;
+    renewedMedia.current.add(row.id); locks.current.add(key);
     const version = epoch.current;
     try {
-      const result = await withTimeout(supabase.storage.from(object.bucket).createSignedUrl(object.path, 300));
-      if (version === epoch.current) setMediaUrls((previous) => ({ ...previous, [row.id]: result.error ? "" : result.data?.signedUrl ?? "" }));
+      const result = await channelAttachmentUrls(supabase, process.env.NEXT_PUBLIC_SUPABASE_URL ?? "", [row]);
+      if (version === epoch.current) setMediaUrls((previous) => ({ ...previous, [row.id]: result[row.id] || "" }));
     } catch {if(version===epoch.current)setMediaUrls(previous=>({...previous,[row.id]:""}));}
+    finally { if (version === epoch.current) locks.current.delete(key); }
   };
 
   useEffect(() => {
@@ -199,7 +197,7 @@ function ChannelInner() {
     const refresh = () => { if (timer) clearTimeout(timer); timer = setTimeout(() => { if (alive) void load(); }, 180); };
     const bind = (next: string | null) => {
       if (!alive || uid === next) return;
-      uid = next; epoch.current += 1; activeLoads.current=false;pendingRefresh.current=false;locks.current.clear();setSending(false);setAttaching(false);setPollBusy(false);setReplySending(false);setReplyLoading(null);setReplyMore({});cursor.current = null; scrollOnce.current = true;
+      uid = next; epoch.current += 1; activeLoads.current=false;pendingRefresh.current=false;locks.current.clear();renewedMedia.current.clear();setSending(false);setAttaching(false);setPollBusy(false);setReplySending(false);setReplyLoading(null);setReplyMore({});cursor.current = null; scrollOnce.current = true;
       readPending.current = false; lastRead.current = '';
       setMe(next); setOpenThread(null); setDraft(""); setReplyDraft(""); setSettingsOpen(false); setPollOpen(false); setName("Channel"); setMyRole(""); setIsMember(false); setMessages([]); setReplies({}); setMediaUrls({}); setLoading(true); setHasMore(true);
       if (realtime) void supabase.removeChannel(realtime);
@@ -466,9 +464,9 @@ function ChannelInner() {
                   <img src={mediaUrls[m.id]} onError={() => void renewMedia(m)} alt="" className="mt-2 max-h-[340px] w-auto max-w-full rounded-lg object-contain" />
                 ) : null}
                 {mediaUrls[m.id] && m.media_type === "video" ? (
-                  <video src={mediaUrls[m.id]} onError={() => void renewMedia(m)} preload="metadata" controls playsInline className="mt-2 max-h-[340px] w-auto max-w-full rounded-lg" />
+                  <ChannelVideo source={mediaUrls[m.id]} onError={() => void renewMedia(m)} />
                 ) : null}
-                {m.media_url && !mediaUrls[m.id] ? <button onClick={() => void renewMedia(m)} className="mt-2 text-sm text-muted underline">Attachment unavailable. Retry</button> : null}
+                {m.media_url && !mediaUrls[m.id] ? <button onClick={() => void renewMedia(m, true)} className="mt-2 text-sm text-muted underline">Attachment unavailable. Retry</button> : null}
                 {poll ? (
                   <div className="mt-2 flex flex-col gap-1.5">
                     {(poll.options || []).map(o => {

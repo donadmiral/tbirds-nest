@@ -1,0 +1,27 @@
+{
+  "projectId": "uaulhuelcfkjwojtymmw",
+  "fixtureRunId": "554e817b-78b8-4e64-9a94-b2aa80fdca4d",
+  "statementTimeoutSeconds": 5,
+  "lockTimeoutSeconds": 2,
+  "retrySubmitted": false,
+  "retryOwner": "root",
+  "remaining": {
+    "posts": 0,
+    "users": 2,
+    "follows": 1,
+    "profiles": 2,
+    "sessions": 12,
+    "identities": 2,
+    "attachments": 0,
+    "notifications": 1,
+    "refreshTokens": 12,
+    "sourceObjects": 0,
+    "allFixtureObjects": 0,
+    "activeAdaptiveJobs": 0,
+    "activeOriginalJobs": 0,
+    "pendingAdaptiveCleanup": 0,
+    "pendingOriginalCleanup": 0
+  },
+  "observedAt": "2026-11-05T19:45:51.44297+00:00",
+  "activeMatchingDeletionTransactions": []
+}

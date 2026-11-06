@@ -71,6 +71,20 @@ test('unavailable service is not presented as an empty earnings account',async()
   await assert.rejects(()=>client.readCreatorSnapshot({rpc:async()=>({data:null,error:{code:'PGRST202'}})},'owner-a'),/not available/);
   assert.deepEqual((await client.readCreatorSnapshot({rpc:async()=>({data:snapshot(),error:null})},'owner-a')).balances,[]);
 });
+test('only transient snapshot reads permit retaining previously confirmed earnings',async()=>{
+  for(const status of [0,408,429,500,503]) await assert.rejects(
+    ()=>client.readCreatorSnapshot({rpc:async()=>({data:null,error:{message:'temporary'},status})},'owner-a'),
+    error=>error.retainPreviousSnapshot===true);
+  await assert.rejects(()=>client.readCreatorSnapshot({rpc:async()=>{throw Error('network unavailable');}},'owner-a'),error=>error.retainPreviousSnapshot===true);
+  for(const message of ['ACCESS_DENIED','AUTH_REQUIRED','FORBIDDEN']) await assert.rejects(
+    ()=>client.readCreatorSnapshot({rpc:async()=>{throw Error(message);}},'owner-a'),error=>error.retainPreviousSnapshot!==true);
+  for(const result of [
+    {data:null,error:{code:'42501'},status:403}, {data:null,error:{code:'PGRST301'},status:401},
+    {data:null,error:{code:'42501'},status:503}, {data:null,error:{code:'PGRST202'}},
+    {data:null,error:{code:'P0001',message:'ACCESS_DENIED'},status:503},
+    {data:null,error:null,status:200}, {data:snapshot(),error:null,status:200},
+  ]) await assert.rejects(()=>client.readCreatorSnapshot({rpc:async()=>result},'another-owner'),error=>error.retainPreviousSnapshot!==true);
+});
 test('mutations send the expected user and reject empty or failed responses',async()=>{
   const calls=[];const rpc=async(name,args)=>{calls.push([name,args]);return {data:'interested',error:null}};
   await client.registerCreatorInterest({rpc},'owner-a');assert.deepEqual(calls[0],['creator_register_interest',{p_expected_user:'owner-a'}]);

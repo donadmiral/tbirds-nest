@@ -19,12 +19,15 @@
   "expo": {
     "autolinking": {
       "android": {
-        "buildFromSource": ["expo-video"]
+        "buildFromSource": [
+          "expo-video"
+        ]
       }
     }
   },
   "dependencies": {
     "@config-plugins/react-native-callkeep": "12.0.0",
+    "@daily-co/config-plugin-rn-daily-js": "0.0.11",
     "@daily-co/react-native-daily-js": "0.86.0",
     "@daily-co/react-native-webrtc": "^124.0.6-daily.1",
     "@expo-google-fonts/archivo-black": "^0.4.1",
@@ -77,6 +80,7 @@
     "expo-screen-capture": "~8.0.10",
     "expo-secure-store": "~15.0.8",
     "expo-sensors": "~15.0.8",
+    "expo-sharing": "~14.0.8",
     "expo-status-bar": "~3.0.9",
     "expo-system-ui": "~6.0.9",
     "expo-task-manager": "~14.0.7",

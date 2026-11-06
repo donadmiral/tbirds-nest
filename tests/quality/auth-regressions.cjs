@@ -22,6 +22,7 @@ function harness(options = {}) {
   let state, now = 0, timerId = 0, callback, currentSession = Object.hasOwn(options, 'session') ? options.session : session('a');
   const timers = new Map(), links = new Set(), storage = new Map(), queries = [], logs = [], remembered = [], writes = [], cachedIds = [], toasts = [], snapshots = [];
   const responses = [];
+  const activity = { authSubscriptions: 0, authUnsubscriptions: 0, sessionReads: 0 };
   if (options.cached) storage.set('pc-profile-cache', JSON.stringify(options.cached));
   if (options.consumed) storage.set('pc-consumed-recovery', options.consumed);
   const fakeSetTimeout = (fn, ms = 0) => { const id = ++timerId; timers.set(id, { fn, due: now + ms }); return id; };
@@ -37,8 +38,8 @@ function harness(options = {}) {
   }
   const supabase = {
     auth: {
-      getSession: () => options.getSession ? options.getSession() : Promise.resolve({ data: { session: currentSession } }),
-      onAuthStateChange: (cb) => { callback = cb; return { data: { subscription: { unsubscribe: () => { callback = null; } } } }; },
+      getSession: () => { activity.sessionReads++; return options.getSession ? options.getSession() : Promise.resolve({ data: { session: currentSession } }); },
+      onAuthStateChange: (cb) => { activity.authSubscriptions++; callback = cb; return { data: { subscription: { unsubscribe: () => { activity.authUnsubscriptions++; callback = null; } } } }; },
       signOut: async () => { if (options.signOut) await options.signOut(); currentSession = null; callback?.('SIGNED_OUT', null); return { error: null }; },
     },
     from(table) {
@@ -84,7 +85,7 @@ function harness(options = {}) {
   vm.runInNewContext(compiled, context, { filename: 'authStore.js' });
   return {
     get state() { return context.exports.useAuthStore.getState(); },
-    queries, responses, timers, links, storage, remembered, writes, cachedIds, toasts, snapshots, logs,
+    queries, responses, timers, links, storage, remembered, writes, cachedIds, toasts, snapshots, logs, activity,
     tick,
     emit(event, value) { currentSession = value; callback?.(event, value); },
     warm(url) { for (const cb of links) cb({ url }); },
@@ -235,8 +236,55 @@ test('profile healing shares one in-flight read across repeated retries', async 
 test('successful launch clears all timeout timers', async () => {
   const h = await ready(); assert.equal(h.timers.size, 0);
 });
-test('reinitializing removes the previous recovery URL listener', async () => {
-  const h = await ready(); await h.state.initialize(); assert.equal(h.links.size, 1);
+test('remounting a ready app keeps content and its active auth listeners', async () => {
+  const h = await ready();
+  const before = { snapshots: h.snapshots.length, queries: h.queries.length, reads: h.activity.sessionReads };
+  const existingProfile = h.state.profile;
+  await h.state.initialize();
+  assert.equal(h.state.loading, false);
+  assert.equal(h.state.profile, existingProfile);
+  assert.equal(h.snapshots.length, before.snapshots, 'warm initialize must not publish a launch spinner');
+  assert.equal(h.queries.length, before.queries);
+  assert.equal(h.activity.sessionReads, before.reads);
+  assert.equal(h.activity.authSubscriptions, 1);
+  assert.equal(h.activity.authUnsubscriptions, 0);
+  assert.equal(h.links.size, 1);
+  h.emit('SIGNED_IN', session('b')); await h.tick();
+  assert.equal(h.state.profile.id, 'b', 'the retained listener still handles real account changes');
+});
+test('concurrent cold starts share one session read and profile request', async () => {
+  const auth = deferred();
+  const h = harness({ getSession: () => auth.promise });
+  const first = h.state.initialize();
+  const second = h.state.initialize();
+  assert.equal(first, second);
+  assert.equal(h.activity.authSubscriptions, 1);
+  assert.equal(h.activity.sessionReads, 1);
+  auth.resolve({ data: { session: session('a') } });
+  await Promise.all([first, second]);
+  assert.equal(h.queries.length, 1);
+  assert.equal(h.state.profile.id, 'a');
+});
+test('remount during cached background profile hydration does not duplicate or invalidate it', async () => {
+  const pending = deferred(); const h = harness({ cached: profile('a') });
+  h.responses.push(pending.promise);
+  await h.state.initialize();
+  await h.state.initialize();
+  assert.equal(h.queries.length, 1);
+  assert.equal(h.state.loading, false);
+  pending.resolve({ data: profile('a', { full_name: 'Fresh profile' }), error: null });
+  await flush();
+  assert.equal(h.state.profile.full_name, 'Fresh profile');
+});
+test('signed-out remount retains the listener without reopening the old session', async () => {
+  const h = await ready(); await h.state.signOut();
+  const reads = h.activity.sessionReads;
+  await h.state.initialize();
+  assert.equal(h.state.session, null);
+  assert.equal(h.state.loading, false);
+  assert.equal(h.activity.sessionReads, reads);
+  h.emit('SIGNED_IN', session('b')); await h.tick();
+  assert.equal(h.state.profile.id, 'b');
 });
 test('recovery URLs are not logged', async () => {
   const url = 'platinum://auth/callback?type=recovery&access_token=private-test-token';

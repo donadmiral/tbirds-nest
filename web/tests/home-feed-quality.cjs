@@ -17,19 +17,185 @@ function load(file, overrides = {}) {
 }
 const shared = load('../shared/feedSnapshot.ts');
 const marketplace = load('../shared/marketplaceRecommendations.ts');
-const { createHomeFeedController, filterMutedFeedRows } = load('lib/homeFeedController.ts', { '../../shared/feedSnapshot': shared, '../../shared/marketplaceRecommendations': marketplace, '../../shared/feedTabCache': load('../shared/feedTabCache.ts') });
+const { createHomeFeedController, filterMutedFeedRows } = load('lib/homeFeedController.ts', { '../../shared/feedSnapshot': shared,
+  '../../shared/contentMedia': load('../shared/contentMedia.ts'), '../../shared/marketplaceRecommendations': marketplace, '../../shared/feedTabCache': load('../shared/feedTabCache.ts') });
 const row = (id, likes = 0) => ({ post_id: id, author_id: 'author', content: 'Visible content ' + id, created_at: '2026-10-22T12:00:00Z', media: [], products: [], likes_count: likes, sort_key: 100 });
-const deferred = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; };
+const deferred = () => { let resolve, reject; const promise = new Promise((r, fail) => { resolve = r; reject = fail; }); return { promise, resolve, reject }; };
 const tick = () => new Promise(resolve => setImmediate(resolve));
 function harness(seedRows = [row('first')], seedError = null, options = {}) {
   const calls = [], saved = new Map(), measurements = [];
   let reply = async (_name, args) => ({ data: args.p_ids ? args.p_ids.map(post_id => ({ post_id, snapshot_eligible: true })) : [row('fresh')], error: null });
   const cache = shared.createFeedSnapshotStore({ getItem: async key => saved.get(key) ?? null, setItem: async (key,value) => saved.set(key,value), removeItem: async key => saved.delete(key) });
   const client = { rpc(name,args) { calls.push({name,args}); return reply(name,args); } };
-  const seed = { owner: 'alice', rows: seedRows, mutedWords: [], error: seedError };
-  const controller = createHomeFeedController(client, seed, cache, event => measurements.push(event), options.hydrate, undefined, options.mediaContext, options.historyFactory);
+  const seed = { owner: 'alice', rows: seedRows, mutedWords: [], error: seedError, ...options.seed };
+  const controller = createHomeFeedController(client, seed, cache, event => measurements.push(event), options.hydrate, options.memory, options.mediaContext, options.historyFactory,
+    options.readPreferences ?? (async () => seed.mutedWords));
   return {controller,client,seed,calls,cache,saved,measurements,setReply(fn){reply=fn;}};
 }
+function historyFactory() {
+  const { createSessionHistory } = load('../shared/sessionHistory.ts');
+  let sequence = 0;
+  return options => {
+    const disk = new Map();
+    return createSessionHistory({ ...options, namespace: 'startup-' + sequence++, storage: {
+      read: async keys => keys.map(key => disk.get(key) ?? null),
+      write: async entries => entries.forEach(([key, value]) => disk.set(key, value)),
+      clear: async () => disk.clear(),
+    } });
+  };
+}
+
+test('pending startup launches live, policy and disk reads while optional history is held', async () => {
+  const live = deferred(), policy = deferred(), history = deferred(); let policyReads = 0, diskReads = 0;
+  const h = harness([], null, { seed: { pending: true, preferencesReady: false }, historyFactory: historyFactory(),
+    readPreferences: async () => { policyReads++; return policy.promise; } });
+  h.cache.setAccount('alice');
+  await h.cache.write('alice', 'forYou', [row('cached'), row('muted')], new Set(['cached', 'muted']));
+  const read = h.cache.read;
+  h.cache.read = (...args) => { diskReads++; return read(...args); };
+  h.setReply((name, args) => name === 'get_feed' ? live.promise : name === 'get_feed_rows_by_ids_v1' ? history.promise
+    : Promise.resolve({ data: args.p_ids.map(post_id => ({ post_id, snapshot_eligible: true })), error: null }));
+  assert.equal(h.controller.getSnapshot().loading, true); assert.equal(h.controller.getSnapshot().error, null);
+  const starting = h.controller.start(); await tick();
+  assert.equal(policyReads, 1); assert.equal(diskReads, 1);
+  assert.equal(h.calls.filter(call => call.name === 'get_feed').length, 1);
+  assert.equal(h.controller.getSnapshot().rows.length, 0, 'An unverified disk policy cannot flash content');
+  policy.resolve(['muted']); await tick();
+  assert.deepEqual(Array.from(h.controller.getSnapshot().rows, value => value.post_id), ['cached']);
+  assert.equal(h.controller.getSnapshot().history, null);
+  live.resolve({ data: [row('fresh'), row('muted')], error: null }); await tick();
+  assert.deepEqual(Array.from(h.controller.getSnapshot().rows, value => value.post_id), ['fresh']);
+  assert.equal(h.controller.getSnapshot().loading, false, 'Live content is usable before history readiness');
+  history.resolve({ data: [], error: null }); await starting; await tick();
+  assert.deepEqual(Array.from(h.controller.getSnapshot().history.rows, value => value.post_id), ['fresh']);
+  h.controller.dispose();
+});
+
+test('an SSR error retries the live feed and restores disk even when optional history fails', async () => {
+  const live = deferred();
+  const h = harness([], 'Your feed could not load yet. Please try again.', { historyFactory: historyFactory() });
+  h.cache.setAccount('alice'); await h.cache.write('alice', 'forYou', [row('cached')], new Set(['cached']));
+  h.setReply((name, args) => name === 'get_feed' ? live.promise : name === 'get_feed_rows_by_ids_v1'
+    ? Promise.resolve({ data: null, error: { message: 'optional history unavailable' } })
+    : Promise.resolve({ data: args.p_ids.map(post_id => ({ post_id, snapshot_eligible: true })), error: null }));
+  const starting = h.controller.start(); await tick();
+  assert.equal(h.controller.getSnapshot().rows[0].post_id, 'cached');
+  assert.equal(h.controller.getSnapshot().error, null);
+  live.resolve({ data: [row('fresh')], error: null }); await starting;
+  assert.equal(h.controller.getSnapshot().rows[0].post_id, 'fresh');
+  assert.equal(h.controller.getSnapshot().history, null); h.controller.dispose();
+});
+
+test('history readiness before policy cannot bind an empty ledger that masks the later snapshot', async () => {
+  const live = deferred(), policy = deferred();
+  const h = harness([], null, { seed: { pending: true, preferencesReady: false }, historyFactory: historyFactory(),
+    readPreferences: () => policy.promise });
+  h.cache.setAccount('alice'); await h.cache.write('alice', 'forYou', [row('cached')], new Set(['cached']));
+  h.setReply((name, args) => name === 'get_feed' ? live.promise : Promise.resolve({
+    data: args.p_ids.map(post_id => ({ post_id, snapshot_eligible: true })), error: null }));
+  const starting = h.controller.start(); await tick();
+  assert.equal(h.controller.getSnapshot().history, null);
+  policy.resolve([]); await tick(); await tick();
+  assert.equal(h.controller.getSnapshot().rows[0].post_id, 'cached');
+  assert.equal(h.controller.getSnapshot().history.rows[0].post_id, 'cached');
+  live.resolve({ data: [row('fresh')], error: null }); await starting;
+  assert.equal(h.controller.getSnapshot().rows[0].post_id, 'fresh'); h.controller.dispose();
+});
+
+test('unknown or failed content preferences never expose live or disk rows or cache an empty policy', async () => {
+  const h = harness([], null, { seed: { pending: true, preferencesReady: false },
+    readPreferences: async () => { throw new Error('private preference error'); } });
+  h.cache.setAccount('alice'); await h.cache.write('alice', 'forYou', [row('cached')], new Set(['cached']));
+  await h.controller.start();
+  assert.equal(h.controller.getSnapshot().rows.length, 0); assert.equal(h.controller.remember(), null);
+  assert.equal(h.controller.getSnapshot().loading, false);
+  assert.match(h.controller.getSnapshot().error, /feed could not load/);
+  assert.doesNotMatch(h.controller.getSnapshot().error, /private preference/); h.controller.dispose();
+});
+
+test('a pending seed restores same-session known-policy memory before revalidation and keeps it on failure', async () => {
+  const previous = harness([row('allowed'), row('blocked')], null, { seed: { mutedWords: ['blocked'] } });
+  const memory = previous.controller.remember(320), policy = deferred();
+  const h = harness([], null, { seed: { pending: true, preferencesReady: false }, memory, readPreferences: () => policy.promise });
+  assert.deepEqual(Array.from(h.controller.getSnapshot().rows, value => value.post_id), ['allowed']);
+  const imageRow = h.controller.getSnapshot().rows[0], starting = h.controller.start(); await tick();
+  assert.equal(h.controller.getSnapshot().rows[0], imageRow);
+  policy.reject(new Error('offline')); await starting;
+  assert.equal(h.controller.getSnapshot().rows[0], imageRow);
+  assert.deepEqual(Array.from(h.controller.remember().mutedWords), ['blocked']);
+  h.controller.dispose(); previous.controller.dispose();
+});
+
+test('refreshed preferences remove newly muted content from active history and cached tabs', async () => {
+  let words = [];
+  const h = harness([row('first')], null, { historyFactory: historyFactory(), readPreferences: async () => words });
+  await h.controller.start();
+  h.setReply(async (name, args) => ({ data: name === 'get_feed' ? [row(args.p_mode === 'latest' ? 'blocked' : 'first')]
+    : args.p_ids.map(post_id => ({ post_id, snapshot_eligible: true })), error: null }));
+  h.controller.setMode('latest'); await tick(); await tick();
+  assert.equal(h.controller.getSnapshot().history.rows[0].post_id, 'blocked');
+  h.controller.setMode('for_you'); await tick();
+  words = ['blocked']; await h.controller.load(false, true);
+  h.controller.setMode('latest');
+  assert.equal(h.controller.getSnapshot().rows.length, 0);
+  assert.equal(h.controller.getSnapshot().history.rows.length, 0, 'A tab ledger cannot reintroduce newly muted rows');
+  await tick(); h.controller.dispose();
+});
+
+test('account replacement aborts delayed preferences and feed work and rejects their late results', async () => {
+  const oldPolicy = deferred(), oldFeed = deferred(), signals = []; let profileReads = 0;
+  const h = harness([], null, { seed: { pending: true, preferencesReady: false }, readPreferences: (owner, signal) => {
+    signals.push({ owner, signal }); profileReads++; return owner === 'alice' ? oldPolicy.promise : Promise.resolve(['blocked']);
+  } });
+  let feeds = 0;
+  h.client.rpc = (name, args) => {
+    const value = name === 'get_feed' ? ++feeds === 1 ? oldFeed.promise : Promise.resolve({ data: [row('bob'), row('blocked')], error: null })
+      : Promise.resolve({ data: args.p_ids.map(post_id => ({ post_id, snapshot_eligible: true })), error: null });
+    value.abortSignal = signal => { signals.push({ name, signal }); return value; }; return value;
+  };
+  const starting = h.controller.start(); await tick(); h.controller.setOwner('bob'); await tick();
+  assert.equal(signals.find(entry => entry.owner === 'alice').signal.aborted, true);
+  assert.equal(signals.find(entry => entry.name === 'get_feed').signal.aborted, true);
+  assert.equal(profileReads, 2); assert.deepEqual(Array.from(h.controller.getSnapshot().rows, value => value.post_id), ['bob']);
+  oldPolicy.resolve([]); oldFeed.resolve({ data: [row('alice')], error: null }); await starting;
+  assert.deepEqual(Array.from(h.controller.getSnapshot().rows, value => value.post_id), ['bob']); h.controller.dispose();
+});
+
+test('disposing during media signing aborts the actual signer signal and ignores its late rows', async () => {
+  const signing = deferred(); let signal;
+  const h = harness([], null, { seed: { pending: true, preferencesReady: false }, hydrate: (_rows, value) => { signal = value; return signing.promise; } });
+  const starting = h.controller.start(); await tick(); assert.ok(signal); assert.equal(signal.aborted, false);
+  h.controller.dispose(); assert.equal(signal.aborted, true);
+  signing.resolve([row('late')]); await starting; assert.equal(h.controller.getSnapshot().rows.length, 0);
+});
+
+test('a cold signer failure keeps policy-filtered text and reserved media frames without exposing any source URL', async () => {
+  const source = 'https://example.supabase.co/storage/v1/object/public/post-media/author/photo.jpg';
+  const post = { ...row('cold'), media_url: source, media: [{ id: 'photo', url: source, media_type: 'video', width: 1200, height: 1600,
+    edit: { aspect: 'portrait', coverUrl: source } }] };
+  const h = harness([], null, { seed: { pending: true, preferencesReady: false }, readPreferences: async () => ['blocked'],
+    hydrate: async () => { throw Error('private signer failure'); } });
+  h.setReply(async (name, args) => ({ data: name === 'get_feed' ? [post, row('blocked')]
+    : args.p_ids.map(post_id => ({ post_id, snapshot_eligible: true })), error: null }));
+  await h.controller.start(); const state = h.controller.getSnapshot();
+  assert.deepEqual(Array.from(state.rows, value => value.post_id), ['cold']);
+  assert.equal(state.rows[0].content, post.content); assert.equal(state.rows[0].media_url, null);
+  assert.equal(state.rows[0].media[0].url, ''); assert.equal(state.rows[0].media[0]._startupPreview, true);
+  assert.equal(state.rows[0].media[0]._startupMediaType, 'video'); assert.equal(state.rows[0].media[0].media_type, 'image');
+  assert.equal(state.rows[0].media[0].width, 1200); assert.equal(state.rows[0].media[0].height, 1600);
+  assert.equal(state.rows[0].media[0].edit.aspect, 'portrait'); assert.match(state.error, /Some media/);
+  assert.equal(state.loading, false); assert.doesNotMatch(JSON.stringify(state), /photo\.jpg|private signer/); h.controller.dispose();
+});
+
+test('a warm signer failure preserves the mounted authorized row but cannot retain explicitly revoked rows', async () => {
+  const kept = { ...row('kept'), media: [{ id: 'image', url: 'https://media.example/authorized.jpg', media_type: 'image' }] };
+  const h = harness([kept, row('revoked')], null, { hydrate: async () => { throw Error('signer offline'); } });
+  h.setReply(async name => ({ data: name === 'get_feed' ? [row('kept', 2)] : [{ post_id: 'kept', snapshot_eligible: true }], error: null }));
+  await h.controller.load(false, true);
+  assert.equal(h.controller.getSnapshot().rows[0], kept);
+  assert.deepEqual(Array.from(h.controller.getSnapshot().rows, value => value.post_id), ['kept']);
+  assert.match(h.controller.getSnapshot().error, /feed could not load/); h.controller.dispose();
+});
 
 test('verified server seed displays immediately without a duplicate initial feed fetch', async () => {
   const h=harness(); assert.equal(h.controller.getSnapshot().rows[0].post_id,'first');
@@ -93,6 +259,45 @@ test('pagination requests are deduplicated and old pages cannot enter a refreshe
   const one=h.controller.load(true);await h.controller.load(true);assert.equal(h.calls.length,1);
   h.controller.setOwner(null);pending.resolve({data:[row('old-page')],error:null});await one;
   assert.equal(h.controller.getSnapshot().rows.length,0);h.controller.dispose();
+});
+
+test('expired prepared cursors recover once from a fresh head while retaining visible order and scroll', async () => {
+  const seeds = Array.from({ length: 20 }, (_, i) => row('shown-' + i));
+  const h = harness(seeds), held = deferred(); let pages = 0;
+  h.setReply(async (name, args) => {
+    if (name === 'get_feed_visibility') return { data: args.p_ids.map(post_id => ({ post_id, snapshot_eligible: true })), error: null };
+    if (++pages === 1) return { data: null, error: { code: '22023', message: 'PREPARED_FEED_CURSOR_EXPIRED' } };
+    if (pages === 2) return held.promise;
+    assert.equal(args.p_cursor_id, 'new-18');
+    return { data: [row('next')], error: null };
+  });
+  const work = h.controller.load(true); await tick();
+  assert.equal(h.controller.getSnapshot().rows[0], seeds[0]);
+  assert.equal(h.controller.getSnapshot().scrollRestore, null);
+  assert.equal(h.calls[1].args.p_cursor_key, null); assert.equal(h.calls[1].args.p_cursor_id, null);
+  held.resolve({ data: [row('shown-0', 5), ...Array.from({ length: 19 }, (_, i) => row('new-' + i))], error: null }); await work;
+  const recovered = h.controller.getSnapshot();
+  assert.equal(recovered.rows.length, 39); assert.equal(recovered.rows[0].post_id, 'shown-0'); assert.equal(recovered.rows[0].likes_count, 5);
+  assert.equal(recovered.rows[19].post_id, 'shown-19'); assert.equal(recovered.error, null); assert.equal(recovered.scrollRestore, null);
+  await h.controller.load(true); assert.equal(h.controller.getSnapshot().rows.at(-1).post_id, 'next'); h.controller.dispose();
+});
+
+test('prepared cursor recovery failures remain retryable without clearing the list or looping', async () => {
+  const seeds = Array.from({ length: 20 }, (_, i) => row(String(i))), h = harness(seeds);
+  h.setReply(async () => ({ data: null, error: { code: '22023', message: 'PREPARED_FEED_CURSOR_EXPIRED' } }));
+  await h.controller.load(true);
+  assert.equal(h.calls.length, 2); assert.equal(h.controller.getSnapshot().rows[0], seeds[0]);
+  assert.equal(h.controller.getSnapshot().loadingMore, false); assert.ok(h.controller.getSnapshot().error); h.controller.dispose();
+});
+
+test('unrelated invalid cursors do not trigger prepared recovery and account changes discard its head', async () => {
+  const seeds = Array.from({ length: 20 }, (_, i) => row(String(i))), h = harness(seeds);
+  h.setReply(async () => ({ data: null, error: { code: '22023', message: 'Invalid arguments' } }));
+  await h.controller.load(true); assert.equal(h.calls.length, 1);
+  const head = deferred(); let calls = 0;
+  h.setReply(async () => ++calls === 1 ? { data: null, error: { code: '22023', message: 'PREPARED_FEED_CURSOR_EXPIRED' } } : head.promise);
+  const work = h.controller.load(true); await tick(); h.controller.setOwner(null); head.resolve({ data: [row('old account')], error: null }); await work;
+  assert.equal(h.controller.getSnapshot().rows.length, 0); assert.equal(h.controller.getSnapshot().owner, null); h.controller.dispose();
 });
 
 test('appending a page preserves existing row and media identity and renews only the new media', async () => {
@@ -165,6 +370,7 @@ test('the actual HomeFeed server rendering includes post content before JavaScri
   const overrides={
     '@/lib/navigationCache':{getNavigationStore:()=>({getSnapshot:()=>({owner:null,scope:null}),getServerSnapshot:()=>({owner:null,scope:null}),subscribe:()=>()=>{},cache:{read:()=>null}})},
     '@/lib/sessionHistory': { createWebSessionHistory: () => { throw Error('Server render must not start client history.'); } },
+    '../../shared/sessionHistory': load('../shared/sessionHistory.ts'),
     '../../shared/feedLive':load('../shared/feedLive.ts'), '@/lib/usePostInteractions':{applyPostInteractionsLive:()=>true},
     '@/lib/mediaPrefs': { dataSaverEnabled: () => false },
     '@/lib/homeFeedController':{createHomeFeedController}, '@/lib/homeFeedScroll':load('lib/homeFeedScroll.ts'), '@/lib/contentMedia':{hydratePostMedia:async rows=>rows}, '@/lib/feedCache':{getFeedCache:()=>h.cache}, '../../shared/feedSnapshot':shared, '../../shared/feedMedia':load('../shared/feedMedia.ts'),
@@ -259,7 +465,7 @@ test('background cancellation stops retained access batches and fences a late vi
 test('metadata refresh preserves current exact media grants and same-account session changes reauthorize', async () => {
   const content = load('../shared/contentMedia.ts');
   const reuse = load('../shared/feedMediaReuse.ts', { './contentMedia': content });
-  const adapter = load('lib/contentMedia.ts', { '../../shared/contentMedia': content, '../../shared/feedMediaReuse': reuse, './supabase/client': { createClient() {} } });
+  const adapter = load('lib/contentMedia.ts', { '../../shared/contentMedia': content, '../../shared/adaptiveMedia': load('../shared/adaptiveMedia.ts'), '../../shared/feedMediaReuse': reuse, './supabase/client': { createClient() {} } });
   const original = 'https://example.supabase.co/storage/v1/object/public/post-media/author/clip.mp4';
   const capability = 'https://example.supabase.co/functions/v1/media-content/post-media/author/clip.mp4?token=' + 'a'.repeat(64);
   const old = { ...row('first'), media: [{ id: 'clip', url: capability, media_type: 'video' }], _mediaExpiresAt: Date.now() + 180000 };
@@ -267,7 +473,7 @@ test('metadata refresh preserves current exact media grants and same-account ses
   const h = harness([old]); h.setReply(async (name, args) => ({ data: args.p_ids ? args.p_ids.map(post_id => ({ post_id, snapshot_eligible: true })) : [incoming], error: null }));
   let scope = 'alice:1'; const hydration = [];
   const c = createHomeFeedController(h.client, h.seed, h.cache, undefined, async rows => { hydration.push(rows); return rows; }, null,
-    { scope: () => scope, retain: adapter.retainFeedMedia });
+    { scope: () => scope, retain: adapter.retainFeedMedia }, undefined, async () => []);
   await c.load(false, true);
   assert.equal(c.getSnapshot().rows[0].media[0].url, capability);
   assert.equal(c.getSnapshot().rows[0].likes_count, 7);
@@ -287,7 +493,7 @@ test('metadata refresh preserves current exact media grants and same-account ses
 test('authorized refresh applies changed media sources and edit recipes instead of retaining obsolete identity', async () => {
   const content = load('../shared/contentMedia.ts');
   const reuse = load('../shared/feedMediaReuse.ts', { './contentMedia': content });
-  const adapter = load('lib/contentMedia.ts', { '../../shared/contentMedia': content, '../../shared/feedMediaReuse': reuse, './supabase/client': { createClient() {} } });
+  const adapter = load('lib/contentMedia.ts', { '../../shared/contentMedia': content, '../../shared/adaptiveMedia': load('../shared/adaptiveMedia.ts'), '../../shared/feedMediaReuse': reuse, './supabase/client': { createClient() {} } });
   const { renewFeedMedia } = load('../shared/feedMedia.ts');
   const canonical = name => 'https://example.supabase.co/storage/v1/object/public/post-media/author/' + name;
   const capability = (name, token) => 'https://example.supabase.co/functions/v1/media-content/post-media/author/' + name + '?token=' + token.repeat(64);
@@ -337,12 +543,27 @@ test('first Auth initialization replaces a pending null-scope retry without leav
     ? ++reads === 1 ? delayed.promise : { data: [row('authorized')], error: null }
     : { data: args.p_ids.map(post_id => ({ post_id, snapshot_eligible: true })), error: null });
   const c = createHomeFeedController(h.client, h.seed, h.cache, undefined, async rows => rows, null,
-    { scope: () => scope, retain: (_old, incoming) => incoming });
+    { scope: () => scope, retain: (_old, incoming) => incoming }, undefined, async () => []);
   const starting = c.start(); scope = 'alice:1'; c.setMediaSession('alice', scope, true); await tick();
   delayed.resolve({ data: [row('obsolete')], error: null }); await starting;
   assert.equal(c.getSnapshot().rows[0].post_id, 'authorized');
   assert.equal(c.getSnapshot().loading, false); assert.equal(c.getSnapshot().loadingMore, false);
   assert.equal(reads, 2); c.dispose(); h.controller.dispose();
+});
+
+test('initial Auth scope adoption also restores the verified disk snapshot while its replacement live request waits', async () => {
+  const h = harness([], null, { seed: { pending: true, preferencesReady: false } });
+  h.cache.setAccount('alice'); await h.cache.write('alice', 'forYou', [row('cached'), row('muted')], new Set(['cached', 'muted']));
+  const old = deferred(), replacement = deferred(); let scope = null, feeds = 0;
+  h.setReply((name, args) => name === 'get_feed' ? ++feeds === 1 ? old.promise : replacement.promise
+    : Promise.resolve({ data: args.p_ids.map(post_id => ({ post_id, snapshot_eligible: true })), error: null }));
+  const c = createHomeFeedController(h.client, h.seed, h.cache, undefined, async rows => rows, null,
+    { scope: () => scope, retain: (_old, incoming) => incoming }, undefined, async () => ['muted']);
+  const starting = c.start(); scope = 'alice:1'; c.setMediaSession('alice', scope, true); await tick();
+  assert.equal(feeds, 2); assert.deepEqual(Array.from(c.getSnapshot().rows, value => value.post_id), ['cached']);
+  old.resolve({ data: [row('obsolete')], error: null });
+  replacement.resolve({ data: [row('fresh')], error: null }); await starting; await tick();
+  assert.deepEqual(Array.from(c.getSnapshot().rows, value => value.post_id), ['fresh']); c.dispose(); h.controller.dispose();
 });
 
 test('switching modes clears previous results while the requested mode is loading or failed', async () => {

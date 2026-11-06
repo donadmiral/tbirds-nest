@@ -78,6 +78,11 @@ final class StoryVideoView: ExpoView {
   private var loadedURI: String?
   private var loadedRevision = -1
   private var renderedMatrix: [Double] = []
+  private var gradeSurface: StoryHLSGradeSurface?
+  private var sourceTransform = CGAffineTransform.identity
+  private var gradeOutputFailed = false
+  private var preparingHLS = false
+  private var hlsReadinessStarted = false
   private var appliedSeek = -1
   private var initialSeekCompleted = false
   private var firstFrameReported = false
@@ -94,6 +99,7 @@ final class StoryVideoView: ExpoView {
   var seekSeconds = 0.0
   var seekRevision = 0
   var reloadRevision = 0
+  var allowsHLSGrade = false
 
   required init(appContext: AppContext? = nil) {
     super.init(appContext: appContext)
@@ -110,7 +116,10 @@ final class StoryVideoView: ExpoView {
       if self.loop && !self.paused { self.player.seek(to: .zero) { [weak self] _ in DispatchQueue.main.async { self?.syncPlayback() } } }
     })
     for name in [UIApplication.willResignActiveNotification, UIApplication.didEnterBackgroundNotification, UIApplication.didBecomeActiveNotification] {
-      notifications.append(center.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in if name == UIApplication.didBecomeActiveNotification { self?.syncPlayback() } else { self?.player.pause() } })
+      notifications.append(center.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+        if name == UIApplication.didBecomeActiveNotification { self?.syncPlayback() }
+        else { self?.player.pause(); self?.gradeSurface?.update(matrix: self?.matrix ?? StoryVideoPixels.identity, fit: self?.fit ?? "contain", active: false) }
+      })
     }
     notifications.append(center.addObserver(forName: AVAudioSession.interruptionNotification, object: nil, queue: .main) { [weak self] notification in
       guard let self, let value = notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt else { return }
@@ -120,12 +129,15 @@ final class StoryVideoView: ExpoView {
     })
   }
 
-  override func layoutSubviews() { super.layoutSubviews(); playerLayer.frame = bounds }
+  override func layoutSubviews() { super.layoutSubviews(); playerLayer.frame = bounds; gradeSurface?.frame = bounds }
   override func didMoveToWindow() { super.didMoveToWindow(); syncPlayback() }
   func update() {
     playerLayer.videoGravity = fit == "cover" ? .resizeAspectFill : .resizeAspect
     player.isMuted = muted; player.volume = Float(max(0, min(1, volume.isFinite ? volume : 1)))
     if loadedURI != uri || loadedRevision != reloadRevision { load() }
+    // A stream obtains tracks and duration through its ready player item.
+    // Keep its ungraded layer and trim frame hidden during that preparation.
+    if preparingHLS { return }
     if renderedMatrix != matrix, let item = player.currentItem { applyGrade(item) }
     player.currentItem?.audioTimePitchAlgorithm = preservesPitch ? .spectral : .varispeed
     if appliedSeek != seekRevision, seekSeconds.isFinite, player.currentItem?.status == .readyToPlay {
@@ -136,6 +148,9 @@ final class StoryVideoView: ExpoView {
       } else {
         // Keep frame zero hidden until the saved trim has been applied.
         if !initialSeekCompleted { playerLayer.player = nil }
+        initialSeekCompleted = false
+        gradeSurface?.resetFrame()
+        gradeSurface?.update(matrix: matrix, fit: fit, active: false)
         player.seek(to: CMTime(seconds: max(0, seekSeconds), preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] finished in
           DispatchQueue.main.async {
             guard let self, finished, expected == self.generation, expectedSeek == self.appliedSeek else { return }
@@ -146,14 +161,17 @@ final class StoryVideoView: ExpoView {
       }
     }
     syncPlayback()
+    reportFirstFrame(generation)
   }
   private func syncPlayback() {
-    guard initialSeekCompleted, !paused, !interruption, window != nil, UIApplication.shared.applicationState == .active, player.currentItem?.status == .readyToPlay else { player.pause(); return }
+    let visible = initialSeekCompleted && !gradeOutputFailed && !interruption && window != nil && UIApplication.shared.applicationState == .active && player.currentItem?.status == .readyToPlay
+    guard visible, !paused else { player.pause(); gradeSurface?.update(matrix: matrix, fit: fit, active: visible); return }
     player.playImmediately(atRate: Float(max(0.25, min(4, rate.isFinite ? rate : 1))))
+    gradeSurface?.update(matrix: matrix, fit: fit, active: visible)
   }
   private func reportFirstFrame(_ expected: Int) {
-    guard expected == generation, initialSeekCompleted, !firstFrameReported,
-      playerLayer.isReadyForDisplay, player.currentItem?.status == .readyToPlay else { return }
+    guard expected == generation, initialSeekCompleted, !gradeOutputFailed, !firstFrameReported,
+      (gradeSurface?.firstFrameReady ?? playerLayer.isReadyForDisplay), player.currentItem?.status == .readyToPlay else { return }
     firstFrameReported = true
     onPlayback(["type": "firstFrame"])
   }
@@ -163,19 +181,84 @@ final class StoryVideoView: ExpoView {
     renderedMatrix = values
     // A neutral look needs no Core Image composition or second decode/render
     // pipeline. Most stories and memory pages take this hardware-only path.
-    if zip(values, StoryVideoPixels.identity).allSatisfy({ pair in abs(pair.0 - pair.1) < 0.000001 }) {
+    let neutral = zip(values, StoryVideoPixels.identity).allSatisfy({ pair in abs(pair.0 - pair.1) < 0.000001 })
+    if neutral {
+      clearGradeSurface(); playerLayer.isHidden = false
       item.videoComposition = nil
       return
     }
+    if URL(string: uri)?.pathExtension.lowercased() == "m3u8" {
+      item.videoComposition = nil; playerLayer.isHidden = true
+      let expected = generation
+      guard allowsHLSGrade else { gradeFailed(expected); return }
+      if gradeSurface == nil {
+        guard let surface = StoryHLSGradeSurface(player: player, item: item, transform: sourceTransform,
+          onFirstFrame: { [weak self] in self?.reportFirstFrame(expected) },
+          onFailure: { [weak self] in self?.gradeFailed(expected) }) else { gradeFailed(expected); return }
+        surface.frame = bounds; addSubview(surface); gradeSurface = surface
+      }
+      gradeSurface?.update(matrix: values, fit: fit, active: false)
+      return
+    }
+    clearGradeSurface(); playerLayer.isHidden = false
     item.videoComposition = AVVideoComposition(asset: item.asset, applyingCIFiltersWithHandler: { request in
       request.finish(with: StoryVideoPixels.matrix(request.sourceImage, values).cropped(to: request.sourceImage.extent), context: StoryVideoPixels.context)
     })
   }
+  private func clearGradeSurface() { gradeSurface?.stop(); gradeSurface?.removeFromSuperview(); gradeSurface = nil }
+  private func gradeFailed(_ expected: Int) {
+    guard expected == generation, !gradeOutputFailed else { return }
+    gradeOutputFailed = true; player.pause(); clearGradeSurface()
+    // The JS controller retries the same authorized source as a graded file.
+    // Never expose the ungraded HLS layer when the output pipeline fails.
+    playerLayer.isHidden = true
+    onPlayback(["type": "statusChange", "status": "error", "error": "This video needs its original playback format."])
+  }
+  private func loadHLS(_ asset: AVURLAsset, expected: Int) {
+    preparingHLS = true; hlsReadinessStarted = false; playerLayer.isHidden = true
+    let item = AVPlayerItem(asset: asset)
+    item.preferredForwardBufferDuration = 3
+    // Observe before association. AVPlayer starts resolving HLS media when it
+    // receives the item, so AVAsset's earlier empty tracks are not a failure.
+    itemStatus = item.observe(\.status, options: [.initial, .new]) { @Sendable [weak self] _, _ in
+      DispatchQueue.main.async {
+        guard let self, expected == self.generation, self.player.currentItem === item else { return }
+        if item.status == .failed {
+          self.onPlayback(["type": "statusChange", "status": "error", "error": item.error?.localizedDescription ?? "This video could not play."])
+        } else if item.status == .readyToPlay, !self.hlsReadinessStarted {
+          self.hlsReadinessStarted = true
+          self.loadTask = Task { @MainActor [weak self] in
+            do {
+              let track = item.tracks.compactMap { $0.assetTrack }.first { $0.mediaType == .video }
+              let transform: CGAffineTransform
+              if let track { transform = try await track.load(.preferredTransform) }
+              else { transform = .identity }
+              guard !Task.isCancelled, let self, expected == self.generation, self.player.currentItem === item else { return }
+              let duration = item.duration.seconds
+              guard duration.isFinite, duration > 0 else {
+                self.onPlayback(["type": "statusChange", "status": "error", "error": "This video could not be read."]); return
+              }
+              self.sourceTransform = transform; self.preparingHLS = false
+              self.applyGrade(item)
+              guard !self.gradeOutputFailed else { return }
+              self.onPlayback(["type": "statusChange", "status": "readyToPlay", "duration": duration])
+              self.update()
+            } catch {
+              guard !Task.isCancelled, let self, expected == self.generation, self.player.currentItem === item else { return }
+              self.onPlayback(["type": "statusChange", "status": "error", "error": error.localizedDescription])
+            }
+          }
+        }
+      }
+    }
+    player.replaceCurrentItem(with: item)
+  }
   private func load() {
     generation += 1; let expected = generation
     loadedURI = uri; loadedRevision = reloadRevision; appliedSeek = -1; renderedMatrix = []; loadTask?.cancel()
-    initialSeekCompleted = false; firstFrameReported = false
-    player.pause(); displayStatus = nil; playerLayer.player = nil; itemStatus = nil; player.replaceCurrentItem(with: nil)
+    initialSeekCompleted = false; firstFrameReported = false; preparingHLS = false; hlsReadinessStarted = false
+    player.pause(); clearGradeSurface(); sourceTransform = .identity; gradeOutputFailed = false; playerLayer.isHidden = false
+    displayStatus = nil; playerLayer.player = nil; itemStatus = nil; player.replaceCurrentItem(with: nil)
     loadedAsset?.cancelLoading(); loadedAsset = nil
     guard !uri.isEmpty else { onPlayback(["type": "statusChange", "status": "idle"]); return }
     guard let url = URL(string: uri), url.isFileURL || url.scheme == "https" else { onPlayback(["type": "statusChange", "status": "error", "error": "This video URL is unsupported."]); return }
@@ -187,6 +270,7 @@ final class StoryVideoView: ExpoView {
     }
     let asset = StoryVideoWarmPool.take(uri) ?? AVURLAsset(url: url)
     loadedAsset = asset
+    if url.pathExtension.lowercased() == "m3u8" { loadHLS(asset, expected: expected); return }
     loadTask = Task { [weak self] in
       do {
         async let playableLoad = asset.load(.isPlayable)
@@ -198,8 +282,10 @@ final class StoryVideoView: ExpoView {
           guard let self, expected == self.generation else { return }
           guard playable, !tracks.isEmpty, duration.seconds.isFinite, duration.seconds > 0 else { self.onPlayback(["type": "statusChange", "status": "error", "error": "This video could not be read."]); return }
           let item = AVPlayerItem(asset: asset)
+          self.sourceTransform = .identity
           item.preferredForwardBufferDuration = 3
           self.applyGrade(item)
+          guard !self.gradeOutputFailed else { return }
           self.player.replaceCurrentItem(with: item)
           self.itemStatus = item.observe(\.status, options: [.initial, .new]) { @Sendable [weak self] _, _ in
             DispatchQueue.main.async {

@@ -57,3 +57,19 @@ test('unmount prevents a pending initial session from starting financial reads',
   resolve({data:{session:{user:{id:'account-a'}}},error:null});await flush();
   assert.equal(h.loads.length,0);assert.equal(h.refs.currentUser.current,undefined);
 });
+
+test('same-account earnings refresh keeps a confirmed snapshot on transient failure and clears denied data',async()=>{
+  let declaration;
+  const visit=node=>{if(ts.isVariableDeclaration(node)&&node.name.getText(ast)==='reload')declaration=node;ts.forEachChild(node,visit);};visit(ast);
+  const callback=declaration.initializer.arguments[0].getText(ast);
+  const initial={user_id:'owner-a',balances:[{amount_minor:'10000'}]};
+  const state={Snapshot:initial};let failure=Object.assign(new Error('temporary'),{retainPreviousSnapshot:true});
+  const refs={identity:{current:1},requests:{current:0},linkRequest:{current:null},currentUser:{current:'owner-a'}};
+  const context={...refs,client:{},AbortController,setTimeout,clearTimeout,Error,
+    readCreatorSnapshot:async()=>{throw failure;},readIntoBankLink:async()=>true,withFinanceDeadline:work=>work};
+  for(const key of ['Snapshot','Loading','Error','LinkError','Linked','Accepted'])context['set'+key]=value=>{state[key]=typeof value==='function'?value(state[key]):value;};
+  const reload=vm.runInNewContext(ts.transpileModule(`(${callback})`,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText,context);
+  await reload('owner-a',1);assert.equal(state.Snapshot,initial);assert.equal(state.Loading,false);assert.match(state.Error,/temporary/);
+  failure=Object.assign(new Error('denied'),{retainPreviousSnapshot:false});await reload('owner-a',1);assert.equal(state.Snapshot,null);
+  state.Snapshot=initial;refs.identity.current=2;await reload('owner-a',1);assert.equal(state.Snapshot,initial,'An obsolete request cannot clear a newer account result');
+});

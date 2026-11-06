@@ -157,7 +157,7 @@ test('the web singleton factory installs the same Auth-only transport', async ()
   const factory = load('web/lib/supabase/client.ts', {
     ...h.clock, process: { env: { NEXT_PUBLIC_SUPABASE_URL: backend, NEXT_PUBLIC_SUPABASE_ANON_KEY: 'synthetic-public' } },
     fetch: (_input, init) => { signal = init.signal; return waiting.promise; },
-    require: name => name === '@supabase/ssr' ? { createBrowserClient(_url, _key, provided) { options = provided; return {}; } } : name === '../../../shared/authFetch' ? h : (() => { throw Error(name); })(),
+    require: name => name === '@supabase/ssr' ? { createBrowserClient(_url, _key, provided) { options = provided; return {}; } } : name === '../../../shared/authFetch' ? h : name === './cacheCapabilityFetch' ? load('web/lib/supabase/cacheCapabilityFetch.ts') : (() => { throw Error(name); })(),
   });
   factory.createClient(); const work = options.global.fetch(backend + '/auth/v1/user'); const rejected = assert.rejects(work, { name: 'TimeoutError' });
   h.deadline(); await rejected; assert.equal(signal.aborted, true); waiting.resolve(new Response('{}')); await turn();

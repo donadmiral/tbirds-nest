@@ -1,0 +1,13 @@
+{
+  "commit": "c8052ba7bb10f367a5e26337e94f3b080a48d7ce",
+  "workflowRun": "42076396130",
+  "apkSha256": "f2a3f0d1797690bdc5d776695e6d8cbc646d873d361a6a34f0aedb28349a15ac",
+  "bytes": 75579829,
+  "abi": "arm64-v8a",
+  "javascriptBundled": true,
+  "syntheticBackend": false,
+  "connectedQaBackend": true,
+  "disposableDebuggableQa": true,
+  "physicalDeviceAcceptance": false,
+  "secureMediaCompiled": true
+}

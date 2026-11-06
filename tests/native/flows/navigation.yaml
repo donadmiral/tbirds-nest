@@ -5,11 +5,39 @@ name: Full native app navigation
     clearState: true
     permissions:
       notifications: deny
-- extendedWaitUntil:
-    visible: Sign in
-    timeout: 30000
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - extendedWaitUntil:
+          visible: Sign in
+          timeout: 30000
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      # Cold Simulator launch can consume the first wait before JavaScript starts.
+      - extendedWaitUntil:
+          visible: Sign in
+          timeout: 90000
 - tapOn: Username or email
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      # Native delivery can follow the tap command. Wait before typing.
+      - extendedWaitUntil:
+          visible:
+            id: '^Next:$'
+          timeout: 30000
 - inputText: qa.alex@example.invalid
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - extendedWaitUntil:
+          visible: '^qa\.alex@example\.invalid$'
+          timeout: 30000
 # On compact Android displays the open email keyboard covers the next field.
 - runFlow:
     when:
@@ -17,7 +45,23 @@ name: Full native app navigation
     commands:
       - hideKeyboard
 - tapOn: Password
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      # This field requests UIKit's Go return key, distinct from email's Next.
+      - extendedWaitUntil:
+          visible: '(?i)^go$'
+          timeout: 30000
 - inputText: FixtureOnly-2026!
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      # Read only the exact secure mask, never the password in an assertion.
+      - extendedWaitUntil:
+          visible: '^•{17}$'
+          timeout: 30000
 - runFlow:
     when:
       platform: Android
@@ -29,11 +73,57 @@ name: Full native app navigation
     commands:
       # The iOS keyboard has no standard dismiss button; use the real scroll-view dismissal.
       - tapOn: Platinum Circles
+      - extendedWaitUntil:
+          notVisible:
+            id: '^space$'
+          timeout: 30000
+      - assertVisible:
+          text: '^Sign in$'
+          enabled: true
 - tapOn: Sign in
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      # Maestro 2.11.0 gives this exact condition a 7-second lookup budget
+      # after Sign in. Only an absent title skips it, not a failed dismissal.
+      - runFlow:
+          when:
+            visible: '^Save Password\?$'
+          commands:
+            - tapOn: '^Not Now$'
+            - extendedWaitUntil:
+                notVisible: '^Save Password\?$'
+                timeout: 5000
 - extendedWaitUntil:
     visible: A quiet morning in the desert. Small moments worth keeping.
     timeout: 30000
 - takeScreenshot: home
+- runFlow: feed-video.yaml
+- runFlow: live-immersive.yaml
+# Actual native Live screens use the same isolated read transport as this journey.
+# These captures verify layout and navigation, not native provider broadcasting.
+- runFlow: reveal-live-tab.yaml
+- tapOn:
+    id: feed-tab-live
+- extendedWaitUntil:
+    visible: 'Community creator hour, LIVE'
+    timeout: 15000
+- takeScreenshot: live-directory
+- tapOn: Start live
+- extendedWaitUntil:
+    visible: Preview camera
+    timeout: 15000
+- takeScreenshot: live-start
+- tapOn: Schedule for later
+- assertVisible: Scheduled date
+- assertVisible: Schedule stream
+- takeScreenshot: live-schedule
+- tapOn: Back to Live
+- assertVisible: Start live
+- tapOn: Back to feed
+- assertVisible: A quiet morning in the desert. Small moments worth keeping.
+- runFlow: reveal-feed-tabs.yaml
 - tapOn: Latest
 - assertVisible: A quiet morning in the desert. Small moments worth keeping.
 - tapOn: For You

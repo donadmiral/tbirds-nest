@@ -1,0 +1,93 @@
+{
+  "recorded_at": "2026-11-03T16:43:04.796Z",
+  "base_revision": "eacfaa80e1cf7a694992a436127dc7246b40d668",
+  "scope": "EAS credentials declaration for the existing Daily ReplayKit extension; no build, deployment, signing or backend mutation",
+  "files": {
+    "app.config.js": "2f5ddd6b55ee78e93556401e36415c4a535925abec31394dc03ccefc8fb55420",
+    "tests/quality/native-environment.cjs": "338bf44cd1afdb5f64c9b5c718ee107f802f7cd6ea7a63c5cb35cb5562a9d5f7"
+  },
+  "verification": {
+    "command": "node --test tests/quality/native-environment.cjs",
+    "passed": 4,
+    "failed": 0,
+    "assertions": [
+      "QA and production application/backend isolation",
+      "Mixed backends and native builds without explicit backend rejected",
+      "Environment-derived Daily extension bundle identifier and App Group",
+      "Existing EAS configuration and unrelated extensions preserved without mutating input"
+    ],
+    "expo_public_config": {
+      "command": "node node_modules/expo/bin/cli config --type public --json",
+      "environment": {
+        "EXPO_NO_DOTENV": "1",
+        "EAS_BUILD": "true"
+      },
+      "projections": [
+        {
+          "environment": "qa",
+          "backend": "https://uaulhuelcfkjwojtymmw.supabase.co",
+          "app": "app.platinumcircles.mobile.qa",
+          "target": "ScreenCaptureExtension",
+          "extension": "app.platinumcircles.mobile.qa.ScreenCaptureExtension",
+          "app_group": "group.app.platinumcircles.mobile.qa",
+          "passed": true
+        },
+        {
+          "environment": "production",
+          "backend": "https://prlkikhckbifseosbukl.supabase.co",
+          "app": "app.platinumcircles.mobile",
+          "target": "ScreenCaptureExtension",
+          "extension": "app.platinumcircles.mobile.ScreenCaptureExtension",
+          "app_group": "group.app.platinumcircles.mobile",
+          "passed": true
+        }
+      ]
+    },
+    "daily_plugin_version": "0.0.11",
+    "daily_plugin_reviewed": [
+      "build/withIosBroadcastExtension.js: ScreenCaptureExtension target and bundle suffix",
+      "build/withIosScreenCapture.js: group.<resolved bundle identifier> entitlement"
+    ],
+    "diff_check": "passed"
+  },
+  "qa_runtime_read_only": {
+    "project": "uaulhuelcfkjwojtymmw",
+    "create_enabled": true,
+    "stage_enabled": false,
+    "delivery_enabled": false,
+    "private_delivery_enabled": false,
+    "recording_enabled": false,
+    "clips": {
+      "enabled": false,
+      "max_active": 2,
+      "project_origin": null
+    },
+    "maintenance": {
+      "enabled": true,
+      "project_origin": "https://uaulhuelcfkjwojtymmw.supabase.co",
+      "last_completed_at": "2026-11-03T16:39:02.584757+00:00",
+      "last_failed_at": null
+    },
+    "provider_operations": [],
+    "existing_maintenance_response": {
+      "id": 20050,
+      "status_code": 200,
+      "provider_configuration": {
+        "DAILY_API_KEY": false,
+        "LIVE_DAILY_DOMAIN_ID": false,
+        "LIVE_DAILY_WEBHOOK_SECRET": false,
+        "LIVE_HLS_BUCKET": false,
+        "LIVE_HLS_REGION": false,
+        "LIVE_HLS_ASSUME_ROLE_ARN": false,
+        "LIVE_HLS_CDN_ORIGIN": false,
+        "LIVE_PLAYBACK_SIGNER_URL": false,
+        "LIVE_PLAYBACK_SIGNER_SECRET": false
+      }
+    }
+  },
+  "limits": [
+    "No signed iOS binary built or device installation tested in this change",
+    "Registered iPhone and valid main-app/extension signing credentials still required by the internal distribution profile",
+    "QA Live provider/delivery configuration and gates must be provisioned before QA can broadcast, play protected Live media, record or render clips"
+  ]
+}

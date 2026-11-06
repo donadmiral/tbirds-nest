@@ -10,9 +10,9 @@ const jsx = (type, props) => ({ type, props });
 function load(file, mocks = {}) {
   const filename = path.join(root, file);
   const source = fs.readFileSync(filename, 'utf8');
-  const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 } }).outputText;
+  const compiled = ts.transpileModule(source, { fileName: filename, compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 } }).outputText;
   const module = { exports: {} };
-  vm.runInNewContext(compiled, { module, exports: module.exports, console,
+  vm.runInNewContext(compiled, { module, exports: module.exports, console, URL,
     require(name) {
       if (name in mocks) return mocks[name];
       if (name === 'react/jsx-runtime') return { jsx, jsxs: jsx };
@@ -84,11 +84,17 @@ for (const mode of ['light', 'dark']) test('post paragraphs, headings, lists and
 
 test('the expanded native carousel retains mixed attachment order and opens the tapped item', () => {
   const palette = load('src/constants/tokens/dark.ts').dark;
-  const hooks = { useState: initial => [typeof initial === 'function' ? initial() : initial, () => {}], useRef: value => ({ current: value }), useEffect() {}, useCallback: fn => fn };
+  const hooks = { useState: initial => [typeof initial === 'function' ? initial() : initial, () => {}], useRef: value => ({ current: value }), useEffect() {}, useCallback: fn => fn, useMemo: fn => fn(), useSyncExternalStore: (_subscribe, snapshot) => snapshot() };
   const Carousel = load('src/components/PostCarousel.tsx', {
     react: hooks, '../theme/useTheme': { themedSheet: fn => fn(palette), useTheme: () => ({ t: palette, isDark: true }) },
     'react-native': { View: 'View', Text: 'Text', FlatList: 'FlatList', TouchableOpacity: 'Button', ActivityIndicator: 'Spinner', Animated: {}, StyleSheet: {} },
     'expo-image': {}, 'expo-video': {}, '../lib/videoEngine': {},
+    '../lib/usePostVideoRepresentation': require('./unmarked-post-video-fixture.cjs'),
+    '../lib/navigationCache': { navigationScope: () => 'viewer:1', subscribeNavigationScope: () => () => {} },
+    '../services/supabase': { SUPABASE_URL: 'https://preview.supabase.co' },
+    '../lib/offlinePlaybackSelection': load('src/lib/offlinePlaybackSelection.ts'),
+    '../hooks/useOfflineFeedMedia': { useOfflineFeedMedia: () => null },
+    '../hooks/useFeedStartupPreview': { useFeedStartupPreview: () => null },
     './VideoThumb': { default: 'VideoThumb' }, './MediaRenderer': { useMediaTags: () => ({}) }, './stories/StoryFilters': {}, './stories/storyPanels': {},
     '@react-navigation/native': {}, '../stores/settingsStore': {}, './PostCaption': {}, './PostSoundtrack': {},
     '../../shared/soundtrack': { readSoundtrack: () => null }, '@expo/vector-icons': {},

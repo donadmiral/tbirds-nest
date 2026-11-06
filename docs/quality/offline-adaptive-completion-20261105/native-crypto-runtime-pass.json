@@ -1,0 +1,52 @@
+{
+  "applicationSource": "015dcb5d6a8e9b941cba66816d14a28a5315d587",
+  "testSource": "f3bf2deafb834c0a033127ea3f1658af85f9b671",
+  "physicalDeviceAcceptance": false,
+  "records": [
+    {
+      "passed": true,
+      "cases": [
+        "invalidKeyAndOversizeInputRejected",
+        "tamperedTagRejectedWithoutPlaintext",
+        "fullResolutionRoundtrip",
+        "rotatedAccountKeyCannotDecrypt",
+        "traversalAndSymlinkEscapeRejected",
+        "freshNoncePerWrite"
+      ],
+      "physicalDevice": false,
+      "platform": "Android Emulator",
+      "commit": "f3bf2deafb834c0a033127ea3f1658af85f9b671",
+      "sourceSha256": "ac4a9036e4a1f16cc794baf1b12e1813f3da90866c3bc998533b67e7262e43cf",
+      "artifact": 13429678806,
+      "archiveSha256": "007f981714c6441433905f1e9e343e597e01994b29fe54d709ba72ff5f270e84",
+      "workflowRun": 42057339883
+    },
+    {
+      "cases": [
+        "full-resolution roundtrip",
+        "fresh nonce per write",
+        "tampered tag rejected without plaintext",
+        "rotated account key cannot decrypt",
+        "traversal and symlink escape rejected",
+        "invalid key and oversize input rejected",
+        "cache excluded from backup"
+      ],
+      "error": null,
+      "networkUsed": false,
+      "passed": true,
+      "physicalDevice": false,
+      "platform": "iOS Simulator",
+      "commit": "f3bf2deafb834c0a033127ea3f1658af85f9b671",
+      "workflow_run": "42057339883",
+      "architecture": "arm64",
+      "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-26-2",
+      "sources": {
+        "modules/secure-media/ios/SecureMediaCrypto.swift": "b0c25cd1bae95df3da767a21ba43e43403693fad968628226b4976f2353075ca",
+        "scripts/quality/SecureMediaCryptoHarness.swift": "8ad56a9d270d3d7aad83c9fd13b19d7e9906327c903612c95393da832a442d6a"
+      },
+      "artifact": 13428679530,
+      "archiveSha256": "b6e6b3d852c69459d05be4ba3e483dca9ba63517e9f0892c9f17f17118a27738",
+      "workflowRun": 42057339883
+    }
+  ]
+}

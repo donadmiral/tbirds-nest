@@ -1,0 +1,16 @@
+{
+  "oldSourceCommit": "c8052ba7bb10f367a5e26337e94f3b080a48d7ce",
+  "explicitOriginalAssertions": 27,
+  "explicitAssertionsRemovedOrChanged": 0,
+  "stages": [
+    "online-image-displayed",
+    "online-video-playing",
+    "refresh-retains-displayed-image",
+    "navigation-retains-decoded-originals",
+    "offline-cold-image-decrypted-and-displayed",
+    "offline-cold-video-decrypted-and-playing",
+    "restored-network-refresh-retains-image"
+  ],
+  "allSevenStagesUnchanged": true,
+  "scope": "AST comparison of explicit asserts and seven record stages. Radio-readback wait predicates intentionally use the exact subscription setting through the reviewed helper."
+}

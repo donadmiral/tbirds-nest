@@ -1,0 +1,705 @@
+{
+  "frozenAt": "2026-11-05T19:52:51.188664+00:00",
+  "list": "/tmp/physical-connected-publication-paths-final.txt",
+  "listSha256": "2124a0364767c12bd9e7babe7792b40c46e5004bc2ceb0b5180b65ee19320560",
+  "frozenHashManifestSha256": "0bfb1db12e207de34ac73f2f4be5525374c15a47992b4e9b3d76af599f2e723c",
+  "filesReviewed": 82,
+  "imageFiles": 16,
+  "textFiles": 66,
+  "allFrozenHashesMatch": true,
+  "changedPreviouslyReviewedFiles": [
+    "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-cleanup-status.json",
+    "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-current-status.json",
+    "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-5e9ac2ed-manifest.json",
+    "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-run-manifest.json"
+  ],
+  "files": [
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-build-c8052ba-receipt.json",
+      "sha256": "9c74283a626623ea9a77cb562f4adcc5c2b10632422cf9b2a3e55f4f52d176f3",
+      "bytes": 407,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-build-c8052ba-source.json",
+      "sha256": "7279fa26cad6d9a8302df7110820eed48fc0195336fbf2ecf1c580aebb220b62",
+      "bytes": 93034,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-source-binding.json",
+      "sha256": "40df544204a544f582370a5a2358dc05fff316a0a6c6e821b38438083d689f9c",
+      "bytes": 1035,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-post-version-fix-preflight.json",
+      "sha256": "3d0200ce63840f72a839a4e4211a58b3c8c07430cb874a269aad90524e2d0c2f",
+      "bytes": 1510,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-radio-rerun-preflight.json",
+      "sha256": "d0e1968f1f5271b4cce26617e7e90dc8f27ad681ad9e640ed0e862690cc3fa0f",
+      "bytes": 1469,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-radio-rerun-source-binding.json",
+      "sha256": "78ebbda98a7f0a4dc5fe471788a27af6e7710584d67d3b7775ac3245cc677580",
+      "bytes": 1123,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-radio-readback-tests.json",
+      "sha256": "e0724dc345e44067884eee4c5a2e53fd5a27925d7cdd96a36c72ec4065431dc9",
+      "bytes": 1478,
+      "frozenHashMatches": true,
+      "urlCount": 1
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-radio-assertion-preservation.json",
+      "sha256": "b9bcdec1fde433380f97050881479af3185cbd6a66519492efdb368095b5698b",
+      "bytes": 668,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-f760d34a-manifest.json",
+      "sha256": "e9319e736b9227b1cbcc9d5394eb6767b94aedfab9721c0e2d17eb4cb9212aa4",
+      "bytes": 8780,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-f760d34a-receipt.json",
+      "sha256": "d40267cb1362c49da8ed3d2dcbea0b16a164d1c0106f2704f387d1311cc67870",
+      "bytes": 1060,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-f760d34a-diagnostic.json",
+      "sha256": "79154b85540123b5abca09984635399fe97d34e925e72b2b3123244247e87a18",
+      "bytes": 1877,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-f760d34a-observer-selected.json",
+      "sha256": "43e680ec27349b763bec1995d24cd70fe7b6d5f6e4a32d5399735131f2896006",
+      "bytes": 22255,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-f760d34a-junit.xml",
+      "sha256": "10dca8c112c425a4cf80ca94d6a763b3bf891433c0e3dba16287ea83f9391646",
+      "bytes": 3936,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-be224d33-manifest.json",
+      "sha256": "921beacf47b64720f6a6ec009b28bcd24ae5b992b320b1aeb84def96ecd4808f",
+      "bytes": 4699,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-be224d33-receipt.json",
+      "sha256": "05da691230e1319f000411c1b7824fc5633f0f210fd2b9798fa17aa99489e0ec",
+      "bytes": 2019,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-be224d33-diagnostic.json",
+      "sha256": "90c5d51576925be0c8598bbc383db8cbc8264ac9c1f5a772b24b73d383b694d6",
+      "bytes": 1650,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-be224d33-observer-selected.json",
+      "sha256": "828413c3f2bfdfbb51f21552449334bc1fa8f4bdfe2ccf1b6effb6ed7ed18f5a",
+      "bytes": 13610,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-be224d33-junit.xml",
+      "sha256": "dae92cab57cc931487d4596861dd3ae3214543a29aaa3c984bd9c5d02bacb153",
+      "bytes": 759,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-f760d34a-hosted-version-probe.json",
+      "sha256": "ba618bf37c53bcca49b1c3727fb04a9c0db922e9f5083078e4d0e6ab6c1a3345",
+      "bytes": 732,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-f760d34a-refresh-recording/recording-continuity.json",
+      "sha256": "bc7e7758d484cc027015738ee92d1547797cfd82bffcb0c0604ac70e43f2dee5",
+      "bytes": 2550,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-f760d34a-refresh-recording/refresh-boundary-92.84.png",
+      "sha256": "c3851bab57d4d77a6d89fc54c1cea4fbc544f4a25bad643ea8936e0c94ef5ad6",
+      "bytes": 12091,
+      "frozenHashMatches": true,
+      "dimensions": [
+        360,
+        270
+      ],
+      "imageMetadataKeys": [],
+      "matchesPreviouslyReviewedPublicCrop": true
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-f760d34a-refresh-recording/refresh-boundary-92.88.png",
+      "sha256": "5de5fdea1c6343c83789377a7b47a7adf1282da2a69aeebb36281caa8be42121",
+      "bytes": 2833,
+      "frozenHashMatches": true,
+      "dimensions": [
+        360,
+        270
+      ],
+      "imageMetadataKeys": [],
+      "matchesPreviouslyReviewedPublicCrop": true
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-f760d34a-refresh-recording/refresh-boundary-92.92.png",
+      "sha256": "1f7821a1b0765c54334707aeed8467b18612a695e9a3a5c849dcc84365e6e0a2",
+      "bytes": 2844,
+      "frozenHashMatches": true,
+      "dimensions": [
+        360,
+        270
+      ],
+      "imageMetadataKeys": [],
+      "matchesPreviouslyReviewedPublicCrop": true
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-f760d34a-refresh-recording/refresh-boundary-92.96.png",
+      "sha256": "61cbe87b84ae994ce5f8c5cad1fd5c273f47365811ef65713c8e7870f94e3849",
+      "bytes": 21318,
+      "frozenHashMatches": true,
+      "dimensions": [
+        360,
+        270
+      ],
+      "imageMetadataKeys": [],
+      "matchesPreviouslyReviewedPublicCrop": true
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-f760d34a-refresh-recording/refresh-boundary-contact.png",
+      "sha256": "89619fc698f67579082d85903f44f38be90353acec4bb945682fe209414a407e",
+      "bytes": 39798,
+      "frozenHashMatches": true,
+      "dimensions": [
+        1440,
+        305
+      ],
+      "imageMetadataKeys": [],
+      "matchesPreviouslyReviewedPublicCrop": true
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-f760d34a-refresh-recording/verified-blank-observation.json",
+      "sha256": "6104593868f2f89ead13e9382a6260ca03b4f90575f5a82bc35a413549435cd9",
+      "bytes": 2323,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-be224d33-refresh-recording/recording-continuity.json",
+      "sha256": "6f689856c2db80c2354ff72e03258fec05771f953e58d41ca80cacc4076ca60e",
+      "bytes": 1774,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-be224d33-refresh-recording/refresh-visible-63.00.png",
+      "sha256": "80b2784e9d6c287339cc9063dc9f958424980b6085ff5b26f2f5c5869111b95e",
+      "bytes": 21958,
+      "frozenHashMatches": true,
+      "dimensions": [
+        360,
+        270
+      ],
+      "imageMetadataKeys": [],
+      "matchesPreviouslyReviewedPublicCrop": true
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-be224d33-refresh-recording/refresh-visible-64.48.png",
+      "sha256": "32581f5a1ff0f69f9d7be2c9b7f5fd4f3fe7262444156d133f48426acb7df36f",
+      "bytes": 21830,
+      "frozenHashMatches": true,
+      "dimensions": [
+        360,
+        270
+      ],
+      "imageMetadataKeys": [],
+      "matchesPreviouslyReviewedPublicCrop": true
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-be224d33-refresh-recording/refresh-visible-66.00.png",
+      "sha256": "8ac380602a4397e59b3b9498d9496d8232dc730f1dffbb867b6aeba7aba2bc2d",
+      "bytes": 21822,
+      "frozenHashMatches": true,
+      "dimensions": [
+        360,
+        270
+      ],
+      "imageMetadataKeys": [],
+      "matchesPreviouslyReviewedPublicCrop": true
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-be224d33-refresh-recording/refresh-visible-70.48.png",
+      "sha256": "e08e2bb35ef3a880a78891fdbe8c20bd4036ed3b2159536a127006b1929588fa",
+      "bytes": 20190,
+      "frozenHashMatches": true,
+      "dimensions": [
+        360,
+        270
+      ],
+      "imageMetadataKeys": [],
+      "matchesPreviouslyReviewedPublicCrop": true
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-be224d33-refresh-recording/refresh-visible-contact.png",
+      "sha256": "e93fae629b14185f1733826cea1b4fadd7d5ccd645dc0d989a3aff9ce1fa6f85",
+      "bytes": 49715,
+      "frozenHashMatches": true,
+      "dimensions": [
+        1440,
+        305
+      ],
+      "imageMetadataKeys": [],
+      "matchesPreviouslyReviewedPublicCrop": true
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-be224d33-refresh-recording/verified-refresh-observation.json",
+      "sha256": "c9d787240f9d7350dc3786b31bd3e0d34aaecac854e4a01a72b4b3e468a25046",
+      "bytes": 3062,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-48248a1b-receipt.json",
+      "sha256": "4d12a989c5dd32a5405d6d07609213aeb711b2094274e255f8860d0361fd5286",
+      "bytes": 4060,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-48248a1b-manifest.json",
+      "sha256": "e306a4b206c101d8c387a6f56aefa3a5c7c2139781408ca7eba80d2cb6104477",
+      "bytes": 5644,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-48248a1b-devicefarm.json",
+      "sha256": "7da9bdc29bbd01f6d84ced3253c518f5e529466ef816deda3b5d3b2dba17c842",
+      "bytes": 5751,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-48248a1b-independent-source-review.json",
+      "sha256": "7438feef69bb693785c4d0f2562de053ea251f4a9049356a38b35471b2ddb7aa",
+      "bytes": 1280,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-48248a1b-observer-selected.json",
+      "sha256": "3712a5312b546f24210e54bed5a613a892d691fe132def2b412058549cc43453",
+      "bytes": 10894,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-48248a1b-cold-reconnect-timeline.json",
+      "sha256": "064c8f9729c4ff8f4d3bbea7e5f793b81eaaa9b6c2f6d0c596024feff709122b",
+      "bytes": 3105,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-cleanup-status.json",
+      "sha256": "92a70f9c28c3250b0671db8ec9f736d99c4a2f90dfa3735c881d3c04740062d4",
+      "bytes": 2367,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-current-status.json",
+      "sha256": "b51001ad95ba8a09ccdc3879d21b632ce22bc1bc8d7e43e4c9213fadadbe888b",
+      "bytes": 567,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-48248a1b-refresh-recording/recording-continuity.json",
+      "sha256": "f4923480b01c8f5bda458dd1622318bd3cc5ff98206a12244fc21c035ee10c13",
+      "bytes": 2618,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-48248a1b-refresh-recording/refresh-boundary-147.44.png",
+      "sha256": "61ec7709b4acb98f1caa4d766b685dcfe1b939c60b80c5627b772bfd705fd800",
+      "bytes": 17116,
+      "frozenHashMatches": true,
+      "dimensions": [
+        360,
+        270
+      ],
+      "imageMetadataKeys": [],
+      "matchesPreviouslyReviewedPublicCrop": true
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-48248a1b-refresh-recording/refresh-boundary-147.48.png",
+      "sha256": "97b606419a941546b58b554978f6cf1238d497774f87313beea94045243bb2d7",
+      "bytes": 2956,
+      "frozenHashMatches": true,
+      "dimensions": [
+        360,
+        270
+      ],
+      "imageMetadataKeys": [],
+      "matchesPreviouslyReviewedPublicCrop": true
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-48248a1b-refresh-recording/refresh-boundary-147.52.png",
+      "sha256": "e13d91b845ec64cd92be42f8e016063d441041495ed7fe1ec35746d991dab58b",
+      "bytes": 14105,
+      "frozenHashMatches": true,
+      "dimensions": [
+        360,
+        270
+      ],
+      "imageMetadataKeys": [],
+      "matchesPreviouslyReviewedPublicCrop": true
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-48248a1b-refresh-recording/refresh-boundary-contact.png",
+      "sha256": "4a641950f13a8016a291d9fc4db44c6bf075163d8b8d8eda00cc687797a17f2c",
+      "bytes": 34688,
+      "frozenHashMatches": true,
+      "dimensions": [
+        1080,
+        305
+      ],
+      "imageMetadataKeys": [],
+      "matchesPreviouslyReviewedPublicCrop": true
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-48248a1b-refresh-recording/verified-refresh-observation.json",
+      "sha256": "0c3e50261407c0053966d6cddeadec90eb0a8c6e194a0bd61121fd3c8a2b9874",
+      "bytes": 6101,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-build-1aa2b52-receipt.json",
+      "sha256": "400de5d6ce0c6b8061fa408b6c4f1bc2f67247681689418191bcc3b008b114cd",
+      "bytes": 407,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-build-1aa2b52-source.json",
+      "sha256": "971fcd33407b1fc8337ea968e5e74c9a35a1480902fade3aed17974b39bd7fd9",
+      "bytes": 93401,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-1aa2b52-source-binding.json",
+      "sha256": "aad57d979370d21964957967e6af0139e94e64d82a1092987868a6f806bc4a3a",
+      "bytes": 1055,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-1aa2b52-hosted-preflight.json",
+      "sha256": "35feaea94f34d9e25f7c1a39b2517c67ec7da9a34d6c668050240e68795a4deb",
+      "bytes": 1341,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-5e9ac2ed-receipt.json",
+      "sha256": "98f576c8c2509d35588a3391cb040c6ead7a393ce403b1f574c149afc5c051da",
+      "bytes": 4059,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-5e9ac2ed-manifest.json",
+      "sha256": "e27eb1fc2ba5c69d8ad0c14efbf92217efa862d19aba166e748061f7f4bb03d1",
+      "bytes": 5884,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-5e9ac2ed-devicefarm.json",
+      "sha256": "cd291299bb7ffd2e19bb142e05d680be3355c7e8724038e4304d2cb8f953524e",
+      "bytes": 4508,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-5e9ac2ed-junit.xml",
+      "sha256": "b983573d59cfc6ab210e0580abc8e817d3992e90579795c467297d4708b0b2f3",
+      "bytes": 241,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-5e9ac2ed-observer-selected.json",
+      "sha256": "1f6f159c9c2c4fe70609c68627f4fad3664bf911719a434fb95984253b3cc6d9",
+      "bytes": 21840,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-5e9ac2ed-cold-reconnect-timeline.json",
+      "sha256": "82a64f61245cff7dffdc104a5a4466adc7ef162ee94699f54e350473301558c5",
+      "bytes": 5142,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-owner-post-cleanup-inspection.json",
+      "sha256": "cb0e844d16920d6643d7537f5174588183dfc2cdb2369b000e13cc2ee40cc79e",
+      "bytes": 1629,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-cleanup-baseline.json",
+      "sha256": "d58a24cd2bc68ca06b76c86ce0a24ff7146b8a4a670a7a8b6c4ccc06afa34806",
+      "bytes": 610,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-run-manifest.json",
+      "sha256": "e27eb1fc2ba5c69d8ad0c14efbf92217efa862d19aba166e748061f7f4bb03d1",
+      "bytes": 5884,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-5e9ac2ed-independent-source-review.json",
+      "sha256": "18e24434936a18e327659b7bda08f59702f48a4b31665809cbaaa51a027c07a0",
+      "bytes": 1225,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-owner-post-cleanup.json",
+      "sha256": "8ab60e25b94d798b1b5f2a5eea22c7f817231903e20bfc4e08065c31fbc1ffcc",
+      "bytes": 741,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-post-delete-readback.json",
+      "sha256": "f12d4915ac4db1a36ecf9fc3bac4897cd359c246fadae0c055dfaf43f4edcbe0",
+      "bytes": 591,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-source-owner-cleanup.json",
+      "sha256": "b86b11292dc5e0527c91551eb9f9d0abb22d90504311e70306c970ad3c687400",
+      "bytes": 595,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-source-helper-cleanup.json",
+      "sha256": "f8f2296861a278dbf94fbe879453a0a73d0aa857a3b8ba2f79f12f82f80f8c1e",
+      "bytes": 1004,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-source-cleanup-readback.json",
+      "sha256": "d48a469ffc4bbcd63805f7cd0189532dd29833d93d9030dd55a137e0e9b23f6c",
+      "bytes": 1103,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-media-cleanup-final-readback.json",
+      "sha256": "7d475ee75fa76b321fa1e84785e564f2fa77d803dc05dfeee4c7310e1da46039",
+      "bytes": 751,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-identity-cleanup.sql",
+      "sha256": "ef5d6dbe9973e9bd71d55102accb07a7266bf6ca4d9b62cf153682794d50bef7",
+      "bytes": 2388,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-identity-cleanup.json",
+      "sha256": "549303b4fe1ac89dc88bb94db8aa70ee8cca3cb3cf703cb3609397863f17a9c4",
+      "bytes": 1597,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-identity-cleanup-reconciliation.json",
+      "sha256": "46566d5ac81834ed54e46f030d781a7dc2e76b2e02cd226c7411a1ae96fdae8a",
+      "bytes": 683,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-cleanup-prior-history.json",
+      "sha256": "9ac45c37d6350b84d5ff717de4546f5235ee6008dd4ca005bb79d3517ad6488e",
+      "bytes": 1749,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-5e9ac2ed-refresh-recording/restored-network-refresh-first-138.000.png",
+      "sha256": "fd60076107f94517564c206bb23b5845ce9a27874781d061bdb387b6a0a62626",
+      "bytes": 22074,
+      "frozenHashMatches": true,
+      "dimensions": [
+        360,
+        270
+      ],
+      "imageMetadataKeys": [],
+      "matchesPreviouslyReviewedPublicCrop": true
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-5e9ac2ed-refresh-recording/online-refresh-first-69.000.png",
+      "sha256": "0d35400315d0ca1e8ebd18befba48e80a826c428f2b79ca193de08d41e34bf6c",
+      "bytes": 19607,
+      "frozenHashMatches": true,
+      "dimensions": [
+        360,
+        270
+      ],
+      "imageMetadataKeys": [],
+      "matchesPreviouslyReviewedPublicCrop": true
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-5e9ac2ed-refresh-recording/recording-continuity.json",
+      "sha256": "dd2df72484dc4c1cdc7917f1d48fc00ef920dcd0594a2854f0fb1184a3ae9dea",
+      "bytes": 2546,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-5e9ac2ed-refresh-recording/broad-recording-continuity.json",
+      "sha256": "e66e3385fe4d2be8e9f501b44aca8211ce88561ab89fc388fc4377f0c61c4f1f",
+      "bytes": 3072,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-5e9ac2ed-refresh-recording/verified-refresh-observation.json",
+      "sha256": "2e25c6774417366de43ce9da361fcc2df4f4fbc30c3e4ba021b83d10920f8dda",
+      "bytes": 6218,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-identity-root-cleanup.json",
+      "sha256": "c0182778c03929f373b775868d041ad89c974395e780388139f63c08e856e3c2",
+      "bytes": 983,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-cleanup-final-readback.json",
+      "sha256": "9b0cba8dfff61d8dab66679f2503f26bffc87da8623e3922d7b8310e3c56fa9b",
+      "bytes": 813,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-private-upload-cleanup.json",
+      "sha256": "eb857b1276fec3dc1540e35ca9325391c99b68cecff42def3fe555ad6e21a223",
+      "bytes": 1401,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-local-private-input-cleanup.json",
+      "sha256": "891cb6996d7d929e12f1f8730cb5ce40b0dfed01fb6e37a90a451d03f12183d9",
+      "bytes": 1932,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/quality/offline-adaptive-completion-20261105/physical-android/connected-completion.json",
+      "sha256": "8075076c9baf9b054c5b3fe315067f021ec8f95c64b2f9c052c4b78f36200f4b",
+      "bytes": 1994,
+      "frozenHashMatches": true,
+      "urlCount": 0
+    },
+    {
+      "path": "supabase/ops/qa/physical-cache-canary-cleanup-20261105.ts",
+      "sha256": "c09dd43a8876199177868e9af56fce1477e4cd1a4014dd1abbd4a0a747c98147",
+      "bytes": 2399,
+      "frozenHashMatches": true,
+      "urlCount": 1
+    }
+  ],
+  "findings": [],
+  "reviewCompletedAt": "2026-11-05T19:55:32.570122+00:00",
+  "semanticChecks": {
+    "currentStatusCompleteAndFresh": true,
+    "all15FinalFixtureCountsZero": true,
+    "statusCountsMatchFinalReadback": true,
+    "rootAndChildIndependentReadbacksAgree": true,
+    "singleRootRetryAndReviewedSqlBound": true,
+    "priorInterruptionHistoryRetained": true,
+    "retiredHelperVersion2AndAuthenticated410": true,
+    "activeArchivedHelperMatchesReviewedHash": true,
+    "threePrivateUploadsAcknowledgedAndNotFound": true,
+    "privateUploadArnsBelongToRetainedRunManifests": true,
+    "aggregationWrapperErrorDisclosed": true,
+    "sevenExactLocalInputsIndependentlyAbsent": true,
+    "preRemovalActualCredentialComparisonRecorded": true,
+    "rawRunHistoryExcludedFromPublication": true,
+    "visualProofBoundToExactReviewedReceipt": true,
+    "functionalAndRecordedVisualProofRetained": true,
+    "visualBoundariesAndBroadScanRetained": true,
+    "cleanupChronologyConsistent": true,
+    "all82FrozenHashesStillMatchAtCompletion": true
+  },
+  "semanticFailures": [],
+  "reviewScope": "Exact frozen82-path publication packet. Read-only file and receipt review, with independent local-file absence checks. No hosted service operations or publication performed by reviewer.",
+  "publicationSafetyPassed": true,
+  "evidenceLimits": [
+    "Hosted deletion and AWS results are verified against the retained independent/readback receipts, not repeated service mutations.",
+    "The AWS wrapper aggregation NameError is explicitly preserved. Each of the three actual delete and NotFound API outcomes is recorded individually.",
+    "Recorded visual acceptance covers402 samples in two complete action-bounded windows on one physical Android QA run. It does not claim release fleet startup percentiles, physical iPhone acceptance or private HLS client playback.",
+    "Raw login video and service logs remain private and outside the frozen publication set."
+  ],
+  "sourceOrOwnerReceiptsEdited": false
+}

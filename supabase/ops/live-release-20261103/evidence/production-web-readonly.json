@@ -1,0 +1,96 @@
+{
+  "scope": "Read-only real production browser check. Clean signed-out browser; no API mocks, injected authentication, form submissions or user writes.",
+  "origin": "https://platinumcircles.app",
+  "expected_runtime_commit": "2e265ef0915ed83cbf5ba79f22f3ea1f1a717d8d",
+  "expected_deployment": "dpl_Ds9RKyzPNXqnNSziBWFeC9DwPZcc",
+  "deployment_reference_source": "Parent release verification; this browser check verifies rendered behavior, not the Vercel alias mapping.",
+  "checked_at": "2026-11-03T01:15:49.111Z",
+  "transport": {
+    "initial_chromium_certificate_error": "ERR_CERT_AUTHORITY_INVALID",
+    "system_tls_verification": {
+      "http_status": 200,
+      "ssl_verify_result": 0
+    },
+    "browser_context_ignore_https_errors": true,
+    "limitation": "Browser rendering verified with a temporary context-level trust workaround after system TLS verified successfully; Chromium native trust was not independently repaired."
+  },
+  "supabase_hosts_observed": [],
+  "checks": [
+    {
+      "name": "Live directory renders with honest signed-out state",
+      "passed": true
+    },
+    {
+      "name": "Visible Live entry immediately follows Trending and includes broadcast icon",
+      "passed": true,
+      "observed": {
+        "text": "Live",
+        "href": "/live",
+        "previous_text": "Trending",
+        "has_broadcast_icon": true,
+        "active": "page"
+      }
+    },
+    {
+      "name": "Requested relationship, topic and broadcast-status controls are present",
+      "passed": true,
+      "observed": {
+        "relationships": [
+          "Recommended",
+          "Following",
+          "Followers",
+          "Celebrities"
+        ],
+        "topics": [
+          "News",
+          "Politics",
+          "Business",
+          "Gaming",
+          "Concerts",
+          "Communities"
+        ],
+        "status": [
+          "Live now",
+          "Upcoming",
+          "Replays"
+        ]
+      }
+    },
+    {
+      "name": "Clip library displays signed-out sign-in state",
+      "passed": true,
+      "observed": "Sign in to open your clips."
+    },
+    {
+      "name": "Home authentication boundary observed",
+      "passed": true,
+      "observed": "Unauthenticated /home navigation redirected to /login; no login attempted."
+    },
+    {
+      "name": "No fatal JavaScript errors during the requested routes",
+      "passed": true
+    }
+  ],
+  "pages": [
+    {
+      "requested_path": "/live",
+      "status": 200,
+      "final_url": "https://platinumcircles.app/live"
+    },
+    {
+      "requested_path": "/live/clips",
+      "status": 200,
+      "final_url": "https://platinumcircles.app/live/clips"
+    },
+    {
+      "requested_path": "/home",
+      "status": 200,
+      "final_url": "https://platinumcircles.app/login",
+      "redirected_to_login": true
+    }
+  ],
+  "fatal_js_errors": [],
+  "console_error_count": 0,
+  "result": "passed_with_limitations",
+  "directory_supabase_network_verification": "Not observable: the clean signed-out directory made no Supabase network request. Its authenticated environment is not verified by this browser run."
+}

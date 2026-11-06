@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "checked_at": "2026-11-03T07:09:40.213Z",
+  "project_ref": "uaulhuelcfkjwojtymmw",
+  "scope": "Hosted negative authentication and private response cache checks",
+  "provider_calls_authorized": false,
+  "real_posts_created": false,
+  "results": [
+    {
+      "endpoint": "live-connect",
+      "method": "POST",
+      "credential": "missing",
+      "status": 401,
+      "expected_status": 401,
+      "private_no_store": true,
+      "redirect_absent": true,
+      "ok": true
+    },
+    {
+      "endpoint": "live-connect",
+      "method": "POST",
+      "credential": "invalid",
+      "status": 401,
+      "expected_status": 401,
+      "private_no_store": true,
+      "redirect_absent": true,
+      "ok": true
+    },
+    {
+      "endpoint": "live-social",
+      "method": "POST",
+      "credential": "missing",
+      "status": 401,
+      "expected_status": 401,
+      "private_no_store": true,
+      "redirect_absent": true,
+      "ok": true
+    },
+    {
+      "endpoint": "live-social",
+      "method": "POST",
+      "credential": "invalid",
+      "status": 401,
+      "expected_status": 401,
+      "private_no_store": true,
+      "redirect_absent": true,
+      "ok": true
+    },
+    {
+      "endpoint": "live-social-worker",
+      "method": "POST",
+      "credential": "missing",
+      "status": 401,
+      "expected_status": 401,
+      "private_no_store": true,
+      "redirect_absent": true,
+      "ok": true
+    },
+    {
+      "endpoint": "live-social-worker",
+      "method": "POST",
+      "credential": "invalid",
+      "status": 401,
+      "expected_status": 401,
+      "private_no_store": true,
+      "redirect_absent": true,
+      "ok": true
+    },
+    {
+      "endpoint": "live-transcription-worker",
+      "method": "POST",
+      "credential": "missing",
+      "status": 401,
+      "expected_status": 401,
+      "private_no_store": true,
+      "redirect_absent": true,
+      "ok": true
+    },
+    {
+      "endpoint": "live-transcription-worker",
+      "method": "POST",
+      "credential": "invalid",
+      "status": 401,
+      "expected_status": 401,
+      "private_no_store": true,
+      "redirect_absent": true,
+      "ok": true
+    },
+    {
+      "endpoint": "live-clip-scaler",
+      "method": "POST",
+      "credential": "missing",
+      "status": 401,
+      "expected_status": 401,
+      "private_no_store": true,
+      "redirect_absent": true,
+      "ok": true
+    },
+    {
+      "endpoint": "live-clip-scaler",
+      "method": "POST",
+      "credential": "invalid",
+      "status": 401,
+      "expected_status": 401,
+      "private_no_store": true,
+      "redirect_absent": true,
+      "ok": true
+    },
+    {
+      "endpoint": "live-social-pull",
+      "method": "GET",
+      "credential": "missing",
+      "status": 403,
+      "expected_status": 403,
+      "private_no_store": true,
+      "redirect_absent": true,
+      "ok": true
+    },
+    {
+      "endpoint": "live-social-pull",
+      "method": "GET",
+      "credential": "synthetic_invalid_capability",
+      "status": 403,
+      "expected_status": 403,
+      "private_no_store": true,
+      "redirect_absent": true,
+      "ok": true
+    },
+    {
+      "endpoint": "live-social-pull",
+      "method": "POST",
+      "credential": "missing",
+      "status": 405,
+      "expected_status": 405,
+      "private_no_store": true,
+      "redirect_absent": true,
+      "ok": true
+    }
+  ],
+  "passed": 13,
+  "failed": 0
+}

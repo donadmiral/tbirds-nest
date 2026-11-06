@@ -1,0 +1,108 @@
+appId: app.platinumcircles.mobile.qa
+name: Immersive Live story entry comments and guest requests
+---
+- assertVisible:
+    id: story-live-10000000-0000-4000-8000-000000000002
+- assertVisible:
+    id: story-story-10000000-0000-4000-8000-000000000002
+- takeScreenshot: live-story-ring
+- tapOn:
+    id: story-live-10000000-0000-4000-8000-000000000002
+- extendedWaitUntil:
+    visible:
+      id: native-live-player
+    timeout: 15000
+- assertVisible:
+    id: immersive-live-screen
+- assertVisible:
+    id: live-overlay-chat
+- extendedWaitUntil:
+    visible: 'Jordan Ellis: Welcome to the live conversation.'
+    timeout: 15000
+- takeScreenshot: live-immersive-viewer
+- tapOn: Request to join
+- extendedWaitUntil:
+    visible: Ask the host to join this live with your camera and microphone.
+    timeout: 15000
+- tapOn: Request to join
+- extendedWaitUntil:
+    visible: Cancel join request
+    timeout: 15000
+- takeScreenshot: live-request-pending
+- tapOn: Cancel join request
+- extendedWaitUntil:
+    visible: Ask the host to join this live with your camera and microphone.
+    timeout: 15000
+- tapOn: Close live tools
+- tapOn: 'Jordan Ellis: Welcome to the live conversation.'
+- tapOn: Reply
+- extendedWaitUntil:
+    visible: '^@qa_jordan\s*$'
+    timeout: 15000
+- tapOn: Live chat message
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - extendedWaitUntil:
+          visible:
+            id: '^space$'
+          timeout: 15000
+- inputText: Thanks for sharing this live.
+- tapOn: Send comment
+- extendedWaitUntil:
+    visible: 'Alex Rivera: @qa_jordan Thanks for sharing this live.'
+    timeout: 15000
+- takeScreenshot: live-immersive-reply
+# Exercise native sheet dismissal before pushing the real read-only Clip library.
+- tapOn: More live tools
+- tapOn: Clips
+- tapOn: Open clips
+- extendedWaitUntil:
+    visible: Clip library
+    timeout: 15000
+- assertNotVisible: Close live tools
+- extendedWaitUntil:
+    visible: Your clips will appear here
+    timeout: 15000
+- assertNotVisible: Creator clip controls
+- tapOn: Refresh
+- extendedWaitUntil:
+    visible: Your clips will appear here
+    timeout: 15000
+- takeScreenshot: live-clips-library
+- tapOn: '^Back$'
+- extendedWaitUntil:
+    visible:
+      id: native-live-player
+    timeout: 15000
+- assertVisible:
+    id: live-overlay-chat
+- assertNotVisible: Clip library
+- tapOn: Back to live streams
+- extendedWaitUntil:
+    visible:
+      id: story-live-10000000-0000-4000-8000-000000000003
+    timeout: 15000
+# Producer approval uses the same actual management action without a fake RTC join.
+- tapOn:
+    id: story-live-10000000-0000-4000-8000-000000000003
+- extendedWaitUntil:
+    visible: 1 guest requests
+    timeout: 15000
+- tapOn: 1 guest requests
+- tapOn: Accept request from Jordan Ellis
+- extendedWaitUntil:
+    visible: No pending requests.
+    timeout: 15000
+- scrollUntilVisible:
+    element: guest · accepted
+    direction: DOWN
+    timeout: 15000
+- assertVisible: guest · accepted
+- takeScreenshot: live-guest-approved
+- tapOn: Close live tools
+- tapOn: Back to live streams
+- extendedWaitUntil:
+    visible: Your story
+    timeout: 15000

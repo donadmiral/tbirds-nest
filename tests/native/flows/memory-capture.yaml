@@ -3,6 +3,15 @@ name: Actual native memory capture and encoding
 ---
 # The preceding navigation flow authenticated the actual production App.
 - openLink: platinum-circles-qa://ui-fixture/memory
+# The first system prompt can arrive after openLink returns. Wait for either
+# real destination before deciding whether its one Open action is required.
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - extendedWaitUntil:
+          visible: '^(?:Open in “Platinum QA”\?|Native capture acceptance)$'
+          timeout: 30000
 # iOS presents this app handoff confirmation; Maestro's iOS openLink does not
 # handle it. Accept only the observed QA-app prompt, then require the real route.
 - runFlow:
@@ -27,13 +36,8 @@ name: Actual native memory capture and encoding
 - extendedWaitUntil:
     visible: Reading the movie’s video timing…
     timeout: 15000
-# The test transport returns one real file chunk, then holds its reader until
-# the real UI cancellation closes it. Tapping this label has no app action.
-- tapOn:
-    text: Reading the movie’s video timing…
-    repeat: 2
-    delay: 1000
-    waitToSettleTimeoutMs: 1000
+# Close as soon as progress is visible. The receipt separately requires a real
+# first chunk, cancelled status, reader closure and cleanup.
 - tapOn:
     text: Close movie export
     waitToSettleTimeoutMs: 1000

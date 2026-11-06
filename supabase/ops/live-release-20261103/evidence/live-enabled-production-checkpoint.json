@@ -1,0 +1,265 @@
+{
+  "recorded_date": "2026-11-03",
+  "status": "BROADCASTING_ENABLED_FOR_OWNER_TESTING",
+  "activation": {
+    "after": {
+      "updated_at": "2026-11-03T16:31:04.126452+00:00",
+      "stage_enabled": true,
+      "create_enabled": true,
+      "delivery_enabled": true,
+      "max_stage_members": 12,
+      "recording_enabled": true,
+      "max_active_broadcasts": 10,
+      "private_delivery_enabled": true
+    },
+    "before": {
+      "updated_at": "2026-11-03T01:02:32.503837+00:00",
+      "stage_enabled": false,
+      "create_enabled": true,
+      "delivery_enabled": false,
+      "max_stage_members": 12,
+      "recording_enabled": false,
+      "max_active_broadcasts": 10,
+      "private_delivery_enabled": false
+    },
+    "changed_rows": 1
+  },
+  "final_status": {
+    "renderer": {
+      "enabled": true,
+      "max_active": 2
+    },
+    "settings": {
+      "updated_at": "2026-11-03T16:31:04.126452+00:00",
+      "stage_enabled": true,
+      "create_enabled": true,
+      "delivery_enabled": true,
+      "max_stage_members": 12,
+      "recording_enabled": true,
+      "max_active_broadcasts": 10,
+      "private_delivery_enabled": true
+    },
+    "maintenance": {
+      "enabled": true,
+      "active_ticks": 0,
+      "max_parallel": 1,
+      "last_failed_at": null,
+      "last_issued_at": "2026-11-03T16:30:14.469349+00:00",
+      "last_completed_at": "2026-11-03T16:30:16.062539+00:00"
+    }
+  },
+  "maintenance": {
+    "response": {
+      "body": {
+        "ok": true,
+        "worker_auth": "single_use_tick_v1",
+        "rates_pruned": 0,
+        "covers_erased": 0,
+        "covers_failed": 0,
+        "events_pruned": 0,
+        "grants_pruned": 0,
+        "outbox_pruned": 0,
+        "commands_pruned": 0,
+        "controls_pruned": 0,
+        "messages_pruned": 0,
+        "orphan_stops_queued": 0,
+        "provider_jobs_failed": 0,
+        "stage_grants_revoked": 0,
+        "notifications_created": 0,
+        "provider_configuration": {
+          "DAILY_API_KEY": true,
+          "LIVE_HLS_BUCKET": true,
+          "LIVE_HLS_REGION": true,
+          "LIVE_HLS_CDN_ORIGIN": true,
+          "LIVE_DAILY_DOMAIN_ID": true,
+          "LIVE_HLS_ASSUME_ROLE_ARN": true,
+          "LIVE_PLAYBACK_SIGNER_URL": true,
+          "LIVE_DAILY_WEBHOOK_SECRET": true,
+          "LIVE_PLAYBACK_SIGNER_SECRET": true
+        },
+        "provider_jobs_completed": 0
+      },
+      "error_msg": null,
+      "timed_out": false,
+      "status_code": 200
+    },
+    "live_jobs": [
+      {
+        "jobid": 19,
+        "active": true,
+        "command": "select live_streams.maintenance(1000);",
+        "jobname": "platinum-live-maintenance",
+        "schedule": "* * * * *"
+      },
+      {
+        "jobid": 20,
+        "active": true,
+        "command": "select live_streams.enqueue_worker_tick()",
+        "jobname": "platinum-live-worker",
+        "schedule": "* * * * *"
+      },
+      {
+        "jobid": 21,
+        "active": true,
+        "command": "select public.live_flush_interactions(50)",
+        "jobname": "live-interaction-events",
+        "schedule": "5 seconds"
+      }
+    ]
+  },
+  "renderer_schedule": {
+    "Name": "platinum-live-task-launcher-production-Tick-rc773D5WT7af",
+    "Arn": "arn:aws:events:us-east-2:518317808503:rule/platinum-live-task-launcher-production-Tick-rc773D5WT7af",
+    "ScheduleExpression": "rate(1 minute)",
+    "State": "ENABLED",
+    "Description": "Bounded queue signal once per minute; never a poll per viewer.",
+    "EventBusName": "default",
+    "CreatedBy": "518317808503"
+  },
+  "renderer_service": {
+    "services": [
+      {
+        "serviceArn": "arn:aws:ecs:us-east-2:518317808503:service/platinum-live-clips-service-production-Cluster-ibHv5bxxWlb5/platinum-live-clips-service-production-WorkerService-iZ8WKagEfEaz",
+        "serviceName": "platinum-live-clips-service-production-WorkerService-iZ8WKagEfEaz",
+        "status": "ACTIVE",
+        "desiredCount": 0,
+        "runningCount": 0,
+        "pendingCount": 0,
+        "taskDefinition": "arn:aws:ecs:us-east-2:518317808503:task-definition/platinum-live-clips-service-production-Task-18Li2FaUKz6P:1",
+        "deployments": [
+          {
+            "id": "ecs-svc/1275379654231062653",
+            "status": "PRIMARY",
+            "taskDefinition": "arn:aws:ecs:us-east-2:518317808503:task-definition/platinum-live-clips-service-production-Task-18Li2FaUKz6P:1",
+            "desiredCount": 0,
+            "pendingCount": 0,
+            "runningCount": 0,
+            "failedTasks": 0,
+            "createdAt": "2026-11-03T08:15:07.196000+00:00",
+            "updatedAt": "2026-11-03T08:15:21.177000+00:00",
+            "launchType": "FARGATE",
+            "platformVersion": "1.4.0",
+            "platformFamily": "Linux",
+            "networkConfiguration": {
+              "awsvpcConfiguration": {
+                "subnets": [
+                  "subnet-02cc531f1e50efb77",
+                  "subnet-0beca645a4b3f54dd"
+                ],
+                "securityGroups": [
+                  "sg-0506dbef023dfbf20"
+                ],
+                "assignPublicIp": "ENABLED"
+              }
+            },
+            "rolloutState": "COMPLETED",
+            "rolloutStateReason": "ECS deployment ecs-svc/1275379654231062653 completed."
+          }
+        ]
+      }
+    ],
+    "failures": []
+  },
+  "daily_operation": {
+    "id": "dc520325-ac10-4423-b09e-f8f58d35a9f4",
+    "action": "verify_storage",
+    "created_at": "2026-11-03 16:28:08.980134+00",
+    "claimed_at": "2026-11-03 16:28:09.474766+00",
+    "finished_at": "2026-11-03 16:28:10.943038+00",
+    "succeeded": true,
+    "result": {
+      "code": "STORAGE_VERIFIED",
+      "resource_id": "dc520325-ac10-4423-b09e-f8f58d35a9f4",
+      "cleanup_confirmed": true,
+      "mutation_attempted": true,
+      "configuration_matches": true
+    },
+    "request_id": 11513
+  },
+  "daily_s3_write": {
+    "versions": [
+      {
+        "ETag": "\"e568d2abd4e512f94dd4077d4e634608\"",
+        "Size": 102,
+        "Key": "daily-co-test-upload.txt",
+        "VersionId": "sA45o5Et2nmAuh2U.ZLcFL5hbq7ruWJS",
+        "IsLatest": true,
+        "LastModified": "2026-11-03T16:28:11+00:00"
+      },
+      {
+        "ETag": "\"e568d2abd4e512f94dd4077d4e634608\"",
+        "Size": 102,
+        "Key": "daily-co-test-upload.txt",
+        "VersionId": "yx1ZJkQK6X3EQLcflSIawc5hiq3r0y8y",
+        "IsLatest": false,
+        "LastModified": "2026-11-03T16:28:11+00:00"
+      }
+    ],
+    "delete_markers": []
+  },
+  "aws_policy_validation": {
+    "validation": {
+      "findings": [
+        {
+          "findingDetails": "RCPs impact IAM roles, users, and AWS service principals. To prevent unintended impact to your principals, an additional statement should be added to the Condition block \"BoolIfExists\": { \"aws:PrincipalIsAWSService\": \"true\"} whenever the key aws:SourceAccount is used.",
+          "findingType": "WARNING",
+          "issueCode": "RCP_MISSING_RELATED_SERVICE_PRINCIPAL_CONDITION_KEY",
+          "learnMoreLink": "https://docs.aws.amazon.com/IAM/latest/UserGuide/access-analyzer-reference-policy-checks.html#access-analyzer-reference-policy-checks-error-rcp-missing-related-service-principal-condition-key",
+          "locations": [
+            {
+              "path": [
+                {
+                  "value": "Statement"
+                },
+                {
+                  "index": 5
+                },
+                {
+                  "value": "Condition"
+                },
+                {
+                  "value": "Null"
+                },
+                {
+                  "value": "aws:SourceAccount"
+                }
+              ],
+              "span": {
+                "start": {
+                  "line": 1,
+                  "column": 2752,
+                  "offset": 2752
+                },
+                "end": {
+                  "line": 1,
+                  "column": 2759,
+                  "offset": 2759
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "attachments": {
+      "Targets": [
+        {
+          "TargetId": "r-0jo2",
+          "Arn": "arn:aws:organizations::481552727043:root/o-u8vc1j1p9n/r-0jo2",
+          "Name": "Root",
+          "Type": "ROOT"
+        }
+      ]
+    }
+  },
+  "limits": {
+    "real_camera_broadcast_performed": false,
+    "live_replay_clip_acceptance_performed": false,
+    "physical_device_acceptance_performed": false,
+    "five_million_user_load_acceptance_performed": false
+  },
+  "policy_mutability_sources": [
+    "https://docs.aws.amazon.com/accounts/latest/reference/activate-advanced-features.html",
+    "https://docs.aws.amazon.com/accounts/latest/reference/remove-org-policies.html"
+  ]
+}

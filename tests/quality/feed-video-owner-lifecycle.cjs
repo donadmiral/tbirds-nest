@@ -7,7 +7,7 @@ const ts = require('typescript');
 const root = path.resolve(__dirname, '../..');
 const flushPromises = () => new Promise(setImmediate);
 
-function harness() {
+function harness({ adaptiveEnabled = false, adaptiveOverrides } = {}) {
   let context, cursor = 0, dirty = true, effects = [], scopeChange, appChange, timerId = 0;
   const mounted = [], players = [], timers = new Map();
   const same = (a, b) => a && b && a.length === b.length && a.every((value, index) => Object.is(value, b[index]));
@@ -44,11 +44,11 @@ function harness() {
   function load(file, imports) {
     const exports = {};
     vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(root, file), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText,
-      { exports, process: { env: { EXPO_PUBLIC_ADAPTIVE_MEDIA: 'false' } }, URL, AbortController, TextDecoder, require(name) { if (!(name in imports)) throw Error(name); return imports[name]; }, Date, Math, setTimeout(fn) { timers.set(++timerId, fn); return timerId; }, clearTimeout(id) { timers.delete(id); } });
+      { exports, process: { env: { EXPO_PUBLIC_ADAPTIVE_MEDIA: String(adaptiveEnabled) } }, URL, AbortController, TextDecoder, require(name) { if (!(name in imports)) throw Error(name); return imports[name]; }, Date, Math, setTimeout(fn) { timers.set(++timerId, fn); return timerId; }, clearTimeout(id) { timers.delete(id); } });
     return exports;
   }
   const pool = load('shared/videoReadiness.ts', {});
-  const adaptive = load('shared/adaptiveMedia.ts', {});
+  const adaptive = adaptiveOverrides || load('shared/adaptiveMedia.ts', {});
   const engine = load('src/lib/videoEngine.ts', { react, 'react-native': { AppState: app }, 'expo-video': { createVideoPlayer: player }, zustand: { create: createStore }, '../../shared/videoReadiness': pool, '../../shared/adaptiveMedia': adaptive, './navigationCache': { subscribeNavigationScope(fn) { scopeChange = fn; } } });
   function render(deferEffects = false) {
     for (let pass = 0; dirty; pass++) {
@@ -70,6 +70,25 @@ function harness() {
     dispose() { mounted.forEach(item => item.hooks.forEach(hook => hook?.cleanup?.())); engine.clearVideoEngine(); },
   };
 }
+
+test('adaptive discovery cannot delay the two native lookahead buffers or replace their pixels', async () => {
+  const pending = [], probed = [];
+  const h = harness({ adaptiveEnabled: true, adaptiveOverrides: {
+    knownAdaptiveMedia: () => null, clearAdaptiveMedia() {},
+    resolveAdaptiveMedia: source => { probed.push(source); return new Promise(resolve => pending.push(resolve)); },
+  } });
+  h.engine.prefetchFeedVideos([{ uri: 'https://media/one.mp4' }, { uri: 'https://media/two.mp4' }],
+    [{ uri: 'https://media/three.mp4' }, { uri: 'https://media/four.mp4' }, { uri: 'https://media/excess.mp4' }]);
+  assert.equal(h.players.length, 2);
+  assert.deepEqual(probed, ['https://media/one.mp4', 'https://media/two.mp4', 'https://media/three.mp4', 'https://media/four.mp4']);
+  await h.flush();
+  assert.deepEqual(h.players.map(p => p.sources[0].uri), ['https://media/one.mp4', 'https://media/two.mp4']);
+  h.players.forEach(p => p.ready());
+  pending.forEach(resolve => resolve({ hlsUrl: 'https://media/ready.m3u8' }));
+  await h.flush();
+  assert.ok(h.players.every(p => p.sources.length === 1));
+  h.dispose();
+});
 
 test('the actual feed owner hook keeps late source events out of the next visible card', async () => {
   const h = harness(), first = h.mount('https://media/first.mp4'); await h.flush();
@@ -98,6 +117,19 @@ test('evicting a held inactive source clears its rendered player before release'
   h.engine.prefetchFeedVideos([{ uri: 'https://media/one.mp4' }, { uri: 'https://media/two.mp4' }]);
   h.engine.prefetchFeedVideos([{ uri: 'https://media/three.mp4' }]); await h.flush();
   assert.equal(held.released, true); assert.equal(card.output.player, null); assert.equal(card.output.sourceReady, false); h.dispose();
+});
+test('only the last owner can hold a paused surface when two cards use the same video URL', async () => {
+  const h = harness(), first = h.mount('https://media/shared.mp4'); await h.flush();
+  h.players[0].ready(); await h.flush();
+  const duplicate = h.mount('https://media/shared.mp4', false);
+  h.update(first, { visible: false });
+  assert.equal(first.output.canHold, true);
+  assert.equal(duplicate.output.canHold, false, 'The duplicate must not attach the same native player');
+  h.update(duplicate, { visible: true });
+  assert.equal(duplicate.output.owns, true); assert.equal(first.output.canHold, false);
+  h.update(duplicate, { visible: false });
+  assert.equal(first.output.canHold, false); assert.equal(duplicate.output.canHold, true);
+  assert.equal(h.players.length, 1, 'Visibility changes keep the buffered source'); h.dispose();
 });
 test('a native error after source attachment becomes a recoverable active-card error', async () => {
   const h = harness(), card = h.mount('https://media/clip.mp4'); await h.flush(); h.players[0].ready(); await h.flush();

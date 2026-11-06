@@ -1,0 +1,31 @@
+version: 0.1
+android_test_host: amazon_linux_2023
+phases:
+  install:
+    commands:
+      - devicefarm-cli use node 22
+      - devicefarm-cli use python 3.12
+      - devicefarm-cli use appium 2
+      - appium --version
+      - appium driver list --installed
+      - cd "$DEVICEFARM_TEST_PACKAGE_PATH"
+      - python -m pip install --no-index --find-links=wheelhouse -r requirements.txt
+      - python -m pytest --collect-only tests
+  pre_test:
+    commands:
+      - >-
+        appium --base-path /wd/hub --log-timestamp --log-no-colors
+        --default-capabilities "{\"appium:deviceName\":\"$DEVICEFARM_DEVICE_NAME\",\"appium:udid\":\"$DEVICEFARM_DEVICE_UDID\",\"platformName\":\"Android\"}"
+        > "$DEVICEFARM_LOG_DIR/appium.log" 2>&1 &
+      - >-
+        python -c 'import time,urllib.request; deadline=time.monotonic()+60;
+        exec("while time.monotonic()<deadline:\n try:\n  urllib.request.urlopen(\"http://127.0.0.1:4723/wd/hub/status\",timeout=2);break\n except Exception: time.sleep(1)\nelse: raise SystemExit(\"Appium did not start\")")'
+  test:
+    commands:
+      - cd "$DEVICEFARM_TEST_PACKAGE_PATH"
+      - timeout 600 python -m pytest -v tests --junitxml="$DEVICEFARM_LOG_DIR/physical-app-junit.xml"
+  post_test:
+    commands:
+      - adb shell am force-stop app.platinumcircles.mobile.qa
+artifacts:
+  - $DEVICEFARM_LOG_DIR

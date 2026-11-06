@@ -1,0 +1,205 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Private ephemeral Live caption input/output and narrowly scoped Transcribe data role. No worker or job is started.",
+  "Resources": {
+    "AudioBucket": {
+      "Type": "AWS::S3::Bucket",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "IgnorePublicAcls": true,
+          "BlockPublicPolicy": true,
+          "RestrictPublicBuckets": true
+        },
+        "OwnershipControls": {
+          "Rules": [
+            {
+              "ObjectOwnership": "BucketOwnerEnforced"
+            }
+          ]
+        },
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              }
+            }
+          ]
+        },
+        "LifecycleConfiguration": {
+          "Rules": [
+            {
+              "Id": "ExpireCaptionScratch",
+              "Status": "Enabled",
+              "Prefix": "transcription/",
+              "ExpirationInDays": 1,
+              "AbortIncompleteMultipartUpload": {
+                "DaysAfterInitiation": 1
+              }
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveTranscription"
+          }
+        ]
+      }
+    },
+    "SecureBucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": {
+          "Ref": "AudioBucket"
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "RejectInsecureTransport",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Action": "s3:*",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "AudioBucket",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Sub": "${AudioBucket.Arn}/*"
+                }
+              ],
+              "Condition": {
+                "Bool": {
+                  "aws:SecureTransport": "false"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "TranscribeDataRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "transcribe.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole",
+              "Condition": {
+                "StringEquals": {
+                  "aws:SourceAccount": {
+                    "Ref": "AWS::AccountId"
+                  }
+                },
+                "ArnLike": {
+                  "aws:SourceArn": {
+                    "Fn::Sub": "arn:${AWS::Partition}:transcribe:us-east-2:${AWS::AccountId}:transcription-job/pc-live-caption-*"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "ReadCaptionAudioWriteCaptionJson",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": "s3:GetBucketLocation",
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "AudioBucket",
+                      "Arn"
+                    ]
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "s3:ListBucket",
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "AudioBucket",
+                      "Arn"
+                    ]
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "s3:GetObject",
+                  "Resource": {
+                    "Fn::Sub": "${AudioBucket.Arn}/transcription/*/source.flac"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "s3:PutObject",
+                  "Resource": {
+                    "Fn::Sub": "${AudioBucket.Arn}/transcription/*/result.json"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveTranscription"
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "BucketName": {
+      "Value": {
+        "Ref": "AudioBucket"
+      }
+    },
+    "BucketArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "AudioBucket",
+          "Arn"
+        ]
+      }
+    },
+    "DataAccessRoleArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "TranscribeDataRole",
+          "Arn"
+        ]
+      }
+    },
+    "Region": {
+      "Value": "us-east-2"
+    },
+    "Admission": {
+      "Value": "No caption admission or AWS job was enabled by this stack."
+    }
+  }
+}

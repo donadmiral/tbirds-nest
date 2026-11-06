@@ -1,0 +1,38 @@
+{
+  "kind": "local-pglite-algorithm-diagnostic-not-capacity-proof",
+  "measuredAt": "2026-11-05T17:20:20.773Z",
+  "candidatePosts": 250130,
+  "viewer": "synthetic-101",
+  "baseline": {
+    "milliseconds": 3975,
+    "reason": "proof_budget",
+    "fallback": true,
+    "candidates": 10036
+  },
+  "candidate": {
+    "milliseconds": 3572,
+    "candidates": 10050,
+    "results": 200,
+    "fallback": false
+  },
+  "canonicalMilliseconds": 10421,
+  "canonicalIdsAndKeysExactlyEqual": true,
+  "authorLookupIndexes": [
+    "feed_catalog_author",
+    "profiles_pkey",
+    "posts_pkey",
+    "orbits_follower_idx"
+  ],
+  "sourceFiles": {
+    "supabase/migrations/20261105160752_prepared_mass_integer_seek.sql": "bbe3dbbdfdf941d30c1c8ec416c2ff942fca4f22d5f717893389dc120af80739",
+    "supabase/migrations/20261105164113_prepared_statement_score_cache.sql": "4a334e63bc8fc41d920aa904c5a70012e938217f94df26e4a1df3ad74f94344c",
+    "supabase/migrations/20261105171503_prepared_affinity_cohort_bound.sql": "66e98fad8f7e3edbc456fcac29f7005c93b5f45b8cdf96c7ac9f66a37ced4bd6"
+  },
+  "productionCapacityEstablished": false,
+  "limitations": [
+    "WASM PGlite algorithm diagnostic, not native PostgreSQL throughput or production measurement.",
+    "Comparison uses one transaction, identical auth and ranking instant.",
+    "Recovered diagnostic fixture uses the earlier reviewed scorer. Current hosted marketplace contract is covered by the 32-test regression and next native workload.",
+    "The unchanged expanded profile, sustained refresh throughput and hosted canary are not established by this result."
+  ]
+}

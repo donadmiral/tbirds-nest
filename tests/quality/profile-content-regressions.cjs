@@ -26,6 +26,7 @@ function focusCallback(file, contains, globals) {
 const normalize = compile(read('src/utils/profilePost.ts')).normalizeProfilePost;
 const media = compile(read('shared/contentMedia.ts'));
 const { profileRead } = compile(read('src/utils/profileRead.ts'));
+const { isReadAccessDenied } = compile(read('shared/readContinuity.ts'));
 const base = 'https://profile-fixture.invalid';
 const raw = `${base}/storage/v1/object/public/post-media/owner/photo.jpg`;
 const withoutPrivateMedia = rows => media.replaceContentMedia(rows, base, new Map());
@@ -53,13 +54,14 @@ function own(hydrate, failures, held = {}, timeoutMs = 15000) {
   const listeners=new Set();
   const navigation={navigationScope:()=>navScope,subscribeNavigationScope:fn=>{listeners.add(fn);return()=>listeners.delete(fn);}};
   const service=compile(read('src/services/profileContent.ts'),{setTimeout:(fn,ms)=>setTimeout(fn,Math.min(ms,timeoutMs)),require(name){
+    if(name==='../../shared/adaptiveMedia')return{acceptAdaptiveMedia(){}};
     if(name==='../../shared/contentMedia')return hydrate ? {...media,hydrateContentMedia:(_client,_base,rows)=>hydrate(rows)} : media;
     if(name.endsWith('/navigationCache'))return navigation;
     if(name.endsWith('/authStore'))return{useAuthStore:{getState:()=>({session:authOwner?{user:{id:authOwner},access_token:authOwner+'-token'}:null})}};
     if(name==='./supabase')return{supabase:client,SUPABASE_URL:base};
     throw Error(name);
   }});
-  const globals={ contentRevisionRef:{current:0}, userId:'owner',scope,tabRequest,mounted,tabLoadedRef:loaded,authProfileRef:{current:{id:'owner'}},normalizePost:normalize,
+  const globals={ isReadAccessDenied, contentRevisionRef:{current:0}, userId:'owner',scope,tabRequest,mounted,tabLoadedRef:loaded,authProfileRef:{current:{id:'owner'}},normalizePost:normalize,
     ...service,...navigation,tabReadRef:{current:null},moreReadRef:{current:null},moreBusyRef:{current:null},moreRequest:{current:0},tabPostsRef:postsRef,otherTabRowsRef:otherTabsRef,ownPageRef:{current:{cursor:null,pages:0,hasMore:false}},resetPostsRef:{current:false},scrollOffsets:{current:{posts:0,reposts:0,saved:0,tagged:0}},activeTabRef:{current:'posts'},tabRefreshingRef:{current:false},
     profileReadRef:{current:null},profileRequest:{current:0},prefetchedOwner:{current:null},takePrefetched:()=>null,awaitPrefetched:async()=>null,setProfile:set('profile'),setStats:set('stats'),setAuthProfile:set('authProfile'),setLoadError:set('loadError'),setLoading:set('headerLoading'),setRefreshing:set('headerRefreshing'),sessionScope:'1:owner',setHasStory:set('hasStory'),
     withoutPrivateMedia,supabase:client,setTabRefreshing:set('refreshing'),setLoadingMorePosts:set('loadingMore'),setTabError:set('error'),setTabLoading:set('loading'),setTabPosts:set('posts'),setTabCounts:set('counts'),setPostsHasMore:set('more'),setTabReposts:set('reposts'),setTabSaved:set('saved'),setTabTagged:set('tagged') };
@@ -239,16 +241,18 @@ test('the story indicator pins its session, aborts on same-user ABA, and ignores
   assert.equal(h.state.hasStory,false);cleanup();
 });
 
-test('the story indicator has a deadline, catches transport errors, and cancels on blur',async()=>{
+test('the story indicator retains known state on deadline or transport errors, clears denial, and cancels on blur',async()=>{
   const gate=deferred(),h=own(async rows=>rows,{}, {stories:gate.promise},5);h.state.hasStory=true;
   const cleanup=h.story();await new Promise(resolve=>setTimeout(resolve,20));
-  assert.equal(h.state.hasStory,false);assert.equal(h.client.queries[0].signal.aborted,true);assert.equal(h.listeners.size,0);
-  gate.resolve({data:[{id:'too-late'}],error:null});await turn();assert.equal(h.state.hasStory,false);cleanup();
+  assert.equal(h.state.hasStory,true);assert.equal(h.client.queries[0].signal.aborted,true);assert.equal(h.listeners.size,0);
+  gate.resolve({data:[],error:null});await turn();assert.equal(h.state.hasStory,true);cleanup();
   const pending=deferred(),blur=own(async rows=>rows,{}, {stories:pending.promise});blur.state.hasStory=false;
   const stop=blur.story();await turn();stop();await turn();assert.equal(blur.client.queries[0].signal.aborted,true);
   pending.resolve({data:[{id:'late-after-blur'}],error:null});await turn();assert.equal(blur.state.hasStory,false);
   const rejected=own(async rows=>rows,{stories:Error('Offline')});rejected.state.hasStory=true;const done=rejected.story();await turn();
-  assert.equal(rejected.state.hasStory,false);assert.equal(rejected.listeners.size,0);done();
+  assert.equal(rejected.state.hasStory,true);assert.equal(rejected.listeners.size,0);done();
+  const denied=own(async rows=>rows,{stories:{code:'42501',message:'Permission denied'}});denied.state.hasStory=true;
+  const stopDenied=denied.story();await turn();assert.equal(denied.state.hasStory,false);assert.equal(denied.listeners.size,0);stopDenied();
 });
 
 test('profile header and optional reach use the initiating token without blocking visible metadata',async()=>{

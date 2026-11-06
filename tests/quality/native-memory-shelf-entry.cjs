@@ -112,6 +112,26 @@ test('reviewed shelf, title, keyboard and saved-title readback changes preserve 
     ];
   });
   assert.equal(keyboardExits, 3);
+  // The retained iPhone trace shows the keyboard-reduced scroll viewport ends
+  // above Maestro's global swipe origin. Blur the single-line title first.
+  const firstPaper = expected[1].findIndex(command => command.scrollUntilVisible?.element === 'Paper tint');
+  assert.ok(firstPaper >= 0);
+  expected[1].splice(firstPaper, 0, { runFlow: { when: { platform: 'iOS' }, commands: [
+    { pressKey: 'Enter' }, { assertVisible: 'Book settings' },
+  ] } });
+  // The later retained iPhone gesture again hits the footer with the multiline
+  // inscription focused. Its visible Writing style heading is inside the scroll
+  // content. The postmark is single-line and keeps the title's Return behavior.
+  for (const [input, dismiss] of [
+    ['Roads worth remembering', { tapOn: 'Writing style' }],
+    ['DESERT DAYS', { pressKey: 'Enter' }],
+  ]) {
+    const typed = expected[1].findIndex(command => command.inputText === input);
+    assert.ok(typed >= 0);
+    expected[1].splice(typed + 1, 0, { runFlow: { when: { platform: 'iOS' }, commands: [
+      dismiss, { assertVisible: 'Book settings' },
+    ] } });
+  }
   const save = expected[1].findIndex(command => command.tapOn === 'Save memory book');
   assert.ok(save >= 0);
   expected[1].splice(save, 0, { assertVisible: 'Save memory book' });
@@ -123,5 +143,5 @@ test('reviewed shelf, title, keyboard and saved-title readback changes preserve 
     { tapOn: 'Cancel memory book edits' },
     { extendedWaitUntil: { notVisible: 'Book settings', timeout: 15000 } });
   assert.deepEqual(actual, expected);
-  assert.equal(actual[1].length, before[1].length + 16);
+  assert.equal(actual[1].length, before[1].length + 19);
 });

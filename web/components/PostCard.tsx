@@ -6,6 +6,8 @@ import { useSharedPostPreview } from "@/lib/useSharedPostPreview";
 import { SharedPostThumbnail } from "@/components/SharedPostThumbnail";
 import { StableAsyncBlock } from "@/components/StableAsyncBlock";
 import { sharedPostMediaLabel } from "../../shared/sharedPostPreview";
+import { imageDisplayIdentity } from "../../shared/imageDisplayIdentity";
+import { privateImageCachePolicy } from "../../shared/mediaDelivery";
 import { productDestination } from "../../shared/productDestination";
 import { uniqueCollaborators, collaborationName } from "../../shared/collaborationPeople";
 import { readPostCollaborators, subscribePostMetadataSession } from "@/lib/postMetadata";
@@ -15,7 +17,7 @@ import { usePollFlag } from "@/lib/pollCheck";
 import { PersonName } from "@/components/PersonName";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Bookmark, ExternalLink, FileText, Heart, MessageCircle, Pin, Repeat2, ShieldCheck } from "lucide-react";
 
 // Same figure the phone prints on its product cards: $28, $18.50, ZWG 40.
@@ -107,6 +109,28 @@ function QuoteContent({ quotedId }: { quotedId: string }) {
     </Link> : null}
     </StableAsyncBlock>
   );
+}
+
+function ArticleGalleryImage({ uri, postId, className }: { uri: string; postId: string; className: string }) {
+  const [navigation] = useState(getNavigationStore);
+  const { scope, initialized, changed } = useSyncExternalStore(navigation.subscribe, navigation.getSnapshot, navigation.getServerSnapshot);
+  const [grant, setGrant] = useState({ uri, scope, pending: !initialized });
+  const currentGrant = grant.uri !== uri || (grant.pending && initialized && !changed) ? { uri, scope, pending: !initialized } : grant;
+  if (currentGrant !== grant) setGrant(currentGrant);
+  const allowed = privateImageCachePolicy(uri) !== 'none' || (!!scope && currentGrant.scope === scope);
+  const identity = JSON.stringify([scope, postId, imageDisplayIdentity(uri, process.env.NEXT_PUBLIC_SUPABASE_URL!)]);
+  const request = JSON.stringify([scope, postId, uri]);
+  const [failed, setFailed] = useState<string | null>(null);
+  const activeRequest = useRef<string | null>(null);
+  useLayoutEffect(() => {
+    activeRequest.current = request;
+    return () => { if (activeRequest.current === request) activeRequest.current = null; };
+  }, [request]);
+  if (!allowed || failed === request) return <span role="img" aria-label="Article image unavailable" className={"block " + className} />;
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img key={identity} src={uri} alt="" loading="lazy" className={className} onError={() => {
+    if (activeRequest.current === request && navigation.getSnapshot().scope === scope) setFailed(request);
+  }} />;
 }
 
 export function PostCard(props: Parameters<typeof PostContent>[0]) {return <PostContent key={props.post.post_id} {...props}/>;}
@@ -330,12 +354,10 @@ function PostContent({ post, hideMedia, inlineComments = true }: { post: FeedRow
           {post.article_title && galleryImages.length > 0 ? (
             <div className={"mt-3 grid gap-2 " + (galleryImages.length === 1 ? "grid-cols-1" : "grid-cols-2")}>
               {galleryImages.map((img: { url: string; width?: number; height?: number }, i: number) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  key={img.url + i}
-                  src={img.url}
-                  alt=""
-                  loading="lazy"
+                <ArticleGalleryImage
+                  key={post.post_id + ":" + i}
+                  uri={img.url}
+                  postId={post.post_id}
                   className={"w-full rounded-xl bg-surface object-cover " + (galleryImages.length === 1 ? "h-72" : "h-40")}
                 />
               ))}

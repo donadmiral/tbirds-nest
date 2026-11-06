@@ -1,0 +1,13 @@
+{
+  "name": "@platinumcircles/live-transcription",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24" },
+  "scripts": { "start": "node pull.mjs", "test": "node --test test/*.test.mjs", "fixture": "node fixture.mjs" },
+  "dependencies": {
+    "@aws-sdk/client-s3": "3.1161.0",
+    "@aws-sdk/client-transcribe": "3.1161.0",
+    "@aws-sdk/credential-providers": "3.1161.0"
+  }
+}

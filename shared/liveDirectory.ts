@@ -2,13 +2,13 @@
 export const LIVE_TOPICS = [
   ['all','All'], ['irl','IRL'], ['gaming','Gaming'], ['news','News'], ['politics','Politics'],
   ['business','Business'], ['music','Music'], ['concerts','Concerts'], ['education','Education'],
-  ['sports','Sports'], ['events','Events'], ['other','Other'],
+  ['sports','Sports'], ['events','Events'], ['communities','Communities'], ['other','Other'],
 ] as const;
-export type LiveFilter = 'for_you' | 'following' | 'followers' | 'mine';
+export type LiveFilter = 'for_you' | 'following' | 'followers' | 'celebrities' | 'mine';
 export type LiveView = 'live' | 'scheduled' | 'replay';
 export type LiveSession = {
   id: string; title: string; description: string; topic: string; state: string;
-  audience: string; language: string; thumbnail_url: string | null; has_cover: boolean;
+  audience: string; language: string; chat_mode: string; slow_mode_seconds: number; recording_enabled: boolean; started_at: string | null; ended_at: string | null; thumbnail_url: string | null; has_cover: boolean;
   viewer_count: number | null; scheduled_at: string | null; replay_available: boolean;
   host: { id: string; full_name: string | null; username: string | null; avatar_url: string | null; is_verified: boolean };
 };
@@ -32,6 +32,7 @@ export function parseLiveSession(value: unknown): LiveSession | null {
   if (!['draft','scheduled','backstage','starting','live','reconnecting','ending','ended','cancelled'].includes(state)) return null;
   return { id: value.id, title: text(value.title, 120), description: text(value.description, 2000),
     topic: text(value.topic, 30), state, audience: text(value.audience, 20), language: text(value.language, 20),
+    chat_mode: ['open','followers','closed'].includes(String(value.chat_mode)) ? String(value.chat_mode) : 'open', slow_mode_seconds: Math.min(120,Math.max(0,Number(value.slow_mode_seconds)||0)), recording_enabled:value.recording_enabled===true, started_at:date(value.started_at), ended_at:date(value.ended_at),
     thumbnail_url: safeLiveImage(value.thumbnail_url), has_cover: value.has_cover === true,
     viewer_count: typeof value.viewer_count === 'number' && Number.isSafeInteger(value.viewer_count) && value.viewer_count >= 0 ? value.viewer_count : null,
     scheduled_at: date(value.scheduled_at), replay_available: value.replay_available === true,

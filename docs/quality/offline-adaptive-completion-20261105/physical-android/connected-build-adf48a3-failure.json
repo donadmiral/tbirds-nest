@@ -1,0 +1,16 @@
+{
+  "workflowRun": 42073141342,
+  "job": 127406675861,
+  "sourceCommit": "adf48a31fda7b38e931981d660136444cac2f58a",
+  "status": "FAILED",
+  "artifactId": 13436859083,
+  "artifactSha256": "24716fd8ef839b869f3a2ef645e6b06c4bf6e5adfb268c8519d6585c4b12c502",
+  "cause": "The QA observer imported undeclared @react-native-community/netinfo. Metro could not resolve it while bundling.",
+  "apkProduced": false,
+  "deviceRunScheduled": false,
+  "correctiveChange": "Subscribe passively to the existing app reachability store after App imports. Preserve physical radio readback, decoded image/video and cipher-hash checks. Add an installed-dependency regression check.",
+  "tests": {
+    "nativeConnectedObservation": 3,
+    "passed": true
+  }
+}

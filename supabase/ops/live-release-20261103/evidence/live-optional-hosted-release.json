@@ -1,0 +1,545 @@
+{
+  "schema_version": 1,
+  "checked_at": "2026-11-03 07:15:28 UTC",
+  "scope": "Hosted optional service foundation; all provider admissions remain closed",
+  "source_migrations": [
+    {
+      "file": "20261103055547_live_optional_integrations.sql",
+      "sha256": "a613f5d9d4d2963e9b796af587b4b3db7600a67510ac62a091f932113d7efbb5"
+    },
+    {
+      "file": "20261103061323_live_direct_social_publishing.sql",
+      "sha256": "3711ab0de23317ad45eedade1db1917c6aaecaea908cbfb94b064aef23863b73"
+    },
+    {
+      "file": "20261103064534_live_clip_queue_peek.sql",
+      "sha256": "4c73e7a29764043095ec95c59c3d11aebb09d50c4603f0ef59e9910d3cde153f"
+    }
+  ],
+  "qa": {
+    "project_ref": "uaulhuelcfkjwojtymmw",
+    "postflight": {
+      "clip_queue": {
+        "due": false,
+        "active": 0,
+        "enabled": false
+      },
+      "migrations": [
+        {
+          "name": "live_optional_integrations_20261103",
+          "version": "20261103064853"
+        },
+        {
+          "name": "live_clip_queue_peek_20261103",
+          "version": "20261103070048"
+        },
+        {
+          "name": "live_direct_social_publishing_20261103",
+          "version": "20261103070617"
+        }
+      ],
+      "social_jobs": 0,
+      "integration_gates": [
+        {
+          "enabled": false,
+          "platform": "facebook",
+          "publishing_enabled": false
+        },
+        {
+          "enabled": false,
+          "platform": "instagram",
+          "publishing_enabled": false
+        },
+        {
+          "enabled": false,
+          "platform": "tiktok",
+          "publishing_enabled": false
+        },
+        {
+          "enabled": false,
+          "platform": "transcription",
+          "publishing_enabled": false
+        },
+        {
+          "enabled": false,
+          "platform": "x",
+          "publishing_enabled": false
+        },
+        {
+          "enabled": false,
+          "platform": "youtube",
+          "publishing_enabled": false
+        }
+      ],
+      "transcription_jobs": 0,
+      "provider_reservations": 0
+    },
+    "foundation_sql_checks": 8,
+    "social_sql_checks": 8,
+    "queue_acl_checks": 4,
+    "edges": [
+      {
+        "id": "7e8f081a-e61d-4d17-ae19-a9959493b891",
+        "slug": "live-connect",
+        "name": "live-connect",
+        "status": "ACTIVE",
+        "version": 1,
+        "created_at": 1793689179058,
+        "updated_at": 1793689179058,
+        "verify_jwt": false,
+        "import_map": false,
+        "entrypoint_path": "file:///tmp/user_fn_uaulhuelcfkjwojtymmw_7e8f081a-e61d-4d17-ae19-a9959493b891_1/source/live-connect/index.ts",
+        "ezbr_sha256": "b218a19e2593d5df7ef43796293a5861d5128095c54b599b6174bf8ca07e0251"
+      },
+      {
+        "id": "be518de8-53cb-4d65-b145-d11def1ca012",
+        "slug": "live-transcription-worker",
+        "name": "live-transcription-worker",
+        "status": "ACTIVE",
+        "version": 1,
+        "created_at": 1793689177242,
+        "updated_at": 1793689177242,
+        "verify_jwt": false,
+        "import_map": false,
+        "entrypoint_path": "file:///tmp/user_fn_uaulhuelcfkjwojtymmw_be518de8-53cb-4d65-b145-d11def1ca012_1/source/live-transcription-worker/index.ts",
+        "ezbr_sha256": "f39432d0bfaf96e2df5f2bcec0b034bedc5f8a1da4e4dd0ba120c56325f0a1c1"
+      },
+      {
+        "id": "53a6ee1b-bae9-41be-a329-4abef1b68c99",
+        "slug": "live-clip-scaler",
+        "name": "live-clip-scaler",
+        "status": "ACTIVE",
+        "version": 1,
+        "created_at": 1793689249440,
+        "updated_at": 1793689249440,
+        "verify_jwt": false,
+        "import_map": false,
+        "entrypoint_path": "file:///tmp/user_fn_uaulhuelcfkjwojtymmw_53a6ee1b-bae9-41be-a329-4abef1b68c99_1/source/live-clip-scaler/index.ts",
+        "ezbr_sha256": "d28c42c581f73ce346e8b5761f639b3c5ae53efe42ebbc3f987b8e7306ed0d0f"
+      },
+      {
+        "id": "7c1904af-f79a-4280-800a-585e6ce9928c",
+        "slug": "live-social",
+        "name": "live-social",
+        "status": "ACTIVE",
+        "version": 1,
+        "created_at": 1793689705658,
+        "updated_at": 1793689705658,
+        "verify_jwt": false,
+        "import_map": false,
+        "entrypoint_path": "file:///tmp/user_fn_uaulhuelcfkjwojtymmw_7c1904af-f79a-4280-800a-585e6ce9928c_1/source/live-social/index.ts",
+        "ezbr_sha256": "5bd6dc249587866c17c45905264c3ec7930294449c60e8b7b58b1b4b492c4c47"
+      },
+      {
+        "id": "c853abc8-030d-4c0c-88f3-e5c8c8cfb6a2",
+        "slug": "live-social-worker",
+        "name": "live-social-worker",
+        "status": "ACTIVE",
+        "version": 1,
+        "created_at": 1793689707449,
+        "updated_at": 1793689707449,
+        "verify_jwt": false,
+        "import_map": false,
+        "entrypoint_path": "file:///tmp/user_fn_uaulhuelcfkjwojtymmw_c853abc8-030d-4c0c-88f3-e5c8c8cfb6a2_1/source/live-social-worker/index.ts",
+        "ezbr_sha256": "85775403e01705a9b7663747d6fcf9aae5516c01e6d93ab21fa9559a8fe66808"
+      },
+      {
+        "id": "d1e58e44-6716-406c-aae9-6b695645ba83",
+        "slug": "live-social-pull",
+        "name": "live-social-pull",
+        "status": "ACTIVE",
+        "version": 1,
+        "created_at": 1793689709173,
+        "updated_at": 1793689709173,
+        "verify_jwt": false,
+        "import_map": false,
+        "entrypoint_path": "file:///tmp/user_fn_uaulhuelcfkjwojtymmw_d1e58e44-6716-406c-aae9-6b695645ba83_1/source/live-social-pull/index.ts",
+        "ezbr_sha256": "5fd230f205bc55020013a35ef88a13e7ce1e1a9f7b4f236a4c7ba5d435dfed7d"
+      }
+    ]
+  },
+  "production": {
+    "project_ref": "prlkikhckbifseosbukl",
+    "postflight": {
+      "clip_queue": {
+        "due": false,
+        "active": 0,
+        "enabled": false
+      },
+      "migrations": [
+        {
+          "name": "live_optional_integrations_20261103",
+          "version": "20261103065842"
+        },
+        {
+          "name": "live_clip_queue_peek_20261103",
+          "version": "20261103070153"
+        },
+        {
+          "name": "live_direct_social_publishing_20261103",
+          "version": "20261103071049"
+        }
+      ],
+      "social_jobs": 0,
+      "integration_gates": [
+        {
+          "enabled": false,
+          "platform": "facebook",
+          "publishing_enabled": false
+        },
+        {
+          "enabled": false,
+          "platform": "instagram",
+          "publishing_enabled": false
+        },
+        {
+          "enabled": false,
+          "platform": "tiktok",
+          "publishing_enabled": false
+        },
+        {
+          "enabled": false,
+          "platform": "transcription",
+          "publishing_enabled": false
+        },
+        {
+          "enabled": false,
+          "platform": "x",
+          "publishing_enabled": false
+        },
+        {
+          "enabled": false,
+          "platform": "youtube",
+          "publishing_enabled": false
+        }
+      ],
+      "transcription_jobs": 0,
+      "provider_reservations": 0
+    },
+    "foundation_sql_checks": 8,
+    "social_sql_checks": 8,
+    "queue_acl_checks": 4,
+    "edges": [
+      {
+        "id": "3e5bc467-88cd-4c51-b590-052ee8922d82",
+        "slug": "live-connect",
+        "name": "live-connect",
+        "status": "ACTIVE",
+        "version": 1,
+        "created_at": 1793689223370,
+        "updated_at": 1793689223370,
+        "verify_jwt": false,
+        "import_map": false,
+        "entrypoint_path": "file:///tmp/user_fn_prlkikhckbifseosbukl_3e5bc467-88cd-4c51-b590-052ee8922d82_1/source/live-connect/index.ts",
+        "ezbr_sha256": "b218a19e2593d5df7ef43796293a5861d5128095c54b599b6174bf8ca07e0251"
+      },
+      {
+        "id": "6731b170-b22a-4469-a445-a8354de23004",
+        "slug": "live-transcription-worker",
+        "name": "live-transcription-worker",
+        "status": "ACTIVE",
+        "version": 1,
+        "created_at": 1793689221753,
+        "updated_at": 1793689221753,
+        "verify_jwt": false,
+        "import_map": false,
+        "entrypoint_path": "file:///tmp/user_fn_prlkikhckbifseosbukl_6731b170-b22a-4469-a445-a8354de23004_1/source/live-transcription-worker/index.ts",
+        "ezbr_sha256": "f39432d0bfaf96e2df5f2bcec0b034bedc5f8a1da4e4dd0ba120c56325f0a1c1"
+      },
+      {
+        "id": "4fe22e38-ca78-4c57-9a9e-7b4d0a3eae41",
+        "slug": "live-clip-scaler",
+        "name": "live-clip-scaler",
+        "status": "ACTIVE",
+        "version": 1,
+        "created_at": 1793689315520,
+        "updated_at": 1793689315520,
+        "verify_jwt": false,
+        "import_map": false,
+        "entrypoint_path": "file:///tmp/user_fn_prlkikhckbifseosbukl_4fe22e38-ca78-4c57-9a9e-7b4d0a3eae41_1/source/live-clip-scaler/index.ts",
+        "ezbr_sha256": "d28c42c581f73ce346e8b5761f639b3c5ae53efe42ebbc3f987b8e7306ed0d0f"
+      },
+      {
+        "id": "a4fbaa7a-0a3e-4dd9-b8ab-d239a09af220",
+        "slug": "live-social",
+        "name": "live-social",
+        "status": "ACTIVE",
+        "version": 1,
+        "created_at": 1793689851379,
+        "updated_at": 1793689851379,
+        "verify_jwt": false,
+        "import_map": false,
+        "entrypoint_path": "file:///tmp/user_fn_prlkikhckbifseosbukl_a4fbaa7a-0a3e-4dd9-b8ab-d239a09af220_1/source/live-social/index.ts",
+        "ezbr_sha256": "5bd6dc249587866c17c45905264c3ec7930294449c60e8b7b58b1b4b492c4c47"
+      },
+      {
+        "id": "e2bc384f-ddc3-4cb7-ab03-dda1934727ae",
+        "slug": "live-social-worker",
+        "name": "live-social-worker",
+        "status": "ACTIVE",
+        "version": 1,
+        "created_at": 1793689853011,
+        "updated_at": 1793689853011,
+        "verify_jwt": false,
+        "import_map": false,
+        "entrypoint_path": "file:///tmp/user_fn_prlkikhckbifseosbukl_e2bc384f-ddc3-4cb7-ab03-dda1934727ae_1/source/live-social-worker/index.ts",
+        "ezbr_sha256": "85775403e01705a9b7663747d6fcf9aae5516c01e6d93ab21fa9559a8fe66808"
+      },
+      {
+        "id": "879a1827-9adf-4cde-b660-e54b21df7327",
+        "slug": "live-social-pull",
+        "name": "live-social-pull",
+        "status": "ACTIVE",
+        "version": 1,
+        "created_at": 1793689854546,
+        "updated_at": 1793689854546,
+        "verify_jwt": false,
+        "import_map": false,
+        "entrypoint_path": "file:///tmp/user_fn_prlkikhckbifseosbukl_879a1827-9adf-4cde-b660-e54b21df7327_1/source/live-social-pull/index.ts",
+        "ezbr_sha256": "5fd230f205bc55020013a35ef88a13e7ce1e1a9f7b4f236a4c7ba5d435dfed7d"
+      }
+    ]
+  },
+  "authentication_receipts": [
+    "live-optional-qa-endpoint-acceptance.json",
+    "live-optional-production-endpoint-acceptance.json"
+  ],
+  "security_scope": "verify_jwt=false endpoints authenticate in their handlers: verified user/session, dedicated worker/queue bearer or short-lived exact-clip publication capability.",
+  "provider_acceptance": {
+    "real_oauth_grants": false,
+    "real_social_posts": false,
+    "real_transcriptions": false,
+    "real_daily_broadcast": false
+  },
+  "advisors": {
+    "security": {
+      "groups": [
+        {
+          "name": "rls_enabled_no_policy",
+          "level": "INFO",
+          "count": 144
+        },
+        {
+          "name": "function_search_path_mutable",
+          "level": "WARN",
+          "count": 60
+        },
+        {
+          "name": "extension_in_public",
+          "level": "WARN",
+          "count": 1
+        },
+        {
+          "name": "anon_security_definer_function_executable",
+          "level": "WARN",
+          "count": 212
+        },
+        {
+          "name": "authenticated_security_definer_function_executable",
+          "level": "WARN",
+          "count": 402
+        },
+        {
+          "name": "auth_leaked_password_protection",
+          "level": "WARN",
+          "count": 1
+        }
+      ],
+      "newObjects": [
+        {
+          "name": "rls_enabled_no_policy",
+          "level": "INFO",
+          "detail": "Table \\`live_streams.integration_runtime\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "integration_runtime",
+            "type": "table",
+            "schema": "live_streams"
+          },
+          "observed_at": "2026-11-03T07:01:32.965Z"
+        },
+        {
+          "name": "rls_enabled_no_policy",
+          "level": "INFO",
+          "detail": "Table \\`live_streams.oauth_states\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "oauth_states",
+            "type": "table",
+            "schema": "live_streams"
+          },
+          "observed_at": "2026-11-03T07:01:32.965Z"
+        },
+        {
+          "name": "rls_enabled_no_policy",
+          "level": "INFO",
+          "detail": "Table \\`live_streams.social_connections\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "social_connections",
+            "type": "table",
+            "schema": "live_streams"
+          },
+          "observed_at": "2026-11-03T07:01:32.965Z"
+        },
+        {
+          "name": "rls_enabled_no_policy",
+          "level": "INFO",
+          "detail": "Table \\`live_streams.transcription_jobs\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "transcription_jobs",
+            "type": "table",
+            "schema": "live_streams"
+          },
+          "observed_at": "2026-11-03T07:01:32.965Z"
+        },
+        {
+          "name": "rls_enabled_no_policy",
+          "level": "INFO",
+          "detail": "Table \\`live_streams.transcription_limits\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "transcription_limits",
+            "type": "table",
+            "schema": "live_streams"
+          },
+          "observed_at": "2026-11-03T07:01:32.965Z"
+        },
+        {
+          "name": "rls_enabled_no_policy",
+          "level": "INFO",
+          "detail": "Table \\`live_streams.transcription_reservations\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "transcription_reservations",
+            "type": "table",
+            "schema": "live_streams"
+          },
+          "observed_at": "2026-11-03T07:01:32.965Z"
+        }
+      ]
+    },
+    "performance_before_social_index": {
+      "groups": [
+        {
+          "name": "unindexed_foreign_keys",
+          "level": "INFO",
+          "count": 128
+        },
+        {
+          "name": "auth_rls_initplan",
+          "level": "WARN",
+          "count": 293
+        },
+        {
+          "name": "no_primary_key",
+          "level": "INFO",
+          "count": 1
+        },
+        {
+          "name": "unused_index",
+          "level": "INFO",
+          "count": 165
+        },
+        {
+          "name": "multiple_permissive_policies",
+          "level": "WARN",
+          "count": 310
+        },
+        {
+          "name": "duplicate_index",
+          "level": "WARN",
+          "count": 19
+        },
+        {
+          "name": "auth_db_connections_absolute",
+          "level": "INFO",
+          "count": 1
+        }
+      ],
+      "newObjects": [
+        {
+          "name": "unindexed_foreign_keys",
+          "level": "INFO",
+          "detail": "Table \\`live_streams.social_connections\\` has a foreign key \\`social_connections_platform_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+          "metadata": {
+            "name": "social_connections",
+            "type": "table",
+            "schema": "live_streams",
+            "fkey_name": "social_connections_platform_fkey",
+            "fkey_columns": [
+              3
+            ]
+          },
+          "observed_at": "2026-11-03T07:01:36.533Z"
+        },
+        {
+          "name": "unused_index",
+          "level": "INFO",
+          "detail": "Index \\`oauth_states_actor_expiry\\` on table \\`live_streams.oauth_states\\` has not been used",
+          "metadata": {
+            "name": "oauth_states",
+            "type": "table",
+            "schema": "live_streams"
+          },
+          "observed_at": "2026-11-03T07:01:36.533Z"
+        },
+        {
+          "name": "unused_index",
+          "level": "INFO",
+          "detail": "Index \\`oauth_states_connection\\` on table \\`live_streams.oauth_states\\` has not been used",
+          "metadata": {
+            "name": "oauth_states",
+            "type": "table",
+            "schema": "live_streams"
+          },
+          "observed_at": "2026-11-03T07:01:36.533Z"
+        },
+        {
+          "name": "unused_index",
+          "level": "INFO",
+          "detail": "Index \\`transcription_jobs_actor\\` on table \\`live_streams.transcription_jobs\\` has not been used",
+          "metadata": {
+            "name": "transcription_jobs",
+            "type": "table",
+            "schema": "live_streams"
+          },
+          "observed_at": "2026-11-03T07:01:36.533Z"
+        },
+        {
+          "name": "unused_index",
+          "level": "INFO",
+          "detail": "Index \\`transcription_jobs_clip\\` on table \\`live_streams.transcription_jobs\\` has not been used",
+          "metadata": {
+            "name": "transcription_jobs",
+            "type": "table",
+            "schema": "live_streams"
+          },
+          "observed_at": "2026-11-03T07:01:36.533Z"
+        },
+        {
+          "name": "unused_index",
+          "level": "INFO",
+          "detail": "Index \\`transcription_jobs_reviewer\\` on table \\`live_streams.transcription_jobs\\` has not been used",
+          "metadata": {
+            "name": "transcription_jobs",
+            "type": "table",
+            "schema": "live_streams"
+          },
+          "observed_at": "2026-11-03T07:01:36.533Z"
+        },
+        {
+          "name": "unused_index",
+          "level": "INFO",
+          "detail": "Index \\`transcription_reservations_day\\` on table \\`live_streams.transcription_reservations\\` has not been used",
+          "metadata": {
+            "name": "transcription_reservations",
+            "type": "table",
+            "schema": "live_streams"
+          },
+          "observed_at": "2026-11-03T07:01:36.533Z"
+        }
+      ]
+    }
+  },
+  "notes": [
+    "Hosted read-only/rolled-back checks did not create users, clips, jobs or posts.",
+    "A first rollback acceptance containing a temporary configuration-row deletion received an expired confirmation. It was replaced with materially safer hosted checks without that deletion; missing-configuration behavior remains covered by disposable local PostgreSQL tests.",
+    "New-table no-policy RLS notices are intentional: private tables revoke direct grants. The social_connections platform FK index was added by the second applied migration."
+  ]
+}

@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { isAccessDeniedError } from "@/lib/errors";
+import { ResourceRefreshNotice } from "@/components/ResourceRefreshNotice";
 import { MarketAlerts } from "@/components/MarketAlerts";
 import { BellPlus, Package, Bookmark, ShoppingBag, LayoutGrid, Laptop, Car, Building2, Shirt, Armchair, Sprout, Wrench, Briefcase, Sparkles, SearchX, X, type LucideIcon } from "lucide-react";
 import { ProductDialog } from "@/components/ProductDialog";
@@ -37,22 +39,32 @@ export default function MarketPage() {
   const [uid, setUid] = useState<string | null>(null);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
 
-  const [error, setError] = useState<string | null>(null);
+  const queryKey = JSON.stringify([tab, category, applied, filters]);
+  const [loadedQuery, setLoadedQuery] = useState<string | null>(null);
+  const [readError, setReadError] = useState<{ key: string; message: string } | null>(null);
+  const error = readError?.key === queryKey ? readError.message : null;
+  const loaded = loadedQuery === queryKey;
+  const visibleListings = loaded ? listings : [];
   const request = useRef(0);
+  const confirmedMutation = useRef(0);
   const account = useRef<string | null | undefined>(undefined);
   const [filterError, setFilterError] = useState("");
   const load = useCallback(async () => {
     const token = request.current += 1;
-    setLoading(true); setError(null);
+    const mutationAtStart = confirmedMutation.current;
+    setLoading(true); setReadError(null);
     try {
       const [{ data: session, error: sessionError }, ids] = await Promise.all([
         supabase.auth.getSession(), getSavedListingIds(),
       ]);
       if (token !== request.current) return;
-      setLoading(true); setError(null);
       if (sessionError) throw sessionError;
       const viewerId = session.session?.user.id ?? null;
+      if (account.current !== undefined && account.current !== viewerId) {
+        setListings([]); setLoadedQuery(null); setSavedIds(new Set());
+      }
       account.current = viewerId;
+      setUid(viewerId);
       let rows: Listing[];
       if (tab === "selling") {
         rows = viewerId ? await myListings(viewerId) : [];
@@ -70,16 +82,20 @@ export default function MarketPage() {
           ? await getMarketFeed({ search: applied || null, category, limit: 30 })
           : await getListings({ ...filters, search: applied || null, category, limit: 30 });
       }
-      if (token !== request.current) return;
+      if (token !== request.current || mutationAtStart !== confirmedMutation.current) return;
       setUid(viewerId);
       setSavedIds(ids);
       setListings(rows);
-    } catch {
-      if (token === request.current) setError("Could not load listings. Please try again.");
+      setLoadedQuery(queryKey);
+    } catch (cause) {
+      if (token === request.current) {
+        if (isAccessDeniedError(cause)) { setListings([]); setLoadedQuery(null); setSavedIds(new Set()); }
+        setReadError({ key: queryKey, message: "Could not load listings. Please try again." });
+      }
     } finally {
       if (token === request.current) setLoading(false);
     }
-  }, [supabase, tab, category, applied, filters]);
+  }, [supabase, tab, category, applied, filters, queryKey]);
 
   useEffect(() => {
     // Skip a fetch if React cleans up this effect before its queued start.
@@ -93,7 +109,7 @@ export default function MarketPage() {
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       const next = session?.user.id ?? null;
       if (next === account.current) return;
-      account.current = next; request.current += 1; setUid(next); setListings([]); setSavedIds(new Set());
+      account.current = next; request.current += 1; setUid(next); setListings([]); setLoadedQuery(null); setSavedIds(new Set());
       setFiltersOpen(false); setAlertsOpen(false);
       queueMicrotask(() => { if (active) void load(); });
     });
@@ -120,12 +136,13 @@ export default function MarketPage() {
       </form>
       <div className={styles.categories} role="group" aria-label="Market category">{cats.map(categoryName => { const Icon = CATEGORY_ICONS[categoryName] ?? Package; return <button type="button" key={categoryName} aria-pressed={category === categoryName} onClick={() => setCategory(categoryName)}><Icon size={16} strokeWidth={1.7} aria-hidden />{categoryName}</button>; })}</div>
     </> : null}
-    <div className={styles.results}><span role="status">{loading ? "Finding listings…" : error ? "Listings unavailable" : listings.length + (listings.length === 1 ? " listing shown" : " listings shown")}</span>{tab === "browse" && (filtersActive || category !== "All" || applied) ? <button type="button" onClick={clearAll}>Clear search and filters</button> : null}</div>
-    {loading ? <div className={styles.state} role="status"><ShoppingBag size={28} aria-hidden /><p>Loading listings…</p></div>
-      : error ? <div className={styles.state} role="alert"><SearchX size={28} aria-hidden /><h2>We couldn’t load listings</h2><p>{error}</p><button onClick={() => void load()} className={styles.primary}>Try again</button></div>
+    <div className={styles.results}><span role="status">{loading ? (loaded ? "Updating listings…" : "Finding listings…") : error ? (loaded ? "Showing last loaded listings" : "Listings unavailable") : visibleListings.length + (visibleListings.length === 1 ? " listing shown" : " listings shown")}</span>{tab === "browse" && (filtersActive || category !== "All" || applied) ? <button type="button" onClick={clearAll}>Clear search and filters</button> : null}</div>
+    <ResourceRefreshNotice error={loaded ? error || "" : ""} refreshing={loading} retry={() => void load()} />
+    {!loaded && (loading || !error) ? <div className={styles.state} role="status"><ShoppingBag size={28} aria-hidden /><p>Loading listings…</p></div>
+      : error && !loaded ? <div className={styles.state} role="alert"><SearchX size={28} aria-hidden /><h2>We couldn’t load listings</h2><p>{error}</p><button onClick={() => void load()} className={styles.primary}>Try again</button></div>
       : !uid && tab !== "browse" ? <div className={styles.state}><ShoppingBag size={28} aria-hidden /><h2>{tab === "saved" ? "Keep your favourites together" : "Your shop starts here"}</h2><p>Sign in to {tab === "saved" ? "view your saved listings." : "publish and manage your listings."}</p><Link href="/login" className={styles.primary}>Sign in</Link></div>
-      : listings.length === 0 ? <div className={styles.state}><ShoppingBag size={28} aria-hidden /><h2>{tab === "saved" ? "No saved listings yet" : tab === "selling" ? "Ready for a new home?" : "No matching listings"}</h2><p>{tab === "saved" ? "Save an item to keep it here for later." : tab === "selling" ? "Give your item a clear description and photos to help buyers find it." : "Try another search or category to see more from the market."}</p>{tab === "selling" ? <Link href="/market/new" className={styles.primary}>Create a listing</Link> : <button type="button" className={styles.button} onClick={() => { setTab("browse"); clearAll(); }}>Browse all listings</button>}</div>
-      : <div className={styles.grid}>{listings.map(listing => <ListingCard key={(uid ?? "guest") + listing.id} l={listing} saved={savedIds.has(listing.id)} viewerId={uid} onSavedChange={on => { setSavedIds(previous => { const next = new Set(previous); if (on) next.add(listing.id); else next.delete(listing.id); return next; }); if (!on && tab === "saved") setListings(rows => rows.filter(row => row.id !== listing.id)); }} />)}</div>}
+      : visibleListings.length === 0 ? <div className={styles.state}><ShoppingBag size={28} aria-hidden /><h2>{tab === "saved" ? "No saved listings yet" : tab === "selling" ? "Ready for a new home?" : "No matching listings"}</h2><p>{tab === "saved" ? "Save an item to keep it here for later." : tab === "selling" ? "Give your item a clear description and photos to help buyers find it." : "Try another search or category to see more from the market."}</p>{tab === "selling" ? <Link href="/market/new" className={styles.primary}>Create a listing</Link> : <button type="button" className={styles.button} onClick={() => { setTab("browse"); clearAll(); }}>Browse all listings</button>}</div>
+      : <div className={styles.grid}>{visibleListings.map(listing => <ListingCard key={(uid ?? "guest") + listing.id} l={listing} saved={savedIds.has(listing.id)} viewerId={uid} onSavedChange={on => { confirmedMutation.current += 1; setSavedIds(previous => { const next = new Set(previous); if (on) next.add(listing.id); else next.delete(listing.id); return next; }); if (!on && tab === "saved") setListings(rows => rows.filter(row => row.id !== listing.id)); }} />)}</div>}
     {alertsOpen ? <MarketAlerts initialQuery={applied || search} onClose={() => setAlertsOpen(false)} /> : null}
     <ProductDialog open={filtersOpen} title="Market filters" description="Narrow your search by price, location and condition." onClose={() => setFiltersOpen(false)}>
       <form className={styles.form} onSubmit={event => { event.preventDefault(); if (draft.minPrice != null && draft.maxPrice != null && draft.minPrice > draft.maxPrice) { setFilterError("The maximum price must be at least the minimum price."); return; } setFilters(draft); setFiltersOpen(false); }}>

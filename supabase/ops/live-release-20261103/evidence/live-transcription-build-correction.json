@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-03T07:14:03.629131+00:00",
+  "failed_build": {
+    "id": "Builder-UhwmorEgFfEf:6bf10b2b-e3a4-4556-9633-36b4dbefe9ae",
+    "source_version": "NXu2VDmhizJmaZaAJgbrPM.rVcNS5wd_",
+    "actual_result": "FAILED",
+    "source_signature_and_exact_sha256_verified": true,
+    "ffmpeg_compiled": true,
+    "error": "caption_encoder_unapproved_encoder",
+    "actual_enabled_encoders": [
+      "flac",
+      "pcm_s16le"
+    ],
+    "cause": "The validator treated the internal config.h FRAME_THREAD_ENCODER support macro as a registered codec; FFmpeg writes registered codecs separately to config_components.h."
+  },
+  "correction": {
+    "files": [
+      "workers/live-transcription/encoder-policy.mjs",
+      "workers/live-transcription/test/encoder-policy.test.mjs"
+    ],
+    "codec_protocol_allowlists_changed": false,
+    "network_flag_checked_in": "config.h",
+    "registered_components_checked_in": "config_components.h",
+    "source_reference": "FFmpeg 9.0.2 configure: enable frame_thread_encoder; CONFIG_LIST/CONFIG_EXTRA -> config.h; ALL_COMPONENTS -> config_components.h"
+  },
+  "validation": {
+    "command": "node --test workers/live-transcription/test/encoder-policy.test.mjs infrastructure/live-transcription/test/build.test.mjs",
+    "passed": 5,
+    "failed": 0,
+    "includes_real_local_audio_conversion": true,
+    "container_image_acceptance": false,
+    "source_manifest_verified_after_unpack": true,
+    "git_diff_check_passed": true
+  },
+  "bundle": {
+    "schema_version": 1,
+    "archive_path": "/workspace/scratch/4c1d55b8bab6/platinum-transcription-source-azo77s0x/transcription-source.zip",
+    "bytes": 73232,
+    "archive_sha256": "e6b9009779115b6b1eb970dca1e01ca0b704adff90012ea9b0cf7567e46baa85",
+    "manifest_sha256": "b8d314a6363724f3840e6a71f557310aa6768d29e28bfa795b54e3fa6dbeac3a",
+    "file_count": 24,
+    "repository_head": "57a0553421df911dfa977f593b4e606c00c0bba8",
+    "contains_credentials": false
+  },
+  "image_tag": "asr-source-b8d314a6363724f3840e6a71f557310a",
+  "buildspec_override": "infrastructure/live-transcription/buildspec.yml",
+  "remaining_gates": [
+    "new immutable image build",
+    "actual image scan and source-component advisory review",
+    "Fargate acceptance",
+    "actual Transcribe storage/write acceptance"
+  ],
+  "aws_mutations_performed_by_this_agent": false,
+  "file_sha256": {
+    "workers/live-transcription/encoder-policy.mjs": "4f2e2646f53d149bd37dcf724d5517ba83dfc32317851d5091aa766fe2aba941",
+    "workers/live-transcription/test/encoder-policy.test.mjs": "2a93b8e0b6144be77eeacb196602756c1e9bdbb5c07682fc8ccc7934b5d129d2"
+  }
+}

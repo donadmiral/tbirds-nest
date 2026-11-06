@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-03T07:26:23.796675+00:00",
+  "scope": "Local optional OAuth, explicit direct clip publishing, private TikTok media delivery and caption review UI",
+  "evidence_kind": "Local synthetic provider fixtures and actual isolated PGlite migrations; no provider posts, OAuth consent or hosted changes by this agent",
+  "focused_tests": [
+    {
+      "command": "node --test supabase/tests/live-integrations.test.cjs supabase/tests/live-social.test.cjs supabase/tests/live-social-pull.test.cjs",
+      "passed": 45,
+      "failed": 0
+    },
+    {
+      "command": "node --test workers/live-social/test/*.test.mjs",
+      "passed": 25,
+      "failed": 0
+    },
+    {
+      "command": "node --test supabase/tests/rpc-authorization/test-live-social-publishing.mjs",
+      "passed": 15,
+      "failed": 0
+    },
+    {
+      "command": "node --test web/tests/live-connections.cjs web/tests/live-optional-flows.cjs",
+      "passed": 19,
+      "failed": 0
+    },
+    {
+      "command": "node --test infrastructure/live-social/test/*.test.mjs",
+      "passed": 10,
+      "failed": 0
+    }
+  ],
+  "total_passed": 114,
+  "total_failed": 0,
+  "additional_checks": {
+    "strict_edge_types": "passed",
+    "web_types": "passed",
+    "production_web_build": {
+      "command": "npm run build -- --webpack",
+      "exit_code": 0,
+      "static_pages_generated": 95,
+      "environment": "Temporary synthetic build-only anon key and explicit production Supabase origin, never saved; no deployment"
+    },
+    "cfn_lint_us_east_2": "passed",
+    "git_diff_check": "passed",
+    "previously_frozen_oauth_sources_unchanged": true
+  },
+  "review_fixes": [
+    "Current source, account and worker lease are checked before every provider request.",
+    "YouTube requires exactly one matching OAuth-owned channel before resumable initiation and validates returned channel ID.",
+    "Encrypted connection tokens bind the selected external account and preserve that identity across refresh.",
+    "Non-default ports and noncanonical provider/pull paths are rejected.",
+    "TikTok server media uses verified-origin PULL_FROM_URL, stable encrypted capability and no redirect/cache.",
+    "Unknown create/publish outcomes remain confirmation_required; automatic retries do not duplicate irreversible requests.",
+    "Provider operations have overall abort deadlines and bounded outage backoff.",
+    "New-table foreign-key indexes include social_connections(platform) in the unapplied second migration."
+  ],
+  "activation_gates": [
+    "Actual provider developer apps, approved scopes, callback configuration, app verification/audit and creator OAuth consent.",
+    "Server vault and dedicated worker bearer installed through the owner-approved secret process.",
+    "Reviewed worker image digest, scan, broker acceptance and service deployment; task template defaults to zero.",
+    "TikTok app domain verification plus realistic hosted proxy transfer acceptance within 128 MiB and 110 seconds.",
+    "Explicit provider-specific publishing admission and separately approved real post acceptance; no live provider validation is claimed.",
+    "Optional transcription admission and executor activation are managed separately by its owner."
+  ],
+  "scale_scope": "Two active publisher leases, creator admission/rate limits, bounded media/downloads and provider quota compliance are rollout safeguards, not five-million-user load proof.",
+  "native_scope": "Fixed-origin browser handoff owned by the native agent; no embedded native publishing form is claimed.",
+  "source_sha256": {
+    "infrastructure/live-social/README.md": "ae9ca84138e53e5a99b8ec6ac2b9ad4768ff2bfbd6babd022631ef41a45873b3",
+    "infrastructure/live-social/buildspec.yml": "c18868e75aa1e318a43cbdae072f79c2f647d8a1276357235599211c8c8cadb9",
+    "infrastructure/live-social/image-receipt.mjs": "0e5da877b778e2dfbb6c85ed69d1c8163b34f3fab78d01a7d64f4c7f654dc6b1",
+    "infrastructure/live-social/package-source.py": "4d5c24e099ed4f5d145b504ce6beefc30d1b64537c03883b0231464f8b59b140",
+    "infrastructure/live-social/resolve-base.mjs": "25ce41fa6d23a7a5aa750211ca2376065172a66ae87e3381b9aa8bac0280fa30",
+    "infrastructure/live-social/scan-receipt.mjs": "2663c3e997999cda93677dea7fe1d10c293f78291e76ff645d2d906debe2d77a",
+    "infrastructure/live-social/service-cloudformation.json": "8305adcfd6bb743698248aae766ab1312c7a6baf550b637db814fa14cc639c90",
+    "infrastructure/live-social/service-template.mjs": "80ff50d2b63b6a25c8e9d0a3ac37b683dae3517a8ff5fa99b911d1def2ef54cd",
+    "infrastructure/live-social/test/build.test.mjs": "4c1d10beaf84bfe88bd0a45f7eb923284a15d245963f88cd39001a916a440a34",
+    "infrastructure/live-social/test/service.test.mjs": "38af09d95a534126c2b80830133ba21c2e7ae877c1259a7eb61b7f792fd830bf",
+    "infrastructure/live-social/verify-source.mjs": "b673146ce348c8d22583b9716aafdd2aa7ca60b67fb8fc5d870fa7b0698fe0d8",
+    "supabase/functions/live-connect/index.ts": "cb9fc6820caf6fb61741e7356bcd2c0aad6fbe18299f2a5bdc268720ad833d92",
+    "supabase/functions/live-integrations-core/connect.ts": "80f5e191ddc234a92e57e6fb71bb9545e609fa33be8a96c2aaa674aa8fa3dcdb",
+    "supabase/functions/live-integrations-core/providers.ts": "bd8257b02b01afc0bfaef6b7a9ec4a10c7c94f1d77d3d14a4878ffd4255be46f",
+    "supabase/functions/live-integrations-core/runtime.ts": "81260ee0c8fa25d72a5e6fdfc5ef14366c335ef6a119e84739475fb7bc33f72d",
+    "supabase/functions/live-integrations-core/security.ts": "cd790d8e325875ae47aa20e1d002fb53c647b765e5c29e73aa28a7921db202cc",
+    "supabase/functions/live-integrations-core/social.ts": "b065ea40e2f197c2668aafb163f44b811fe5da6632857d7ca739f9d2707b99bb",
+    "supabase/functions/live-social-pull/handler.ts": "72ef77f97a52e66aa3d6dd6fb8b06953c4fd3dd36586840e07519f26ed327660",
+    "supabase/functions/live-social-pull/index.ts": "e21f97cb64af1002cca2484623d3444fbddbee20a71feca799009cba5a82a330",
+    "supabase/functions/live-social-worker/index.ts": "828165d4c33bedee8f594fe01ca4903c27fdf85402afef69a838a3ac7cb0c3fe",
+    "supabase/functions/live-social/index.ts": "70646414d60fcd3deebb206de61a5e5af60f32d726652caa9b19568a00ddcc78",
+    "supabase/functions/media-content/handler.ts": "f85fc14d804d540b85ade1b04add753e7b48558042f85e4b94129a5569d52d12",
+    "supabase/migrations/20261103061323_live_direct_social_publishing.sql": "3711ab0de23317ad45eedade1db1917c6aaecaea908cbfb94b064aef23863b73",
+    "supabase/tests/live-integrations.test.cjs": "b54dc99c78e1e19b291763e7318b0fe213efe13c6a34a5582fdf0c142df12d44",
+    "supabase/tests/live-social-pull.test.cjs": "2cd129c96964b6b6d0848c7a9f0fc5250020a08e9040b3bcd6e316e5637dd336",
+    "supabase/tests/live-social.test.cjs": "edcb86b1947ce07eb61aa1df7bb77adcc0ddea6fc63790f59feaff3ef702bd1b",
+    "supabase/tests/rpc-authorization/test-live-social-publishing.mjs": "4ccd424469e72a239869d020d2324132f62c63c5d572c766b94364b5816efaab",
+    "web/app/live/clips/[id]/captions/page.tsx": "d88eac974dcc13102f2cdd6e733c606298c17b809b2e50d5784804a871265b01",
+    "web/app/live/clips/[id]/publish/page.tsx": "12e30d804852fb98c8891b164b9b30fdd93c3dbbdb23c1ec71830a57912bbcb5",
+    "web/app/live/connections/callback/page.tsx": "328442058f7aed4dfff46d2ed27203fa8c0e08a5ccafb9c44fd08f2da141ffb3",
+    "web/app/live/connections/page.tsx": "e4df0822c04be8de8e3ae1dc24b956e7837051f5bd0b5d81bf8a093265fc2ea7",
+    "web/components/LiveCaptionReview.tsx": "7d08c3cec5296aa9a3b109d1b515825c8e9de3eea00a12023ec216629891146a",
+    "web/components/LiveClipLibrary.tsx": "66bc81d900ae3517a528a67d8bfa7b3e0bacf04a96cbaff4103abd5071533617",
+    "web/components/LiveClipPublishPreview.tsx": "16c9410f3cb3f1ef5699f458484ea77e50bc75376b556cdf7a0aadac45278efc",
+    "web/components/LiveClipSettings.tsx": "03a3d73c6ff6f4abc747d7173d66ed61de37b92481b5e4822dba2ddd166d3b3d",
+    "web/components/LiveClipView.tsx": "eedac0adf7f3abe6c930d0e5bc7f22c2ab4a88d0be25fb45dea7f4d185a53a06",
+    "web/components/LiveConnections.tsx": "8bb4bcf37460720da1a252fc06c8efa152c2ddbae17b7364e65660f533b6eb0a",
+    "web/components/LiveSocialPublisher.tsx": "39ddd337d1c71883149b97ac7ab712bcd1c7c2a886d7ee733677dd054a97105a",
+    "web/lib/liveCaptions.ts": "809a19df6892d1b652c4d3ffc7e594032c7b625d072dffdeb6ba339dc46b9aaf",
+    "web/lib/liveConnections.ts": "19dec1059ebc928535a22dd254086d4807da4d1571683531ee35708e381b720f",
+    "web/lib/liveSocial.ts": "b02eeba44200c4bb0e4773e3e225ca8abe5eb679b7577c2c1c043d6ba8fd2efd",
+    "web/next.config.ts": "382d4c391158ae4b29310846cd40b0e8c9a34bbfc9b124071f92602201418edd",
+    "web/proxy.ts": "b8f1996b55c264f7f8aa9de369640049193c201450d314c8d8fa864b6cab62ac",
+    "web/tests/live-connections.cjs": "2e00924f23227742788abce062abf5cde12f763df6da8ac85386f8f60d78236b",
+    "web/tests/live-optional-flows.cjs": "06b44b2b7881c80f909c0e2901c59f137ebfdf25bd74cc3dc46c051c3cf20b08",
+    "workers/live-social/Dockerfile": "0afbbc74ac5a2127980ca89942589f9e2952a9023cad6200c0d8fd53fd931297",
+    "workers/live-social/README.md": "3770af6153f337505bdde26c5d7d4e71b7ef19182c9e10f94e5d874f27681412",
+    "workers/live-social/acceptance.mjs": "9d7899f0308004d3657f15a2f6c3a9fd8b1de16861b51c6d9941663787f74313",
+    "workers/live-social/adapters.mjs": "ed8536ec68ab5419895417fab9140ec6abc2a65a2b86c957289e6440ddffe871",
+    "workers/live-social/health.mjs": "28a57299d860ed58ed01c3304a936415e07298f35f19be6c9c77de7ae517ebcd",
+    "workers/live-social/package.json": "befa38f7baf681f68c8a1c76e0dbc13759d5f5b28297b3d1bca107829104f30c",
+    "workers/live-social/pull.mjs": "dcfc669b585ed6841b17f7762c965f8375d31f098542fb35aab366c610557b60",
+    "workers/live-social/runtime-policy.mjs": "48593592f391d2290f1ebe3ad46c1b4309e0f0667ca7f7d824e4abdd7dcc7214",
+    "workers/live-social/test/publishing.test.mjs": "58027272eb11c63686a4863db87f9a2a70c405f20b14bbb134b3d616605aaacb",
+    "workers/live-social/test/runtime-policy.test.mjs": "af5148d1ee5d3eae88c186aad755f201ce1c8f63c8652af992e04eaf7ae40d9f"
+  },
+  "source_freeze_revision": 3,
+  "image_build_preparation": {
+    "bundle": {
+      "schema_version": 1,
+      "archive_path": "/tmp/platinum-social-source-udg6304m/social-source.zip",
+      "bytes": 24553,
+      "archive_sha256": "ab24b8487539b86444b25adc1a5737cad2ebe752de7a000ed0cf26318e6979eb",
+      "manifest_sha256": "6ea5eda62608811fb97db7b2dbe7e08bdcd9e24e8791bec08c0b27ff7b1eb39a",
+      "file_count": 13,
+      "repository_head": "57a0553421df911dfa977f593b4e606c00c0bba8",
+      "contains_credentials": false
+    },
+    "local_worker_and_build_tests": {
+      "passed": 35,
+      "failed": 0
+    },
+    "archive_and_extracted_source_manifest_verified": true,
+    "actual_container_tests": "first_build_failed_runtime_metadata_read; fixed_source_awaits_owner_CodeBuild_rerun",
+    "actual_image_scan": "pending_owner_ECR_review",
+    "local_container_engine_available": false,
+    "cloud_mutations_by_this_agent": false,
+    "shared_codebuild": {
+      "source_object_key": "source/renderer-source.zip",
+      "source_version": "owner_must_pin_returned_S3_VersionId",
+      "buildspec_override": "infrastructure/live-social/buildspec.yml",
+      "checksum_environment": "EXPECTED_MANIFEST_SHA256",
+      "repository_environment": "RENDERER_REPOSITORY_URI",
+      "tag": "social-source-6ea5eda62608811fb97db7b2dbe7e08b"
+    },
+    "previously_frozen_publishing_sql_edge_and_worker_behavior_unchanged": true,
+    "superseded_bundle": {
+      "schema_version": 1,
+      "archive_path": "/tmp/platinum-social-source-pm0gpgdp/social-source.zip",
+      "bytes": 24062,
+      "archive_sha256": "b11ba996c5b631c144a80e409048197dcbc8319992671d2b855b97b258228011",
+      "manifest_sha256": "8de1704702e42889f34390098a03b9bfc732e6628bea7aa2dbdefa8084ccc0b9",
+      "file_count": 13,
+      "repository_head": "57a0553421df911dfa977f593b4e606c00c0bba8",
+      "contains_credentials": false
+    },
+    "prior_build_failure": {
+      "build_id": "03dd18aa-0303-44bf-83c3-6d32e2500902",
+      "log_group": "/platinum/live-clips/platinum-live-clips-build-production/build",
+      "log_stream": "image/03dd18aa-0303-44bf-83c3-6d32e2500902",
+      "read_via": "AWS Agent Toolkit logs:GetLogEvents",
+      "api_call_status": "success",
+      "docker_build_succeeded": true,
+      "observed_failure_at": "2026-11-03T07:19:02Z",
+      "observed_error": "social_runtime_policy_failed",
+      "image_pushed": false,
+      "concrete_source_defect": "Generated public base metadata is0600/root-owned; plain Docker COPY preserves it while runtime asserts UID1000 and reads it. The generic hosted failure does not identify an inner exception.",
+      "fix": "COPY --chmod=0444 keeps public metadata root-owned, readable and nonwritable. Actual-container acceptance now verifies owner UID0 and mode0444; image publication requires this receipt. Finite reason codes diagnose any remaining policy failure without raw error text.",
+      "bounds_weakened": false,
+      "local_uid_switch_reproduction": "unavailable: process.setuid(1000) returned EINVAL in this workspace; not claimed as passed",
+      "actual_fixed_image_acceptance": "pending"
+    }
+  }
+}

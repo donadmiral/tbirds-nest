@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { ResourceRefreshNotice } from "@/components/ResourceRefreshNotice";
 import { useAccountResource } from "@/lib/useAccountResource";
 import { errorMessage } from "@/lib/errors";
 import { withTimeout } from "@/lib/withTimeout";
@@ -20,7 +21,7 @@ async function loadRequests(supabase: ReturnType<typeof createClient>): Promise<
   return (data??[]) as Row[];
 }
 export default function MessageRequestsPage() {
-  const resource=useAccountResource(loadRequests, []);
+  const resource=useAccountResource(loadRequests, [], { cacheKey: "messages:requests" });
   const router=useRouter();
   const rows=resource.data;
   const locks=useRef(new Set<string>());
@@ -36,8 +37,8 @@ export default function MessageRequestsPage() {
       const {error}=await withTimeout(resource.client.rpc(action==="accept"?"accept_message_request":"decline_message_request",{p_conversation_id:id}));
       if(error)throw error;
       await resource.assertOwner();
+      resource.setData(values=>values.filter(value=>value.conversation_id!==id));
       if(action==="accept")router.push("/messages?c="+encodeURIComponent(id));
-      else resource.setData(values=>values.filter(value=>value.conversation_id!==id));
     } catch(cause) {setActionError(errorMessage(cause,"The request could not be updated. Please try again."));}
     finally {locks.current.delete(id);setBusy(value=>{const next={...value};delete next[id];return next;});}
   };
@@ -47,6 +48,7 @@ export default function MessageRequestsPage() {
       <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><Inbox size={19} className="text-accent" /> Message requests</h1>
       <p className="pb-5 text-[13px] text-muted">Messages from people you do not follow wait here. Accept to reply, decline to remove.</p>
       {actionError ? <p role="alert" className="mb-4 text-sm text-danger">{actionError}</p> : null}
+      <ResourceRefreshNotice error={resource.refreshError} refreshing={resource.refreshing} retry={resource.retry} />
       {resource.error ? <ErrorState title="Message requests could not load" line={resource.error} onRetry={resource.retry}/> : resource.loading ? <p className="py-10 text-center text-sm text-muted">Loading</p>
       : rows.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-ink/15 py-14 text-center">

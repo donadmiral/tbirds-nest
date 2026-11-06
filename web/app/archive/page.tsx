@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, BookHeart, Check, Plus, Trash2, X } from "lucide-react";
 import { hydrateStoryDraftMedia, hydrateStoryMedia } from "@/lib/contentMedia";
+import { ResourceRefreshNotice } from "@/components/ResourceRefreshNotice";
+import { ArchivedStoryVideo } from "@/components/ArchivedStoryVideo";
 import { useAccountResource } from "@/lib/useAccountResource";
 import { errorMessage } from "@/lib/errors";
 import { withTimeout } from "@/lib/withTimeout";
@@ -66,6 +68,7 @@ export default function ArchivePage() {
         <Link href="/story/new" className="flex items-center gap-1 rounded-full bg-pearl px-3 py-1.5 text-[12px] font-semibold text-on-pearl"><Plus size={13} /> New story</Link>
       </div>
 
+      <ResourceRefreshNotice error={resource.refreshError} refreshing={resource.refreshing} retry={resource.retry} />
       {error || resource.error ? <div role="alert" className="my-3 text-sm text-danger">{error || resource.error} <button onClick={() => {setError(null);resource.retry();}} className="underline">Retry</button></div> : null}
       {drafts.length > 0 ? (
         <div className="mb-6">
@@ -128,7 +131,7 @@ export default function ArchivePage() {
           <button className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white" aria-label="Close"><X size={18} /></button>
           <div className="max-h-[88vh] max-w-[92vw]" onClick={(e) => e.stopPropagation()}>
             {open.media_type === "video" && open.media_url ? (
-              <video src={open.media_url} controls autoPlay playsInline className="max-h-[88vh] rounded-xl" />
+              <ArchivedStoryVideo source={open.media_url} />
             ) : open.media_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={open.media_url} alt="" className="max-h-[88vh] rounded-xl object-contain" />

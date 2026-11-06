@@ -18,6 +18,7 @@ import { GroupCallBar } from "@/components/GroupCallBar";
 import { ShareDetails } from "@/components/ShareDetails";
 import { parseChatAttachmentCard, attachmentCardText, attachmentCardLinks } from "../../shared/chatAttachmentCards";
 import { PrivateMediaViewer } from "@/components/PrivateMediaViewer";
+import { ChatVideo } from "@/components/ChatVideo";
 import { SharedPostCard } from "@/components/SharedPostCard";
 import { RelativeTime } from "@/components/RelativeTime";
 import { MESSAGE_PAGE_SIZE, olderMessageFilter, mergeMessagePage, type MessageCursor } from "../../shared/messageHistory";
@@ -41,7 +42,8 @@ import { navigationMessages, revalidateMessageWindow, type MessageNavigationMemo
 import { profilePath } from "@/lib/profileLookup";
 import workspace from "./MessagesWorkspace.module.css";
 
-const PRIVATE_MEDIA_SESSIONS_ENABLED = process.env.NEXT_PUBLIC_PRIVATE_MEDIA_SESSIONS_ENABLED === 'true';
+const LIMITED_MEDIA_VIEWER_ENABLED = process.env.NEXT_PUBLIC_PRIVATE_MEDIA_SESSIONS_ENABLED === 'true'
+  || process.env.NEXT_PUBLIC_LEGACY_LIMITED_MEDIA_ENABLED === 'true';
 
 const subscribeLocation = (listener: () => void) => { window.addEventListener("popstate", listener); return () => window.removeEventListener("popstate", listener); };
 const debugSnapshot = () => new URLSearchParams(window.location.search).get("debug") === "1";
@@ -266,17 +268,34 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     return () => { vv.removeEventListener('resize', apply); cancelAnimationFrame(raf); body.style.position = prev.position; body.style.top = prev.top; body.style.width = prev.width; body.style.overflow = prev.overflow; body.style.overscrollBehavior = prev.overscroll; window.scrollTo(0, y); el.style.height = ''; el.style.top = ''; };
   }, [compact, activeId]);
   useEffect(() => {
-    const el = listRef.current; if (!el) return;
-    const onScroll = () => { debugCounts.current.scroll++; threadPosition.current = { conversationId: activeId, top: el.scrollTop }; pinnedRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80; restoreVisibleThread(); if (pinnedRef.current) void markReadRef.current(); };
+    const el = listRef.current; if (!el || !activeId) return;
+    const account = accountGeneration.current;
+    let live = true;
+    const current = () => live && listRef.current === el && activeRef.current?.id === activeId && accountGeneration.current === account;
+    const onScroll = () => { if (!current()) return; debugCounts.current.scroll++; threadPosition.current = { conversationId: activeId, top: el.scrollTop }; pinnedRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80; restoreVisibleThread(); if (pinnedRef.current) void markReadRef.current(); };
     el.addEventListener('scroll', onScroll, { passive: true });
     let settle: ReturnType<typeof setTimeout> | null = null;
-    const settleThenScroll = () => { if (settle) clearTimeout(settle); settle = setTimeout(() => { settle = null; if (pinnedRef.current) requestAnimationFrame(scrollToEnd); }, 80); };
+    let frame: number | null = null;
+    const settleThenScroll = () => {
+      if (!current()) return;
+      if (settle !== null) clearTimeout(settle);
+      if (frame !== null) { cancelAnimationFrame(frame); frame = null; }
+      settle = setTimeout(() => {
+        settle = null;
+        if (!current() || !pinnedRef.current) return;
+        frame = requestAnimationFrame(() => {
+          frame = null;
+          // A scroll or conversation change can happen after the settle timer.
+          if (current() && pinnedRef.current) el.scrollTop = el.scrollHeight;
+        });
+      }, 80);
+    };
     const ro = new ResizeObserver(() => { debugCounts.current.ro++; settleThenScroll(); });
     ro.observe(el); Array.from(el.children).forEach((ch) => ro.observe(ch));
-    const mo = new MutationObserver(() => { debugCounts.current.mo++; Array.from(el.children).forEach((ch) => ro.observe(ch)); settleThenScroll(); });
+    const mo = new MutationObserver(() => { if (!current()) return; debugCounts.current.mo++; Array.from(el.children).forEach((ch) => ro.observe(ch)); settleThenScroll(); });
     mo.observe(el, { childList: true });
-    return () => { el.removeEventListener('scroll', onScroll); ro.disconnect(); mo.disconnect(); if (settle) clearTimeout(settle); };
-  }, [active?.id, activeId]);
+    return () => { live = false; el.removeEventListener('scroll', onScroll); ro.disconnect(); mo.disconnect(); if (settle !== null) clearTimeout(settle); if (frame !== null) cancelAnimationFrame(frame); };
+  }, [activeId, accountVersion]);
   const activeRef = useRef<Conv | null>(active);
   const typingSentAt = useRef(0);
   const typingIdle = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -958,7 +977,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   }
 
   const messageActions: MessageActions = {
-    openPrivate: message => { if (PRIVATE_MEDIA_SESSIONS_ENABLED && uid && uidRef.current === uid && message.view_limit && message.conversation_id === activeRef.current?.id && message.sender_id !== uid && !viewedPrivateIds.has(message.id)) setPrivateMedia({ id: message.id, userId: uid, conversationId: message.conversation_id, account: accountGeneration.current }); },
+    openPrivate: message => { if (LIMITED_MEDIA_VIEWER_ENABLED && uid && uidRef.current === uid && message.view_limit && message.conversation_id === activeRef.current?.id && message.sender_id !== uid && !viewedPrivateIds.has(message.id)) setPrivateMedia({ id: message.id, userId: uid, conversationId: message.conversation_id, account: accountGeneration.current }); },
     viewedPrivateIds,
     refreshMedia: message => { void runMessageAction(message, async () => {
       const account = accountGeneration.current;
@@ -1228,7 +1247,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
         if(uidRef.current!==uid || activeRef.current?.id!==active?.id)return false;
         return insertMessage(attachmentCardText(card),JSON.stringify(card),'link');
       }}/>}
-      {PRIVATE_MEDIA_SESSIONS_ENABLED && privateMedia && privateMedia.userId === uid && privateMedia.conversationId === active?.id && privateMedia.account === accountVersion && <PrivateMediaViewer key={privateMedia.userId+":"+privateMedia.id} messageId={privateMedia.id} userId={privateMedia.userId}
+      {LIMITED_MEDIA_VIEWER_ENABLED && privateMedia && privateMedia.userId === uid && privateMedia.conversationId === active?.id && privateMedia.account === accountVersion && <PrivateMediaViewer key={privateMedia.userId+":"+privateMedia.id} messageId={privateMedia.id} userId={privateMedia.userId}
         onClose={() => setPrivateMedia(current => current?.id === privateMedia.id && current?.userId === privateMedia.userId && current?.account === privateMedia.account ? null : current)} onConsumed={remaining => { if (remaining <= 0 && privateMedia.account === accountGeneration.current && privateMedia.conversationId === activeRef.current?.id) setViewedPrivateIds(prev => new Set(prev).add(privateMedia.id)); }} />}
       {actionError ? <div role="alert" className="mb-2 text-sm text-danger"><p>{actionError}</p>{attachmentDraft ? <button type="button" disabled={sendingFile} className="mt-1 underline" onClick={() => void attach([attachmentDraft])}>Retry attachment</button> : null}</div> : null}
       {notice ? <p role="status" className="mb-2 text-sm text-ink">{notice}</p> : null}
@@ -1462,7 +1481,7 @@ const BubbleView = memo(function BubbleView({ m, uid, offer, actions, replySourc
           {m.media_type === "payment" || m.payment_id ? (
             <span className={"flex items-center gap-1.5 text-[13px] " + (mine ? "text-white/75" : "text-secondary")}><Wallet size={14} /> Payment · open the Platinum Circles app</span>
           ) : null}
-          {m.view_limit ? PRIVATE_MEDIA_SESSIONS_ENABLED ? <button type="button" disabled={mine || actions.viewedPrivateIds.has(m.id)} onClick={() => actions.openPrivate(m)} className="rounded-lg border border-current/30 p-3 text-sm disabled:opacity-60">{actions.viewedPrivateIds.has(m.id) ? "Viewed" : mine ? "Private attachment" : "Open private attachment"}</button> : <p className="text-sm">Limited-view attachment · Open in phone app</p> : null}
+          {m.view_limit ? LIMITED_MEDIA_VIEWER_ENABLED ? <button type="button" disabled={mine || actions.viewedPrivateIds.has(m.id)} onClick={() => actions.openPrivate(m)} className="rounded-lg border border-current/30 p-3 text-sm disabled:opacity-60">{actions.viewedPrivateIds.has(m.id) ? "Viewed" : mine ? "Private attachment" : "Open private attachment"}</button> : <p className="text-sm">Limited-view attachment · Open in phone app</p> : null}
           {(() => { const card=m.view_limit?null:parseChatAttachmentCard(m.media_url); return card?<div className="my-2 rounded-lg border border-current/30 p-3"><strong>{attachmentCardText(card)}</strong>{attachmentCardLinks(card).map(link=><a key={link.url} href={link.url} target={card.kind==='location'?'_blank':undefined} rel="noopener noreferrer" className="block py-2 underline">{link.label}</a>)}</div>:null; })()}
           {m.shared_post_id ? <SharedPostCard postId={m.shared_post_id} /> : null}
           {!m.view_limit && parseStoryMessageReference(m.media_url) ? <Link href={'/story/' + parseStoryMessageReference(m.media_url)} className="mb-2 block rounded-lg border border-current/30 p-3 text-sm underline">View story</Link> : null}
@@ -1472,7 +1491,7 @@ const BubbleView = memo(function BubbleView({ m, uid, offer, actions, replySourc
             <NextImage key={m.id + ':' + m.media_url} unoptimized width={768} height={768} src={m.media_url} onError={renewMedia} alt="Shared image" role="button" tabIndex={0} onClick={() => window.dispatchEvent(new CustomEvent("pc-view-media", { detail: { url: m.media_url } }))} onKeyDown={(e) => { if (e.key === "Enter") window.dispatchEvent(new CustomEvent("pc-view-media", { detail: { url: m.media_url } })); }} className="mb-1 max-h-72 cursor-zoom-in rounded-lg object-contain" />
           ) : null}
           {!m.view_limit && m.media_type === "video" && m.media_url ? (
-            <video key={m.id + ':' + m.media_url} src={m.media_url} poster={m.thumbnail_url || undefined} onError={renewMedia} controls preload="metadata" className="mb-1 max-h-72 rounded-lg" />
+            <ChatVideo key={m.id + ':' + m.media_url} messageId={m.id} userId={uid} source={m.media_url} poster={m.thumbnail_url || undefined} onError={renewMedia} />
           ) : null}
           {!m.view_limit && (m.media_type === "audio" || m.media_type === "voice") && m.media_url ? (
             <audio key={m.id + ':' + m.media_url} onError={renewMedia} controls preload="metadata" className="mb-1 w-[240px] max-w-full"><source src={m.media_url} type={/\.(m4a|mp4)(\?|$)/i.test(m.media_url) ? "audio/mp4" : /\.webm(\?|$)/i.test(m.media_url) ? "audio/webm" : undefined} /><a href={m.media_url} target="_blank" rel="noopener noreferrer" className="underline">Voice message</a></audio>

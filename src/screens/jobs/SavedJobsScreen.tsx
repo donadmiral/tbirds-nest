@@ -1,7 +1,7 @@
 import { ListRowSkeleton } from '../../components/skeletons';
 import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, StatusBar, Alert } from 'react-native';
 import { SafeAreaView } from '../../components/SafeArea';
 import { useNavigation , useFocusEffect } from '@react-navigation/native';
@@ -10,6 +10,8 @@ import { useAuthStore } from '../../stores/authStore';
 import { jobsService, Job } from '../../services/jobsService';
 import JobListRow from '../../components/jobs/JobListRow';
 import { jobsBack } from '../../navigation/jobsNavigation';
+import { createScreenReadGuard, isReadAccessDenied, requireReadRows } from '../../../shared/readContinuity';
+import { orderTimeout } from '../../../shared/orderRequest';
 
 const NAVY = '#0B1E3D';
 
@@ -22,18 +24,22 @@ export default function SavedJobsScreen() {
   const [loadError, setLoadError] = useState(false);
   const [retry, setRetry] = useState(0);
   const pending = useRef(new Set<string>());
+  const [reads] = useState(() => createScreenReadGuard(userId ?? null));
+  reads.setScope(userId ?? null);
+  useEffect(() => { setJobs([]); setLoading(!!userId); setLoadError(false); pending.current.clear(); }, [userId]);
 
-  useFocusEffect(useCallback(() => {
-    let live = true;
-    (async () => {
-      setLoading(true); setLoadError(false);
-      if (!userId) { if (live) { setLoading(false); setLoadError(true); } return; }
-      try { const rows = await jobsService.getSavedJobs(userId); if (live) setJobs(rows); }
-      catch { if (live) setLoadError(true); }
-      finally { if (live) setLoading(false); }
-    })();
-    return () => { live = false; };
-  }, [userId, retry]));
+  const load = useCallback(async () => {
+    const current = reads.begin(userId ?? null);
+    if (!current()) return;
+    if (!userId) { setJobs([]); setLoading(false); setLoadError(true); return; }
+    setLoading(true); setLoadError(false);
+    try {
+      const rows = requireReadRows<Job>(await orderTimeout(jobsService.getSavedJobs(userId), 15000, 'Saved jobs could not be loaded.'));
+      if (current()) setJobs(rows);
+    } catch (error) { if (current()) { if (isReadAccessDenied(error)) setJobs([]); setLoadError(true); } }
+    finally { if (current()) setLoading(false); }
+  }, [userId, reads]);
+  useFocusEffect(useCallback(() => { void load(); return () => reads.invalidate(); }, [load, reads, retry]));
 
   const unsave = useCallback(async (jobId: string) => {
     if (!userId || pending.current.has(jobId)) return;
@@ -59,9 +65,10 @@ export default function SavedJobsScreen() {
         <Text style={st.headerTitle}>Saved jobs</Text>
         <View style={{ width: 26 }} />
       </View>
-      {loading ? (
+      {loadError && jobs.length > 0 ? <TouchableOpacity accessibilityRole="button" onPress={() => { void load(); }}><Text accessibilityRole="alert" style={st.emptySub}>Saved jobs could not be refreshed. Tap to retry.</Text></TouchableOpacity> : null}
+      {loading && jobs.length === 0 ? (
         <ListRowSkeleton />
-      ) : loadError ? (
+      ) : loadError && jobs.length === 0 ? (
         <View style={st.center}><Text style={st.emptyTitle}>Could not load saved jobs</Text><TouchableOpacity accessibilityRole="button" onPress={() => setRetry(value => value + 1)} style={{ minHeight: 48, justifyContent: 'center' }}><Text style={st.emptySub}>Tap to retry</Text></TouchableOpacity></View>
       ) : jobs.length === 0 ? (
         <View style={st.center}>
@@ -76,6 +83,8 @@ export default function SavedJobsScreen() {
           ItemSeparatorComponent={() => <View style={st.sep} />}
           contentContainerStyle={{ paddingVertical: 4, paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
+          refreshing={loading}
+          onRefresh={() => { void load(); }}
           renderItem={({ item }) => (
             <JobListRow
               job={item}

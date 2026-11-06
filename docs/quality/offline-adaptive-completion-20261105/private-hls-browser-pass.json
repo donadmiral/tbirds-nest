@@ -1,0 +1,396 @@
+{
+  "passed": true,
+  "scope": "Actual React, legacy protocol, installed hls.js/MSE and decoded pixels. Synthetic auth/service. Hosted authorization is verified by the separate QA canary. Not physical-device acceptance.",
+  "cases": [
+    "Ordinary HLS decodes after an explicit tap and closes on account change",
+    "Legacy one-view HLS decodes using one view and both transports close terminally",
+    "HLS failure falls back to the exact legacy original without consuming again",
+    "Revoked HLS authorization closes the limited view without original fallback",
+    "Genuine client deadline removes private decoded and buffered content",
+    "Background visibility closes the same limited view and all HLS requests"
+  ],
+  "failures": [],
+  "runtime": "156.0.8078.80",
+  "sourceSha256": {
+    "web/components/PrivateMediaViewer.tsx": "ac422940c1a7af51bf4bfb0e8c0306a2e48146e5d229578716a3f0789373960f",
+    "web/components/ChatVideo.tsx": "b51e01550b740f63ed5c59dd0b40a839e82e1dec41c2a11c5b160452b4b6d4ba",
+    "web/components/MessagesApp.tsx": "404445e35c0236247c9c453b0dd543fa558bce4aa69ac52f12c0c33020121b35",
+    "web/lib/privateAdaptiveVideo.ts": "ef34a59d9dc6f505eb1b65f5dd7a27c271ab76d8c32bd702459c75c6f6ee97ad",
+    "shared/privateAdaptiveMedia.ts": "1039ba227034f3badf426f7d96c4796571c6a5d64399d854654c4b37be253ad6",
+    "shared/legacyLimitedMedia.ts": "dd6eea887a7d487fe527b6a3847934fd26705ddfddbd6ff698666315fee7188d",
+    "web/tests/browser/private-hls-run.cjs": "bb5c30c47f371c77f632d44df4219b99ecc534f9374f7e859822088d671a31c3",
+    "web/tests/browser/private-hls-fixture.tsx": "535f0f992977e78b925bcff449205a14be6b441b0d89ef1c43ca8add38c9ff5a",
+    "web/tests/browser/private-hls-adapter.tsx": "bbc42b4c5abd569838294bf1e46ebe353370ea494d507dac2b1a14af859a735f"
+  },
+  "requests": [
+    {
+      "method": "POST",
+      "path": "/functions/v1/private-hls",
+      "asset": null,
+      "authorized": true
+    },
+    {
+      "method": "GET",
+      "path": "/functions/v1/private-hls",
+      "asset": "master.m3u8",
+      "authorized": true
+    },
+    {
+      "method": "GET",
+      "path": "/functions/v1/private-hls",
+      "asset": "r0/index.m3u8",
+      "authorized": true
+    },
+    {
+      "method": "GET",
+      "path": "/functions/v1/private-hls",
+      "asset": "r0/seg00000.ts",
+      "authorized": true
+    },
+    {
+      "method": "GET",
+      "path": "/functions/v1/private-hls",
+      "asset": "r0/seg00001.ts",
+      "authorized": true
+    },
+    {
+      "method": "GET",
+      "path": "/functions/v1/private-hls",
+      "asset": "r0/seg00002.ts",
+      "authorized": true
+    },
+    {
+      "method": "GET",
+      "path": "/functions/v1/private-hls",
+      "asset": "r0/seg00003.ts",
+      "authorized": true
+    },
+    {
+      "method": "POST",
+      "path": "/functions/v1/private-hls",
+      "asset": null,
+      "authorized": true
+    },
+    {
+      "method": "POST",
+      "path": "/functions/v1/chat-media-sign",
+      "asset": null,
+      "authorized": true
+    },
+    {
+      "method": "POST",
+      "path": "/functions/v1/private-hls",
+      "asset": null,
+      "authorized": true
+    },
+    {
+      "method": "GET",
+      "path": "/functions/v1/private-hls",
+      "asset": "master.m3u8",
+      "authorized": true
+    },
+    {
+      "method": "GET",
+      "path": "/functions/v1/private-hls",
+      "asset": "r0/index.m3u8",
+      "authorized": true
+    },
+    {
+      "method": "GET",
+      "path": "/functions/v1/private-hls",
+      "asset": "r0/seg00000.ts",
+      "authorized": true
+    },
+    {
+      "method": "GET",
+      "path": "/functions/v1/private-hls",
+      "asset": "r0/seg00001.ts",
+      "authorized": true
+    },
+    {
+      "method": "GET",
+      "path": "/functions/v1/private-hls",
+      "asset": "r0/seg00002.ts",
+      "authorized": true
+    },
+    {
+      "method": "GET",
+      "path": "/functions/v1/private-hls",
+      "asset": "r0/seg00003.ts",
+      "authorized": true
+    },
+    {
+      "method": "POST",
+      "path": "/functions/v1/private-hls",
+      "asset": null,
+      "authorized": true
+    },
+    {
+      "method": "POST",
+      "path": "/functions/v1/limited-media-file",
+      "asset": null,
+      "authorized": true
+    },
+    {
+      "method": "POST",
+      "path": "/functions/v1/limited-media-file",
+      "asset": null,
+      "authorized": true
+    },
+    {
+      "method": "POST",
+      "path": "/functions/v1/chat-media-sign",
+      "asset": null,
+      "authorized": true
+    },
+    {
+      "method": "POST",
+      "path": "/functions/v1/private-hls",
+      "asset": null,
+      "authorized": true
+    },
+    {
+      "method": "GET",
+      "path": "/functions/v1/private-hls",
+      "asset": "master.m3u8",
+      "authorized": true
+    },
+    {
+      "method": "GET",
+      "path": "/functions/v1/private-hls",
+      "asset": "master.m3u8",
+      "authorized": true
+    },
+    {
+      "method": "POST",
+      "path": "/functions/v1/private-hls",
+      "asset": null,
+      "authorized": true
+    },
+    {
+      "method": "GET",
+      "path": "/functions/v1/limited-media-file",
+      "asset": null,
+      "authorized": true
+    },
+    {
+      "method": "POST",
+      "path": "/functions/v1/chat-media-sign",
+      "asset": null,
+      "authorized": true
+    },
+    {
+      "method": "POST",
+      "path": "/functions/v1/private-hls",
+      "asset": null,
+      "authorized": true
+    },
+    {
+      "method": "GET",
+      "path": "/functions/v1/private-hls",
+      "asset": "master.m3u8",
+      "authorized": true
+    },
+    {
+      "method": "POST",
+      "path": "/functions/v1/private-hls",
+      "asset": null,
+      "authorized": true
+    },
+    {
+      "method": "POST",
+      "path": "/functions/v1/limited-media-file",
+      "asset": null,
+      "authorized": true
+    },
+    {
+      "method": "POST",
+      "path": "/functions/v1/chat-media-sign",
+      "asset": null,
+      "authorized": true
+    },
+    {
+      "method": "POST",
+      "path": "/functions/v1/private-hls",
+      "asset": null,
+      "authorized": true
+    },
+    {
+      "method": "GET",
+      "path": "/functions/v1/private-hls",
+      "asset": "master.m3u8",
+      "authorized": true
+    },
+    {
+      "method": "GET",
+      "path": "/functions/v1/private-hls",
+      "asset": "r0/index.m3u8",
+      "authorized": true
+    },
+    {
+      "method": "GET",
+      "path": "/functions/v1/private-hls",
+      "asset": "r0/seg00000.ts",
+      "authorized": true
+    },
+    {
+      "method": "GET",
+      "path": "/functions/v1/private-hls",
+      "asset": "r0/seg00001.ts",
+      "authorized": true
+    },
+    {
+      "method": "GET",
+      "path": "/functions/v1/private-hls",
+      "asset": "r0/seg00002.ts",
+      "authorized": true
+    },
+    {
+      "method": "GET",
+      "path": "/functions/v1/private-hls",
+      "asset": "r0/seg00003.ts",
+      "authorized": true
+    },
+    {
+      "method": "POST",
+      "path": "/functions/v1/private-hls",
+      "asset": null,
+      "authorized": true
+    },
+    {
+      "method": "POST",
+      "path": "/functions/v1/limited-media-file",
+      "asset": null,
+      "authorized": true
+    },
+    {
+      "method": "POST",
+      "path": "/functions/v1/limited-media-file",
+      "asset": null,
+      "authorized": true
+    },
+    {
+      "method": "POST",
+      "path": "/functions/v1/chat-media-sign",
+      "asset": null,
+      "authorized": true
+    },
+    {
+      "method": "POST",
+      "path": "/functions/v1/private-hls",
+      "asset": null,
+      "authorized": true
+    },
+    {
+      "method": "GET",
+      "path": "/functions/v1/private-hls",
+      "asset": "master.m3u8",
+      "authorized": true
+    },
+    {
+      "method": "GET",
+      "path": "/functions/v1/private-hls",
+      "asset": "r0/index.m3u8",
+      "authorized": true
+    },
+    {
+      "method": "GET",
+      "path": "/functions/v1/private-hls",
+      "asset": "r0/seg00000.ts",
+      "authorized": true
+    },
+    {
+      "method": "GET",
+      "path": "/functions/v1/private-hls",
+      "asset": "r0/seg00001.ts",
+      "authorized": true
+    },
+    {
+      "method": "GET",
+      "path": "/functions/v1/private-hls",
+      "asset": "r0/seg00002.ts",
+      "authorized": true
+    },
+    {
+      "method": "GET",
+      "path": "/functions/v1/private-hls",
+      "asset": "r0/seg00003.ts",
+      "authorized": true
+    },
+    {
+      "method": "POST",
+      "path": "/functions/v1/private-hls",
+      "asset": null,
+      "authorized": true
+    },
+    {
+      "method": "POST",
+      "path": "/functions/v1/limited-media-file",
+      "asset": null,
+      "authorized": true
+    }
+  ],
+  "scenarios": [
+    {
+      "views": 0,
+      "originalGets": 0,
+      "hlsCloses": 1,
+      "legacyCloses": 0,
+      "childGets": 6,
+      "failHls": false,
+      "deniedHls": false
+    },
+    {
+      "views": 1,
+      "originalGets": 0,
+      "hlsCloses": 1,
+      "legacyCloses": 2,
+      "childGets": 6,
+      "failHls": false,
+      "deniedHls": false
+    },
+    {
+      "views": 1,
+      "originalGets": 1,
+      "hlsCloses": 1,
+      "legacyCloses": 0,
+      "childGets": 2,
+      "failHls": true,
+      "deniedHls": false
+    },
+    {
+      "views": 1,
+      "originalGets": 0,
+      "hlsCloses": 1,
+      "legacyCloses": 1,
+      "childGets": 1,
+      "failHls": false,
+      "deniedHls": true
+    },
+    {
+      "views": 1,
+      "originalGets": 0,
+      "hlsCloses": 1,
+      "legacyCloses": 2,
+      "childGets": 6,
+      "failHls": false,
+      "deniedHls": false
+    },
+    {
+      "views": 1,
+      "originalGets": 0,
+      "hlsCloses": 1,
+      "legacyCloses": 1,
+      "childGets": 6,
+      "failHls": false,
+      "deniedHls": false
+    }
+  ],
+  "verifiedAt": "2026-11-05T17:26:23.528229+00:00",
+  "commit": "adf48a31fda7b38e931981d660136444cac2f58a",
+  "runId": 42073141305,
+  "jobId": 127406155345,
+  "artifactId": 13436303376,
+  "artifactSha256": "37f186696b129f84e77f7c94f2b6fe0aa419504588912a1648f550e2e2ef9323",
+  "sourceMatchesCurrentCheckout": true
+}

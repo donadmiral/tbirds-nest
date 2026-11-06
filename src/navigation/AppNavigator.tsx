@@ -1,4 +1,8 @@
 import LiveStreamsScreen from '../screens/feed/LiveStreamsScreen';
+import LiveSessionScreen from '../screens/feed/LiveSessionScreen';
+import NewLiveScreen from '../screens/feed/NewLiveScreen';
+import LiveClipsScreen from '../screens/feed/LiveClipsScreen';
+import { LivePlaybackProvider, MiniLivePlayer } from '../contexts/LivePlaybackContext';
 import ReactCaptureScreen from '../screens/feed/ReactCaptureScreen';
 import LaunchVeil from '../components/LaunchVeil';
 import ProfileRestore from '../components/ProfileRestore';
@@ -488,6 +492,10 @@ function useNotificationTapHandler() {
 async function handleNotificationTap(data: NotificationTapData, context: NotificationTapContext) {
   if (!context.current() || !navigationRef.current?.isReady()) return;
   switch (data.type) {
+    case 'live_stream':
+      if (data.live_session_id) navigationRef.current.navigate('LiveSession', { sessionId: data.live_session_id });
+      else navigationRef.current.navigate('Main', { screen: 'Feed', params: { screen: 'Notifications' } });
+      break;
     case 'incoming_call': await handleIncomingCallTap(data, context); break;
     case 'story_mention': case 'story_reaction': case 'story_reply':
       if (data.story_id) navigationRef.current.navigate('StoryViewer', { storyId: data.story_id });
@@ -597,7 +605,7 @@ export default function AppNavigator() {
 
   if (isPasswordRecovery) {
     return (
-      <CallProvider>
+      <CallProvider><LivePlaybackProvider>
         <NavigationContainer ref={navigationRef} linking={linking} fallback={<SplashLoader />}
           theme={navTheme}
           onUnhandledAction={handleUnhandledNavigationAction}>
@@ -611,7 +619,7 @@ export default function AppNavigator() {
             <RootStack.Screen name="AuthCallback" component={AuthCallbackScreen} />
           </RootStack.Navigator>
         </NavigationContainer>
-      </CallProvider>
+      </LivePlaybackProvider></CallProvider>
     );
   }
 
@@ -622,7 +630,7 @@ export default function AppNavigator() {
   const isReady    = isAuthed && !!profile?.username;
 
   return (
-    <CallProvider>
+    <CallProvider><LivePlaybackProvider>
       <NavigationContainer ref={navigationRef} linking={linking} fallback={<SplashLoader />}
         theme={navTheme}
           onUnhandledAction={handleUnhandledNavigationAction}>
@@ -635,6 +643,9 @@ export default function AppNavigator() {
           {isReady ? (
             <>
               <RootStack.Screen name="Main" component={MainTabsWithListener} />
+              <RootStack.Screen name="LiveSession" component={LiveSessionScreen} />
+              <RootStack.Screen name="NewLive" component={NewLiveScreen} />
+              <RootStack.Screen name="LiveClips" component={LiveClipsScreen} />
 
               <RootStack.Group>
                 <RootStack.Screen name="Post"                 component={PostScreen} />
@@ -695,9 +706,10 @@ export default function AppNavigator() {
         </RootStack.Navigator>
         {isReady && <IncomingCallListener />}
         {isReady && <MiniCallBar />}
+        {isReady && <MiniLivePlayer onOpen={sessionId => navigationRef.current?.navigate('LiveSession', { sessionId })} />}
         {isReady && <AppLockGate />}
       </NavigationContainer>
-    </CallProvider>
+    </LivePlaybackProvider></CallProvider>
   );
 }
 

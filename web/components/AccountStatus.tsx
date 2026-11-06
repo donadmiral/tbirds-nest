@@ -7,6 +7,7 @@
  * for the sake of a number: each line is a fact the app already knows, and the
  * ones that are not yet true read as an action rather than a failure.
  */
+import { ResourceRefreshNotice } from "@/components/ResourceRefreshNotice";
 import { useAccountResource } from "@/lib/useAccountResource";
 import Link from "next/link";
 import { BadgeCheck, Check, ShieldAlert } from "lucide-react";
@@ -25,9 +26,10 @@ type Me = {
   headline: string | null;
 };
 
-async function loadAccountStatus(client: ReturnType<typeof createClient>, owner: string): Promise<Me> {
+async function loadAccountStatus(client: ReturnType<typeof createClient>, owner: string): Promise<Me | null> {
   const {data,error} = await client.from("profiles").select("created_at, is_verified, verified_tier, account_type, username, avatar_url, headline").eq("id",owner).maybeSingle();
-  if(error || !data) throw new Error("Your account details could not load.");
+  if(error) throw error;
+  if(!data) return null;
   return data as Me;
 }
 export function AccountStatus() {
@@ -53,6 +55,7 @@ export function AccountStatus() {
   return (
     <>
       <Panel title="Account status">
+      <ResourceRefreshNotice error={resource.refreshError} refreshing={resource.refreshing} retry={resource.retry} />
         <div className="flex items-center justify-between">
           <span className="text-[13px] text-muted">Account type</span>
           <span className="flex items-center gap-1.5 text-[13px] font-semibold text-ink">

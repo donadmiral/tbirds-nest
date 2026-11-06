@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="102.684" timestamp="2026-11-05T18:19:23.768291+00:00" hostname="ip-10-1-140-12.us-west-2.compute.internal"><testcase classname="tests.test_connected" name="test_connected_original_cache" time="102.614"><failure message="AssertionError: Physical network disable readback failed">tests/test_connected.py:256: in test_connected_original_cache
+    wait(lambda: adb('shell', 'settings', 'get', 'global', 'airplane_mode_on') == '1'
+tests/test_connected.py:73: in wait
+    raise AssertionError(message) from last
+E   AssertionError: Physical network disable readback failed</failure></testcase></testsuite></testsuites>

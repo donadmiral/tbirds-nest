@@ -5,6 +5,7 @@
  * Call event messages handled by backend RPC record_call_event.
  */
 import { supabase } from './supabase';
+import { requireReadRows } from '../../shared/readContinuity';
 
 export type CallStatus = 'ringing' | 'active' | 'declined' | 'ended' | 'missed';
 
@@ -178,8 +179,8 @@ export const callService = {
     const { data, error } = await supabase.from('call_sessions').select('*')
       .or(`initiator_id.eq.${userId},receiver_id.eq.${userId}`)
       .order('created_at', { ascending: false }).limit(limit);
-    if (error) return [];
-    return ((data || []) as CallSessionRow[]).map(r => toRecord(r)!).filter(Boolean);
+    if (error) throw error;
+    return requireReadRows<CallSessionRow>(data).map(r => toRecord(r)!).filter(Boolean);
   },
 
   async recordCallEvent(callId: string): Promise<void> {

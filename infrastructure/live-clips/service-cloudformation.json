@@ -1,0 +1,631 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Platinum Live clips: pinned finite Fargate task, paused service, no listener/NAT/load balancer. Separate launcher enforces runtime reservations.",
+  "Parameters": {
+    "VpcId": {
+      "Type": "AWS::EC2::VPC::Id",
+      "Description": "Verified existing VPC in us-east-2."
+    },
+    "PublicSubnetIds": {
+      "Type": "List<AWS::EC2::Subnet::Id>",
+      "Description": "Two verified AZs with effective 0.0.0.0/0 Internet Gateway routes."
+    },
+    "ImageRepositoryUri": {
+      "Type": "String",
+      "AllowedPattern": "[0-9]{12}\\.dkr\\.ecr\\.us-east-2\\.amazonaws\\.com/[a-z0-9._/-]+"
+    },
+    "ImageRepositoryArn": {
+      "Type": "String",
+      "AllowedPattern": "arn:aws:ecr:us-east-2:[0-9]{12}:repository/[a-z0-9._/-]+"
+    },
+    "ImageDigest": {
+      "Type": "String",
+      "AllowedPattern": "sha256:[a-f0-9]{64}",
+      "Description": "Exact image digest after build tests and image scan review."
+    },
+    "BrokerSecretArn": {
+      "Type": "String",
+      "AllowedPattern": "arn:aws:secretsmanager:us-east-2:[0-9]{12}:secret:[A-Za-z0-9/_+=.@-]+",
+      "Description": "Dedicated bootstrap secret ARN. Its exact value must already match Supabase LIVE_CLIP_WORKER_SECRET."
+    },
+    "BrokerKeyArn": {
+      "Type": "String",
+      "AllowedPattern": "arn:aws:kms:us-east-2:[0-9]{12}:key/[a-f0-9-]{36}"
+    },
+    "SupabaseProjectRef": {
+      "Type": "String",
+      "Default": "prlkikhckbifseosbukl",
+      "AllowedPattern": "[a-z0-9]{20}"
+    },
+    "HlsCdnOrigin": {
+      "Type": "String",
+      "Default": "https://d34dlehokbfej7.cloudfront.net",
+      "AllowedPattern": "https://[a-z0-9-]+(?:\\.[a-z0-9-]+)+"
+    },
+    "DesiredCount": {
+      "Type": "Number",
+      "Default": 0,
+      "AllowedValues": [
+        0
+      ],
+      "Description": "Always zero under the initial project budget. Finite tasks are started only by the reviewed launcher or an explicit acceptance run."
+    },
+    "AlarmTopicArn": {
+      "Type": "String",
+      "Default": "",
+      "AllowedPattern": "(?:|arn:aws:sns:us-east-2:[0-9]{12}:[A-Za-z0-9_-]+)",
+      "Description": "Optional existing monitored SNS topic. Empty means alarms are visible in CloudWatch but send no notifications."
+    }
+  },
+  "Conditions": {
+    "HasAlarmTopic": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "AlarmTopicArn"
+            },
+            ""
+          ]
+        }
+      ]
+    }
+  },
+  "Resources": {
+    "Cluster": {
+      "Type": "AWS::ECS::Cluster",
+      "Properties": {
+        "ClusterSettings": [
+          {
+            "Name": "containerInsights",
+            "Value": "disabled"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveClipRenderer"
+          }
+        ]
+      }
+    },
+    "WorkerSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Outbound HTTPS only for Live clip broker, signed media and task startup; no inbound rules.",
+        "VpcId": {
+          "Ref": "VpcId"
+        },
+        "SecurityGroupIngress": [],
+        "SecurityGroupEgress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": 443,
+            "ToPort": 443,
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Supabase broker/storage, authenticated CDN, ECR, Secrets Manager and CloudWatch."
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveClipRenderer"
+          }
+        ]
+      }
+    },
+    "WorkerLogs": {
+      "Type": "AWS::Logs::LogGroup",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Sub": "/platinum/live-clips/${AWS::StackName}/worker"
+        },
+        "RetentionInDays": 14,
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveClipRenderer"
+          }
+        ]
+      }
+    },
+    "TaskExecutionRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "ecs-tasks.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole",
+              "Condition": {
+                "StringEquals": {
+                  "aws:SourceAccount": {
+                    "Ref": "AWS::AccountId"
+                  }
+                },
+                "ArnLike": {
+                  "aws:SourceArn": {
+                    "Fn::Sub": "arn:${AWS::Partition}:ecs:${AWS::Region}:${AWS::AccountId}:*"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "StartOnlyThisRenderer",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": "ecr:GetAuthorizationToken",
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "ecr:BatchCheckLayerAvailability",
+                    "ecr:GetDownloadUrlForLayer",
+                    "ecr:BatchGetImage"
+                  ],
+                  "Resource": {
+                    "Ref": "ImageRepositoryArn"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "WorkerLogs",
+                      "Arn"
+                    ]
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "secretsmanager:GetSecretValue",
+                    "secretsmanager:DescribeSecret"
+                  ],
+                  "Resource": {
+                    "Ref": "BrokerSecretArn"
+                  },
+                  "Condition": {
+                    "Bool": {
+                      "aws:SecureTransport": "true"
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "kms:Decrypt",
+                    "kms:DescribeKey"
+                  ],
+                  "Resource": {
+                    "Ref": "BrokerKeyArn"
+                  },
+                  "Condition": {
+                    "StringEquals": {
+                      "kms:ViaService": {
+                        "Fn::Sub": "secretsmanager.${AWS::Region}.${AWS::URLSuffix}"
+                      },
+                      "kms:EncryptionContext:SecretARN": {
+                        "Ref": "BrokerSecretArn"
+                      }
+                    },
+                    "Bool": {
+                      "aws:SecureTransport": "true"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveClipRenderer"
+          }
+        ]
+      }
+    },
+    "Task": {
+      "Type": "AWS::ECS::TaskDefinition",
+      "Properties": {
+        "RequiresCompatibilities": [
+          "FARGATE"
+        ],
+        "NetworkMode": "awsvpc",
+        "Cpu": "2048",
+        "Memory": "4096",
+        "RuntimePlatform": {
+          "CpuArchitecture": "X86_64",
+          "OperatingSystemFamily": "LINUX"
+        },
+        "ExecutionRoleArn": {
+          "Fn::GetAtt": [
+            "TaskExecutionRole",
+            "Arn"
+          ]
+        },
+        "Volumes": [
+          {
+            "Name": "scratch"
+          }
+        ],
+        "ContainerDefinitions": [
+          {
+            "Name": "renderer",
+            "Essential": true,
+            "Image": {
+              "Fn::Sub": "${ImageRepositoryUri}@${ImageDigest}"
+            },
+            "User": "1000:1000",
+            "ReadonlyRootFilesystem": true,
+            "StopTimeout": 30,
+            "Command": [
+              "node",
+              "--input-type=module",
+              "-e",
+              "import { startPullWorker } from '/app/workers/live-clips/pull.mjs';\nasync function finiteRendererTask(run, {\n  deadline = process.env.LIVE_CLIP_TASK_DEADLINE_MS, now = Date.now,\n  schedule = setTimeout, cancel = clearTimeout,\n  stop = () => process.kill(process.pid, 'SIGTERM'), kill = () => process.exit(124),\n} = {}) {\n  if (!/^\\d{13}$/.test(String(deadline))) throw Error('renderer_task_deadline_invalid');\n  const remaining = Number(deadline) - now();\n  if (remaining > 600000) throw Error('renderer_task_deadline_invalid');\n  // A delayed task must not claim work after its pre-reserved window has expired.\n  if (remaining <= 25000) return;\n  const soft = schedule(stop, remaining - 25000), hard = schedule(kill, remaining);\n  try { await run(); } finally { cancel(soft); cancel(hard); }\n}\ntry { await finiteRendererTask(startPullWorker); } catch { process.stderr.write('{\"event\":\"live_clip_worker\",\"kind\":\"fatal\",\"code\":\"renderer_finite_task_failed\"}\\n'); process.exitCode=1; }"
+            ],
+            "LinuxParameters": {
+              "InitProcessEnabled": true,
+              "Capabilities": {
+                "Drop": [
+                  "ALL"
+                ]
+              }
+            },
+            "MountPoints": [
+              {
+                "SourceVolume": "scratch",
+                "ContainerPath": "/scratch",
+                "ReadOnly": false
+              }
+            ],
+            "Ulimits": [
+              {
+                "Name": "nofile",
+                "SoftLimit": 1024,
+                "HardLimit": 1024
+              }
+            ],
+            "Environment": [
+              {
+                "Name": "NODE_ENV",
+                "Value": "production"
+              },
+              {
+                "Name": "NODE_OPTIONS",
+                "Value": "--max-old-space-size=256"
+              },
+              {
+                "Name": "TMPDIR",
+                "Value": "/scratch"
+              },
+              {
+                "Name": "RENDERER_DEPLOYMENT",
+                "Value": {
+                  "Ref": "AWS::StackName"
+                }
+              },
+              {
+                "Name": "LIVE_CLIP_IDLE_MS",
+                "Value": "60000"
+              },
+              {
+                "Name": "LIVE_HLS_CDN_ORIGIN",
+                "Value": {
+                  "Ref": "HlsCdnOrigin"
+                }
+              },
+              {
+                "Name": "SUPABASE_URL",
+                "Value": {
+                  "Fn::Sub": "https://${SupabaseProjectRef}.supabase.co"
+                }
+              },
+              {
+                "Name": "AWS_EC2_METADATA_DISABLED",
+                "Value": "true"
+              }
+            ],
+            "Secrets": [
+              {
+                "Name": "LIVE_CLIP_WORKER_SECRET",
+                "ValueFrom": {
+                  "Ref": "BrokerSecretArn"
+                }
+              }
+            ],
+            "HealthCheck": {
+              "Command": [
+                "CMD",
+                "node",
+                "workers/live-clips/health.mjs"
+              ],
+              "Interval": 30,
+              "Timeout": 5,
+              "Retries": 3,
+              "StartPeriod": 30
+            },
+            "LogConfiguration": {
+              "LogDriver": "awslogs",
+              "Options": {
+                "awslogs-group": {
+                  "Ref": "WorkerLogs"
+                },
+                "awslogs-region": {
+                  "Ref": "AWS::Region"
+                },
+                "awslogs-stream-prefix": "renderer",
+                "mode": "non-blocking",
+                "max-buffer-size": "1m"
+              }
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveClipRenderer"
+          }
+        ]
+      }
+    },
+    "WorkerService": {
+      "Type": "AWS::ECS::Service",
+      "Properties": {
+        "Cluster": {
+          "Ref": "Cluster"
+        },
+        "TaskDefinition": {
+          "Ref": "Task"
+        },
+        "DesiredCount": {
+          "Ref": "DesiredCount"
+        },
+        "LaunchType": "FARGATE",
+        "PlatformVersion": "1.4.0",
+        "EnableExecuteCommand": false,
+        "DeploymentConfiguration": {
+          "MinimumHealthyPercent": 100,
+          "MaximumPercent": 200,
+          "DeploymentCircuitBreaker": {
+            "Enable": true,
+            "Rollback": true
+          }
+        },
+        "NetworkConfiguration": {
+          "AwsvpcConfiguration": {
+            "AssignPublicIp": "ENABLED",
+            "Subnets": {
+              "Ref": "PublicSubnetIds"
+            },
+            "SecurityGroups": [
+              {
+                "Ref": "WorkerSecurityGroup"
+              }
+            ]
+          }
+        },
+        "PropagateTags": "TASK_DEFINITION",
+        "EnableECSManagedTags": true,
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveClipRenderer"
+          }
+        ]
+      }
+    },
+    "BrokerUnavailable": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "AlarmDescription": "Live renderer broker repeatedly unavailable. Inspect redacted worker events and the durable queue; do not increase admission automatically.",
+        "Namespace": "PlatinumCircles/LiveClips",
+        "MetricName": "Unavailable",
+        "Dimensions": [
+          {
+            "Name": "deployment",
+            "Value": {
+              "Ref": "AWS::StackName"
+            }
+          }
+        ],
+        "Statistic": "Sum",
+        "Period": 300,
+        "EvaluationPeriods": 1,
+        "DatapointsToAlarm": 1,
+        "Threshold": 3,
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "TreatMissingData": "notBreaching",
+        "ActionsEnabled": true,
+        "AlarmActions": {
+          "Fn::If": [
+            "HasAlarmTopic",
+            [
+              {
+                "Ref": "AlarmTopicArn"
+              }
+            ],
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "OKActions": {
+          "Fn::If": [
+            "HasAlarmTopic",
+            [
+              {
+                "Ref": "AlarmTopicArn"
+              }
+            ],
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveClipRenderer"
+          }
+        ]
+      }
+    },
+    "TerminalJobFailure": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "AlarmDescription": "Live renderer durable terminal job failure. Inspect redacted worker events and the durable queue; do not increase admission automatically.",
+        "Namespace": "PlatinumCircles/LiveClips",
+        "MetricName": "Failed",
+        "Dimensions": [
+          {
+            "Name": "deployment",
+            "Value": {
+              "Ref": "AWS::StackName"
+            }
+          }
+        ],
+        "Statistic": "Sum",
+        "Period": 300,
+        "EvaluationPeriods": 1,
+        "DatapointsToAlarm": 1,
+        "Threshold": 1,
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "TreatMissingData": "notBreaching",
+        "ActionsEnabled": true,
+        "AlarmActions": {
+          "Fn::If": [
+            "HasAlarmTopic",
+            [
+              {
+                "Ref": "AlarmTopicArn"
+              }
+            ],
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "OKActions": {
+          "Fn::If": [
+            "HasAlarmTopic",
+            [
+              {
+                "Ref": "AlarmTopicArn"
+              }
+            ],
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveClipRenderer"
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "ClusterArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "Cluster",
+          "Arn"
+        ]
+      }
+    },
+    "ServiceName": {
+      "Value": {
+        "Fn::GetAtt": [
+          "WorkerService",
+          "Name"
+        ]
+      }
+    },
+    "TaskDefinitionArn": {
+      "Value": {
+        "Ref": "Task"
+      }
+    },
+    "WorkerLogGroup": {
+      "Value": {
+        "Ref": "WorkerLogs"
+      }
+    },
+    "SecurityGroupId": {
+      "Value": {
+        "Ref": "WorkerSecurityGroup"
+      }
+    },
+    "TaskExecutionRoleArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "TaskExecutionRole",
+          "Arn"
+        ]
+      }
+    },
+    "PinnedImage": {
+      "Value": {
+        "Fn::Sub": "${ImageRepositoryUri}@${ImageDigest}"
+      }
+    },
+    "Admission": {
+      "Value": "This stack does not enable clipping. Keep live_clip_configure disabled until recorded acceptance."
+    }
+  }
+}

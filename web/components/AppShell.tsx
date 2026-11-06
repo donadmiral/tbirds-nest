@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { getServerViewer } from "@/lib/serverViewer";
 import { loadNavigationProfile } from "@/lib/navigationProfile";
 import { Nav } from "@/components/Nav";
@@ -8,7 +9,24 @@ import { GlobalMediaLightbox } from "@/components/GlobalMediaLightbox";
 import { ScrollMemory } from "@/components/ScrollMemory";
 import { TopBar } from "@/components/TopBar";
 import { RememberNavigationChrome } from "@/components/NavigationLoading";
+import { PendingAppNavigation, PendingAppTopBar } from "@/components/PendingAppChrome";
 import chrome from "./NavigationChrome.module.css";
+
+type NavigationProfile = ReturnType<typeof loadNavigationProfile>;
+
+async function ProfileNavigation({ ownerId, profile: pending }: { ownerId: string; profile: NavigationProfile }) {
+  const profile = await pending;
+  return <>
+    <RememberNavigationChrome identity={{ ownerId, name: profile?.full_name ?? "Member", username: profile?.username ?? "", business: profile?.account_type === "business", avatarUrl: profile?.avatar_url ?? null }} />
+    <Nav name={profile?.full_name ?? "Member"} username={profile?.username ?? ""} business={profile?.account_type === "business"} avatarUrl={profile?.avatar_url ?? null} verified={!!profile?.is_verified} tier={profile?.verified_tier ?? null} />
+    <MobileTabBar userId={ownerId} username={profile?.username} name={profile?.full_name} avatarUrl={profile?.avatar_url} business={profile?.account_type === 'business'} />
+  </>;
+}
+
+async function ProfileTopBar({ profile: pending }: { profile: NavigationProfile }) {
+  const profile = await pending;
+  return <TopBar name={profile?.full_name ?? "Member"} username={profile?.username ?? ""} avatarUrl={profile?.avatar_url} />;
+}
 
 export async function AppShell({
   children,
@@ -51,18 +69,22 @@ export async function AppShell({
     <WebCallLayer /><GlobalMediaLightbox /><ScrollMemory />
     <main id="main-content" tabIndex={-1}>{children}</main>
   </div>;
-  const profile = await loadNavigationProfile(supabase, data.user.id);
+  // Start the optional chrome read once. Its latency must not gate the
+  // already-authorized page or replace that page when the profile arrives.
+  const profile = loadNavigationProfile(supabase, data.user.id);
   return (
     <div className="min-h-screen">
-      <RememberNavigationChrome identity={{ ownerId: data.user.id, name: profile?.full_name ?? "Member", username: profile?.username ?? "", business: profile?.account_type === "business", avatarUrl: profile?.avatar_url ?? null }} />
       <a href="#main-content" className={chrome.skipLink}>Skip to content</a>
-      <Nav name={profile?.full_name ?? "Member"} username={profile?.username ?? ""} business={profile?.account_type === "business"} avatarUrl={profile?.avatar_url ?? null} verified={!!profile?.is_verified} tier={profile?.verified_tier ?? null} />
-      <MobileTabBar userId={data.user.id} username={profile?.username} name={profile?.full_name} avatarUrl={profile?.avatar_url} business={profile?.account_type === 'business'} />
+      <Suspense fallback={<PendingAppNavigation ownerId={data.user.id} />}>
+        <ProfileNavigation ownerId={data.user.id} profile={profile} />
+      </Suspense>
       <WebCallLayer />
       <GlobalMediaLightbox />
       <ScrollMemory />
       <div className={chrome.frame}>
-        <TopBar name={profile?.full_name ?? "Member"} username={profile?.username ?? ""} avatarUrl={profile?.avatar_url} />
+        <Suspense fallback={<PendingAppTopBar ownerId={data.user.id} />}>
+          <ProfileTopBar profile={profile} />
+        </Suspense>
         {wide ? (
           <main id="main-content" tabIndex={-1} className={chrome.wideContent}>{children}</main>
         ) : rail && railContent ? (

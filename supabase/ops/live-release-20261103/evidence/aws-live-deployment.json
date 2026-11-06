@@ -1,0 +1,735 @@
+{
+  "schema_version": 1,
+  "observed_at_utc": "2026-11-03T04:30:59Z",
+  "scope": "Authenticated AWS connection, deployed Live delivery infrastructure, saved runtime outputs and prepared key installation",
+  "completion_state": "aws_delivery_stack_deployed_live_service_keys_await_explicit_approval",
+  "connection": {
+    "plugin": "AWS Agent Toolkit",
+    "user_reported_connection_label": "Primary",
+    "authenticated": true,
+    "account_id": "518317808503",
+    "principal_type": "assumed-role",
+    "role_name": "AccountFullAccessRole",
+    "region": "us-east-2",
+    "api_calls": [
+      {
+        "service": "sts",
+        "operation": "GetCallerIdentity",
+        "status": "success"
+      }
+    ]
+  },
+  "plan_preflight": {
+    "accountId": "518317808503",
+    "accountPlanType": "FREE",
+    "accountPlanStatus": "ACTIVE",
+    "accountPlanRemainingCredits": {
+      "amount": 100,
+      "unit": "USD"
+    },
+    "accountPlanExpirationDate": "2027-05-03T03:47:47.986000+00:00"
+  },
+  "organization": {
+    "id": "o-u8vc1j1p9n",
+    "feature_set": "ALL",
+    "feature_set_is_advanced_activation_proof": false,
+    "policy_inspection_complete": false,
+    "policy_inspection_errors": {
+      "parents": {
+        "518317808503": {
+          "error": "An error occurred (AccessDeniedException) when calling the ListParents operation: You don't have permissions to access this resource."
+        }
+      },
+      "attachments": [
+        {
+          "target": "518317808503",
+          "type": "SERVICE_CONTROL_POLICY",
+          "response": {
+            "error": "An error occurred (AccessDeniedException) when calling the ListPoliciesForTarget operation: You don't have permissions to access this resource."
+          }
+        },
+        {
+          "target": "518317808503",
+          "type": "RESOURCE_CONTROL_POLICY",
+          "response": {
+            "error": "An error occurred (AccessDeniedException) when calling the ListPoliciesForTarget operation: You don't have permissions to access this resource."
+          }
+        }
+      ],
+      "policies": {},
+      "inspection_complete": false
+    },
+    "advanced_features_activated": false,
+    "policies_modified": false
+  },
+  "deployment": {
+    "stack_id": "arn:aws:cloudformation:us-east-2:518317808503:stack/platinum-live-production/f3b7e1c0-d73c-11f1-8dc8-02a0485692f5",
+    "stack_status": "CREATE_COMPLETE",
+    "template_sha256": "3ec36c4908f6da683d97f253864f1199fa7d4de68d6f4ed5cf1e76114215e663",
+    "resource_count": 10,
+    "outputs": {
+      "CdnOrigin": "https://d34dlehokbfej7.cloudfront.net",
+      "SigningStoreArn": "arn:aws:cloudfront::518317808503:key-value-store/6fe67047-fc72-4424-bcbc-1a23660ee8fb",
+      "ViewerFunctionName": "platinum-live-production-authorize",
+      "DailyRoleArn": "arn:aws:iam::518317808503:role/platinum-live-production-DailyWriter-3ZGHqfqMNzKI",
+      "Bucket": "platinum-live-production-livebucket-6v2z2lrobdn3",
+      "Region": "us-east-2",
+      "DistributionId": "E15BWQDKI39QKD",
+      "ViewerFunctionArn": "arn:aws:cloudfront::518317808503:function/platinum-live-production-authorize"
+    },
+    "distribution_status": "Deployed",
+    "security_checks": {
+      "bucket_region": {
+        "LocationConstraint": "us-east-2"
+      },
+      "public_access": {
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "IgnorePublicAcls": true,
+          "BlockPublicPolicy": true,
+          "RestrictPublicBuckets": true
+        }
+      },
+      "encryption": {
+        "ServerSideEncryptionConfiguration": {
+          "Rules": [
+            {
+              "ApplyServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              },
+              "BucketKeyEnabled": false,
+              "BlockedEncryptionTypes": {
+                "EncryptionType": [
+                  "SSE-C"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "ownership": {
+        "OwnershipControls": {
+          "Rules": [
+            {
+              "ObjectOwnership": "BucketOwnerEnforced"
+            }
+          ]
+        }
+      },
+      "versioning": {
+        "Status": "Enabled"
+      },
+      "bucket_policy": {
+        "Policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"CdnReadOnly\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"cloudfront.amazonaws.com\"},\"Action\":\"s3:GetObject\",\"Resource\":\"arn:aws:s3:::platinum-live-production-livebucket-6v2z2lrobdn3/live/*\",\"Condition\":{\"StringEquals\":{\"AWS:SourceArn\":\"arn:aws:cloudfront::518317808503:distribution/E15BWQDKI39QKD\"}}},{\"Sid\":\"RequireTls\",\"Effect\":\"Deny\",\"Principal\":\"*\",\"Action\":\"s3:*\",\"Resource\":[\"arn:aws:s3:::platinum-live-production-livebucket-6v2z2lrobdn3\",\"arn:aws:s3:::platinum-live-production-livebucket-6v2z2lrobdn3/*\"],\"Condition\":{\"Bool\":{\"aws:SecureTransport\":\"false\"}}}]}"
+      },
+      "daily_role_policy": {
+        "RoleName": "platinum-live-production-DailyWriter-3ZGHqfqMNzKI",
+        "PolicyName": "PlatinumLiveOnly",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Action": [
+                "s3:GetBucketLocation",
+                "s3:ListBucket",
+                "s3:ListBucketVersions",
+                "s3:ListBucketMultipartUploads"
+              ],
+              "Resource": "arn:aws:s3:::platinum-live-production-livebucket-6v2z2lrobdn3",
+              "Effect": "Allow"
+            },
+            {
+              "Action": [
+                "s3:PutObject",
+                "s3:GetObject",
+                "s3:GetObjectVersion",
+                "s3:DeleteObject",
+                "s3:AbortMultipartUpload",
+                "s3:ListMultipartUploadParts"
+              ],
+              "Resource": "arn:aws:s3:::platinum-live-production-livebucket-6v2z2lrobdn3/live/*",
+              "Effect": "Allow"
+            },
+            {
+              "Action": "s3:PutObject",
+              "Resource": "arn:aws:s3:::platinum-live-production-livebucket-6v2z2lrobdn3/daily-co-test-upload.txt",
+              "Effect": "Allow"
+            }
+          ]
+        }
+      },
+      "distribution": {
+        "ETag": "E23ZP02F085DFQ",
+        "Distribution": {
+          "Id": "E15BWQDKI39QKD",
+          "ARN": "arn:aws:cloudfront::518317808503:distribution/E15BWQDKI39QKD",
+          "Status": "Deployed",
+          "LastModifiedTime": "2026-11-03T04:15:50.785000+00:00",
+          "InProgressInvalidationBatches": 0,
+          "DomainName": "d34dlehokbfej7.cloudfront.net",
+          "ActiveTrustedSigners": {
+            "Enabled": false,
+            "Quantity": 0
+          },
+          "ActiveTrustedKeyGroups": {
+            "Enabled": false,
+            "Quantity": 0
+          },
+          "DistributionConfig": {
+            "CallerReference": "dc1ba597-8081-e365-0c01-68ee0ef48aac",
+            "Aliases": {
+              "Quantity": 0
+            },
+            "DefaultRootObject": "",
+            "Origins": {
+              "Quantity": 1,
+              "Items": [
+                {
+                  "Id": "PrivateLiveStorage",
+                  "DomainName": "platinum-live-production-livebucket-6v2z2lrobdn3.s3.us-east-2.amazonaws.com",
+                  "OriginPath": "",
+                  "CustomHeaders": {
+                    "Quantity": 0
+                  },
+                  "S3OriginConfig": {
+                    "OriginAccessIdentity": "",
+                    "OriginReadTimeout": 30
+                  },
+                  "ConnectionAttempts": 3,
+                  "ConnectionTimeout": 10,
+                  "OriginShield": {
+                    "Enabled": false
+                  },
+                  "OriginAccessControlId": "E1D4XV8AAFJSH5"
+                }
+              ]
+            },
+            "OriginGroups": {
+              "Quantity": 0
+            },
+            "DefaultCacheBehavior": {
+              "TargetOriginId": "PrivateLiveStorage",
+              "TrustedSigners": {
+                "Enabled": false,
+                "Quantity": 0
+              },
+              "TrustedKeyGroups": {
+                "Enabled": false,
+                "Quantity": 0
+              },
+              "ViewerProtocolPolicy": "https-only",
+              "AllowedMethods": {
+                "Quantity": 3,
+                "Items": [
+                  "HEAD",
+                  "GET",
+                  "OPTIONS"
+                ],
+                "CachedMethods": {
+                  "Quantity": 2,
+                  "Items": [
+                    "HEAD",
+                    "GET"
+                  ]
+                }
+              },
+              "SmoothStreaming": false,
+              "Compress": true,
+              "LambdaFunctionAssociations": {
+                "Quantity": 0
+              },
+              "FunctionAssociations": {
+                "Quantity": 1,
+                "Items": [
+                  {
+                    "FunctionARN": "arn:aws:cloudfront::518317808503:function/platinum-live-production-authorize",
+                    "EventType": "viewer-request"
+                  }
+                ]
+              },
+              "FieldLevelEncryptionId": "",
+              "CachePolicyId": "0215eff8-4f4e-4914-a9fc-58b9bf15cb9b",
+              "ResponseHeadersPolicyId": "8cde5ea4-1678-4380-9fc1-b9a9425eae33",
+              "GrpcConfig": {
+                "Enabled": false
+              }
+            },
+            "CacheBehaviors": {
+              "Quantity": 1,
+              "Items": [
+                {
+                  "PathPattern": "*.m3u8",
+                  "TargetOriginId": "PrivateLiveStorage",
+                  "TrustedSigners": {
+                    "Enabled": false,
+                    "Quantity": 0
+                  },
+                  "TrustedKeyGroups": {
+                    "Enabled": false,
+                    "Quantity": 0
+                  },
+                  "ViewerProtocolPolicy": "https-only",
+                  "AllowedMethods": {
+                    "Quantity": 3,
+                    "Items": [
+                      "HEAD",
+                      "GET",
+                      "OPTIONS"
+                    ],
+                    "CachedMethods": {
+                      "Quantity": 2,
+                      "Items": [
+                        "HEAD",
+                        "GET"
+                      ]
+                    }
+                  },
+                  "SmoothStreaming": false,
+                  "Compress": true,
+                  "LambdaFunctionAssociations": {
+                    "Quantity": 0
+                  },
+                  "FunctionAssociations": {
+                    "Quantity": 1,
+                    "Items": [
+                      {
+                        "FunctionARN": "arn:aws:cloudfront::518317808503:function/platinum-live-production-authorize",
+                        "EventType": "viewer-request"
+                      }
+                    ]
+                  },
+                  "FieldLevelEncryptionId": "",
+                  "CachePolicyId": "36cab88d-1c87-40ba-a792-d90ef404e416",
+                  "ResponseHeadersPolicyId": "8cde5ea4-1678-4380-9fc1-b9a9425eae33",
+                  "GrpcConfig": {
+                    "Enabled": false
+                  }
+                }
+              ]
+            },
+            "CustomErrorResponses": {
+              "Quantity": 2,
+              "Items": [
+                {
+                  "ErrorCode": 403,
+                  "ResponsePagePath": "",
+                  "ResponseCode": "",
+                  "ErrorCachingMinTTL": 1
+                },
+                {
+                  "ErrorCode": 404,
+                  "ResponsePagePath": "",
+                  "ResponseCode": "",
+                  "ErrorCachingMinTTL": 1
+                }
+              ]
+            },
+            "Comment": "Platinum Live. All objects require short-lived path capabilities.",
+            "Logging": {
+              "Enabled": false,
+              "IncludeCookies": false,
+              "Bucket": "",
+              "Prefix": ""
+            },
+            "PriceClass": "PriceClass_All",
+            "Enabled": true,
+            "ViewerCertificate": {
+              "CloudFrontDefaultCertificate": true,
+              "SSLSupportMethod": "vip",
+              "MinimumProtocolVersion": "TLSv1",
+              "CertificateSource": "cloudfront"
+            },
+            "Restrictions": {
+              "GeoRestriction": {
+                "RestrictionType": "none",
+                "Quantity": 0
+              }
+            },
+            "WebACLId": "",
+            "HttpVersion": "http2and3",
+            "IsIPV6Enabled": true,
+            "ContinuousDeploymentPolicyId": "",
+            "Staging": false
+          }
+        }
+      }
+    },
+    "delivery_policies": [
+      {
+        "kind": "cache",
+        "id": "0215eff8-4f4e-4914-a9fc-58b9bf15cb9b",
+        "response": {
+          "ETag": "E23ZP02F085DFQ",
+          "CachePolicy": {
+            "Id": "0215eff8-4f4e-4914-a9fc-58b9bf15cb9b",
+            "LastModifiedTime": "2026-11-03T04:14:25.252000+00:00",
+            "CachePolicyConfig": {
+              "Name": "platinum-live-production-segments",
+              "DefaultTTL": 3600,
+              "MaxTTL": 86400,
+              "MinTTL": 0,
+              "ParametersInCacheKeyAndForwardedToOrigin": {
+                "EnableAcceptEncodingGzip": true,
+                "EnableAcceptEncodingBrotli": true,
+                "HeadersConfig": {
+                  "HeaderBehavior": "none"
+                },
+                "CookiesConfig": {
+                  "CookieBehavior": "none"
+                },
+                "QueryStringsConfig": {
+                  "QueryStringBehavior": "none"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "kind": "cache",
+        "id": "36cab88d-1c87-40ba-a792-d90ef404e416",
+        "response": {
+          "ETag": "E23ZP02F085DFQ",
+          "CachePolicy": {
+            "Id": "36cab88d-1c87-40ba-a792-d90ef404e416",
+            "LastModifiedTime": "2026-11-03T04:14:25.109000+00:00",
+            "CachePolicyConfig": {
+              "Name": "platinum-live-production-manifests",
+              "DefaultTTL": 1,
+              "MaxTTL": 2,
+              "MinTTL": 0,
+              "ParametersInCacheKeyAndForwardedToOrigin": {
+                "EnableAcceptEncodingGzip": true,
+                "EnableAcceptEncodingBrotli": true,
+                "HeadersConfig": {
+                  "HeaderBehavior": "none"
+                },
+                "CookiesConfig": {
+                  "CookieBehavior": "none"
+                },
+                "QueryStringsConfig": {
+                  "QueryStringBehavior": "none"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "kind": "headers",
+        "id": "8cde5ea4-1678-4380-9fc1-b9a9425eae33",
+        "response": {
+          "ETag": "E23ZP02F085DFQ",
+          "ResponseHeadersPolicy": {
+            "Id": "8cde5ea4-1678-4380-9fc1-b9a9425eae33",
+            "LastModifiedTime": "2026-11-03T04:14:25.593000+00:00",
+            "ResponseHeadersPolicyConfig": {
+              "Name": "platinum-live-production-playback",
+              "CorsConfig": {
+                "AccessControlAllowOrigins": {
+                  "Quantity": 1,
+                  "Items": [
+                    "*"
+                  ]
+                },
+                "AccessControlAllowHeaders": {
+                  "Quantity": 3,
+                  "Items": [
+                    "Range",
+                    "Origin",
+                    "Accept"
+                  ]
+                },
+                "AccessControlAllowMethods": {
+                  "Quantity": 3,
+                  "Items": [
+                    "GET",
+                    "HEAD",
+                    "OPTIONS"
+                  ]
+                },
+                "AccessControlAllowCredentials": false,
+                "AccessControlExposeHeaders": {
+                  "Quantity": 3,
+                  "Items": [
+                    "Content-Length",
+                    "Content-Range",
+                    "Accept-Ranges"
+                  ]
+                },
+                "OriginOverride": true
+              },
+              "SecurityHeadersConfig": {
+                "XSSProtection": {},
+                "FrameOptions": {},
+                "ReferrerPolicy": {
+                  "Override": true,
+                  "ReferrerPolicy": "no-referrer"
+                },
+                "ContentSecurityPolicy": {},
+                "ContentTypeOptions": {
+                  "Override": true
+                },
+                "StrictTransportSecurity": {}
+              },
+              "CustomHeadersConfig": {
+                "Quantity": 1,
+                "Items": [
+                  {
+                    "Header": "Cache-Control",
+                    "Value": "private, max-age=1",
+                    "Override": true
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        "kind": "origin_access",
+        "id": "E1D4XV8AAFJSH5",
+        "response": {
+          "ETag": "ETVPDKIKX0DER",
+          "OriginAccessControl": {
+            "Id": "E1D4XV8AAFJSH5",
+            "OriginAccessControlConfig": {
+              "Name": "platinum-live-production-storage",
+              "SigningProtocol": "sigv4",
+              "SigningBehavior": "always",
+              "OriginAccessControlOriginType": "s3"
+            }
+          }
+        }
+      }
+    ],
+    "api_calls": [
+      {
+        "service": "cloudformation",
+        "operation": "DescribeStacks",
+        "status": "success",
+        "n_items": {
+          "Stacks": 1
+        }
+      },
+      {
+        "service": "s3",
+        "operation": "GetBucketLocation",
+        "status": "success"
+      },
+      {
+        "service": "s3",
+        "operation": "GetPublicAccessBlock",
+        "status": "success"
+      },
+      {
+        "service": "s3",
+        "operation": "GetBucketEncryption",
+        "status": "success"
+      },
+      {
+        "service": "s3",
+        "operation": "GetBucketOwnershipControls",
+        "status": "success"
+      },
+      {
+        "service": "s3",
+        "operation": "GetBucketVersioning",
+        "status": "success"
+      },
+      {
+        "service": "s3",
+        "operation": "GetBucketPolicy",
+        "status": "success"
+      },
+      {
+        "service": "iam",
+        "operation": "GetRolePolicy",
+        "status": "success"
+      },
+      {
+        "service": "cloudfront",
+        "operation": "GetDistribution",
+        "status": "success"
+      },
+      {
+        "service": "cloudfront",
+        "operation": "GetCachePolicy",
+        "status": "success"
+      },
+      {
+        "service": "cloudfront",
+        "operation": "GetCachePolicy",
+        "status": "success"
+      },
+      {
+        "service": "cloudfront",
+        "operation": "GetResponseHeadersPolicy",
+        "status": "success"
+      },
+      {
+        "service": "cloudfront",
+        "operation": "GetOriginAccessControl",
+        "status": "success"
+      }
+    ]
+  },
+  "runtime_configuration": {
+    "project": "prlkikhckbifseosbukl",
+    "saved_at_utc": "2026-11-03T04:20:16Z",
+    "saved_settings": {
+      "LIVE_HLS_BUCKET": "platinum-live-production-livebucket-6v2z2lrobdn3",
+      "LIVE_HLS_REGION": "us-east-2",
+      "LIVE_HLS_ASSUME_ROLE_ARN": "arn:aws:iam::518317808503:role/platinum-live-production-DailyWriter-3ZGHqfqMNzKI",
+      "LIVE_HLS_CDN_ORIGIN": "https://d34dlehokbfej7.cloudfront.net"
+    },
+    "verification": {
+      "request_id": 10710,
+      "status_code": 200,
+      "timed_out": false,
+      "maintenance_ok": true,
+      "provider_configuration": {
+        "DAILY_API_KEY": true,
+        "LIVE_HLS_BUCKET": true,
+        "LIVE_HLS_REGION": true,
+        "LIVE_HLS_CDN_ORIGIN": true,
+        "LIVE_DAILY_DOMAIN_ID": true,
+        "LIVE_HLS_ASSUME_ROLE_ARN": true,
+        "LIVE_PLAYBACK_SIGNER_URL": true,
+        "LIVE_DAILY_WEBHOOK_SECRET": false,
+        "LIVE_PLAYBACK_SIGNER_SECRET": false
+      }
+    }
+  },
+  "delivery_checks": {
+    "unsigned_get": {
+      "status": 403,
+      "source": "FunctionGeneratedResponse from cloudfront"
+    },
+    "unsigned_options": {
+      "status": 403,
+      "source": "FunctionGeneratedResponse from cloudfront"
+    },
+    "signed_playback_verified": false,
+    "actual_daily_role_assumption_verified": false,
+    "real_broadcast_verified": false
+  },
+  "signing_bootstrap": {
+    "reason": "AWS MCP remote KeyValueStore data client raises MissingDependencyException for botocore[crt]. CloudFront control-plane operations work.",
+    "metadata_read_review": "Initial metadata-read rejection resolved by the official metadata-only response schema; the subsequent approved call exposed the runtime dependency failure.",
+    "working_control_api": "cloudfront DescribeKeyValueStore",
+    "planned_seed": {
+      "bucket": "platinum-live-production-livebucket-6v2z2lrobdn3",
+      "region": "us-east-2",
+      "key": "_bootstrap/6cc0af56e669412599f2dd5cba549cbd.json",
+      "bytes": 117,
+      "sha256": "86b9bc2b5fa187fd3915c5ecaf9efe0f7bdb1bb972a8a43e017d9a4f76dea19c",
+      "uploaded": false
+    },
+    "key_id": "live20261103",
+    "secret_names": [
+      "LIVE_CDN_SIGNING_KEY",
+      "LIVE_PLAYBACK_SIGNER_SECRET",
+      "LIVE_DAILY_WEBHOOK_SECRET"
+    ],
+    "generated_locally": true,
+    "installed_in_aws": false,
+    "installed_in_supabase": false,
+    "shared_with_daily": false,
+    "stage_template": {
+      "path": "infrastructure/live/signing-bootstrap-stage.json",
+      "sha256": "99ff29a9c39e8759046b7d3b5b909e056600f47fccd6c2e812b7af11b1eb995b"
+    },
+    "activation_template": {
+      "path": "infrastructure/live/signing-bootstrap-activate.json",
+      "sha256": "6e69f26830a5460f507bdc09bba2c34b40b459ef81a9b99420549f3b1de23222"
+    },
+    "pending_change_set": {
+      "id": "arn:aws:cloudformation:us-east-2:518317808503:changeSet/live-signing-import-stage-20261103-v2/001fb948-aca5-400d-bd1b-3a6caf304967",
+      "name": "live-signing-import-stage-20261103-v2",
+      "status": "CREATE_COMPLETE",
+      "execution_status": "AVAILABLE",
+      "executed": false,
+      "changes": [
+        {
+          "Type": "Resource",
+          "ResourceChange": {
+            "Action": "Add",
+            "LogicalResourceId": "SigningKeysImported",
+            "ResourceType": "AWS::CloudFront::KeyValueStore",
+            "Scope": [],
+            "Details": []
+          }
+        }
+      ],
+      "existing_stack_tags_preserved": true
+    },
+    "approval_review": {
+      "action": "PUT the generated CDN signing seed into the exact private S3 bootstrap object",
+      "outcome": "rejected_before_execution",
+      "reason": "Explicit user approval for transmitting the new Live service credentials to this destination was missing.",
+      "http_request_sent": false,
+      "bypass_attempted": false,
+      "required_approval_scope": [
+        "Temporarily upload the CDN signing key to the private AWS S3 bootstrap object and import it into CloudFront.",
+        "Install the matching CDN key and key ID, the independent signer credential and webhook HMAC in production Supabase.",
+        "Register the webhook with Daily using only the matching webhook HMAC, then verify the signed registration probe."
+      ]
+    }
+  },
+  "checks": {
+    "focused_generator_tests": {
+      "passed": 10,
+      "failed": 0
+    },
+    "cfn_lint": {
+      "region": "us-east-2",
+      "stage_exit_code": 0,
+      "activation_exit_code": 0
+    },
+    "aws_validate_template": {
+      "stage": "passed",
+      "activation": "passed"
+    },
+    "peer_review": "passed"
+  },
+  "capacity": {
+    "design_target_registered_users": "5000000+",
+    "measured_capacity_verified": false,
+    "cloudfront_quota_entries_retrieved": 28,
+    "bandwidth_or_requests_reservation_verified": false,
+    "budget_or_plan_upgraded": false
+  },
+  "admission": {
+    "broadcast_enabled": false,
+    "hls_enabled": false,
+    "recording_enabled": false,
+    "clip_encoding_enabled": false
+  },
+  "remaining": [
+    "Explicit approval and installation of three Live service keys",
+    "Signing-store import readiness, activation and authenticated CDN acceptance",
+    "Daily webhook registration and signed verification",
+    "Daily role acceptance and applicable organization-policy resolution",
+    "Real broadcast, recording, clipping and measured capacity acceptance"
+  ],
+  "proof": {
+    "path": "aws-live-key-approval.jpg",
+    "state": "Pending secret names only; actual secret values not entered or saved",
+    "bytes": 77042,
+    "sha256": "d9604ade0aaa4ae64a3dee94731887f57aa5a6a2711bc23ef899b4cde2435c55"
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/kvs-with-functions-create.html",
+    "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_kvs_DescribeKeyValueStore.html",
+    "https://docs.aws.amazon.com/accounts/latest/reference/scps-and-rcps-for-projects.html",
+    "https://supabase.com/docs/guides/functions/secrets"
+  ],
+  "reviewed_source_sha256": {
+    "infrastructure/live/template.mjs": "def8a5c5f1da6062c95b8d3d2ca4d475a7463a9427444e9ebb7d7845a4a0b44a",
+    "infrastructure/live/test/template.test.mjs": "78b1d4653c00aed4ce13d1ccf1c5305013fec6321787ce999d7591063e000966",
+    "infrastructure/live/live-cloudformation.json": "3ec36c4908f6da683d97f253864f1199fa7d4de68d6f4ed5cf1e76114215e663",
+    "infrastructure/live/signing-bootstrap-stage.json": "99ff29a9c39e8759046b7d3b5b909e056600f47fccd6c2e812b7af11b1eb995b",
+    "infrastructure/live/signing-bootstrap-activate.json": "6e69f26830a5460f507bdc09bba2c34b40b459ef81a9b99420549f3b1de23222"
+  }
+}

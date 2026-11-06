@@ -1,0 +1,93 @@
+{
+  "passed": true,
+  "projectId": "uaulhuelcfkjwojtymmw",
+  "runId": "c26762d6-a165-4910-a76f-820855533f24",
+  "checks": [
+    {
+      "check": "ordinary-hls-decode",
+      "passed": true,
+      "masterMs": 807,
+      "variantMs": 835,
+      "segmentMs": 1285,
+      "segmentBytes": 120884,
+      "segmentSha256": "52137cf26b1383bd21ce362a284946c79280f3b6be5dbb66fe41121ebe86b728"
+    },
+    {
+      "check": "ordinary-wrong-user",
+      "passed": true,
+      "status": 410
+    },
+    {
+      "check": "ordinary-no-auth",
+      "passed": true,
+      "status": 401
+    },
+    {
+      "check": "ordinary-source-version-tamper",
+      "passed": true,
+      "status": 410
+    },
+    {
+      "check": "ordinary-close-terminal",
+      "passed": true
+    },
+    {
+      "check": "ordinary-close-before-open-terminal",
+      "passed": true
+    },
+    {
+      "check": "limited-hls-decode",
+      "passed": true,
+      "masterMs": 522,
+      "variantMs": 669,
+      "segmentMs": 1585,
+      "segmentBytes": 120884,
+      "segmentSha256": "52137cf26b1383bd21ce362a284946c79280f3b6be5dbb66fe41121ebe86b728"
+    },
+    {
+      "check": "limited-wrong-user",
+      "passed": true,
+      "status": 410
+    },
+    {
+      "check": "limited-no-auth",
+      "passed": true,
+      "status": 401
+    },
+    {
+      "check": "limited-source-version-tamper",
+      "passed": true,
+      "status": 410
+    },
+    {
+      "check": "limited-counter-once",
+      "passed": true,
+      "views": 1
+    },
+    {
+      "check": "natural-expiry",
+      "passed": true
+    }
+  ],
+  "physicalPhone": false,
+  "providerCapacity": false,
+  "recordedAt": "2026-11-05T17:02:59.443974+00:00",
+  "cleanup": {
+    "status": "verified_complete",
+    "receipt": "private-hls-cleanup.json",
+    "users": 0,
+    "sessions": 0,
+    "sourceObjects": 0,
+    "derivativeObjects": 0,
+    "pendingCleanup": 0,
+    "temporaryEndpointRetired": true
+  },
+  "edge": {
+    "projectId": "uaulhuelcfkjwojtymmw",
+    "slug": "private-hls",
+    "version": 1,
+    "verifyJwt": false,
+    "bundleSha256": "59b6fa231975b9c5bcaaf013f67386534d0e4a2ce5e8c75fffe797020ff5d999"
+  },
+  "scope": "Real QA GoTrue login, normal user Storage upload/message insert, sandbox encoding, Edge authorization, downloaded HLS segments decoded by ffmpeg, and natural server expiry. No physical player or capacity acceptance claim."
+}

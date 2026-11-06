@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
-import { CalendarDays, RefreshCw, Search, Users, Video } from 'lucide-react';
+import { CalendarDays, MoreHorizontal, RefreshCw, Search, Users } from 'lucide-react';
 import { LiveIcon } from './LiveIcon';
 import { LiveEntry } from './LiveEntry';
 import { createClient } from '@/lib/supabase/client';
@@ -11,14 +11,14 @@ import { LIVE_TOPICS, NO_LIVE_CAPABILITIES, isLiveSetupMissing, liveStateLabel, 
   type LiveCapabilities, type LiveCursor, type LiveFilter, type LiveSession, type LiveView } from '../../shared/liveDirectory';
 
 type State = { key: string; items: LiveSession[]; cursor: LiveCursor | null; capabilities: LiveCapabilities; loading: boolean; error: string | null; setup: boolean };
-const relations: [LiveFilter,string][] = [['for_you','For you'],['following','Following'],['followers','Followers'],['mine','My streams']];
+const relations: [LiveFilter,string][] = [['for_you','Recommended'],['following','Following'],['followers','Followers'],['celebrities','Celebrities'],['mine','My streams']];
 const views: [LiveView,string][] = [['live','Live now'],['scheduled','Upcoming'],['replay','Replays']];
 function Thumbnail({ session }: { session: LiveSession }) {
   const [failed, setFailed] = useState<string | null>(null);
   return <div className="relative grid aspect-video place-items-center overflow-hidden rounded-xl bg-surface-elevated text-ink">
     {session.thumbnail_url && failed !== session.thumbnail_url ? <img src={session.thumbnail_url} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" onError={() => setFailed(session.thumbnail_url)} /> : <LiveIcon size={48} className="text-muted" />}
     <span className={'absolute left-3 top-3 rounded-md px-2 py-1 text-[10px] font-bold tracking-wide ' + (session.state === 'live' ? 'bg-red-600 text-white' : 'bg-[var(--canvas)] text-ink')}>{liveStateLabel(session)}</span>
-    {session.state === 'live' && session.viewer_count !== null ? <span className="absolute bottom-3 right-3 flex items-center gap-1 rounded-md bg-black/75 px-2 py-1 text-xs text-white"><Users size={12} />{session.viewer_count.toLocaleString()} watching</span> : null}
+    {['live', 'reconnecting'].includes(session.state) && session.viewer_count !== null ? <span className="absolute bottom-3 right-3 flex items-center gap-1 rounded-md bg-black/75 px-2 py-1 text-xs text-white"><Users size={12} />{session.viewer_count.toLocaleString()} watching</span> : null}
   </div>;
 }
 export function LiveDirectoryView() {
@@ -71,28 +71,47 @@ export function LiveDirectoryView() {
     } finally { if (version === request.current) lock.current = false; }
   }, [supabase, identity.owner, identity.initialized, key, filter, topic, view]);
   useEffect(() => { void load(); return () => { request.current++; lock.current = false; }; }, [load, revision]);
+  // A live card's count and state are a minute old at most: while 'Live now' is on screen, re-read the first page every
+  // sixty seconds and update the cards in place. Nothing is reset, nothing moves, and signed covers are kept.
+  const refreshCards = useCallback(async () => {
+    if (!identity.owner || !identity.initialized || view !== 'live' || lock.current) return;
+    try {
+      const { data, error } = await withTimeout(supabase.rpc('live_directory', { p_filter: filter, p_topic: topic === 'all' ? null : topic, p_state: view, p_cursor: null, p_limit: 24 }));
+      if (error || keyRef.current !== key) return;
+      const fresh = new Map(parseLiveDirectory(data).items.map(item => [item.id, item]));
+      setState(previous => previous.key !== key ? previous : { ...previous, items: previous.items.map(item => { const next = fresh.get(item.id); return next ? { ...next, thumbnail_url: item.thumbnail_url } : item; }) });
+    } catch { /* The next tick tries again; the cards keep what they show. */ }
+  }, [supabase, identity.owner, identity.initialized, key, filter, topic, view]);
+  useEffect(() => {
+    if (view !== 'live') return;
+    const timer = setInterval(() => { if (document.visibilityState === 'visible') void refreshCards(); }, 60000);
+    return () => clearInterval(timer);
+  }, [view, refreshCards]);
   const current = state.key === key ? state : { ...state, items: [], cursor: null, capabilities: NO_LIVE_CAPABILITIES, loading: !!identity.owner, error: null, setup: false };
   const items = current.items.filter(item => `${item.title} ${item.host.full_name ?? ''} ${item.host.username ?? ''}`.toLowerCase().includes(query.trim().toLowerCase()));
-  const chip = (active: boolean) => 'min-h-11 shrink-0 rounded-full px-4 text-sm font-medium transition-colors ' + (active ? 'bg-ink text-[var(--canvas)]' : 'bg-surface text-muted hover:text-ink');
   return <div className="mx-auto max-w-6xl pb-24" data-live-directory>
-    <nav aria-label="Feed destinations" className="mb-6 flex items-center gap-1 overflow-x-auto border-b border-ink/10 pb-1">
-      <Link href="/home?feed=for_you" className="min-w-0 flex-1 whitespace-nowrap px-1 py-3 text-center text-[13px] text-muted sm:flex-none sm:px-3 sm:text-sm">For You</Link>
-      <Link href="/home?feed=latest" className="min-w-0 flex-1 whitespace-nowrap px-1 py-3 text-center text-[13px] text-muted sm:flex-none sm:px-3 sm:text-sm">Latest</Link>
-      <Link href="/discover" className="min-w-0 flex-1 whitespace-nowrap px-1 py-3 text-center text-[13px] text-muted sm:flex-none sm:px-3 sm:text-sm">Discover</Link>
-      <Link href="/home?feed=trending" className="min-w-0 flex-1 whitespace-nowrap px-1 py-3 text-center text-[13px] text-muted sm:flex-none sm:px-3 sm:text-sm">Trending</Link><LiveEntry active />
+    <nav aria-label="Feed destinations" className="mb-6 flex items-center gap-2 overflow-x-auto overscroll-x-contain border-b border-ink/10 pb-1">
+      <Link href="/home?feed=for_you" className="inline-flex min-h-12 shrink-0 items-center justify-center whitespace-nowrap px-3.5 py-3 text-center text-[13px] text-muted sm:text-sm">For You</Link>
+      <Link href="/home?feed=latest" className="inline-flex min-h-12 shrink-0 items-center justify-center whitespace-nowrap px-3.5 py-3 text-center text-[13px] text-muted sm:text-sm">Latest</Link>
+      <Link href="/discover" className="inline-flex min-h-12 shrink-0 items-center justify-center whitespace-nowrap px-3.5 py-3 text-center text-[13px] text-muted sm:text-sm">Discover</Link>
+      <Link href="/home?feed=trending" className="inline-flex min-h-12 shrink-0 items-center justify-center whitespace-nowrap px-3.5 py-3 text-center text-[13px] text-muted sm:text-sm">Trending</Link><LiveEntry active />
     </nav>
     <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
       <div><div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted"><LiveIcon size={17} />Platinum Live</div><h1 className="text-3xl font-semibold tracking-tight text-ink">Live streams</h1><p className="mt-2 max-w-xl text-sm text-muted">Creators, conversations and events. Find your people, live.</p></div>
-      <Link href="/live/new" className="inline-flex min-h-11 items-center gap-2 rounded-full bg-ink px-5 text-sm font-semibold text-[var(--canvas)]"><Video size={18} />Create a stream</Link>
+      <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+        <Link href="/live/new" className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-ink px-5 text-sm font-semibold text-[var(--canvas)] sm:flex-none"><LiveIcon size={20} />Start live</Link>
+        <Link href="/live/new?mode=schedule" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-ink/15 px-4 text-sm font-semibold text-ink"><CalendarDays size={18} />Schedule</Link>
+        <details className="relative"><summary aria-label="Your Live tools" className="grid min-h-12 min-w-11 cursor-pointer list-none place-items-center rounded-xl text-ink hover:bg-surface [&::-webkit-details-marker]:hidden"><MoreHorizontal size={22} /></summary><div className="absolute right-0 top-full z-20 mt-2 min-w-44 rounded-xl border border-ink/15 bg-[var(--canvas)] p-2 shadow-lg"><Link href="/live/clips" className="flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-ink hover:bg-surface">Clip library</Link><button type="button" onClick={event => { setFilter('mine'); setView('live'); event.currentTarget.closest('details')?.removeAttribute('open'); }} className="flex min-h-11 w-full items-center rounded-lg px-3 text-sm font-medium text-ink hover:bg-surface">My streams</button></div></details>
+      </div>
     </header>
-    <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-      <div className="flex max-w-full gap-1 overflow-x-auto" aria-label="People and relationships">{relations.map(([id,label]) => <button type="button" key={id} className={chip(filter === id)} aria-pressed={filter === id} onClick={() => setFilter(id)}>{label}</button>)}</div>
-      <button type="button" aria-label="Refresh live streams" disabled={current.loading} onClick={() => setRevision(v => v+1)} className="inline-flex min-h-11 items-center gap-2 rounded-full px-3 text-sm text-muted hover:bg-surface"><RefreshCw size={16} className={current.loading ? 'animate-spin' : ''} />Refresh</button>
-    </div>
-    <div className="mb-5 flex gap-2 overflow-x-auto pb-2" aria-label="Live topics">{LIVE_TOPICS.map(([id,label]) => <button type="button" key={id} onClick={() => setTopic(id)} aria-pressed={topic === id} className={'min-h-10 shrink-0 rounded-lg border px-3 text-sm ' + (topic === id ? 'border-ink text-ink' : 'border-ink/10 text-muted hover:text-ink')}>{label}</button>)}</div>
     <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-ink/10 pb-3">
       <div className="flex gap-1" aria-label="Broadcast status">{views.map(([id,label]) => <button type="button" key={id} onClick={() => setView(id)} aria-pressed={view === id} className={'min-h-11 px-3 text-sm ' + (view === id ? 'font-semibold text-ink underline decoration-pearl decoration-2 underline-offset-8' : 'text-muted')}>{label}</button>)}</div>
       <label className="flex min-h-11 min-w-0 items-center gap-2 rounded-lg bg-surface px-3"><Search size={16} className="text-muted" /><input value={query} onChange={e => setQuery(e.target.value)} aria-label="Filter loaded streams" placeholder="Filter loaded streams" maxLength={120} className="w-40 min-w-0 bg-transparent text-sm text-ink outline-none sm:w-48" /></label>
+    </div>
+    <div className="mb-6 flex items-center gap-2" aria-label="Stream filters">
+      <label className="min-w-0 flex-1 sm:flex-none"><span className="sr-only">People and relationships</span><select value={filter} onChange={event => setFilter(event.target.value as LiveFilter)} className="min-h-11 w-full rounded-lg border border-ink/15 bg-[var(--canvas)] pl-3 pr-7 text-sm text-ink sm:w-40">{relations.map(([id, label]) => <option value={id} key={id}>{label}</option>)}</select></label>
+      <label className="min-w-0 flex-1 sm:flex-none"><span className="sr-only">Live topics</span><select value={topic} onChange={event => setTopic(event.target.value)} className="min-h-11 w-full rounded-lg border border-ink/15 bg-[var(--canvas)] pl-3 pr-7 text-sm text-ink sm:w-44">{LIVE_TOPICS.map(([id, label]) => <option value={id} key={id}>{label}</option>)}</select></label>
+      <button type="button" aria-label="Refresh live streams" disabled={current.loading} onClick={() => setRevision(v => v+1)} className="ml-auto grid min-h-11 min-w-11 shrink-0 place-items-center rounded-lg text-muted hover:bg-surface disabled:opacity-50"><RefreshCw size={18} className={current.loading ? 'animate-spin motion-reduce:animate-none' : ''} /></button>
     </div>
     {!identity.initialized ? <p role="status" className="py-16 text-center text-muted">Loading your live directory…</p> : !identity.owner ? <section className="rounded-2xl border border-ink/10 p-10 text-center"><h2 className="text-xl font-semibold text-ink">Join the conversation</h2><p className="my-3 text-sm text-muted">Sign in to find people you follow and discover live streams.</p><Link href="/login?next=%2Flive" className="inline-flex min-h-11 items-center rounded-full bg-ink px-5 text-sm text-[var(--canvas)]">Sign in</Link></section> : <>
       {current.setup || (!current.loading && !current.error && !current.capabilities.broadcast) ? <div role="status" className="mb-5 rounded-xl border border-ink/10 bg-surface p-4 text-sm text-ink"><p className="font-semibold">Broadcasting is not connected yet</p><p className="mt-1 text-muted">The Live page is available. Starting and watching broadcasts will open when the video service is connected.</p></div> : null}

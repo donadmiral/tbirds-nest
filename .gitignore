@@ -41,3 +41,7 @@ cloudflared.exe
 /android-native-compile-logs/
 /android-story-export-logs/
 /modules/boomerang/android/build/
+
+# Python verification bytecode
+__pycache__/
+*.py[cod]

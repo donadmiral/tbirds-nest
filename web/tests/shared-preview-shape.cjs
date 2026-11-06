@@ -15,7 +15,12 @@ function load(code, globals = {}) {
   return module.exports;
 }
 const preview = load(compile('../shared/sharedPostPreview.ts'));
-const { replaceContentMedia } = load(compile('../shared/contentMedia.ts'));
+const contentMedia = load(compile('../shared/contentMedia.ts'));
+const { replaceContentMedia } = contentMedia;
+const imageIdentity = load(compile('../shared/imageDisplayIdentity.ts'), {
+  require(id) { if (id === './contentMedia') return contentMedia; throw new Error('Unexpected identity dependency: ' + id); },
+});
+const errors = load(compile('lib/errors.ts'));
 const deferred = () => { let resolve, reject; const promise = new Promise((yes, no) => { resolve = yes; reject = no; }); return { promise, resolve, reject }; };
 const original = name => base + '/storage/v1/object/public/post-media/' + name;
 const capability = name => base + '/functions/v1/media-content/post-media/' + name + '?token=' + 'b'.repeat(64);
@@ -25,20 +30,31 @@ const source = (extra = {}) => ({ id: 'post', user_id: 'author', content: 'Fresh
 function harness(initialRow, options = {}) {
   let row = initialRow, sourceRead = async () => ({ data: row, error: null }), authorRead = options.authorRead ?? (async () => ({ data: { full_name: 'Author', username: 'author' }, error: null }));
   let postId = 'post', cursor = 0, dirty = true, pending = [], value, interval;
-  const slots = [], authListeners = new Set(), grants = [], reads = [];
-  const client = { auth: { onAuthStateChange(fn) { authListeners.add(fn); return { data: { subscription: { unsubscribe: () => authListeners.delete(fn) } } }; } },
+  const slots = [], scopeListeners = new Set(), grants = [], reads = [];
+  let session = { scope: 'owner:1', initialized: true };
+  const navigation = {
+    getSnapshot: () => session,
+    getServerSnapshot: () => ({ scope: null, initialized: false }),
+    subscribe(fn) { scopeListeners.add(fn); return () => scopeListeners.delete(fn); },
+  };
+  const client = {
     from(table) { let id; const query = { select() { return query; }, eq(_field, next) { id = next; return query; }, maybeSingle() { reads.push({ table, id }); return table === 'posts' ? sourceRead(id) : authorRead(id); } }; return query; } };
   const same = (a, b) => a && b && a.length === b.length && a.every((entry, index) => Object.is(entry, b[index]));
   const hooks = {
     useState(initial) { const index = cursor++; if (!(index in slots)) slots[index] = typeof initial === 'function' ? initial() : initial;
       return [slots[index], next => { const nextValue = typeof next === 'function' ? next(slots[index]) : next; if (!Object.is(nextValue, slots[index])) { slots[index] = nextValue; dirty = true; } }]; },
     useEffect(fn, deps) { const index = cursor++, prior = slots[index]; if (!prior || !same(prior.deps, deps)) { slots[index] = { deps }; pending.push(() => { prior?.cleanup?.(); slots[index].cleanup = fn(); }); } },
+    useSyncExternalStore(subscribe, getSnapshot) { hooks.useEffect(() => subscribe(() => { dirty = true; }), [subscribe]); return getSnapshot(); },
   };
   const hook = load(compile('lib/useSharedPostPreview.ts'), {
-    queueMicrotask, setInterval(fn) { interval = fn; return 1; }, clearInterval() { interval = null; },
+    queueMicrotask, process: { env: { NEXT_PUBLIC_SUPABASE_URL: base } },
+    setInterval(fn) { interval = fn; return 1; }, clearInterval() { interval = null; },
     require(id) {
       if (id === 'react') return hooks;
       if (id === '../../shared/sharedPostPreview') return preview;
+      if (id === '../../shared/imageDisplayIdentity') return imageIdentity;
+      if (id === './navigationCache') return { getNavigationStore: () => navigation };
+      if (id === './errors') return errors;
       if (id === './supabase/client') return { createClient: () => client };
       if (id === './withTimeout') return { withTimeout: promise => Promise.resolve(promise) };
       if (id === './contentMedia') return {
@@ -54,7 +70,7 @@ function harness(initialRow, options = {}) {
     async settle() { for (let index = 0; index < 4; index++) { await new Promise(setImmediate); h.render(); } return h; },
     grant(index, allowed) { const entry = grants[index], map = new Map(allowed ? allowed.map(name => ['post-media/' + name, capability(name)]) : []); entry.resolve(replaceContentMedia(entry.rows, base, map)); },
     refresh(next) { row = next; interval(); },
-    auth(read) { sourceRead = read; for (const fn of authListeners) fn('SIGNED_IN', { user: { id: 'new-owner' } }); return h.render(); },
+    auth(read) { sourceRead = read; session = { scope: 'new-owner:2', initialized: true }; for (const fn of scopeListeners) fn(); return h.render(); },
     sourceRead(read) { sourceRead = read; },
     setId(id) { postId = id; dirty = true; return h.render(); },
     unmount() { slots.forEach(slot => slot?.cleanup?.()); },

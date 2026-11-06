@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/client";
 import { checkUploadableBytes } from "@/lib/media";
 import { saveStudioDraft } from "../../shared/studioDraftRetry";
+import { preparePlannedMedia } from "../../shared/plannedMedia";
+import { capturePostCover } from "@/lib/videoCover";
 
 export type StudioRole = "owner" | "admin" | "editor" | "recruiter" | "support";
 export type StudioMe = {
@@ -19,7 +21,7 @@ export type Metrics = { posts: number; likes: number; comments: number; reposts:
 export type ScheduledPost = {
   id: string; status: "draft" | "scheduled" | "publishing" | "published" | "failed" | "cancelled";
   publish_at: string | null; content: string | null; body: string | null; category: string | null; community_id: string | null;
-  media: { url: string; media_type: string; width?: number; height?: number }[];
+  media: { url: string; media_type: string; width?: number; height?: number; edit?: { coverUrl?: string | null; coverAt?: number | null } | null }[];
   products: { title: string; subtitle?: string | null; price?: number | null; currency?: string; image_url?: string | null; listing_id?: string | null; link_url?: string | null; cta_label?: string }[];
   published_post_id: string | null; error: string | null; created_at: string; updated_at: string;
 };
@@ -71,8 +73,9 @@ export function can(role: StudioRole | null, action: keyof typeof ROLE_CAN) {
 
 const sb = () => createClient();
 
-export async function studioMe(): Promise<StudioMe | null> {
-  const { data, error } = await sb().rpc("studio_me");
+export async function studioMe(signal?: AbortSignal): Promise<StudioMe | null> {
+  const request = sb().rpc("studio_me");
+  const { data, error } = await (signal ? request.abortSignal(signal) : request);
   if (error) throw error;
   return data as StudioMe;
 }
@@ -111,18 +114,33 @@ export async function deleteScheduled(id: string) {
   const { error } = await sb().rpc("studio_delete_post", { p_id: id });
   if (error) throw error;
 }
-export async function uploadStudioMedia(file: File): Promise<{ url: string; media_type: string }> {
+export async function uploadStudioMedia(file: File): Promise<ScheduledPost["media"][number]> {
   const s = sb();
   const { data } = await s.auth.getSession();
   const uid = data.session?.user.id;
   if (!uid) throw new Error("Not signed in");
   const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace("jpeg", "jpg");
-  const path = uid + "/studio_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8) + "." + ext;
+  const base = uid + "/studio_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8);
+  const path = base + "." + ext;
   const bad = await checkUploadableBytes(file);
   if (bad) throw new Error(bad);
-  const up = await s.storage.from("post-media").upload(path, file, { contentType: file.type || "application/octet-stream" });
-  if (up.error) throw up.error;
-  return { url: s.storage.from("post-media").getPublicUrl(path).data.publicUrl, media_type: file.type.startsWith("video") ? "video" : "image" };
+  return preparePlannedMedia(file.type.startsWith("video"), async () => {
+    const up = await s.storage.from("post-media").upload(path, file, { contentType: file.type || "application/octet-stream" });
+    if (up.error) throw up.error;
+    return s.storage.from("post-media").getPublicUrl(path).data.publicUrl;
+  }, () => captureStudioCover(s, file, base));
+}
+async function captureStudioCover(s: ReturnType<typeof sb>, file: File, base: string): Promise<string> {
+  const preview = URL.createObjectURL(file);
+  try {
+    const cover = await capturePostCover(preview, 0);
+    const coverPath = base + "_cover.jpg";
+    const up = await s.storage.from("post-media").upload(coverPath, cover, { contentType: "image/jpeg", upsert: false });
+    if (up.error) throw new Error("The video cover could not upload. Please retry.");
+    return s.storage.from("post-media").getPublicUrl(coverPath).data.publicUrl;
+  } finally {
+    URL.revokeObjectURL(preview);
+  }
 }
 export async function myListings() {
   const s = sb();

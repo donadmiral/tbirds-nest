@@ -1,0 +1,113 @@
+{
+  "method": "Known public-canary signature in native-PTS decoded recording samples",
+  "videoSha256": "90ee4c7489cb4cef98e4bf4687e65b8dfbd12c17309b9561e77f08e25060ba15",
+  "sourceSha256": "bf9c4f48284934c45eed10cb0ae05bafec9f87cea89fafbfd739313b265f55ba",
+  "encodedDimensions": [
+    800,
+    800
+  ],
+  "viewport": [
+    220,
+    0,
+    360,
+    800
+  ],
+  "referencePTS": 70.0,
+  "referenceImageBox": [
+    220,
+    359,
+    360,
+    270
+  ],
+  "referenceClassMatchFractions": [
+    1.0,
+    1.0,
+    1.0,
+    0.9166666666666666,
+    1.0
+  ],
+  "colorTolerance": 60,
+  "limitations": [
+    "Only selected recorded samples are measured. No zero-flash guarantee.",
+    "Encoded frame intervals do not establish the phone capture sampling cadence.",
+    "Identical decoded frames can reflect either stable UI or reused capture frames.",
+    "Low scores can reflect occlusion, clipping or alignment. Review candidate gaps.",
+    "One device recording is not a latency percentile or fleet measurement."
+  ],
+  "windows": [
+    {
+      "name": "online-refresh-review",
+      "requestedSeconds": [
+        69.0,
+        80.0
+      ],
+      "firstPTS": 69.0,
+      "lastPTS": 79.96,
+      "decodedFrames": 275,
+      "stateCounts": {
+        "signature-not-resolved": 55,
+        "signature-visible": 220
+      },
+      "minimumFrameIntervalMs": 40.0,
+      "medianFrameIntervalMs": 40.0,
+      "maximumFrameIntervalMs": 40.0,
+      "exactDuplicateViewportFrames": 125,
+      "nearDuplicateViewportFrames": 253,
+      "longestExactDuplicateSampleSpanMs": 960.0,
+      "candidateGapsOrAmbiguities": [
+        {
+          "firstPTS": 77.36,
+          "lastPTS": 79.52,
+          "frames": 55,
+          "sampledSpanMs": 2160.0,
+          "previousVisiblePTS": 77.32,
+          "nextVisiblePTS": 79.56,
+          "states": [
+            "signature-not-resolved"
+          ],
+          "lowestScore": 0.2
+        }
+      ],
+      "result": "candidate-gaps-or-ambiguity-require-review",
+      "crops": []
+    },
+    {
+      "name": "restored-refresh-review",
+      "requestedSeconds": [
+        138.0,
+        147.56
+      ],
+      "firstPTS": 138.0,
+      "lastPTS": 147.52,
+      "decodedFrames": 239,
+      "stateCounts": {
+        "partial-match-review": 1,
+        "signature-not-resolved": 45,
+        "signature-visible": 193
+      },
+      "minimumFrameIntervalMs": 40.0,
+      "medianFrameIntervalMs": 40.0,
+      "maximumFrameIntervalMs": 40.0,
+      "exactDuplicateViewportFrames": 62,
+      "nearDuplicateViewportFrames": 180,
+      "longestExactDuplicateSampleSpanMs": 320.0,
+      "candidateGapsOrAmbiguities": [
+        {
+          "firstPTS": 145.72,
+          "lastPTS": 147.52,
+          "frames": 46,
+          "sampledSpanMs": 1800.0,
+          "previousVisiblePTS": 145.68,
+          "nextVisiblePTS": null,
+          "states": [
+            "partial-match-review",
+            "signature-not-resolved"
+          ],
+          "lowestScore": 0.1722
+        }
+      ],
+      "result": "candidate-gaps-or-ambiguity-require-review",
+      "crops": []
+    }
+  ]
+}

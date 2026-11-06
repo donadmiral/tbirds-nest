@@ -1,0 +1,49 @@
+{
+  "projectId": "uaulhuelcfkjwojtymmw",
+  "fixtureRunId": "554e817b-78b8-4e64-9a94-b2aa80fdca4d",
+  "accountIds": [
+    "78d81bd0-3381-499a-a8f3-f8264e36973c",
+    "1a368661-a2f6-49cb-9b82-e374c64d5382"
+  ],
+  "sqlSha256": "ef5d6dbe9973e9bd71d55102accb07a7266bf6ca4d9b62cf153682794d50bef7",
+  "guards": [
+    "Exactly both auth users match the fixture marker",
+    "No source or derivative object remains",
+    "No active media job or pending media cleanup remains"
+  ],
+  "transactionStatementTimeoutSeconds": 20,
+  "transactionLockTimeoutSeconds": 3,
+  "outcome": "COMMITTED_AND_INDEPENDENTLY_VERIFIED",
+  "passed": true,
+  "remaining": {
+    "posts": 0,
+    "users": 0,
+    "follows": 0,
+    "profiles": 0,
+    "sessions": 0,
+    "identities": 0,
+    "attachments": 0,
+    "notifications": 0,
+    "refreshTokens": 0,
+    "sourceObjects": 0,
+    "allFixtureObjects": 0,
+    "activeAdaptiveJobs": 0,
+    "activeOriginalJobs": 0,
+    "pendingAdaptiveCleanup": 0,
+    "pendingOriginalCleanup": 0
+  },
+  "rootReceiptFile": "connected-identity-root-cleanup.json",
+  "finalReadbackFile": "connected-cleanup-final-readback.json",
+  "priorAttempt": {
+    "actor": "child",
+    "outcome": "Tool interrupted without SQL response, subsequent reconciliation showed no committed deletion and no active matching transaction",
+    "retrySubmittedByChild": false,
+    "reconciliationFile": "connected-identity-cleanup-reconciliation.json"
+  },
+  "successfulAttempt": {
+    "actor": "root",
+    "sameReviewedSql": true,
+    "rootReportedRemainingCanaryUsers": 0,
+    "independentFinalAllCountsZero": true
+  }
+}

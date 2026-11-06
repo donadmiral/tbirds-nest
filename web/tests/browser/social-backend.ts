@@ -13,7 +13,7 @@ export const CREATED_CHANNEL = '40000000-0000-4000-8000-000000000002';
 export const OWNER = '10000000-0000-4000-8000-000000000001';
 export const CREATOR = '10000000-0000-4000-8000-000000000002';
 export const SECOND = '10000000-0000-4000-8000-000000000003';
-const initial = (id: string, name: string, username: string) => ({ id, full_name: name, username, avatar_url: null, banner_url: '/coast.svg', bio: 'Places, people and the moments in between.', headline: 'Filmmaker and independent creator', workplace: 'Independent', location: 'Cape Town', links: [{ title: 'Portfolio', url: 'https://example.com/work' }], profile_visibility: 'public', is_verified: false, verified_tier: null, account_type: 'personal', account_class: 'creator', account_labels: {}, created_at: '2026-01-02T10:00:00Z' });
+const initial = (id: string, name: string, username: string) => ({ id, full_name: name, username, muted_words: [] as string[], avatar_url: null, banner_url: '/coast.svg', bio: 'Places, people and the moments in between.', headline: 'Filmmaker and independent creator', workplace: 'Independent', location: 'Cape Town', links: [{ title: 'Portfolio', url: 'https://example.com/work' }], profile_visibility: 'public', is_verified: false, verified_tier: null, account_type: 'personal', account_class: 'creator', account_labels: {}, created_at: '2026-01-02T10:00:00Z' });
 export const profiles: Record<string, ReturnType<typeof initial>> = { [OWNER]: initial(OWNER, 'Avery Lane', 'avery_lane'), [CREATOR]: initial(CREATOR, 'Jordan Ellis', 'jordan_ellis'), [SECOND]: initial(SECOND, 'Casey Morgan', 'casey_morgan') };
 export const posts = [
   { post_id: '20000000-0000-4000-8000-000000000001', author_id: CREATOR, content: 'A slower morning on the coast. A few moments from a place I keep coming back to.', author_name: 'Jordan Ellis', author_username: 'jordan_ellis', media: [{ id: 'media-1', url: '/coast.svg', media_type: 'image', width: 1200, height: 720, sort_order: 0 }] },
@@ -24,6 +24,7 @@ const listeners = new Set<(event: string, value: ReturnType<typeof session>) => 
 const user = () => owner ? { id: owner, email: 'synthetic@example.invalid', email_confirmed_at: '2026-01-02T10:00:00Z' } : null;
 const session = () => owner ? { user: user(), access_token: 'synthetic-only-no-live-access' } : null;
 const receipt: FixtureRow[] = [];
+const liveSessions: FixtureRow[] = [];
 const faults = { profileRead: false, profileWrite: false, authRead: false, signOut: false, discovery: false, dm: false, peopleRead: false, socialWrite: false, delayWrite: 0 };
 const conversations = [{ id: 'conversation-fixture', user_1: OWNER, user_2: CREATOR, is_group: false, context: 'personal', last_message: 'A few moments from the coast.', last_message_time: new Date().toISOString() }];
 const messages = [{ id: '30000000-0000-4000-8000-000000000001', conversation_id: 'conversation-fixture', sender_id: CREATOR, receiver_id: OWNER, text: 'A few moments from the coast.', media_url: '/coast.svg', media_type: 'image', reply_to_id: null, created_at: new Date().toISOString() }, { id: '30000000-0000-4000-8000-000000000002', conversation_id: 'conversation-fixture', sender_id: OWNER, receiver_id: CREATOR, text: 'The light is beautiful. Thanks for sharing these.', media_url: null, media_type: null, reply_to_id: null, created_at: new Date(Date.now() + 1000).toISOString() }];
@@ -54,7 +55,7 @@ async function waitNavigationRead(kind: NavigationRead, signal?: AbortSignal) {
     item.finishedAt = performance.now();
   }
 }
-export const fixture = { receipt, faults, profiles, books, owner: () => owner,
+export const fixture = { receipt, faults, profiles, books, liveSessions, owner: () => owner,
   switchOwner(id: string | null) { owner = id; listeners.forEach(listener => listener(id ? 'SIGNED_IN' : 'SIGNED_OUT', session())); window.dispatchEvent(new Event('fixture-owner')); },
   refreshToken() { listeners.forEach(listener => listener('TOKEN_REFRESHED', session())); },
   clear() { receipt.length = 0; },
@@ -144,7 +145,8 @@ const client = {
     const request: FixtureRow = { rpc: name, args, owner };
     receipt.push(request);
     let data: unknown = [], error: FixtureError | null = null;
-    if (name === 'get_feed' || name === 'get_discover_page') data = posts;
+    if (name === 'live_directory') data = { items: args.p_filter === 'mine' ? [] : liveSessions, next_cursor: null, capabilities: { view: !!owner } };
+    else if (name === 'get_feed' || name === 'get_discover_page') data = posts;
     else if (name === 'get_communities_page') data = community.name.toLowerCase().includes(String(args.p_query || '').toLowerCase()) ? [community] : [];
     else if (name === 'get_channels_page') data = channel.name.toLowerCase().includes(String(args.p_query || '').toLowerCase()) ? [channel] : [];
     else if (name === 'get_community') data = { ...community, id: args.p_community };

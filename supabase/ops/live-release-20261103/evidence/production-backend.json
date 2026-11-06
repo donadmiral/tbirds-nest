@@ -1,0 +1,171 @@
+{
+  "recorded_at": "2026-11-03T01:18:14.032Z",
+  "project": "prlkikhckbifseosbukl",
+  "runtime_source_commit": "2e265ef0915ed83cbf5ba79f22f3ea1f1a717d8d",
+  "release_sql_sha256": "4505fbe62f71d72980f6aa55f688562e9430305317c343f1aa92567007e09313",
+  "migration": [
+    {
+      "name": "live_completion_reviewed_release_20261103",
+      "version": "20261103010232"
+    }
+  ],
+  "settings": {
+    "singleton": true,
+    "updated_at": "2026-11-03T01:02:32.503837+00:00",
+    "chat_enabled": true,
+    "gifts_enabled": false,
+    "stage_enabled": false,
+    "create_enabled": true,
+    "delivery_enabled": false,
+    "max_stage_members": 12,
+    "recording_enabled": false,
+    "reminders_enabled": false,
+    "capacity_evidence_ref": null,
+    "max_active_broadcasts": 10,
+    "private_delivery_enabled": false,
+    "max_chat_messages_per_second": 20
+  },
+  "authorization": {
+    "clip_bucket": {
+      "id": "live-clips",
+      "public": false
+    },
+    "private_tables_without_rls": 0,
+    "unindexed_live_foreign_keys": 0,
+    "anonymous_clip_get_execute": false,
+    "authenticated_worker_claim_execute": false
+  },
+  "maintenance": {
+    "test_request_id": 10487,
+    "enabled": true,
+    "active_ticks": 0,
+    "max_parallel": 1,
+    "last_failed_at": null,
+    "last_issued_at": "2026-11-03T01:04:41.208142+00:00",
+    "last_completed_at": "2026-11-03T01:04:42.771741+00:00",
+    "last_test": {
+      "status": 200,
+      "timed_out": false,
+      "worker_ok": true,
+      "provider_configuration": {
+        "DAILY_API_KEY": true,
+        "LIVE_HLS_BUCKET": false,
+        "LIVE_HLS_REGION": false,
+        "LIVE_HLS_CDN_ORIGIN": false,
+        "LIVE_DAILY_DOMAIN_ID": false,
+        "LIVE_HLS_ASSUME_ROLE_ARN": false,
+        "LIVE_PLAYBACK_SIGNER_URL": false,
+        "LIVE_DAILY_WEBHOOK_SECRET": false,
+        "LIVE_PLAYBACK_SIGNER_SECRET": false
+      }
+    }
+  },
+  "clip_runtime": {
+    "enabled": false,
+    "singleton": true,
+    "max_active": 2,
+    "project_origin": "https://prlkikhckbifseosbukl.supabase.co",
+    "max_pending_per_creator": 10
+  },
+  "edge_functions": [
+    {
+      "name": "live-stage",
+      "id": "9b43b09b-aa08-4a69-a083-7ce688bac06a",
+      "status": "ACTIVE",
+      "version": 1,
+      "verify_jwt": false,
+      "source_bundle_sha256": "23cb9ea190de02e34e16e37635bd1f4cfe0430a558ffc3976796644221a8b616"
+    },
+    {
+      "name": "live-control",
+      "id": "ccec7540-f1f3-44aa-9cb4-2554027cd7e3",
+      "status": "ACTIVE",
+      "version": 1,
+      "verify_jwt": false,
+      "source_bundle_sha256": "a2e285df3942707293a67e03cac50658d366d3083ce5078c613730e1359910ea"
+    },
+    {
+      "name": "live-playback",
+      "id": "2647623a-3de9-41d0-b5b2-7693331e7e30",
+      "status": "ACTIVE",
+      "version": 1,
+      "verify_jwt": false,
+      "source_bundle_sha256": "31d2a2f47940a64ecb797cbeb62eac7187aab5d9771fce0a7eead7dba3e5642b"
+    },
+    {
+      "name": "live-provider-webhook",
+      "id": "808e2442-2374-4f0a-b558-7b799b8933fe",
+      "status": "ACTIVE",
+      "version": 1,
+      "verify_jwt": false,
+      "source_bundle_sha256": "507cf2cf8aa15056acf32918cd457d8eb92719828b3830954bdc2546ff96fdd6"
+    },
+    {
+      "name": "live-cover",
+      "id": "ad01e719-1d42-41c2-ba40-5731fd338121",
+      "status": "ACTIVE",
+      "version": 1,
+      "verify_jwt": false,
+      "source_bundle_sha256": "84ea1962426f14b987cd8ffdc980fb23f7b793066eaf91972aef4f797bcde3e7"
+    },
+    {
+      "name": "live-maintenance",
+      "id": "1106210d-b02e-422f-ae62-053dfd0b4ab0",
+      "status": "ACTIVE",
+      "version": 1,
+      "verify_jwt": false,
+      "source_bundle_sha256": "421deb2a25ba8a9cc46cabf2053c91d1c8c00c4c4b437fe88de14a1439fa83f1"
+    },
+    {
+      "name": "live-sign",
+      "id": "9a780d86-48ff-4562-926a-bcbd74b4f194",
+      "status": "ACTIVE",
+      "version": 1,
+      "verify_jwt": false,
+      "source_bundle_sha256": "14ee83305df515608c234dfd098597a70112db5febe1dd1bb7f78fa70cb8a44c"
+    },
+    {
+      "name": "live-clip-media",
+      "id": "2f54075c-1f0c-4e7d-89a3-40dd1e954d4a",
+      "status": "ACTIVE",
+      "version": 1,
+      "verify_jwt": false,
+      "source_bundle_sha256": "39a14f07cd5a4354f2945b8ac4649b1dd9554899f797e9131627080b5e58acfb"
+    },
+    {
+      "name": "live-clip-worker",
+      "id": "4134e07c-df2e-4082-98c6-2f9b8e4703ae",
+      "status": "ACTIVE",
+      "version": 1,
+      "verify_jwt": false,
+      "source_bundle_sha256": "9a159179b526a837ad321ad3db518d6e63f0763b778a59af172276a011d176d3"
+    },
+    {
+      "name": "content-media-sign",
+      "id": "6c372f52-a989-4eb6-86f4-df939341c75c",
+      "status": "ACTIVE",
+      "version": 2,
+      "verify_jwt": false,
+      "source_bundle_sha256": "90d8a017e6ae11b401fd0b80590ecf42328fab3dc4b1a620126c729ea9b0bb42"
+    },
+    {
+      "name": "media-content",
+      "id": "8d179125-877a-4591-b9c4-e09ef5087701",
+      "status": "ACTIVE",
+      "version": 1,
+      "verify_jwt": false,
+      "source_bundle_sha256": "aa8ab277d44ed65356fb73e9ef3a0efb5d7f57220df3d08f37997c97c6b1519e"
+    }
+  ],
+  "advisors": {
+    "live_security_error_or_warn": 0,
+    "live_performance_error_or_warn": 0,
+    "remaining_findings": "INFO: deliberately private RPC-owned RLS tables and initially unused indexes."
+  },
+  "boundaries": [
+    "Secret inspection records presence booleans only; no secret value is included.",
+    "Gateway JWT verification is disabled because each handler validates its user, provider, tick or scoped worker credential internally.",
+    "Successful maintenance and endpoint startup do not establish provider broadcasting, HLS playback, clip rendering or measured capacity.",
+    "Provider and encoder admission remain disabled."
+  ]
+}

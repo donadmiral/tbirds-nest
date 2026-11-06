@@ -1,0 +1,175 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyExternalNonStsAsBefore",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": [
+        "aoss:*",
+        "appconfig:*",
+        "appstream:*",
+        "autoscaling:*",
+        "codebuild:*",
+        "codecommit:*",
+        "cognito-identity:*",
+        "cognito-idp:*",
+        "comprehend:*",
+        "comprehendmedical:*",
+        "dax:*",
+        "dynamodb:*",
+        "ecr:*",
+        "health:*",
+        "kinesisvideo:*",
+        "kms:*",
+        "logs:*",
+        "s3:*",
+        "secretsmanager:*",
+        "sqs:*",
+        "support:*",
+        "textract:*",
+        "transcribe:*",
+        "translate:*"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringNotEqualsIfExists": {
+          "aws:PrincipalOrgID": "${aws:ResourceOrgID}"
+        },
+        "Null": {
+          "aws:PrincipalARN": "false"
+        },
+        "BoolIfExists": {
+          "aws:PrincipalIsAWSService": "false"
+        }
+      }
+    },
+    {
+      "Sid": "DenyExternalStsOutsideExactLiveRole",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": [
+        "sts:*"
+      ],
+      "Condition": {
+        "StringNotEqualsIfExists": {
+          "aws:PrincipalOrgID": "${aws:ResourceOrgID}"
+        },
+        "Null": {
+          "aws:PrincipalARN": "false"
+        },
+        "BoolIfExists": {
+          "aws:PrincipalIsAWSService": "false"
+        }
+      },
+      "NotResource": "arn:aws:iam::518317808503:role/platinum-live-production-DailyWriter-3ZGHqfqMNzKI"
+    },
+    {
+      "Sid": "DenyExternalStsToLiveRoleExceptDaily",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": [
+        "sts:*"
+      ],
+      "Resource": "arn:aws:iam::518317808503:role/platinum-live-production-DailyWriter-3ZGHqfqMNzKI",
+      "Condition": {
+        "StringNotEqualsIfExists": {
+          "aws:PrincipalOrgID": "${aws:ResourceOrgID}",
+          "aws:PrincipalAccount": "291871421005"
+        },
+        "Null": {
+          "aws:PrincipalARN": "false"
+        },
+        "BoolIfExists": {
+          "aws:PrincipalIsAWSService": "false"
+        }
+      }
+    },
+    {
+      "Sid": "DenyExternalStsToLiveRoleWithoutDailyExternalId",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": [
+        "sts:*"
+      ],
+      "Resource": "arn:aws:iam::518317808503:role/platinum-live-production-DailyWriter-3ZGHqfqMNzKI",
+      "Condition": {
+        "StringNotEqualsIfExists": {
+          "aws:PrincipalOrgID": "${aws:ResourceOrgID}",
+          "sts:ExternalId": "platinumcircles"
+        },
+        "Null": {
+          "aws:PrincipalARN": "false"
+        },
+        "BoolIfExists": {
+          "aws:PrincipalIsAWSService": "false"
+        }
+      }
+    },
+    {
+      "Sid": "DenyOtherExternalStsRoleActions",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": [
+        "sts:AssumeRoleWithSAML",
+        "sts:AssumeRoleWithWebIdentity",
+        "sts:SetContext",
+        "sts:SetSourceIdentity",
+        "sts:TagSession"
+      ],
+      "Resource": "arn:aws:iam::518317808503:role/platinum-live-production-DailyWriter-3ZGHqfqMNzKI",
+      "Condition": {
+        "StringNotEqualsIfExists": {
+          "aws:PrincipalOrgID": "${aws:ResourceOrgID}"
+        },
+        "Null": {
+          "aws:PrincipalARN": "false"
+        },
+        "BoolIfExists": {
+          "aws:PrincipalIsAWSService": "false"
+        }
+      }
+    },
+    {
+      "Sid": "DenyAWSWhenItsNotMyOrgsSourceAccount",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": [
+        "aoss:*",
+        "appconfig:*",
+        "appstream:*",
+        "autoscaling:*",
+        "codebuild:*",
+        "codecommit:*",
+        "cognito-identity:*",
+        "cognito-idp:*",
+        "comprehend:*",
+        "comprehendmedical:*",
+        "dax:*",
+        "dynamodb:*",
+        "ecr:*",
+        "health:*",
+        "kinesisvideo:*",
+        "kms:*",
+        "logs:*",
+        "s3:*",
+        "secretsmanager:*",
+        "sqs:*",
+        "sts:*",
+        "support:*",
+        "textract:*",
+        "transcribe:*",
+        "translate:*"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "Null": {
+          "aws:SourceAccount": "false"
+        },
+        "StringNotEquals": {
+          "aws:SourceOrgID": "${aws:ResourceOrgID}"
+        }
+      }
+    }
+  ]
+}

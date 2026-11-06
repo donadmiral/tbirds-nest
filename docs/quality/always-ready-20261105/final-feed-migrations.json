@@ -1,0 +1,86 @@
+{
+  "sourceCommit": "2e62dd9599c3989d19924049972855684bf935f5",
+  "migrationHashesVerified": true,
+  "qaMigrations": [
+    {
+      "version": "20261105052504",
+      "name": "feed_catalog_point_visibility",
+      "sql_md5": "d2dc17fa8c72a33e06935d46ef0ab8b2"
+    },
+    {
+      "version": "20261105052839",
+      "name": "amortized_feed_frontier_scoring",
+      "sql_md5": "4703627cce17bbd504a55e71e53e35f2"
+    }
+  ],
+  "productionMigrations": [
+    {
+      "version": "20261105052518",
+      "name": "feed_catalog_point_visibility",
+      "sql_md5": "d2dc17fa8c72a33e06935d46ef0ab8b2"
+    },
+    {
+      "version": "20261105052850",
+      "name": "amortized_feed_frontier_scoring",
+      "sql_md5": "4703627cce17bbd504a55e71e53e35f2"
+    }
+  ],
+  "qaCanary": {
+    "passed": true,
+    "cold_ms": 281.96,
+    "warm_ms": 193.18,
+    "worker_ms": 76.06,
+    "first_count": 10,
+    "rollback_only": true,
+    "worker_failed": 0,
+    "prepared_count": 10,
+    "catalog_missing": 0,
+    "worker_prepared": 1,
+    "negative_cursors": true,
+    "catalog_rows_checked": 11,
+    "hidden_post_excluded": true,
+    "current_visibility_count": 10,
+    "indexed_canonical_parity": true,
+    "indexed_enabled_during_canary": true,
+    "existing_test_session_verified": true
+  },
+  "productionCanary": {
+    "passed": true,
+    "cold_ms": 1094.61,
+    "warm_ms": 455.89,
+    "worker_ms": 611.7,
+    "first_count": 20,
+    "rollback_only": true,
+    "worker_failed": 0,
+    "prepared_count": 20,
+    "catalog_missing": 0,
+    "worker_prepared": 1,
+    "negative_cursors": true,
+    "user_table_writes": false,
+    "catalog_rows_checked": 70,
+    "current_visibility_count": 20,
+    "indexed_canonical_parity": true,
+    "indexed_enabled_during_canary": true,
+    "existing_test_session_verified": true
+  },
+  "productionPriorCanary": {
+    "passed": true,
+    "cold_ms": 5012.51,
+    "warm_ms": 500.49,
+    "worker_ms": 686.62,
+    "first_count": 20,
+    "rollback_only": true,
+    "worker_failed": 0,
+    "prepared_count": 20,
+    "catalog_missing": 0,
+    "worker_prepared": 1,
+    "negative_cursors": true,
+    "user_table_writes": false,
+    "catalog_rows_checked": 70,
+    "current_visibility_count": 20,
+    "indexed_canonical_parity": true,
+    "indexed_enabled_during_canary": true,
+    "existing_test_session_verified": true
+  },
+  "limitations": "Small hosted datasets. Timings include database work only. The isolated load test does not establish production DAU capacity."
+}

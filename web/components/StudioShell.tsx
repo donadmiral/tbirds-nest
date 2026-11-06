@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, useCallback, useRef, useMemo } from "react";
-import Link from "next/link";
+import { NavigationLink as Link } from "@/components/NavigationLink";
 import { usePathname } from "next/navigation";
 import { ArrowLeft, ArrowRight, BarChart3, Briefcase, CalendarClock, ChevronRight, CircleHelp, FileText, Handshake, Home, Inbox, KeyRound, Megaphone, Menu, Newspaper, PanelRight, Search, Settings, ShoppingBag, Star, Users, Wallet, type LucideIcon } from "lucide-react";
 import { GROUPS, ROOMS, bindMember, studioMe, type StudioMe } from "@/lib/studio";
@@ -30,12 +30,25 @@ const CREATOR_ROOMS = [
 ];
 const CREATOR_PATHS = ["/studio", "/studio/partnerships", "/studio/earnings"];
 
+async function readStudioRequest<T>(reads: Set<AbortController>, work: (signal: AbortSignal) => PromiseLike<T>, ms = 12000): Promise<T> {
+  const controller = new AbortController();
+  reads.add(controller);
+  try { return await withTimeout(work(controller.signal), ms); }
+  finally { controller.abort(); reads.delete(controller); }
+}
+
+function abortStudioReads(reads: Set<AbortController>) {
+  reads.forEach(controller => controller.abort());
+  reads.clear();
+}
+
 export function StudioShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [supabase] = useState(createClient);
   const [accountId, setAccountId] = useState("");
   const account = useRef<string | undefined>(undefined);
   const generation = useRef(0);
+  const reads = useRef(new Set<AbortController>());
   const [tier, setTier] = useState<string | null>(null);
   const [surfaces, setSurfaces] = useState<string[] | null>(null);
   const [me, setMe] = useState<StudioMe | null>(null);
@@ -57,29 +70,47 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
 
   const refresh = useCallback(async () => {
     const run = generation.current += 1;
+    abortStudioReads(reads.current);
     try {
       const { data: session, error: sessionError } = await withTimeout(supabase.auth.getSession());
       if (sessionError) throw sessionError;
       if (run !== generation.current) return;
       const uid = session.session?.user.id || "";
+      const sameAccount = account.current === uid;
+      if (!sameAccount) { setMe(null); setTier(null); setSurfaces(null); setLoading(true); }
       account.current = uid; setAccountId(uid);
       if (!uid) { setMe(null); setTier(null); setSurfaces(null); setLoadError(null); return; }
-      const [studio, profile] = await withTimeout(Promise.all([
-        studioMe(), supabase.from("profiles").select("full_name, username, avatar_url, is_verified, verified_tier").eq("id", uid).maybeSingle(),
-      ]));
-      if (run !== generation.current || account.current !== uid) return;
-      if (profile.error) throw profile.error;
-      const viewer = profile.data;
-      const next: StudioMe = studio?.is_business ? studio : { is_business: false, bound: false, needs_code: false, member_id: null, role: null, display_name: viewer?.full_name ?? null, business_name: null, username: viewer?.username ?? null, avatar_url: viewer?.avatar_url ?? null };
-      setMe(next); setLoadError(null);
-      setTier(viewer?.verified_tier ?? (viewer?.is_verified ? "verified" : null));
+      const current = () => run === generation.current && account.current === uid;
+      // Profile details are cosmetic. Start them alongside membership, but
+      // only the verified studio_me result can open or grant workspace access.
+      const profile = readStudioRequest(reads.current, signal => supabase.from("profiles")
+        .select("full_name, username, avatar_url, is_verified, verified_tier").eq("id", uid).abortSignal(signal).maybeSingle(), 5000)
+        .then(result => result.error ? null : result.data).catch(() => null);
+      const studio = await readStudioRequest(reads.current, signal => studioMe(signal));
+      if (!current()) return;
+      const next: StudioMe = studio?.is_business ? studio : { is_business: false, bound: false, needs_code: false, member_id: null, role: null, display_name: null, business_name: null, username: null, avatar_url: null };
+      setMe(previous => sameAccount && !next.is_business && previous && !previous.is_business
+        ? { ...next, display_name: previous.display_name, username: previous.username, avatar_url: previous.avatar_url } : next);
+      setLoadError(null);
+      void profile.then(viewer => {
+        if (!current() || !viewer) return;
+        setTier(viewer.verified_tier ?? (viewer.is_verified ? "verified" : null));
+        if (!next.is_business) setMe(previous => previous && !previous.is_business
+          ? { ...previous, display_name: viewer.full_name ?? null, username: viewer.username ?? null, avatar_url: viewer.avatar_url ?? null } : previous);
+      });
       if (next.is_business && !next.needs_code) {
-        const result = await withTimeout(supabase.rpc("studio_surfaces"));
-        if (run !== generation.current || account.current !== uid) return;
-        if (result.error) { setSurfaces(null); setLoadError("Your desk preferences could not be refreshed. Access is still checked when you open a tool."); }
-        else setSurfaces(Array.isArray(result.data) ? result.data.filter((surface): surface is string => typeof surface === "string") : null);
+        const preferencesFailed = () => {
+          if (!current()) return;
+          setSurfaces(null); setLoadError("Your desk preferences could not be refreshed. Access is still checked when you open a tool.");
+        };
+        void readStudioRequest(reads.current, signal => supabase.rpc("studio_surfaces").abortSignal(signal), 5000)
+          .then(result => {
+            if (!current()) return;
+            if (result.error) preferencesFailed();
+            else setSurfaces(Array.isArray(result.data) ? result.data.filter((surface): surface is string => typeof surface === "string") : null);
+          }).catch(preferencesFailed);
       } else setSurfaces(null);
-    } catch { if (run === generation.current) { setMe(null); setTier(null); setSurfaces(null); setLoadError("Studio could not verify this session. Please try again."); } }
+    } catch { if (run === generation.current) { abortStudioReads(reads.current); setMe(null); setTier(null); setSurfaces(null); setLoadError("Studio could not verify this session. Please try again."); } }
     finally { if (run === generation.current) setLoading(false); }
   }, [supabase]);
 
@@ -88,11 +119,11 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       const uid = session?.user.id || "";
       if (uid === account.current) return;
-      account.current = uid; generation.current += 1; setAccountId(uid); setMe(null); setTier(null); setSurfaces(null); setCode(""); setErr(null); setLoading(true); setSearchOpen(false); setMenuOpen(false); binding.current = false; setBusy(false);
+      account.current = uid; generation.current += 1; abortStudioReads(reads.current); setAccountId(uid); setMe(null); setTier(null); setSurfaces(null); setCode(""); setErr(null); setLoading(true); setSearchOpen(false); setMenuOpen(false); binding.current = false; setBusy(false);
       queueMicrotask(() => { if (live) void refresh(); });
     });
     void refresh();
-    return () => { live = false; generation.current += 1; data.subscription.unsubscribe(); };
+    return () => { live = false; generation.current += 1; abortStudioReads(reads.current); data.subscription.unsubscribe(); };
   }, [refresh, supabase]);
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -123,8 +154,8 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
     finally { if (current()) { binding.current = false; setBusy(false); } }
   };
 
-  if (loading) return <div className={styles.empty} role="status"><p>Opening your workspace…</p></div>;
-  if (!me && loadError) return <div className={styles.dialogBody}><StudioLoadError message={loadError} retry={() => { void refresh(); }} /></div>;
+  if (loading) return <div className={styles.dialogBody}><Link href="/home" className={styles.button}><ArrowLeft size={16} /> Back to Platinum Circles</Link><div className={styles.empty} role="status"><p>Opening your workspace…</p></div></div>;
+  if (!me && loadError) return <div className={styles.dialogBody}><Link href="/home" className={styles.button}><ArrowLeft size={16} /> Back to Platinum Circles</Link><StudioLoadError message={loadError} retry={() => { void refresh(); }} /></div>;
   if (!me) return <div className={styles.empty}><KeyRound size={30} /><h1>Open your Studio</h1><p>Sign in to create content, collaborate and manage your professional tools.</p><Link className={styles.buttonPrimary} href="/login?next=%2Fstudio">Sign in</Link><Link className={styles.button} href="/business-login">Business sign in</Link></div>;
   if (me.needs_code) return <div className="mx-auto max-w-[500px] px-6 py-16"><Link href="/home" className={styles.button}><ArrowLeft size={16} /> Back to Platinum Circles</Link><h1 className="mt-8 text-2xl font-bold">Who is working?</h1><p className="mb-5 mt-3 text-sm text-muted">Enter your personal access code for {me.business_name || "this business"}. Your role determines which actions you can take.</p><form onSubmit={event => { event.preventDefault(); void bind(); }}><label className={styles.field}>Access code<input value={code} onChange={event => setCode(event.target.value.toUpperCase())} autoComplete="one-time-code" autoFocus disabled={busy} maxLength={64} /></label>{err ? <p role="alert" className={`${styles.notice} ${styles.error}`}>{err}</p> : null}<button className={styles.buttonPrimary} disabled={!code.trim() || busy}>{busy ? "Checking…" : "Continue"}</button></form></div>;
 

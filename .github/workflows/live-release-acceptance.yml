@@ -1,0 +1,172 @@
+name: Live release acceptance
+on:
+  workflow_dispatch:
+  push:
+    # This dedicated release branch must validate every candidate, including
+    # Live components and test dependencies outside any hand-maintained list.
+    branches: [codex/live-completion-20261102]
+permissions:
+  contents: read
+concurrency:
+  group: live-release-acceptance
+  cancel-in-progress: false
+jobs:
+  web-production-build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: 22, cache: npm, cache-dependency-path: web/package-lock.json}
+      - run: npm ci --prefix web --ignore-scripts --no-audit --no-fund
+      - name: Compile the deployable web app with the public QA configuration
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          import {spawnSync} from 'node:child_process';
+          const qa=JSON.parse(fs.readFileSync('eas.json','utf8')).build.preview.env;
+          assert.equal(qa.EXPO_PUBLIC_SUPABASE_URL,'https://uaulhuelcfkjwojtymmw.supabase.co');
+          const result=spawnSync('npm',['run','build'],{cwd:'web',env:{...process.env,
+            NEXT_TELEMETRY_DISABLED:'1',NEXT_PUBLIC_SUPABASE_URL:qa.EXPO_PUBLIC_SUPABASE_URL,
+            NEXT_PUBLIC_SUPABASE_ANON_KEY:qa.EXPO_PUBLIC_SUPABASE_ANON_KEY},stdio:'inherit',timeout:480000});
+          if(result.error)throw result.error;
+          process.exit(result.status??1);
+          JS
+  browser-baseline:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: 22, cache: npm, cache-dependency-path: web/package-lock.json}
+      - run: npm ci --prefix web --ignore-scripts --no-audit --no-fund
+      - run: npm ci --prefix admin-web --ignore-scripts --no-audit --no-fund
+      - name: Verify each web app with only its own dependencies
+        run: |
+          cd web
+          npx tsc --noEmit --incremental false
+          cd ../admin-web
+          npx tsc --noEmit --incremental false
+      - name: Install browser and media runtime
+        run: |
+          timeout --signal=TERM --kill-after=10s 300s bash scripts/quality/install-linux-test-runtime.sh browser-media web/node_modules/playwright/cli.js
+          bash scripts/quality/install-browser-test-runtime.sh "$RUNNER_TEMP/live-browser"
+      - name: Exercise existing Live components with controlled services
+        run: |
+          LIVE_BROWSER_EVIDENCE=/tmp/live-start-evidence node web/tests/browser/live-start-run.cjs
+          LIVE_BROWSER_EVIDENCE=/tmp/live-playback-evidence node web/tests/browser/live-run.cjs
+          LIVE_STARTUP_FAILURE=1 LIVE_BROWSER_EVIDENCE=/tmp/live-startup-rendition-evidence node web/tests/browser/live-run.cjs
+          PLATINUM_UI_ENTRY=tests/browser/live-fixture.tsx PLATINUM_UI_OUTPUT=/tmp/platinum-admin-live node admin-web/tests/browser/compile.cjs
+          PLATINUM_UI_OUTPUT=/tmp/platinum-admin-live PLATINUM_UI_ARTIFACTS=/tmp/live-admin-evidence node admin-web/tests/browser/live-run.cjs
+      - name: Retain browser evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: live-browser-baseline
+          path: |
+            /tmp/live-start-evidence/
+            /tmp/live-playback-evidence/
+            /tmp/live-startup-rendition-evidence/
+            /tmp/live-admin-evidence/
+          if-no-files-found: ignore
+          retention-days: 3
+  connected-host-viewer:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false, fetch-depth: 8}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: 22, cache: npm, cache-dependency-path: web/package-lock.json}
+      - name: Verify prior Live evidence for the isolated native feed correction
+        id: connected_evidence
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          LIVE_CONNECTED_EVIDENCE: /tmp/live-connected-evidence
+        run: node tools/reuse-live-connected-evidence.mjs
+      - if: steps.connected_evidence.outputs.reused != 'true'
+        run: npm ci --prefix web --ignore-scripts --no-audit --no-fund
+      - name: Install verified browser runtime
+        if: steps.connected_evidence.outputs.reused != 'true'
+        run: |
+          timeout --signal=TERM --kill-after=10s 300s bash scripts/quality/install-linux-test-runtime.sh browser web/node_modules/playwright/cli.js
+          bash scripts/quality/install-browser-test-runtime.sh "$RUNNER_TEMP/live-browser"
+      - name: Real QA host, follower, outsider and streaming provider acceptance
+        if: steps.connected_evidence.outputs.reused != 'true'
+        env:
+          LIVE_CONNECTED_EVIDENCE: /tmp/live-connected-evidence
+        run: node web/tests/browser/live-connected-run.cjs
+      - name: Retain screenshots and redacted receipts only
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: live-connected-acceptance
+          path: /tmp/live-connected-evidence/
+          if-no-files-found: ignore
+          retention-days: 3
+  release-checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: 22, cache: npm}
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm ci --prefix web --ignore-scripts --no-audit --no-fund
+      - run: npm ci --prefix admin-web --ignore-scripts --no-audit --no-fund
+      - run: npm ci --prefix supabase/tests/rpc-authorization --ignore-scripts --no-audit --no-fund
+      - name: Verify native controls, presence, permissions and provider recovery
+        run: |
+          node --test tests/feed-capacity.test.cjs tests/quality/native-feed-video.cjs tests/quality/native-android-root.cjs tests/quality/live-connected-evidence-reuse.cjs
+          node --test tests/live-setup.test.cjs tests/live-ui-repair.test.cjs tests/live-studio-events.test.cjs tests/live-native-contracts.test.cjs tests/live-native-clips.test.cjs tests/live-native-playback.test.cjs tests/live-viewer-presence.test.cjs
+          node --test admin-web/tests/live-operations.cjs admin-web/tests/live-clips.cjs web/tests/live-search-history.cjs
+          node --test supabase/tests/live-command-ack.test.cjs supabase/tests/live-provider.test.cjs supabase/tests/live-provider-diagnostics.test.cjs
+          node --test supabase/tests/rpc-authorization/test-live-control-result.mjs supabase/tests/rpc-authorization/test-live-viewer-presence.mjs supabase/tests/rpc-authorization/test-live-failed-start-recovery.mjs
+      - name: Verify all supported client types
+        run: |
+          npx tsc --noEmit --incremental false
+          npx tsc --noEmit --incremental false --project web/tsconfig.json
+          npx tsc --noEmit --incremental false --project admin-web/tsconfig.json
+          git diff --exit-code
+  qa-build:
+    needs: [release-checks, browser-baseline, connected-host-viewer, web-production-build]
+    if: github.repository == 'donadmiral/tbirds-nest' && github.ref == 'refs/heads/codex/live-completion-20261102'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false, fetch-depth: 3}
+      - name: Check whether this harness qualifies the existing foundation device candidate
+        id: ownership
+        shell: bash
+        run: |
+          source_sha=6c5ca49f36aef0dfd9323251d320562e7dec9974
+          parent="$(git rev-parse HEAD^)"
+          if [[ "$parent" == "$source_sha" || "$parent" == "fb8267480e718133e31ee46fe619ea76f9281e13" ]] && git diff --quiet "$source_sha" HEAD -- . ':(exclude)supabase/functions/live-core/handler.ts' ':(exclude)supabase/functions/live-core/provider.ts' ':(exclude)supabase/tests/live-provider.test.cjs'  ':(exclude)web/tests/browser/live-connected-run.cjs' ':(exclude).github/workflows/live-release-acceptance.yml'; then
+            echo "foundation=true" >> "$GITHUB_OUTPUT"
+            echo "Foundation QA delivery owns both installable device builds for $source_sha. Connected host/viewer qualification passed on this verified candidate." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - if: steps.ownership.outputs.foundation != 'true'
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: 22, cache: npm}
+      - if: steps.ownership.outputs.foundation != 'true'
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Build the exact revision after connected Live acceptance
+        if: steps.ownership.outputs.foundation != 'true'
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+          EXPO_PUBLIC_APP_ENV: qa
+          CI: '1'
+        run: node tools/build-live-qa.mjs

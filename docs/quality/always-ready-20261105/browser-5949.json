@@ -1,0 +1,10 @@
+{
+  "sourceCommit": "5949b165a7ecb5d8eaa2df04ccd15b17828a1720",
+  "releaseCommit": "6f26e5f26210bf9d5cffdc7a0d2c9df9c3bdc019",
+  "unchangedBrowserSource": true,
+  "runId": 41972966503,
+  "jobId": 127065425475,
+  "conclusion": "success",
+  "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41972966503",
+  "scope": "Full configured browser interaction and encoded-video suite, not every route rendered on a physical phone."
+}

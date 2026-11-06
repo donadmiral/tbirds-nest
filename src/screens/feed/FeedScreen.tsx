@@ -1,3 +1,4 @@
+import { FeedNavigationTabs } from '../../components/live/FeedNavigationTabs';
 import type { ReactExport } from '../../../shared/reactVideoComposition';
 import { acknowledgePendingReactCapture, peekPendingReactCapture, subscribePendingReactCapture } from '../../utils/reactCaptureBridge';
 import { reactDraftAttribution, reactCaptureAppendStatus, reactCapturePendingMessage } from '../../../shared/reactDraftHandoff';
@@ -6,6 +7,7 @@ import { prepareReactPostSource, assertReactSourceAccess } from '../../services/
 import { ensureCameraPermission, ensureImagePickerLibraryPermission } from '../../services/devicePermissions';
 import { loadConversationTargets } from '../../../shared/conversationTargets';
 import { createFeedTabCache } from '../../../shared/feedTabCache';
+import { FEED_HISTORY_PAGE_ROWS, feedHistoryPages } from '../../../shared/feedHistoryPages';
 import { createNativeSessionHistory } from '../../services/sessionHistory';
 import type { HistoryPage, HistorySnapshot, SessionHistory } from '../../../shared/sessionHistory';
 import { readPostCounters, recordPostShare } from '../../../shared/postCounters';
@@ -26,7 +28,7 @@ function stripMd(input: string | null | undefined): string {
     .replace(/\n/g, ' ')
     .trim();
 }
-import { prefetch } from '../../lib/screenTransition';
+import { prefetchFeedProfile, prefetchPostImages } from '../../services/feedIntent';
 import PollCard from '../../components/PollCard';
 import CollaboratorsSheet from '../../components/CollaboratorsSheet';
 import PeoplePickerSheet from '../../components/PeoplePickerSheet';
@@ -58,6 +60,7 @@ import { useSafeAreaInsets, SafeAreaView } from '../../components/SafeArea';
 
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather, Ionicons } from '@expo/vector-icons';
+import { LiveIcon } from '../../components/LiveUi';
 import PostMediaEditSheet, { type PostMediaEdit } from '../../components/PostMediaEditSheet';
 import PostDraftPreview from '../../components/PostDraftPreview';
 import * as VideoThumbnails from 'expo-video-thumbnails';
@@ -82,6 +85,7 @@ import StoryBar from '../../components/stories/StoryStrip';
 import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
 import TrendingTopicsStrip from '../../components/TrendingTopicsStrip';
 import PostCarousel, { CarouselMedia } from '../../components/PostCarousel';
+import FeedAuthorAvatar from '../../components/feed/FeedAuthorAvatar';
 import ProductCarousel, { PostProduct } from '../../components/ProductCarousel';
 import ProductPickerSheet from '../../components/ProductPickerSheet';
 import { useActorStore, authorId as currentAuthorId } from '../../stores/actorStore';
@@ -98,9 +102,10 @@ import { hydratePostMedia, withoutPrivateMedia, retainFeedMedia } from '../../se
 import { sharedPostPreview } from '../../../shared/sharedPostPreview';
 import { renewFeedMedia } from '../../../shared/feedMedia';
 import { feedSnapshots, savePublicFeedSnapshot, reconcileFeedVisibility } from '../../services/feedSnapshot';
+import { feedStartupPreviews } from '../../services/feedStartupPreviews';
 import { createFeedLive, feedLiveWindow } from '../../../shared/feedLive';
 import { feedSnapshotFresh, mergeNativeFeedLive } from '../../../shared/feedLiveMerge';
-import { mergeFeedRefresh, feedPrefetchUrls } from '../../../shared/feedSnapshot';
+import { mergeFeedRefresh, mergeLateFeedPreviews, feedPrefetchUrls } from '../../../shared/feedSnapshot';
 import { useSettingsStore } from '../../stores/settingsStore';
 import PostInsightsSheet from '../../components/PostInsightsSheet';
 import VerifiedBadge from '../../components/VerifiedBadge';
@@ -156,10 +161,29 @@ function mapFeedRow(r: any): Post {
     quoted_post_id: r.quoted_post_id ?? null,
     thread_parent_id: r.thread_parent_id ?? null,
     media: Array.isArray(r.media)
-      ? r.media.filter((item: any) => typeof item?.url === 'string' && item.url.length > 0).sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+      ? r.media.filter((item: any) => typeof item?.url === 'string' && (item.url.length > 0 || item._startupPlaceholder === true)).sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
       : [],
   };
   return { ...base, score: scorePost(base) };
+}
+
+function restoreBootFeed(owner: string | null, mode = 'forYou') {
+  const active = useAuthStore.getState();
+  if (!owner || active.profile?.id !== owner || active.session?.user.id !== owner) return null;
+  const snapshot = feedSnapshots.peek(owner, mode);
+  if (!snapshot) return null;
+  const muted = ((active.profile as any)?.muted_words ?? []).filter((word: unknown): word is string => typeof word === 'string' && word.length > 0);
+  const rows = snapshot.rows.map(mapFeedRow).filter(post => {
+    const text = `${post.content ?? ''} ${post.article_title ?? ''}`.toLowerCase();
+    return !muted.some((word: string) => text.includes(word.toLowerCase()));
+  });
+  const profiles: ProfileMap = {}, likes: Record<string, boolean> = {}, marks: Record<string, boolean> = {}, reposts: Record<string, boolean> = {};
+  rows.forEach(post => {
+    const history = post._history!;
+    profiles[post.user_id] = history.profile;
+    likes[post.id] = history.liked; marks[post.id] = history.marked; reposts[post.id] = history.reposted;
+  });
+  return { rows, profiles, likes, marks, reposts };
 }
 
 function relTime(d?: string | null) {
@@ -282,7 +306,8 @@ export default function FeedScreen({ navigation }: any) {
   const { composerText, setComposerText, exclusivePost, setExclusivePost, innovationPost, setInnovationPost }
     = useFeedTextDraft(session?.user.id === userId ? userId : null);
 
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [bootFeed] = useState(() => restoreBootFeed(userId));
+  const [posts, setPosts] = useState<Post[]>(() => bootFeed?.rows ?? []);
   const promoRowsRef = useRef<Post[]>([]);
   const historyRef = useRef<SessionHistory<Post> | null>(null);
   const historyStop = useRef<(() => void) | null>(null);
@@ -292,10 +317,16 @@ export default function FeedScreen({ navigation }: any) {
   const historyHeaderHeight = useRef(0);
   const historyViewport = useRef(0);
   const historyRects = useRef(new Map<string, { page: number; y: number; height: number }>());
+  const historyGeometryScope = useRef<string | null>(null);
+  const historyPageNodes = useRef(new Map<number, View>());
+  const historyPageHeights = useRef(new Map<number, number>());
+  const historyRowNodes = useRef(new Map<string, { page: number; node: View }>());
+  const historyMeasureGeneration = useRef(0);
+  const [historyMeasureEpoch, setHistoryMeasureEpoch] = useState(0);
   const [feedOwner, setFeedOwner] = useState(userId);
   const dataSaver = useSettingsStore(state => state.uploadQuality === 'data-saver');
   const autoplayVideos = useSettingsStore(state => state.autoplayVideos);
-  const [profilesMap, setProfilesMap] = useState<ProfileMap>({});
+  const [profilesMap, setProfilesMap] = useState<ProfileMap>(() => bootFeed?.profiles ?? {});
   const [postRings, setPostRings] = useState<Record<string, boolean>>({});
   useFocusEffect(useCallback(() => {
     let alive = true;
@@ -307,11 +338,11 @@ export default function FeedScreen({ navigation }: any) {
     }).catch(() => {});
     return () => { alive = false; };
   }, []));
-  const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
+  const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>(() => bootFeed?.likes ?? {});
   const [expandedPosts, setExpandedPosts] = useState<Record<string, boolean>>({});
   const [likerNames, setLikerNames] = useState<Record<string, string[]>>({});
-  const [bookmarkedPosts, setBookmarkedPosts] = useState<Record<string, boolean>>({});
-  const [repostedPosts, setRepostedPosts] = useState<Record<string, boolean>>({});
+  const [bookmarkedPosts, setBookmarkedPosts] = useState<Record<string, boolean>>(() => bootFeed?.marks ?? {});
+  const [repostedPosts, setRepostedPosts] = useState<Record<string, boolean>>(() => bootFeed?.reposts ?? {});
   const [sharePostTarget, setSharePostTarget] = useState<Post | null>(null);
   // Muted words: posts containing any of them stay out of every feed here.
   const [mutedWords, setMutedWords] = useState<string[]>(() => {
@@ -341,7 +372,7 @@ export default function FeedScreen({ navigation }: any) {
   const overlayCounts = (list: Post[]) => list.map(pp => { const cc = countCacheRef.current[pp.id]; return cc ? { ...pp, ...cc } : pp; });
   const feedListRef = useRef<any>(null);
   const [commentPreviews, setCommentPreviews] = useState<Record<string, CommentPreview>>({});
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!bootFeed);
   const [feedError, setFeedError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -368,7 +399,7 @@ export default function FeedScreen({ navigation }: any) {
   }>()).current;
   const pendingPostsRef = useRef<Post[]>([]);
   const scrollOffsetRef = useRef(0);
-  const restoredSnapshotRef = useRef(false);
+  const restoredSnapshotRef = useRef(!!bootFeed);
   const prefetchedImagesRef = useRef(new Set<string>());
   const discoverCatRef = useRef(discoverCat);
   const mediaTouchRef = useRef(false);
@@ -442,7 +473,13 @@ export default function FeedScreen({ navigation }: any) {
   const hydratePolls = useCallback((ids: string[]) => {
     if (!ids.length) return;
     const isCurrent = metadataFence();
-    supabase.from('post_polls').select('post_id').in('post_id', ids).then(({ data }) => { if (!isCurrent()) return; const m: Record<string, boolean> = {}; (data || []).forEach((r: any) => { m[r.post_id] = true; }); setPollPosts(prev => ({ ...prev, ...m })); }, () => {});
+    supabase.from('post_polls').select('post_id').in('post_id', ids).then(({ data, error, status }) => {
+      const denied = status === 401 || status === 403 || error?.code === '42501';
+      if (!isCurrent() || (error && !denied) || (!denied && !Array.isArray(data))) return;
+      const m: Record<string, boolean> = Object.fromEntries(ids.map(id => [id, false]));
+      (denied ? [] : data ?? []).forEach((r: any) => { m[r.post_id] = true; });
+      setPollPosts(prev => isCurrent() ? { ...prev, ...m } : prev);
+    }, () => {});
   }, [metadataFence]);
   const [collabs, setCollabs] = useState<Record<string, { id: string; username: string | null; full_name: string | null }[]>>({});
   const [collabPicker, setCollabPicker] = useState<'composer' | { postId: string } | null>(null);
@@ -450,11 +487,12 @@ export default function FeedScreen({ navigation }: any) {
   const hydrateCollabs = useCallback((ids: string[]) => {
     if (!ids.length) return;
     const isCurrent = metadataFence();
-    supabase.from('post_collaborators').select('post_id, user_id, status, profile:profiles!post_collaborators_user_id_fkey(username, full_name, avatar_url, is_verified, verified_tier)').in('post_id', ids).eq('status', 'accepted').then(({ data }) => {
-      if (!isCurrent()) return;
+    supabase.from('post_collaborators').select('post_id, user_id, status, profile:profiles!post_collaborators_user_id_fkey(username, full_name, avatar_url, is_verified, verified_tier)').in('post_id', ids).eq('status', 'accepted').then(({ data, error, status }) => {
+      const denied = status === 401 || status === 403 || error?.code === '42501';
+      if (!isCurrent() || (error && !denied) || (!denied && !Array.isArray(data))) return;
       const m: Record<string, { id: string; username: string | null; full_name: string | null }[]> = Object.fromEntries(ids.map(id => [id, []]));
-      (data || []).forEach((r: any) => { const pr = Array.isArray(r.profile) ? r.profile[0] : r.profile; if (!pr) return; (m[r.post_id] = m[r.post_id] || []).push({ id: r.user_id, username: pr.username ?? null, full_name: pr.full_name ?? null, avatar_url: pr.avatar_url ?? null, is_verified: !!pr.is_verified, verified_tier: pr.verified_tier ?? null } as any); });
-      setCollabs(prev => ({ ...prev, ...m }));
+      (denied ? [] : data ?? []).forEach((r: any) => { const pr = Array.isArray(r.profile) ? r.profile[0] : r.profile; if (!pr) return; (m[r.post_id] = m[r.post_id] || []).push({ id: r.user_id, username: pr.username ?? null, full_name: pr.full_name ?? null, avatar_url: pr.avatar_url ?? null, is_verified: !!pr.is_verified, verified_tier: pr.verified_tier ?? null } as any); });
+      setCollabs(prev => isCurrent() ? { ...prev, ...m } : prev);
     }, () => {});
   }, [metadataFence]);
   const COMMENT_META: Record<string, { label: string; icon: string }> = {
@@ -540,7 +578,7 @@ export default function FeedScreen({ navigation }: any) {
   const repostedPostsRef = useRef<Record<string, boolean>>({});
   const commentPreviewsRef = useRef<Record<string, CommentPreview>>({});
   const sharingPostRef = useRef<Record<string, boolean>>({});
-  const postsRef = useRef<Post[]>([]);
+  const postsRef = useRef<Post[]>(bootFeed?.rows ?? []);
   const feedLiveRef = useRef<ReturnType<typeof createFeedLive> | null>(null);
   const [feedBroadcast, setFeedBroadcast] = useState(false);
   const interactionChangedAt = useRef<Record<string, number>>({});
@@ -551,8 +589,28 @@ export default function FeedScreen({ navigation }: any) {
   const feedMediaScopeRef = useRef<string | null>(null);
   const bindFeedHistory = useCallback((value: SessionHistory<Post> | null) => {
     if (value && !value.available()) value = null;
+    const previous = historyRef.current?.getSnapshot() ?? {
+      pages: feedHistoryPages(postsRef.current, postsRef.current, null).map(page => ({ ...page, height: historyPageHeights.current.get(page.index) ?? 0 })),
+    };
+    const sameScope = historyGeometryScope.current === feedScopeRef.current;
+    const stablePages = new Set<number>();
+    if (sameScope && value && previous) {
+      const oldPages = new Map(previous.pages.map(page => [page.index, page]));
+      for (const page of value.getSnapshot().pages) {
+        const old = oldPages.get(page.index);
+        if (old && old.rows.length === page.rows.length && old.rows.every((row, i) =>
+          (row._rk ?? row.id) === (page.rows[i]._rk ?? page.rows[i].id))) stablePages.add(page.index);
+      }
+    }
     historyStop.current?.(); historyStop.current = null; historyRef.current = value;
-    historyRects.current.clear();
+    // React retains these native views on an unchanged refresh, so onLayout
+    // does not repeat. Retain their measurements instead of pausing the video.
+    for (const [id, rect] of historyRects.current) if (!stablePages.has(rect.page)) historyRects.current.delete(id);
+    for (const index of historyPageHeights.current.keys()) if (!stablePages.has(index)) historyPageHeights.current.delete(index);
+    if (!sameScope || !value) { historyPageNodes.current.clear(); historyRowNodes.current.clear(); }
+    historyGeometryScope.current = feedScopeRef.current;
+    historyMeasureGeneration.current++;
+    setHistoryMeasureEpoch(historyMeasureGeneration.current);
     if (!value) { setHistoryWindow(null); return; }
     const owner = useAuthStore.getState().profile?.id, scope = feedScopeRef.current, authScope = navigationScope();
     const current = () => historyAlive.current && useAuthStore.getState().profile?.id === owner
@@ -565,6 +623,9 @@ export default function FeedScreen({ navigation }: any) {
       if (!current() || signal.aborted) throw new Error('The reading session changed.');
       return granted.map(mapFeedRow).filter(post => !hiddenIdsRef.current.has(post.id) && !isMutedRef.current(post));
     } });
+    for (const page of previous?.pages ?? []) {
+      if (stablePages.has(page.index) && page.height > 0) value.measure(page.index, page.height);
+    }
     const sync = () => {
       if (!current()) return;
       const snapshot = value.getSnapshot(), previous = new Set(postsRef.current.map(post => post.id));
@@ -591,12 +652,12 @@ export default function FeedScreen({ navigation }: any) {
     if (!current() || !historyReady.current) return rows;
     let value = historyRef.current;
     if (!value) {
-      value = createNativeSessionHistory<Post>({ id: row => row.id, current, fetch: async () => [], pageRows: 6 });
+      value = createNativeSessionHistory<Post>({ id: row => row.id, current, fetch: async () => [], pageRows: FEED_HISTORY_PAGE_ROWS });
       try { await value.append(rows); if (!current()) { await value.dispose(); return rows; } bindFeedHistory(value); }
       catch (error) { await value.dispose(); throw error; }
     } else if (preserve) value.replaceHot(rows);
     else {
-      const previous = value, next = createNativeSessionHistory<Post>({ id: row => row.id, current, fetch: async () => [], pageRows: 6 });
+      const previous = value, next = createNativeSessionHistory<Post>({ id: row => row.id, current, fetch: async () => [], pageRows: FEED_HISTORY_PAGE_ROWS });
       try { await next.append(rows); if (!current()) { await next.dispose(); return rows; } }
       catch (error) { await next.dispose(); throw error; }
       value = next; bindFeedHistory(next); void previous.dispose().catch(() => {});
@@ -611,7 +672,7 @@ export default function FeedScreen({ navigation }: any) {
       values.forEach(value => { void value?.dispose().catch(() => {}); });
     };
   }, [feedTabs]);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const value = historyRef.current;
     if (value && value.getSnapshot().rows !== posts && visibleFeedScope === feedScopeRef.current) value.replaceHot(posts);
   }, [posts, visibleFeedScope]);
@@ -689,13 +750,25 @@ export default function FeedScreen({ navigation }: any) {
   }, [userId]);
 
   useEffect(() => { postsRef.current = posts; }, [posts]);
+  useEffect(() => {
+    if (!userId) return;
+    return feedStartupPreviews.subscribe(() => {
+      if (feedStartupPreviews.peek(userId) !== null) return;
+      // Remove expired preview pixels while retaining their reserved geometry.
+      const expire = (post: Post): Post => post.media?.some((item: any) => item._startupPreview && item.url)
+        ? { ...post, media: post.media.map((item: any) => item._startupPreview ? { ...item, url: '' } : item) } : post;
+      const previous = postsRef.current;
+      const next = previous.map(expire);
+      if (next.some((post, index) => post !== previous[index])) { postsRef.current = next; setPosts(next); }
+      feedTabs.update(tab => ({ ...tab, rows: tab.rows.map(expire) }));
+    });
+  }, [userId, feedTabs]);
+
   useEffect(() => { likedPostsRef.current = likedPosts; }, [likedPosts]);
   useEffect(() => { bookmarkedPostsRef.current = bookmarkedPosts; }, [bookmarkedPosts]);
   useEffect(() => { repostedPostsRef.current = repostedPosts; }, [repostedPosts]);
   useEffect(() => { commentPreviewsRef.current = commentPreviews; }, [commentPreviews]);
   useEffect(() => { sharingPostRef.current = sharingPost; }, [sharingPost]);
-
-  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 55 }).current;
 
   const onViewableItemsChanged = useCallback(({ viewableItems }: any) => {
     if (commentsForRef.current) return; // the sheet's post stays the active one until the sheet closes
@@ -909,7 +982,8 @@ export default function FeedScreen({ navigation }: any) {
       clearTimeout(deadline);
       setLoading(false);
       setRefreshing(false);
-      void savePublicFeedSnapshot(userId, mode, rows, isCurrent);
+      const hydratedById = new Map(reconciled.map(post => [post.id, post.media]));
+      void savePublicFeedSnapshot(userId, mode, rows.map(row => ({ ...row, media: hydratedById.get(row.post_id) ?? row.media })), isCurrent);
 
       const pmFromFeed: ProfileMap = {};
       const lm0: Record<string, boolean> = {}, bm0: Record<string, boolean> = {}, rm0: Record<string, boolean> = {};
@@ -919,7 +993,9 @@ export default function FeedScreen({ navigation }: any) {
         bm0[r.post_id] = !!r.viewer_bookmarked;
         rm0[r.post_id] = !!r.viewer_reposted;
       });
-      setProfilesMap(prev => preservePosition ? { ...prev, ...pmFromFeed } : pmFromFeed);
+      // Quote authors are loaded separately. Keep their current identity while
+      // the refreshed post and its source media are being enriched.
+      setProfilesMap(prev => isCurrent() ? { ...prev, ...pmFromFeed } : prev);
       const mergeFlags = (prev: Record<string, boolean>, incoming: Record<string, boolean>) => {
         const next = preservePosition ? { ...prev } : {};
         Object.keys(incoming).forEach(id => { if ((feedLiveDeniedAt.current[id] ?? -1) < requestedAt)
@@ -928,28 +1004,63 @@ export default function FeedScreen({ navigation }: any) {
       };
       setLikedPosts(prev => mergeFlags(prev, lm0)); setBookmarkedPosts(prev => mergeFlags(prev, bm0)); setRepostedPosts(prev => mergeFlags(prev, rm0));
       const likerIds = scored.filter(p => p.likes_count > 0).map(p => p.id);
-      if (likerIds.length > 0) supabase.rpc('get_recent_likers', { post_ids: likerIds }).then(({ data }) => { if (!isCurrent()) return; const m: Record<string, string[]> = {}; (data ?? []).forEach((r: any) => { m[r.post_id] = r.liker_names ?? []; }); setLikerNames(prev => preservePosition ? { ...prev, ...m } : m); });
+      if (likerIds.length > 0) supabase.rpc('get_recent_likers', { post_ids: likerIds }).then(({ data, error, status }) => {
+        const denied = status === 401 || status === 403 || error?.code === '42501';
+        if (!isCurrent() || (error && !denied) || (!denied && !Array.isArray(data))) return;
+        const m: Record<string, string[]> = Object.fromEntries(likerIds.map(id => [id, []]));
+        (denied ? [] : data ?? []).forEach((r: any) => { m[r.post_id] = r.liker_names ?? []; });
+        setLikerNames(prev => {
+          if (!isCurrent()) return prev;
+          const next = preservePosition ? { ...prev, ...m } : m;
+          if (denied) likerIds.forEach(id => { delete next[id]; });
+          return next;
+        });
+      }, () => {});
       const qIds = Array.from(new Set(scored.map(p => p.quoted_post_id).filter(Boolean))) as string[];
       let qRows: any[] = [];
       if (qIds.length > 0) {
-        const { data: qData } = await supabase.from('posts').select('id, content, body, user_id, media_url, image_url, post_media(url, media_type, sort_order, edit)').in('id', qIds);
+        const { data: qData, error: qError, status: qStatus } = await supabase.from('posts').select('id, content, body, user_id, media_url, image_url, post_media(url, media_type, sort_order, edit)').in('id', qIds);
         if (!isCurrent()) return;
-        const publishPreview = (sources: any[]) => {
-          const qm: typeof quotedMap = {};
-          sources.forEach((qr: any) => { qm[qr.id] = { content: qr.content ?? qr.body ?? '', user_id: qr.user_id, ...sharedPostPreview(qr) }; });
-          setQuotedMap(prev => preservePosition ? { ...prev, ...qm } : qm);
-        };
-        publishPreview(withoutPrivateMedia(qData ?? []));
-        qRows = await hydratePostMedia(qData ?? []).catch(() => withoutPrivateMedia(qData ?? []));
-        if (!isCurrent()) return;
-        publishPreview(qRows);
+        const denied = qStatus === 401 || qStatus === 403 || qError?.code === '42501';
+        if (denied || (!qError && Array.isArray(qData))) {
+          const sources = denied ? [] : qData ?? [];
+          // An authoritative missing source is removed immediately. A source
+          // still present keeps its painted preview until its new grant is ready.
+          const available = new Set(sources.map((row: any) => row.id));
+          const initialPreviews = withoutPrivateMedia(sources);
+          setQuotedMap(prev => {
+            if (!isCurrent()) return prev;
+            const next = { ...prev };
+            qIds.forEach(id => { if (!available.has(id)) delete next[id]; });
+            initialPreviews.forEach((qr: any) => {
+              if (!next[qr.id]) next[qr.id] = { content: qr.content ?? qr.body ?? '', user_id: qr.user_id, ...sharedPostPreview(qr) };
+            });
+            return next;
+          });
+          const publishPreview = (sources: any[]) => {
+            const qm: typeof quotedMap = {};
+            sources.forEach((qr: any) => { qm[qr.id] = { content: qr.content ?? qr.body ?? '', user_id: qr.user_id, ...sharedPostPreview(qr) }; });
+            setQuotedMap(prev => !isCurrent() ? prev : preservePosition ? { ...prev, ...qm } : qm);
+          };
+          qRows = await hydratePostMedia(sources).catch(() => withoutPrivateMedia(sources));
+          if (!isCurrent()) return;
+          publishPreview(qRows);
+        }
       }
       const uids = Array.from(new Set([...scored.map(p => p.user_id), ...qRows.map((qr: any) => qr.user_id)]));
-      const { data: pData } = await supabase.from('profiles').select('id, full_name, username, avatar_url, profile_visibility, is_verified, verified_tier').in('id', uids);
+      const { data: pData, error: profilesError, status: profilesStatus } = await supabase.from('profiles').select('id, full_name, username, avatar_url, profile_visibility, is_verified, verified_tier').in('id', uids);
       if (!isCurrent()) return;
-      const pm: ProfileMap = { ...pmFromFeed };
-      (pData || []).forEach((p: any) => { pm[p.id] = p; });
-      setProfilesMap(prev => ({ ...prev, ...pm }));
+      const profilesDenied = profilesStatus === 401 || profilesStatus === 403 || profilesError?.code === '42501';
+      if (profilesDenied || (!profilesError && Array.isArray(pData))) {
+        const pm: ProfileMap = { ...pmFromFeed };
+        (profilesDenied ? [] : pData ?? []).forEach((p: any) => { pm[p.id] = p; });
+        setProfilesMap(prev => {
+          if (!isCurrent()) return prev;
+          const next = { ...prev, ...pm };
+          qRows.forEach((row: any) => { if (!pm[row.user_id]) delete next[row.user_id]; });
+          return next;
+        });
+      }
       if (userId) {
         supabase.from('profiles')
           .select('id, full_name, username, avatar_url, headline, connections_count')
@@ -962,24 +1073,26 @@ export default function FeedScreen({ navigation }: any) {
       if (userId) {
         const ids = scored.map(p => p.id);
         if (ids.length > 0) {
-          const { data: cData } = await supabase
+          const { data: cData, error: commentsError, status: commentsStatus } = await supabase
             .from('post_comments')
             .select('post_id, body, user_id, parent_comment_id, created_at, likes_count')
             .in('post_id', ids)
             .order('created_at', { ascending: false });
 
-          if (!isCurrent()) return;
+          const commentsDenied = commentsStatus === 401 || commentsStatus === 403 || commentsError?.code === '42501';
+          if (!isCurrent() || (commentsError && !commentsDenied) || (!commentsDenied && !Array.isArray(cData))) return;
           // These rows are previews, and the API may return only a prefix.
           // Keep the authoritative comments_count returned by get_feed.
           const cpMap: Record<string, CommentPreview> = {};
-          const topLevelComments = (cData || []).filter((c: any) => !c.parent_comment_id);
+          const topLevelComments = (commentsDenied ? [] : cData ?? []).filter((c: any) => !c.parent_comment_id);
           const aIds = Array.from(new Set(topLevelComments.map((c: any) => c.user_id).filter(Boolean)));
           let authors: Record<string, any> = {};
 
           if (aIds.length > 0) {
-            const { data: aData } = await supabase.from('profiles').select('id, full_name, username').in('id', aIds);
-            if (!isCurrent()) return;
-            (aData || []).forEach((a: any) => { authors[a.id] = a; });
+            const { data: aData, error: authorsError, status: authorsStatus } = await supabase.from('profiles').select('id, full_name, username').in('id', aIds);
+            const authorsDenied = authorsStatus === 401 || authorsStatus === 403 || authorsError?.code === '42501';
+            if (!isCurrent() || (authorsError && !authorsDenied) || (!authorsDenied && !Array.isArray(aData))) return;
+            (authorsDenied ? [] : aData ?? []).forEach((a: any) => { authors[a.id] = a; });
           }
 
           topLevelComments.forEach((c: any) => {
@@ -991,7 +1104,12 @@ export default function FeedScreen({ navigation }: any) {
           });
 
           setCommentPreviews(prev => {
+            if (!isCurrent()) return prev;
             const next = preservePosition ? { ...prev } : {};
+            ids.forEach(id => {
+              if (commentsDenied || feedSnapshotFresh(id, requestedAt, liveFence())) delete next[id];
+              else if (prev[id]) next[id] = prev[id];
+            });
             Object.keys(cpMap).forEach(id => {
               if (!feedSnapshotFresh(id, requestedAt, liveFence())) { if (prev[id]) next[id] = prev[id]; }
               else next[id] = cpMap[id];
@@ -1067,15 +1185,20 @@ export default function FeedScreen({ navigation }: any) {
     ++requests.current;
     historyStop.current?.(); historyStop.current = null;
     new Set([historyRef.current, ...feedTabs.snapshot().map(([, tab]) => tab.history)]).forEach(value => { void value?.dispose().catch(() => {}); });
-    historyRef.current = null; historyReady.current = null; historyRects.current.clear(); setHistoryWindow(null);
+    historyRef.current = null; historyReady.current = null; historyRects.current.clear(); historyPageHeights.current.clear();
+    historyGeometryScope.current = null; setHistoryWindow(null);
+    setHistoryMeasureEpoch(++historyMeasureGeneration.current);
     feedTabs.clear();
-    postsRef.current = [];
+    feedSnapshots.setAccount(userId);
+    const warm = restoreBootFeed(userId, feedModeRef.current);
+    postsRef.current = warm?.rows ?? [];
     feedMediaScopeRef.current = null;
     setFeedOwner(userId);
-    setPosts([]); setProfilesMap({}); setLikedPosts({}); setBookmarkedPosts({}); setRepostedPosts({});
+    setPosts(warm?.rows ?? []); setProfilesMap(warm?.profiles ?? {});
+    setLikedPosts(warm?.likes ?? {}); setBookmarkedPosts(warm?.marks ?? {}); setRepostedPosts(warm?.reposts ?? {});
     setCommentPreviews({}); setQuotedMap({}); setLikerNames({}); setFeedError(null);
     setFollowingIds(new Set()); setRequestedIds(new Set()); setWtfSuggestions([]); setPollPosts({}); setCollabs({});
-    restoredSnapshotRef.current = false; scrollOffsetRef.current = 0;
+    restoredSnapshotRef.current = !!warm; scrollOffsetRef.current = 0;
     countCacheRef.current = {}; hiddenIdsRef.current.clear();
     feedStampFloor.current = -1;
     seenPendingRef.current.clear(); seenSentRef.current.clear();
@@ -1084,13 +1207,23 @@ export default function FeedScreen({ navigation }: any) {
     cursorRef.current = null; hasMoreRef.current = true;
     feedSnapshots.setAccount(userId);
     if (!userId) { setLoading(false); return () => { alive = false; }; }
-    setLoading(true);
+    setLoading(!warm);
     const scope = feedScopeRef.current;
     const initialRequest = feedRequestRef.current + 1;
     void feedSnapshots.read(userId, feedModeRef.current).then(snapshot => {
       if (!alive || !snapshot || scope !== feedScopeRef.current || feedRequestRef.current !== initialRequest
-        || resolvedFeedRequestRef.current === initialRequest || useAuthStore.getState().profile?.id !== userId || postsRef.current.length) return;
+        || resolvedFeedRequestRef.current === initialRequest || useAuthStore.getState().profile?.id !== userId
+        || useAuthStore.getState().session?.user.id !== userId) return;
       const restored = snapshot.rows.map(mapFeedRow).filter(post => !isMutedRef.current(post));
+      if (postsRef.current.length) {
+        if (!restoredSnapshotRef.current) return;
+        // SecureStore can finish after the short splash budget. Backfill its
+        // pixels into the same launch rows without replacing live content,
+        // changing ordering, resetting the cursor, or moving the scroll offset.
+        const next = mergeLateFeedPreviews(postsRef.current, restored);
+        if (next !== postsRef.current) { postsRef.current = next; setPosts(next); }
+        return;
+      }
       const pm: ProfileMap = {}; const likes: Record<string, boolean> = {}, marks: Record<string, boolean> = {}, reposts: Record<string, boolean> = {};
       snapshot.rows.forEach(row => {
         pm[row.author_id] = { id: row.author_id, full_name: row.author_name, username: row.author_username,
@@ -2087,7 +2220,16 @@ export default function FeedScreen({ navigation }: any) {
           })
         : await supabase.rpc('get_feed', { p_mode: feedModeToServer(mode), p_cursor_key: cur!.key, p_cursor_id: cur!.id, p_limit: PAGE_SIZE });
       if (!isCurrent()) return;
-      if (moreErr) { setFeedError('Could not load more posts. Please try again.'); return; }
+      if (moreErr) {
+        if (moreErr.code === '22023' && moreErr.message.includes('PREPARED_FEED_CURSOR_EXPIRED')) {
+          // Retain the reading window while renewing the prepared cursor.
+          restoredSnapshotRef.current = true;
+          cursorRef.current = null;
+          await loadFeedRef.current?.(false, true);
+          return;
+        }
+        setFeedError('Could not load more posts. Please try again.'); return;
+      }
       setFeedError(null);
       const rows = (moreRows ?? []) as any[];
       if (rows.length === 0) { hasMoreRef.current = false; return; }
@@ -2119,17 +2261,32 @@ export default function FeedScreen({ navigation }: any) {
       const qIds2 = Array.from(new Set(scored.map(p => p.quoted_post_id).filter(Boolean))) as string[];
       let qRows2: any[] = [];
       if (qIds2.length > 0) {
-        const { data: qData } = await supabase.from('posts').select('id, content, body, user_id, media_url, image_url, post_media(url, media_type, sort_order, edit)').in('id', qIds2);
+        const { data: qData, error: qError, status: qStatus } = await supabase.from('posts').select('id, content, body, user_id, media_url, image_url, post_media(url, media_type, sort_order, edit)').in('id', qIds2);
         if (!isCurrent()) return;
-        const publishPreview = (sources: any[]) => setQuotedMap(prev => {
-          const qm = { ...prev };
-          sources.forEach((qr: any) => { qm[qr.id] = { content: qr.content ?? qr.body ?? '', user_id: qr.user_id, ...sharedPostPreview(qr) }; });
-          return qm;
-        });
-        publishPreview(withoutPrivateMedia(qData ?? []));
-        qRows2 = await hydratePostMedia(qData ?? []).catch(() => withoutPrivateMedia(qData ?? []));
-        if (!isCurrent()) return;
-        publishPreview(qRows2);
+        const denied = qStatus === 401 || qStatus === 403 || qError?.code === '42501';
+        if (denied || (!qError && Array.isArray(qData))) {
+          const sources = denied ? [] : qData ?? [];
+          const available = new Set(sources.map((row: any) => row.id));
+          const initialPreviews = withoutPrivateMedia(sources);
+          setQuotedMap(prev => {
+            if (!isCurrent()) return prev;
+            const next = { ...prev };
+            qIds2.forEach(id => { if (!available.has(id)) delete next[id]; });
+            initialPreviews.forEach((qr: any) => {
+              if (!next[qr.id]) next[qr.id] = { content: qr.content ?? qr.body ?? '', user_id: qr.user_id, ...sharedPostPreview(qr) };
+            });
+            return next;
+          });
+          const publishPreview = (sources: any[]) => setQuotedMap(prev => {
+            if (!isCurrent()) return prev;
+            const qm = { ...prev };
+            sources.forEach((qr: any) => { qm[qr.id] = { content: qr.content ?? qr.body ?? '', user_id: qr.user_id, ...sharedPostPreview(qr) }; });
+            return qm;
+          });
+          qRows2 = await hydratePostMedia(sources).catch(() => withoutPrivateMedia(sources));
+          if (!isCurrent()) return;
+          publishPreview(qRows2);
+        }
       }
       const uids2 = Array.from(new Set([...scored.map(p => p.user_id), ...qRows2.map((qr: any) => qr.user_id)]));
       const missingU = uids2.filter(u => !profilesMap[u]);
@@ -2221,7 +2378,8 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
   useEffect(() => {
     if (!screenFocused || AppState.currentState !== 'active' || dataSaver) return;
     const activeIndex = Math.max(0, displayPosts.findIndex(post => post.id === activePostId));
-    prefetchFeedVideos(upcomingFeedVideos(displayPosts, activeIndex + 1, autoplayVideos));
+    prefetchFeedVideos(upcomingFeedVideos(displayPosts, activeIndex + 1, autoplayVideos),
+      upcomingFeedVideos(displayPosts, activeIndex + 5, autoplayVideos));
     const urls = feedPrefetchUrls(displayPosts, activeIndex + 1, dataSaver)
       .filter(url => !prefetchedImagesRef.current.has(url));
     if (!urls.length) return;
@@ -2260,6 +2418,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
     return (
       <PostCarousel
         media={mediaItems}
+        postId={post.id}
         containerWidth={SCREEN_W}
         isActive={isActive}
         onMediaPress={onMediaPress}
@@ -2274,7 +2433,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
 
   const openMention = useCallback(async (uname: string) => {
     const { data } = await supabase.from('profiles').select('id, full_name, username, avatar_url').eq('username', uname).maybeSingle();
-    if (data?.id) { prefetch('profile:' + data.id, async () => (await supabase.rpc('get_profile', { p_profile_id: data.id })).data); navigation.navigate('UserProfile', { userId: data.id, user: data }); }
+    if (data?.id) { prefetchFeedProfile(data.id); navigation.navigate('UserProfile', { userId: data.id, user: data }); }
   }, [navigation]);
 
   const openComments = useCallback((post: Post) => {
@@ -2304,7 +2463,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }} onTouchStart={() => { mediaTouchRef.current = true; }} onTouchEnd={() => { mediaTouchRef.current = false; }} onTouchCancel={() => { mediaTouchRef.current = false; }}>
             {vis.map((p: any) => (
               <View key={p.id} style={{ width: 148, borderWidth: StyleSheet.hairlineWidth, borderColor: getTheme().surface.hairline, borderRadius: 14, alignItems: 'center', paddingVertical: 14, paddingHorizontal: 10, backgroundColor: getTheme().surface.canvas }}>
-                <TouchableOpacity activeOpacity={0.8} style={{ alignItems: 'center' }} onPress={() => { prefetch('profile:' + p.id, async () => (await supabase.rpc('get_profile', { p_profile_id: p.id })).data); navigation.navigate('UserProfile', { userId: p.id, user: p }); }}>
+                <TouchableOpacity activeOpacity={0.8} style={{ alignItems: 'center' }} onPressIn={() => prefetchFeedProfile(p.id)} onPress={() => { prefetchFeedProfile(p.id); navigation.navigate('UserProfile', { userId: p.id, user: p }); }}>
                   {p.avatar_url ? <ExpoImage source={{ uri: p.avatar_url }} style={{ width: 56, height: 56, borderRadius: 28 }} contentFit="cover" /> : <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: getTheme().status.linkBg, alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontSize: 18, fontWeight: '700', color: getTheme().status.link }}>{initials(p.full_name || p.username)}</Text></View>}
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
                     <TierName userId={p.id} baseStyle={{ fontSize: 13.5, fontWeight: '700', color: getTheme().ink.primary, flexShrink: 1 }} text={p.full_name || p.username || 'Member'} />
@@ -2327,28 +2486,15 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
     const isReposted = !!repostedPostsRef.current[post.id];
     const preview = commentPreviewsRef.current[post.id];
     const isSharing = !!sharingPostRef.current[post.id];
-    const openPost = () => { if (isSharing) return; try { ((post as any).media || []).slice(0, 4).forEach((m: any) => { if (m?.url && m.media_type !== 'video') ExpoImage.prefetch(m.url).catch(() => {}); }); } catch {} navigation.navigate('Post', { postId: post.id, media: Array.isArray((post as any).media) && (post as any).media.length > 0 ? (post as any).media : undefined }); };
+    const openPost = () => { if (isSharing) return; prefetchPostImages(post, useSettingsStore.getState().uploadQuality === 'data-saver'); navigation.navigate('Post', { postId: post.id, media: Array.isArray((post as any).media) && (post as any).media.length > 0 ? (post as any).media : undefined }); };
 
     return (
       <View style={s.postCard}>
         <View style={s.postTopRow}>
-          <TouchableOpacity style={s.postMeta} onPress={() => { prefetch('profile:' + post.user_id, async () => (await supabase.rpc('get_profile', { p_profile_id: post.user_id })).data); navigation.navigate('UserProfile', { userId: post.user_id, user: author }); }} activeOpacity={0.8}>
-            {(() => {
-              const ring = postRings[post.user_id];
-              const ringStyle = ring === undefined ? null
-                : ring ? { borderWidth: 2.5, borderColor: '#B08D3F', borderRadius: 999, padding: 2 }
-                : { borderWidth: 2, borderColor: 'rgba(11,30,61,0.18)', borderRadius: 999, padding: 2 };
-              const av = author?.avatar_url
-                ? <ExpoImage source={{ uri: author.avatar_url }} style={s.avatar} contentFit="cover" cachePolicy="memory-disk" transition={150} />
-                : <View style={s.avatarFb}><Text style={s.avatarFbTxt}>{initials(author?.full_name || author?.username)}</Text></View>;
-              if (ring === undefined) return av;
-              return (
-                <TouchableOpacity activeOpacity={0.8} style={ringStyle}
-                  onPress={() => (navigation as any).navigate('StoryViewer', { userId: post.user_id })}>
-                  {av}
-                </TouchableOpacity>
-              );
-            })()}
+          <TouchableOpacity style={s.postMeta} onPressIn={() => prefetchFeedProfile(post.user_id)} onPress={() => { prefetchFeedProfile(post.user_id); navigation.navigate('UserProfile', { userId: post.user_id, user: author }); }} activeOpacity={0.8}>
+            <FeedAuthorAvatar userId={post.user_id} uri={author?.avatar_url} name={author?.full_name || author?.username}
+              storyUnseen={postRings[post.user_id]}
+              onStory={() => (navigation as any).navigate('StoryViewer', { userId: post.user_id })} />
             <View style={s.postMetaTxt}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
                 <TierName tier={(author as any)?.verified_tier ?? (((author as any)?.is_verified) ? 'business' : null)} baseStyle={s.postAuthor} text={author?.full_name || 'Member'} />
@@ -2356,7 +2502,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                 {(() => { const list = uniqueCollaborators(collabs[post.id] || [], post.user_id); if (!list.length) return null; if (list.length === 1) { const x: any = list[0]; return (
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
                     <Text style={{ color: t.ink.secondary, fontSize: 13 }}>with</Text>
-                    <TouchableOpacity accessibilityRole="link" accessibilityLabel={`Collaborator ${x.full_name || x.username || 'Member'}${x.username ? ', @' + x.username : ''}`} onPress={() => navigation.navigate('UserProfile', { userId: x.id })} activeOpacity={0.7}>
+                    <TouchableOpacity accessibilityRole="link" accessibilityLabel={`Collaborator ${x.full_name || x.username || 'Member'}${x.username ? ', @' + x.username : ''}`} onPressIn={() => prefetchFeedProfile(x.id)} onPress={() => { prefetchFeedProfile(x.id); navigation.navigate('UserProfile', { userId: x.id }); }} activeOpacity={0.7}>
                       <TierName userId={x.id} baseStyle={s.postAuthor} text={collaborationName(x, author?.full_name || author?.username)} />
                     </TouchableOpacity>
                     <VerifiedBadge userId={x.id} size={13} />
@@ -2631,40 +2777,70 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
     openComments,
   ]);
 
-  const historyItems = useMemo(() => {
-    if (!historyWindow) return null;
-    const groups = historyWindow.pages.map(page => ({ ...page, rows: [] as Post[] }));
-    const byPost = new Map(historyWindow.pages.flatMap(page => page.rows.map(post => [post.id, page.index] as const)));
-    const byPage = new Map(groups.map(page => [page.index, page]));
-    let last = groups[0]?.index;
-    for (const post of displayPosts) {
-      const page = byPost.get(post.id) ?? last;
-      if (page !== undefined) byPage.get(page)?.rows.push(post);
-      last = page;
-    }
-    return groups;
-  }, [historyWindow, displayPosts]);
+  const historyItems = useMemo(() => feedHistoryPages(posts, displayPosts, historyWindow), [posts, historyWindow, displayPosts]);
   const reportHistoryVisible = useCallback(() => {
-    const snapshot = historyRef.current?.getSnapshot(); if (!snapshot) return;
+    if (historyGeometryScope.current !== feedScopeRef.current) return;
+    const snapshot = historyRef.current?.getSnapshot(), pages = snapshot?.pages ?? historyItems;
     const offset = scrollOffsetRef.current - historyHeaderHeight.current, bottom = offset + historyViewport.current;
-    const tops = new Map<number, number>(); let top = snapshot.before;
-    snapshot.pages.forEach(page => { tops.set(page.index, top); top += page.height; });
+    const tops = new Map<number, number>(); let top = snapshot?.before ?? 0;
+    pages.forEach(page => { tops.set(page.index, top); top += snapshot ? page.height : historyPageHeights.current.get(page.index) ?? 0; });
+    const pagesByPost = new Map(pages.flatMap(page => page.rows.map(post => [post.id, page.index] as const)));
+    const promoted = new Set(promoRowsRef.current.map(post => post.id));
     const visible = displayPosts.filter(post => {
       const rect = historyRects.current.get(post.id); if (!rect || !rect.height) return false;
+      if (!tops.has(rect.page)) return false;
+      if (pagesByPost.has(post.id) ? pagesByPost.get(post.id) !== rect.page : !promoted.has(post.id) && !post.id.startsWith('__')) return false;
       const start = (tops.get(rect.page) ?? 0) + rect.y;
       return Math.max(0, Math.min(start + rect.height, bottom) - Math.max(start, offset)) / rect.height >= .55;
     });
     onViewableItemsChanged({ viewableItems: visible.map(item => ({ item, isViewable: true })) });
-  }, [onViewableItemsChanged, displayPosts]);
-  const renderHistoryPage = useCallback(({ item: page }: { item: HistoryPage<Post> }) => <View style={{ minHeight: page.height || undefined }}>
-    <View onLayout={event => { historyRef.current?.measure(page.index, event.nativeEvent.layout.height); reportHistoryVisible(); }}
+  }, [onViewableItemsChanged, displayPosts, historyItems]);
+  const remeasureHistory = useCallback(() => {
+    const history = historyRef.current, scope = feedScopeRef.current, generation = historyMeasureGeneration.current;
+    if (visibleFeedScope !== scope) return;
+    historyGeometryScope.current = scope;
+    const current = () => historyRef.current === history && feedScopeRef.current === scope
+      && historyMeasureGeneration.current === generation && historyGeometryScope.current === scope;
+    const pages = new Set((history?.getSnapshot().pages ?? historyItems).map(page => page.index));
+    const rows = new Set(displayPosts.map(post => post.id));
+    for (const [index, node] of historyPageNodes.current) {
+      if (!pages.has(index)) { historyPageNodes.current.delete(index); continue; }
+      node.measure((_x, _y, _width, height) => {
+        if (!current() || historyPageNodes.current.get(index) !== node) return;
+        historyPageHeights.current.set(index, height); history?.measure(index, height); reportHistoryVisible();
+      });
+    }
+    for (const [id, entry] of historyRowNodes.current) {
+      if (!rows.has(id) || !pages.has(entry.page)) { historyRowNodes.current.delete(id); historyRects.current.delete(id); continue; }
+      const parent = historyPageNodes.current.get(entry.page); if (!parent) continue;
+      entry.node.measureLayout(parent, (_x, y, _width, height) => {
+        const retained = historyRowNodes.current.get(id);
+        if (!current() || retained?.node !== entry.node || retained.page !== entry.page || historyPageNodes.current.get(entry.page) !== parent
+          || !Number.isFinite(y) || !Number.isFinite(height) || height <= 0) return;
+        historyRects.current.set(id, { page: entry.page, y, height }); reportHistoryVisible();
+      }, () => {});
+    }
+    reportHistoryVisible();
+  }, [displayPosts, reportHistoryVisible, historyItems, visibleFeedScope]);
+  // Changed pages also need a native measurement: a retained child can keep
+  // the same frame even when its siblings or logical history have changed.
+  useLayoutEffect(() => { remeasureHistory(); }, [historyMeasureEpoch]);
+  const renderHistoryPage = useCallback(({ item: page }: { item: HistoryPage<Post> }) => {
+    const history = historyRef.current, scope = feedScopeRef.current;
+    const current = () => historyRef.current === history && feedScopeRef.current === scope;
+    return <View style={{ minHeight: page.height || undefined }}>
+    <View collapsable={false} ref={node => { if (node) historyPageNodes.current.set(page.index, node); else historyPageNodes.current.delete(page.index); }}
+      onLayout={event => { if (!current()) return; historyGeometryScope.current = scope; historyPageHeights.current.set(page.index, event.nativeEvent.layout.height); history?.measure(page.index, event.nativeEvent.layout.height); reportHistoryVisible(); }}
       style={feedMode === 'discover' ? { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 12, columnGap: 10, rowGap: 10, paddingBottom: 10 } : undefined}>
-      {page.rows.map(post => <View key={post._rk ?? post.id} style={feedMode === 'discover' ? { width: TILE_W } : undefined}
-        onLayout={event => { const { y, height } = event.nativeEvent.layout; historyRects.current.set(post.id, { page: page.index, y, height }); reportHistoryVisible(); }}>
+      {page.rows.map(post => <View key={post._rk ?? post.id} collapsable={false}
+        ref={node => { if (node) historyRowNodes.current.set(post.id, { page: page.index, node }); else historyRowNodes.current.delete(post.id); }}
+        style={feedMode === 'discover' ? { width: TILE_W } : undefined}
+        onLayout={event => { if (!current()) return; const { y, height } = event.nativeEvent.layout; historyRects.current.set(post.id, { page: page.index, y, height }); reportHistoryVisible(); }}>
         {renderPost({ item: post })}
       </View>)}
     </View>
-  </View>, [feedMode, TILE_W, renderPost, reportHistoryVisible]);
+  </View>;
+  }, [feedMode, TILE_W, renderPost, reportHistoryVisible]);
   const flatListExtra = String(heartPost) + '|' + String(activePostId) + '|' + String(screenFocused && appActive) + '|' + String(!!fsVideo) + '|' + String(commentsHold);
 
   return (
@@ -2698,20 +2874,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
             </View>
 
             <View style={s.tabRow}>
-              {(['forYou', 'latest', 'discover', 'trending'] as const).map(m => {
-                const on = feedMode === m;
-                const label = m === 'forYou' ? 'For You' : m === 'latest' ? 'Latest' : m === 'discover' ? 'Discover' : 'Trending';
-                const accent = m === 'discover' ? t.status.innovation : t.ink.primary;
-                return (
-                  <TouchableOpacity key={m} style={{ alignItems: 'center', paddingVertical: 8, paddingHorizontal: 2, flex: 1, minWidth: 0 }} onPress={() => setFeedMode(m)} activeOpacity={0.7}>
-                    <Text style={{ fontSize: 15, fontWeight: on ? '800' : '500', color: on ? t.ink.primary : t.ink.secondary, letterSpacing: -0.2 }}>{label}</Text>
-                    <View style={{ height: 3, width: 20, borderRadius: 2, marginTop: 5, backgroundColor: on ? accent : 'transparent' }} />
-                  </TouchableOpacity>
-                );
-              })}
-              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Live streams" onPress={() => navigation.navigate('LiveStreams')} style={{ minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' }}>
-                <Feather name="radio" size={23} color={t.ink.primary} />
-              </TouchableOpacity>
+              <FeedNavigationTabs selected={feedMode} onSelect={setFeedMode} onLive={() => navigation.navigate('LiveStreams')} />
             </View>
           </View>
 
@@ -2734,8 +2897,8 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
           ) : (
             <View style={s.flex} {...tabSwipe.panHandlers}>
               <NewPostsPill count={pendingPostCount} onPress={() => { setRefreshing(true); loadFeed(false); feedListRef.current?.scrollToOffset({ offset: 0, animated: true }); }} />
-            <TapTopFlatList innerRef={feedListRef} key={historyItems ? 'measured-history' : feedMode === 'discover' ? 'discover-grid' : 'feed-list'} numColumns={!historyItems && feedMode === 'discover' ? 2 : 1} columnWrapperStyle={!historyItems && feedMode === 'discover' ? { paddingHorizontal: 12, gap: 10, marginBottom: 10 } : undefined}
-              data={historyItems ?? displayPosts}
+            <TapTopFlatList innerRef={feedListRef} key="measured-history" numColumns={1}
+              data={historyItems}
               onScroll={(event: any) => {
                 scrollOffsetRef.current = event.nativeEvent.contentOffset.y; historyViewport.current = event.nativeEvent.layoutMeasurement.height;
                 handleTabBarScroll(event); reportHistoryVisible();
@@ -2743,25 +2906,23 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
               }}
               onLayout={(event: any) => { historyViewport.current = event.nativeEvent.layout.height; reportHistoryVisible(); }}
               scrollEventThrottle={16}
-              keyExtractor={(p: Post | HistoryPage<Post>) => 'index' in p ? `history:${p.index}` : p._rk ?? p.id}
-              renderItem={historyItems ? renderHistoryPage : renderPost}
+              keyExtractor={(page: HistoryPage<Post>) => `history:${page.index}`}
+              renderItem={renderHistoryPage}
               onEndReached={loadMore}
               onEndReachedThreshold={2}
               ListFooterComponent={<>{historyWindow?.after ? <View pointerEvents="none" style={{ height: historyWindow.after }} /> : null}{loadingMore ? <View style={{ paddingVertical: 24 }}><ActivityIndicator color={NAVY} /></View> : null}</>}
 
               extraData={flatListExtra}
-              initialNumToRender={historyItems ? 20 : 5}
-              maxToRenderPerBatch={historyItems ? 20 : 5}
+              initialNumToRender={historyWindow ? 20 : 1}
+              maxToRenderPerBatch={historyWindow ? 20 : 1}
               // Mount nearby images and covers in their actual image views so
               // protected no-store media is ready without a second cache fetch.
-              windowSize={historyItems ? 101 : dataSaver ? 5 : 7}
+              windowSize={historyWindow ? 101 : dataSaver ? 5 : 7}
               removeClippedSubviews={Platform.OS === 'android'}
               showsVerticalScrollIndicator={false}
               decelerationRate={0.994}
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode="none"
-              onViewableItemsChanged={historyItems ? undefined : onViewableItemsChanged}
-              viewabilityConfig={viewabilityConfig}
               onScrollBeginDrag={() => {
                 Object.keys(singleTapTimers.current).forEach(k => {
                   clearTimeout(singleTapTimers.current[k]);
@@ -3465,7 +3626,7 @@ const s = themedSheet((t) => ({
   logo: { fontSize: 24, fontFamily: 'SpaceGrotesk_700Bold', color: t.ink.primary, letterSpacing: -0.5 },
   iconBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: t.surface.raised, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline, alignItems: 'center', justifyContent: 'center' },
   searchInput: { backgroundColor: t.surface.raised, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, minHeight: 48, fontSize: 16, color: t.ink.primary, marginBottom: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline },
-  tabRow: { flexDirection: 'row', marginBottom: 10, backgroundColor: t.surface.raised, borderRadius: 12, padding: 3 },
+  tabRow: { flexDirection: 'row', marginHorizontal: -16, marginBottom: 10, backgroundColor: t.surface.canvas },
   tab: { flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center' },
   tabActive: { backgroundColor: t.surface.canvas, shadowColor: t.ink.primary, shadowOpacity: 0.06, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 2 },
   tabTxt: { fontSize: 13, fontWeight: '500', color: t.ink.muted },

@@ -1,0 +1,60 @@
+{
+  "kind": "native-capacity-evidence",
+  "sourceCommit": "75078e4ab762c45a9acba0239bdc5a8b5bdcd173",
+  "workflowRun": 42074151763,
+  "workflowUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/42074151763",
+  "preservedAt": "2026-11-05T17:33:36.496244+00:00",
+  "productionCapacityEstablished": false,
+  "profiles": {
+    "foundation": {
+      "artifactId": 13437786820,
+      "jobId": 127409723861,
+      "conclusion": "success",
+      "archive": "tools/performance/measurements/native-75078e4/foundation.zip",
+      "archiveSha256": "f5c868e0424c72791e5d5ca585c2f658339a52959508208331e167e265fd75c9",
+      "jobLog": "tools/performance/measurements/native-75078e4/foundation-job.log.gz",
+      "jobLogSha256": "72772fda437a0fd5cad37fd71a85b2e847aea94a22f14723485ffae072603874",
+      "report": "tools/performance/measurements/prepared-feed-foundation-ci-75078e4-20261105.json",
+      "reportSha256": "cf26f592a4bb4268ded71d4516e11f1d49339cedd087c92e2277e738d5760219",
+      "lastPhase": "complete",
+      "allArchiveMembers": [
+        "container.json",
+        "media-admission.json",
+        "container-samples.ndjson",
+        "media-encoder.json",
+        "postgres.log",
+        "postgres.txt",
+        "prepared-feed.json",
+        "provider-readback.json",
+        "source-commit.txt"
+      ],
+      "resourceSamples": 16,
+      "sampledCpuPeakPercentOfOneCore": 200.19,
+      "sampledMemoryPeakPercentOf2GiB": 14.63
+    },
+    "expanded": {
+      "artifactId": 13438325240,
+      "jobId": 127409723288,
+      "conclusion": "failure",
+      "archive": "tools/performance/measurements/native-75078e4/expanded.zip",
+      "archiveSha256": "baf32dbc6110b32383b85039058ad780ba4f0a19744a3615acca88b5dba1c408",
+      "jobLog": "tools/performance/measurements/native-75078e4/expanded-job.log.gz",
+      "jobLogSha256": "0ab914b74a3dcb73142d73d7a0b8bffe05c5f9734f192f74b5822d4d6ef45ac0",
+      "report": "tools/performance/measurements/prepared-feed-expanded-failed-75078e4-20261105.json",
+      "reportSha256": "6f31c2bdbb28eeb65903028b4bc28676298adf6a01091e34198f0680fd262efc",
+      "lastPhase": "prepared_readback",
+      "allArchiveMembers": [
+        "container.json",
+        "container-samples.ndjson",
+        "postgres.log",
+        "postgres.txt",
+        "prepared-feed.json",
+        "provider-readback.json",
+        "source-commit.txt"
+      ],
+      "resourceSamples": 29,
+      "sampledCpuPeakPercentOfOneCore": 201.26,
+      "sampledMemoryPeakPercentOf2GiB": 47.34
+    }
+  }
+}

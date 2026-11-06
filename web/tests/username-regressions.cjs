@@ -53,6 +53,7 @@ function harness(file, name = 'default', props = {}) {
   react.useLayoutEffect=react.useEffect;
   react.useMemo=(fn,deps)=>{const i=slot++;const old=values[i];if(!old||deps.some((value,j)=>!Object.is(value,old.deps[j])))values[i]={value:fn(),deps};return values[i].value;};
   react.useCallback=(fn,deps)=>react.useMemo(()=>fn,deps);
+  react.useSyncExternalStore=(_subscribe,snapshot)=>snapshot();
   const user = () => viewer ? { id: viewer, email_confirmed_at: 'confirmed' } : null;
   const client = {
     auth: {

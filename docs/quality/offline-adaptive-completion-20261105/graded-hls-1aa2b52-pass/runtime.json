@@ -1,0 +1,6 @@
+{
+  "architecture": "arm64",
+  "simulatorRuntime": "com.apple.CoreSimulator.SimRuntime.iOS-26-2",
+  "swiftLanguageMode": "5",
+  "optimization": "-O"
+}

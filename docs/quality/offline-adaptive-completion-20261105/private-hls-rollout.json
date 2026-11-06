@@ -1,0 +1,185 @@
+{
+  "recordedAt": "2026-11-05T17:30:16.220420+00:00",
+  "schemaMigration": "supabase/migrations/20261105155600_private_chat_adaptive_delivery.sql",
+  "migrationSha256": "5b42ffa1cae062948c4cd55c4575325fa3e26c651495a5e2b2b86bc8e0e07b96",
+  "installationDefault": "private_hls.settings.enabled=false",
+  "edge": {
+    "slug": "private-hls",
+    "verifyJwt": false,
+    "entrypoint": "supabase/functions/private-hls/index.ts",
+    "files": {
+      "supabase/functions/private-hls/index.ts": "dc3bed1a0d8a2b2b80e8390f1cabc5c6d4b8b20ad74bffb1d96083c92827ef6b",
+      "supabase/functions/private-hls/handler.ts": "aae4b8a8b6eec6fafd52926f8005f9800fd92a44f8a0d2a561642a5388c09514",
+      "supabase/functions/_shared/serviceRoleFetch.ts": "ace9ffd7da959617a6840f863a04c6b6a8cc79237f33b4dadc52d0af092e09a2",
+      "supabase/functions/_shared/boundedFetch.ts": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147"
+    },
+    "package": "npm:@supabase/supabase-js@2.112.3",
+    "existingServerSecrets": [
+      "SUPABASE_URL",
+      "SUPABASE_ANON_KEY",
+      "SUPABASE_SERVICE_ROLE_KEY"
+    ],
+    "authorization": "getUser plus live auth.sessions, current conversation access, exact source version and rendition lease are rechecked by SQL for every request. Segments reauthorize after SHA-256 validation. No cached authorization."
+  },
+  "worker": {
+    "status": "READY",
+    "productionDeploymentId": "dpl_2VSupQAiio36EteAYXkTvvZQrsb2",
+    "source": "75078e4ab762c45a9acba0239bdc5a8b5bdcd173",
+    "encoderSourceUnchangedAtCandidate": true,
+    "genericGatewayChatHlsEnabled": false,
+    "resourcesIncreased": false
+  },
+  "preflight": [
+    "Production lacks media_delivery.legacy_grants plus binding trigger and read_legacy_chat_media/close_legacy_chat_media. Apply the narrow legacy catch-up migration before enabling original private fallback.",
+    "Current production content source_snapshot definition matches the QA private_hls.content_source_snapshot preserved implementation.",
+    "Existing chat locator, original grant and conversation-access functions match the tested QA contracts.",
+    "private_media schema remains absent. Existing legacy limited grants are the supported path.",
+    "Confirm RLS on all private_hls tables, no public/anon/authenticated/service_role table access, explicit authenticated execute only on open/read/close public RPCs.",
+    "Confirm deployed private-hls dependencies/hash, verify_jwt=false, server secrets configured, no private-source bytes or tokens in logs.",
+    "Confirm current worker source and original legacy endpoints chat-media-sign and limited-media-file work before flag activation."
+  ],
+  "activationOrder": [
+    "Apply the additive migration with enabled=false.",
+    "Apply 20261105171030_legacy_limited_delivery_completion.sql to complete the pinned original reader and terminal original close.",
+    "Apply the verified ordinary-chat ticket catch-up before replacing chat-media-sign, because current clients request no-store for ordinary messages and group avatars.",
+    "Deploy limited-media-file and verify its pinned original read/close, then replace chat-media-sign. Existing media-content v9 already accepts chat ticket paths.",
+    "Deploy private-hls Edge and current chat-capable media worker.",
+    "Inspect inert schema, RLS and public function permissions.",
+    "Enable the QA-only backend setting and QA client HLS flags.",
+    "Verify hosted ordinary/legacy-limited canary and decoded native/browser playback, view count, close, background/account switch and expiry.",
+    "Only then coordinate production backend enabled=true and matching verified client release."
+  ],
+  "clientFlags": {
+    "nativeQA": {
+      "EXPO_PUBLIC_PRIVATE_HLS": "true",
+      "EXPO_PUBLIC_PRIVATE_MEDIA_SESSIONS_ENABLED": "false"
+    },
+    "webQA": {
+      "NEXT_PUBLIC_PRIVATE_HLS": "true",
+      "NEXT_PUBLIC_PRIVATE_MEDIA_SESSIONS_ENABLED": "false",
+      "NEXT_PUBLIC_LEGACY_LIMITED_MEDIA_ENABLED": "true"
+    },
+    "production": {
+      "webPrivateHls": true,
+      "webLegacyLimitedViewer": true,
+      "privateMediaSessionsV2": false,
+      "nativePrivateHls": false
+    }
+  },
+  "rollback": [
+    "Set private_hls.settings.enabled=false. New and existing private HLS reads fail closed.",
+    "Set PRIVATE_HLS client flags false for subsequent web/build release. Set web LEGACY_LIMITED_MEDIA_ENABLED false to hide its new entry point if needed.",
+    "Keep the additive schema and existing chat-media-sign/limited-media-file endpoints. The original limited-view counter and no-store transport remain authoritative.",
+    "Do not restore consumed views, delete rendition rows by hand, enable generic content tokens for chat, or broaden cache eligibility. Let fenced cleanup remove retired derivatives."
+  ],
+  "openGates": [
+    "Native private-HLS header propagation, decoder playback and background/account lifecycle need an actual client runtime receipt. Its production native flag remains disabled. The separately verified graded public iOS HLS gate has passed."
+  ],
+  "legacyCatchupMigration": "supabase/migrations/20261105171030_legacy_limited_delivery_completion.sql",
+  "legacyCatchupSha256": "11ea95965816defb36c4e2c7a0c92262d280c95809a0f9fb04e0ea79f5dc2ec8",
+  "browserGate": {
+    "passed": true,
+    "runId": 42073141305,
+    "commit": "adf48a31fda7b38e931981d660136444cac2f58a",
+    "receipt": "private-hls-browser-pass.json",
+    "scope": "Real Chrome React/hls.js/MSE/pixels, six cases with synthetic authorization. Separate hosted canary verifies actual auth."
+  },
+  "fixtureCleanup": {
+    "complete": true,
+    "receipt": "private-hls-cleanup.json",
+    "source": "Root authoritative readback: all users, sessions, profiles, messages, conversations, objects and pending cleanup absent. Temporary cleanup endpoint retired.",
+    "runId": "c26762d6-a165-4910-a76f-820855533f24"
+  },
+  "ordinaryChatCatchupMigration": "supabase/migrations/20261105172326_chat_media_ticket_delivery_completion.sql",
+  "ordinaryChatCatchupSha256": "6d1411bfead01270e1978cb6634d8419efae14ac923225024af445ae0cad43fb",
+  "legacyEdges": {
+    "qa": {
+      "chat-media-sign": {
+        "version": 18,
+        "verifyJwt": false,
+        "currentIndexMatches": true
+      },
+      "limited-media-file": {
+        "version": 2,
+        "verifyJwt": false,
+        "currentFilesMatch": true
+      },
+      "sharedHelperDrift": "QA mediaDeliveryUrl export equals current; unrelated helper additions are live-clips bucket and data:image no-cache policy."
+    },
+    "productionBefore": {
+      "chat-media-sign": {
+        "version": 22,
+        "verifyJwt": true,
+        "hasNoStoreSupport": false
+      },
+      "limited-media-file": "absent",
+      "media-content": {
+        "version": 9,
+        "verifyJwt": false,
+        "acceptsChatPaths": true,
+        "callsServiceOnlyResolver": true
+      }
+    },
+    "chatMediaSignFiles": {
+      "supabase/functions/chat-media-sign/index.ts": "ccc74a28ae1330763e9a0a1bddef8df51503ff28a168ddf0cda7c6e485b9a4e1",
+      "supabase/functions/chat-media-sign/deno.json": "c3e35c3fa9f31537196d35670e608adacf3af7ee2d4bb8f61d8f24c72e27176a",
+      "shared/mediaDelivery.ts": "e8364d34735bce914535e7d9574e03e254abfde28170d888add2c5d965e7887e"
+    },
+    "limitedMediaFileFiles": {
+      "supabase/functions/limited-media-file/index.ts": "7ff81f4742a4a6501abf9fcf9c12985363134580f551179bdcaa6598d2a4477d",
+      "supabase/functions/private-media-session/handler.ts": "11b53d74da4607c6a89bc5ef11d258694a8d4e6409f3c2f5606c00e133add1ac"
+    },
+    "npm": "npm:@supabase/supabase-js@2.112.3",
+    "serverSecrets": [
+      "SUPABASE_URL",
+      "SUPABASE_ANON_KEY",
+      "SUPABASE_SERVICE_ROLE_KEY"
+    ],
+    "auth": "All three handlers authenticate the actual user through Supabase Auth getUser. Original read/close and HLS requests use live session-bound SQL authorization. Gateway verify_jwt is false on these manually authenticated handlers, matching the verified QA package. Production no-auth and malformed-token probes all returned 401 with no-store. The 20-check hosted canary verifies valid authentication, denial and expiry.",
+    "productionAfter": {
+      "private-hls": {
+        "version": 1,
+        "status": "ACTIVE",
+        "verifyJwt": false
+      },
+      "limited-media-file": {
+        "version": 1,
+        "status": "ACTIVE",
+        "verifyJwt": false
+      },
+      "chat-media-sign": {
+        "version": 23,
+        "status": "ACTIVE",
+        "verifyJwt": false
+      }
+    }
+  },
+  "completedGates": {
+    "privateHlsPostgresCases": 18,
+    "ordinaryChatPostgresCases": 19,
+    "actualBrowserCases": 6,
+    "hostedCanaryCases": 20,
+    "productionProtectedBackend": true,
+    "productionWeb": true,
+    "productionBackfillJobsReady": 1
+  },
+  "originalByteFixtureCleanup": {
+    "runId": "8b8d5850-2b76-4e96-9d41-2e77bc74edce",
+    "complete": true,
+    "receipt": "private-hls-original-canary-cleanup.json"
+  },
+  "productionPostflight": {
+    "receipt": "private-media-production-rollout.json",
+    "privateHlsEnabled": true,
+    "webDeploymentId": "dpl_HjBaDeRXtD6FxHZXSw2Lax3KqZnS",
+    "source": "c8052ba7bb10f367a5e26337e94f3b080a48d7ce",
+    "domains": [
+      "platinumcircles.app",
+      "www.platinumcircles.app"
+    ],
+    "scannedChatObjects": 96,
+    "eligibleJobs": 1,
+    "readyJobs": 1
+  },
+  "preflightScope": "Historical preflight before the additive production catch-up migrations. See productionPostflight and private-media-production-rollout.json for the completed rollout."
+}

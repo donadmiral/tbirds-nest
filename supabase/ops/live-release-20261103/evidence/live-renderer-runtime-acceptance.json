@@ -1,0 +1,321 @@
+{
+  "schema_version": 1,
+  "scope": "actual_production_renderer_and_scheduler_acceptance",
+  "recorded_at": "2026-11-03T08:42:21.837Z",
+  "project_ref": "prlkikhckbifseosbukl",
+  "service": {
+    "ClusterArn": "arn:aws:ecs:us-east-2:518317808503:cluster/platinum-live-clips-service-production-Cluster-ibHv5bxxWlb5",
+    "PinnedImage": "518317808503.dkr.ecr.us-east-2.amazonaws.com/platinum-live-clips-build-production-images-fgzusuampzyi@sha256:c72e83dda292433e6857ad9ff5346b06ff921552f6243c43b9ba1360492b9b3c",
+    "TaskExecutionRoleArn": "arn:aws:iam::518317808503:role/platinum-live-clips-service-produ-TaskExecutionRole-UcoNcIOC4EqH",
+    "ServiceName": "platinum-live-clips-service-production-WorkerService-iZ8WKagEfEaz",
+    "SecurityGroupId": "sg-0506dbef023dfbf20",
+    "WorkerLogGroup": "/platinum/live-clips/platinum-live-clips-service-production/worker",
+    "Admission": "This stack does not enable clipping. Keep live_clip_configure disabled until recorded acceptance.",
+    "TaskDefinitionArn": "arn:aws:ecs:us-east-2:518317808503:task-definition/platinum-live-clips-service-production-Task-18Li2FaUKz6P:1"
+  },
+  "launcher": {
+    "ScheduleRuleArn": "arn:aws:events:us-east-2:518317808503:rule/platinum-live-task-launcher-production-Tick-rc773D5WT7af",
+    "RuntimeReservationLimit": "7200 two-vCPU-equivalent seconds per UTC day; one active task; no uncertain-launch refunds.",
+    "LauncherArn": "arn:aws:lambda:us-east-2:518317808503:function:platinum-live-task-launcher-production-Launcher-7qnncXeo3vk5",
+    "Activation": "Default disabled. Queue signals do not enable clip/transcription/provider admission. Keep ECS service desired count zero.",
+    "LedgerTable": "platinum-live-task-launcher-production-Ledger-17MMCUHQK8XRG",
+    "LauncherLogGroup": "/platinum/live-clips/platinum-live-task-launcher-production/launcher",
+    "QueueSecretArn": "arn:aws:secretsmanager:us-east-2:518317808503:secret:QueueSecret-e0Xbji8DdEgp-7u1XNd",
+    "RequiredApplicationSecret": "LIVE_CLIP_QUEUE_SECRET"
+  },
+  "schedule": {
+    "Name": "platinum-live-task-launcher-production-Tick-rc773D5WT7af",
+    "Arn": "arn:aws:events:us-east-2:518317808503:rule/platinum-live-task-launcher-production-Tick-rc773D5WT7af",
+    "ScheduleExpression": "rate(1 minute)",
+    "State": "ENABLED",
+    "Description": "Bounded queue signal once per minute; never a poll per viewer.",
+    "EventBusName": "default",
+    "CreatedBy": "518317808503"
+  },
+  "disabled_invocation": {
+    "response": {
+      "StatusCode": 200,
+      "ExecutedVersion": "$LATEST",
+      "Payload": "{\"state\": \"disabled\"}"
+    }
+  },
+  "enabled_invocation": {
+    "response": {
+      "StatusCode": 200,
+      "ExecutedVersion": "$LATEST",
+      "Payload": "{\"state\": \"launched\", \"lane\": \"renderer\", \"reserved_seconds\": 720}"
+    }
+  },
+  "task": [
+    {
+      "taskArn": "arn:aws:ecs:us-east-2:518317808503:task/platinum-live-clips-service-production-Cluster-ibHv5bxxWlb5/3f8eeee649cf4ece99d4be8e77887cff",
+      "taskDefinitionArn": "arn:aws:ecs:us-east-2:518317808503:task-definition/platinum-live-clips-service-production-Task-18Li2FaUKz6P:1",
+      "lastStatus": "RUNNING",
+      "startedAt": "2026-11-03T08:24:28.766000+00:00",
+      "image": "518317808503.dkr.ecr.us-east-2.amazonaws.com/platinum-live-clips-build-production-images-fgzusuampzyi@sha256:c72e83dda292433e6857ad9ff5346b06ff921552f6243c43b9ba1360492b9b3c",
+      "imageDigest": "sha256:c72e83dda292433e6857ad9ff5346b06ff921552f6243c43b9ba1360492b9b3c"
+    }
+  ],
+  "budget": {
+    "Item": {
+      "id": {
+        "S": "day#2026-11-03"
+      },
+      "launches": {
+        "N": "1"
+      },
+      "expires_at": {
+        "N": "1801440000"
+      },
+      "used_seconds": {
+        "N": "720"
+      }
+    }
+  },
+  "fixture": {
+    "clip_id": "23aba5da-f9a9-4818-919b-2af0fb35d312",
+    "session_id": "2ecc0090-0d72-497a-8547-86d29f540e78",
+    "actor_id": "ef6e93db-8a70-4cbe-9920-9d003d93e4fe",
+    "publications": 0
+  },
+  "initial_failure": {
+    "code": "clip_backend_unavailable",
+    "stage": "signed_upload_grant",
+    "storage_error": "INVALID_CLIP_OBJECT",
+    "trigger": "live_streams.clip_bind_storage_owner",
+    "resolution": "Resolved by strict operation-bound signed-upload preflight and exact JSON request metadata compatibility, with full provenance retained on actual uploads.",
+    "observed_probe": {
+      "version": "1",
+      "metadata": {
+        "mimetype": "application/json",
+        "contentLength": 2
+      },
+      "user_metadata": null,
+      "operation": "object.sign_upload_url",
+      "role": "service_role"
+    }
+  },
+  "complete": true,
+  "intermediate_fix": {
+    "migration": "20261103082746_live_clip_signed_upload_preflight",
+    "diagnostic_migrations": [
+      "live_clip_upload_probe_shape_diagnostic",
+      "live_clip_upload_probe_metadata_diagnostic"
+    ],
+    "first_revision_attempts": 5,
+    "first_revision_state": "dead",
+    "operator_retry_via_public_command": true,
+    "raw_content_logged": false,
+    "secret_values_logged": false
+  },
+  "accepted_at": "2026-11-03T08:37:41.752Z",
+  "database_fix": {
+    "migrations": [
+      "20261103082746_live_clip_signed_upload_preflight.sql",
+      "20261103083628_live_clip_signing_probe_transport_metadata.sql"
+    ],
+    "final_migration_sha256": "8255d1465eafc4029a9954d813aec705c4103eb1b2d3543b43553fe09a678148",
+    "qa_applied": true,
+    "production_applied": true,
+    "focused_tests_passed": 18,
+    "temporary_diagnostics_removed": true
+  },
+  "accepted_task": {
+    "taskArn": "arn:aws:ecs:us-east-2:518317808503:task/platinum-live-clips-service-production-Cluster-ibHv5bxxWlb5/7a27f1b718d74e5fbb3664f6f7622936",
+    "lastStatus": "RUNNING",
+    "healthStatus": "UNKNOWN",
+    "imageDigest": "sha256:c72e83dda292433e6857ad9ff5346b06ff921552f6243c43b9ba1360492b9b3c",
+    "startedAt": "2026-11-03T08:31:28.720000+00:00",
+    "containers": [
+      {
+        "name": "renderer"
+      }
+    ]
+  },
+  "accepted_task_stop": {
+    "taskArn": "arn:aws:ecs:us-east-2:518317808503:task/platinum-live-clips-service-production-Cluster-ibHv5bxxWlb5/7a27f1b718d74e5fbb3664f6f7622936",
+    "lastStatus": "STOPPED",
+    "desiredStatus": "STOPPED",
+    "stopCode": "UserInitiated",
+    "stoppedReason": "Private acceptance clip completed and four current-lease objects verified; stop idle acceptance task",
+    "stoppedAt": "2026-11-03T08:39:00.858000+00:00",
+    "containers": [
+      {
+        "name": "renderer",
+        "exitCode": 0
+      }
+    ]
+  },
+  "clip": {
+    "clip_id": "23aba5da-f9a9-4818-919b-2af0fb35d312",
+    "state": "ready",
+    "error_code": null,
+    "moderation_state": "approved",
+    "copyright_state": "cleared",
+    "job_state": "done",
+    "attempts": 2,
+    "duration_ms": "2000",
+    "assets": [
+      {
+        "name": "horizontal.mp4",
+        "bytes": 38776,
+        "width": 1280,
+        "format": "horizontal",
+        "height": 720,
+        "sha256": "d7d33003d7258023030968e65dcb5c4157a4eae80cf3c69ab07bd174b2565d99",
+        "duration_ms": 2000,
+        "content_type": "video/mp4"
+      },
+      {
+        "name": "vertical.mp4",
+        "bytes": 40000,
+        "width": 720,
+        "format": "vertical",
+        "height": 1280,
+        "sha256": "ddbedfdfe96ee03fd1b0bb648f939e674c0a151df4eae228e22be43a2f609873",
+        "duration_ms": 2000,
+        "content_type": "video/mp4"
+      },
+      {
+        "name": "thumbnail.jpg",
+        "bytes": 7521,
+        "sha256": "d85cdae4f3d33cc96e5215c955e3b1a77988c46ba187f26391d1e027b413b79c",
+        "content_type": "image/jpeg"
+      },
+      {
+        "name": "captions.vtt",
+        "bytes": 70,
+        "sha256": "bbbcfa7127c45e0a7b9a9db75cb574c863a8eef5b622ec0f727d2dc82d5da4bf",
+        "content_type": "text/vtt"
+      }
+    ],
+    "current_lease_stored_assets": 4,
+    "publication_count": 0
+  },
+  "successful_drain": {
+    "event": "live_clip_worker",
+    "kind": "drain",
+    "deployment": "platinum-live-clips-service-production",
+    "timestamp": "2026-11-03T08:37:41.752Z",
+    "state": "ready",
+    "assets": 4,
+    "_aws": {
+      "Timestamp": 1793695061752,
+      "CloudWatchMetrics": [
+        {
+          "Namespace": "PlatinumCircles/LiveClips",
+          "Dimensions": [
+            [
+              "deployment"
+            ]
+          ],
+          "Metrics": [
+            {
+              "Name": "DrainCount",
+              "Unit": "Count"
+            },
+            {
+              "Name": "Completed",
+              "Unit": "Count"
+            },
+            {
+              "Name": "Retry",
+              "Unit": "Count"
+            },
+            {
+              "Name": "Failed",
+              "Unit": "Count"
+            },
+            {
+              "Name": "Unavailable",
+              "Unit": "Count"
+            },
+            {
+              "Name": "DrainDurationMs",
+              "Unit": "Milliseconds"
+            },
+            {
+              "Name": "OutputBytes",
+              "Unit": "Bytes"
+            }
+          ]
+        }
+      ]
+    },
+    "DrainCount": 1,
+    "Completed": 1,
+    "Retry": 0,
+    "Failed": 0,
+    "Unavailable": 0,
+    "DrainDurationMs": 6625,
+    "OutputBytes": 86367
+  },
+  "cleanup": {
+    "database": {
+      "clip_processing_enabled": true,
+      "max_active": 2,
+      "fixture_identity_removed": true,
+      "fixture_session_removed": true,
+      "output_objects_retained_for_delayed_cleanup": 4,
+      "pending_cleanup_rows": 28,
+      "earliest_cleanup_at": "2026-11-03 10:34:35.057291+00",
+      "latest_cleanup_at": "2026-11-03 10:50:29.435913+00",
+      "temporary_diagnostics_removed": true
+    },
+    "deleted_source_versions": [
+      {
+        "Key": "live/2ecc0090-0d72-497a-8547-86d29f540e78/a5cc6442-8544-40d1-ae08-048c1aef49a0/segment001.ts",
+        "VersionId": "p6EIoGEYhj0PsAb4mZwmPzVTsV9MmGwy"
+      },
+      {
+        "Key": "live/2ecc0090-0d72-497a-8547-86d29f540e78/a5cc6442-8544-40d1-ae08-048c1aef49a0/segment002.ts",
+        "VersionId": "_j9b5GXeSfMNW_AzpUIfHnYOHDiUyNLW"
+      },
+      {
+        "Key": "live/2ecc0090-0d72-497a-8547-86d29f540e78/a5cc6442-8544-40d1-ae08-048c1aef49a0/media.m3u8",
+        "VersionId": "JjwsR8pNYXMh00MZDZn4cMVjc085aLeM"
+      },
+      {
+        "Key": "live/2ecc0090-0d72-497a-8547-86d29f540e78/a5cc6442-8544-40d1-ae08-048c1aef49a0/master.m3u8",
+        "VersionId": "wI0Ccmz6XuzDhnPAOwfIwYBe25OXqwvK"
+      },
+      {
+        "Key": "live/2ecc0090-0d72-497a-8547-86d29f540e78/a5cc6442-8544-40d1-ae08-048c1aef49a0/segment000.ts",
+        "VersionId": "1OJN6V4dSpQ5nbp6KSUn5NPL6Bq4Voeq"
+      }
+    ],
+    "source_prefix_empty": true,
+    "output_erasure_delayed_until_signed_upload_capabilities_expire": true
+  },
+  "final": {
+    "service": [
+      {
+        "status": "ACTIVE",
+        "desiredCount": 0,
+        "runningCount": 0,
+        "pendingCount": 0,
+        "taskDefinition": "arn:aws:ecs:us-east-2:518317808503:task-definition/platinum-live-clips-service-production-Task-18Li2FaUKz6P:1"
+      }
+    ],
+    "slot": {
+      "state": "idle",
+      "last_kind": "renderer"
+    },
+    "budget_seconds": 1440,
+    "launches": 2,
+    "scheduler_enabled": true,
+    "schedule_expression": "rate(1 minute)",
+    "image_accepted": true,
+    "clip_admission_enabled": true,
+    "asr_enabled": false,
+    "broadcast_enabled": false,
+    "daily_storage_role_verified": false,
+    "five_million_user_capacity_verified": false
+  },
+  "limitations": [
+    "Synthetic private two-second HLS media, not a real Daily broadcast or user JWT acceptance.",
+    "No public feed, story, channel or community post was created.",
+    "Four generated private objects remain until scheduled expiry-safe cleanup.",
+    "Five-million-user capacity and physical mobile camera/screen-share/PiP acceptance were not measured."
+  ]
+}

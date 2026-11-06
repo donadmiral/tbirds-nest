@@ -43,7 +43,7 @@ export const supabase = createClient(url, anonKey, {
   },
   global: {
     headers: {
-      'x-client-info': 'PlatinumCircles-nest-mobile',
+      'x-client-info': 'PlatinumCircles-nest-mobile platinum-cache/1',
     },
     fetch: createAuthDeadlineFetch(url, (input: any, init: any = {}) => {
       const ctrl = new AbortController();

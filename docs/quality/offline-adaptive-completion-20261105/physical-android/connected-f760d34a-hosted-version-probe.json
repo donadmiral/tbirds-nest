@@ -1,0 +1,26 @@
+{
+  "verifiedAt": "2026-11-05T18:07:35.961Z",
+  "projectId": "uaulhuelcfkjwojtymmw",
+  "canaryRunId": "554e817b-78b8-4e64-9a94-b2aa80fdca4d",
+  "actualFeedPageSize": 10,
+  "references": 10,
+  "returnedCapabilities": 14,
+  "signingElapsedMs": 1665,
+  "canary": [
+    {
+      "kind": "image",
+      "capabilityReturned": true,
+      "sourceVersion": "cdb229b3-357e-4f16-bb9c-15c71eee44fe",
+      "sourceVersionMatchesPrepared": true,
+      "playbackReturned": false
+    },
+    {
+      "kind": "video",
+      "capabilityReturned": true,
+      "sourceVersion": "1acc0815-974c-4a7c-992f-cb99d46ada96",
+      "sourceVersionMatchesPrepared": true,
+      "playbackReturned": true
+    }
+  ],
+  "responseContainsCredentialsRetained": false
+}

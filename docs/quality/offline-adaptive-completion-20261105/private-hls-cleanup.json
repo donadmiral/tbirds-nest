@@ -1,0 +1,50 @@
+{
+  "projectId": "uaulhuelcfkjwojtymmw",
+  "fixtureRunId": "c26762d6-a165-4910-a76f-820855533f24",
+  "completedAt": "2026-11-05T17:22:35.327166+00:00",
+  "passed": true,
+  "remaining": {
+    "users": 0,
+    "sessions": 0,
+    "profiles": 0,
+    "messages": 0,
+    "conversations": 0,
+    "storageObjects": 0,
+    "pendingCleanup": 0
+  },
+  "method": "Exact-marker SQL removes two synthetic messages. Existing encoder maintenance removes cancelled derivatives. Authenticated, expiring, exact-path QA helper removes two source Storage objects through Storage API. Exact-marker account removal cascades sessions. No Storage policies change.",
+  "storageRequests": [
+    {
+      "case": "no-auth",
+      "status": 401,
+      "result": {
+        "error": "AUTH"
+      }
+    },
+    {
+      "case": "wrong-user",
+      "status": 403,
+      "result": {
+        "error": "FIXTURE_ONLY"
+      }
+    },
+    {
+      "case": "exact-fixture",
+      "status": 200,
+      "result": {
+        "removed": 2,
+        "exactAllowedObjects": 10,
+        "independentAbsenceReadbackRequired": true
+      }
+    }
+  ],
+  "temporaryEndpoint": {
+    "name": "qa-private-hls-cleanup-20261105",
+    "finalVersion": 4,
+    "retired": true,
+    "verifyJwt": true,
+    "readbackCode": "Deno.serve returns 410 RETIRED for every request",
+    "activeSourceSha256": "843c54a3247801601d26c04151fc8c6d748927fea0e9c67ff11dc9af0beed762"
+  },
+  "credentialsRetained": false
+}

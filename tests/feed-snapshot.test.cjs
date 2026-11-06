@@ -38,6 +38,38 @@ test('snapshot is bounded and duplicates do not consume extra slots', () => {
   assert.equal(new Set(saved.map(r => r.post_id)).size, 20);
 });
 
+test('eligible signed media keeps only reserved geometry and identity across disk reads', async () => {
+  const source = { ...row('reserved'), media: [{ id: 'm1', url: 'https://example.supabase.co/storage/v1/object/sign/post-media/private.jpg?token=secret',
+    media_type: 'video', width: 1080, height: 1920, sort_order: 0,
+    edit: { aspect: 'original', aspectRatio: .5625, coverUrl: 'https://private.invalid/cover?token=secret', captions: [{ text: 'private' }] } }] };
+  const storage = memory(), store = createFeedSnapshotStore(storage);
+  store.setAccount('a'); await store.write('a', 'forYou', [source], new Set(['reserved']));
+  const raw = [...storage.values.values()][0];
+  assert.ok(!raw.includes('secret')); assert.ok(!raw.includes('private')); assert.ok(!raw.includes('post-media'));
+  const media = (await store.read('a', 'forYou')).rows[0].media[0];
+  assert.deepEqual(plain(media), { id: 'm1', url: '', media_type: 'image', width: 1080, height: 1920,
+    sort_order: 0, edit: { aspect: 'original', aspectRatio: .5625 }, _startupPlaceholder: true, _startupPreview: true, _startupMediaType: 'video' });
+});
+
+test('legacy media rotation survives the snapshot without an explicit aspect and rejects non-finite values', async () => {
+  for (const mediaUrl of [url('legacy'), 'https://example.supabase.co/storage/v1/object/sign/post-media/legacy.jpg?token=secret']) {
+    for (const rotation of [0, 45, 90, 270, -90]) {
+      const source = { ...row('legacy'), media: [{ id: 'm1', url: mediaUrl, media_type: 'image',
+        width: 1920, height: 1080, edit: { rotation } }] };
+      const store = createFeedSnapshotStore(memory()); store.setAccount('a');
+      await store.write('a', 'forYou', [source], new Set(['legacy']));
+      const media = (await store.read('a', 'forYou')).rows[0].media[0];
+      assert.equal(media.edit.rotation, rotation);
+      assert.equal(media.edit.aspect, undefined); assert.equal(media.edit.aspectRatio, undefined);
+      assert.equal(media.width, 1920); assert.equal(media.height, 1080);
+    }
+  }
+  for (const rotation of [Infinity, -Infinity, NaN, '90', null]) {
+    const source = { ...row('legacy'), media: [{ ...row('legacy').media[0], edit: { rotation } }] };
+    assert.equal(publicSnapshotRows([source], new Set(['legacy']))[0].media[0].edit.rotation, undefined);
+  }
+});
+
 test('saved snapshots expire and cannot be read by another owner or mode', async () => {
   let now = 1000;
   const storage = memory(); const store = createFeedSnapshotStore(storage, () => now);
@@ -48,6 +80,26 @@ test('saved snapshots expire and cannot be read by another owner or mode', async
   assert.equal(await store.read('a', 'discover'), null);
   now += FEED_SNAPSHOT_MAX_AGE + 1;
   assert.equal(await store.read('a', 'latest'), null);
+});
+
+test('ordinary public feed survives an overnight cold launch but never exceeds one day', async () => {
+  let now = 1000;
+  const storage = memory(), first = createFeedSnapshotStore(storage, () => now);
+  first.setAccount('a'); await first.write('a', 'forYou', [row('one')], new Set(['one']));
+  now += 12 * 60 * 60_000;
+  const restarted = createFeedSnapshotStore(storage, () => now); restarted.setAccount('a');
+  assert.equal((await restarted.read('a', 'forYou')).rows[0].post_id, 'one');
+  assert.equal(FEED_SNAPSHOT_MAX_AGE, 24 * 60 * 60_000);
+  now += 12 * 60 * 60_000 + 1;
+  assert.equal(await restarted.read('a', 'forYou'), null);
+});
+
+test('ephemeral, revoked, restricted and sensitive rows or media never become durable public snapshots', () => {
+  for (const flag of ['view_once', 'is_view_once', 'is_ephemeral', 'expires_at', 'deleted_at', 'revoked_at', 'is_restricted', 'is_sensitive']) {
+    assert.equal(publicSnapshotRows([{ ...row('one'), [flag]: true }], new Set(['one'])).length, 0);
+    const post = row('one'); post.media[0][flag] = true;
+    assert.equal(publicSnapshotRows([post], new Set(['one']))[0].media.length, 0);
+  }
 });
 
 test('invalid, future, foreign-owner and obsolete-version persisted data fail closed', async () => {

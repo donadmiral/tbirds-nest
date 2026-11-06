@@ -1,0 +1,20 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      nodejs: 22
+  pre_build:
+    commands:
+      - node infrastructure/live-social/verify-source.mjs
+      - export SOCIAL_NODE_IMAGE=$(node infrastructure/live-social/resolve-base.mjs)
+      - export SOCIAL_IMAGE_TAG="social-source-$(printf '%s' "$EXPECTED_MANIFEST_SHA256" | cut -c1-32)"
+      - aws ecr get-login-password --region "$AWS_DEFAULT_REGION" | docker login --username AWS --password-stdin "${RENDERER_REPOSITORY_URI%/*}"
+  build:
+    commands:
+      - docker build --pull --platform linux/amd64 --build-arg "SOCIAL_NODE_IMAGE=$SOCIAL_NODE_IMAGE" -f workers/live-social/Dockerfile -t "$RENDERER_REPOSITORY_URI:$SOCIAL_IMAGE_TAG" .
+      - docker run --rm --network none --cpus=1 --memory=1g --pids-limit=128 --read-only --cap-drop ALL --security-opt no-new-privileges "$RENDERER_REPOSITORY_URI:$SOCIAL_IMAGE_TAG" node workers/live-social/runtime-policy.mjs > social-image-inventory.json
+      - docker run --rm --network none --cpus=1 --memory=1g --pids-limit=128 --read-only --tmpfs /scratch:rw,nosuid,nodev,noexec,size=1g,uid=1000,gid=1000 --cap-drop ALL --security-opt no-new-privileges "$RENDERER_REPOSITORY_URI:$SOCIAL_IMAGE_TAG" node --test workers/live-social/test/*.test.mjs
+      - docker run --rm --network none --cpus=1 --memory=1g --pids-limit=128 --read-only --tmpfs /scratch:rw,nosuid,nodev,noexec,size=1g,uid=1000,gid=1000 --cap-drop ALL --security-opt no-new-privileges "$RENDERER_REPOSITORY_URI:$SOCIAL_IMAGE_TAG" node workers/live-social/acceptance.mjs > social-runtime-acceptance.json
+  post_build:
+    commands:
+      - node infrastructure/live-social/image-receipt.mjs

@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-11-03",
+  "scope": "post_activation_access_checkpoint",
+  "evidence_source": "Root operator's verified browser, AWS connector and production Supabase observations; no additional calls or tests performed for this record.",
+  "advanced_activation": {
+    "completed": true,
+    "observed_at_utc_approximate": "2026-11-03T16:04:00Z",
+    "evidence": "AWS Settings success banner visually verified",
+    "management_account_id": "481552727043",
+    "organization_id": "o-u8vc1j1p9n"
+  },
+  "aws_access": {
+    "connector_status": "AUTHENTICATED_PROJECT_ACCOUNT",
+    "plugin_id": "plugin_asdk_app_6ae95cec8158819185513a41431e19f7",
+    "reauthentication_completed": true,
+    "sts_verified_account_id": "518317808503",
+    "sts_verified_role_name": "AccountFullAccessRole",
+    "organization_read": {
+      "operation": "DescribeOrganization",
+      "status": "SUCCESS",
+      "organization_id": "o-u8vc1j1p9n",
+      "management_account_id": "481552727043",
+      "feature_set": "ALL"
+    },
+    "policy_read_attempt": {
+      "operation": "ListPoliciesForTarget",
+      "target_id": "518317808503",
+      "filter": "RESOURCE_CONTROL_POLICY",
+      "status": "AccessDeniedException"
+    },
+    "organization_policy_contents_read": false,
+    "organization_policy_changed": false,
+    "management_session_required": true,
+    "next_handoff": "Reconnect the AWS app and select Management Account 481552727043, not project account 518317808503. Verify the resulting identity before inspecting actual policy contents or proposing a correction."
+  },
+  "access_history": [
+    {
+      "checkpoint_commit": "4939ce5fadde000ab8eb50482fbb5e2e4f3d9620",
+      "connector_status": "UNAUTHORIZED",
+      "connector_message": "This app connection requires reauthentication. Reconnect the app and try again.",
+      "reconnect_resumed": true,
+      "reauthentication_completed": false,
+      "browser_result": "Site Unavailable / Unable to access this site after AWS OAuth redirect",
+      "screenshot": "aws-toolkit-reauthentication-required.jpg",
+      "screenshot_scope": "Historical OAuth redirect failure page, not the plugin connection prompt or current authenticated state",
+      "superseded_by": "Successful project-account authentication; management-account policy access remains outstanding"
+    }
+  ],
+  "daily_storage_verification": {
+    "operation_id": "b3ec6b27-ec02-4b15-9a17-4036794f6577",
+    "request_id": 11490,
+    "completed_at": "2026-11-03T16:08:53.024926Z",
+    "ok": false,
+    "error": "STORAGE_VERIFICATION_FAILED",
+    "classification": "role_assumption_denied",
+    "provider_http_status": 400,
+    "temporary_room_cleanup_confirmed": true,
+    "denying_policy_identified": false
+  },
+  "production_state": {
+    "observed_at_utc_approximate": "2026-11-03T16:10:00Z",
+    "renderer_enabled": true,
+    "broadcast_enabled": false,
+    "fixture_cleanup_targets_done": 28,
+    "fixture_cleanup_targets_remaining": 0,
+    "fixture_output_objects_remaining": 0
+  },
+  "limits": {
+    "activation_does_not_prove_daily_access": true,
+    "successful_daily_broadcast_claimed": false,
+    "five_million_user_capacity_claimed": false
+  }
+}

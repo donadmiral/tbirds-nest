@@ -1,0 +1,14 @@
+{
+  "region": "us-east-2",
+  "account": "518317808503",
+  "vpc_id": "vpc-070155457255a935e",
+  "subnet_ids": ["subnet-02cc531f1e50efb77", "subnet-0beca645a4b3f54dd"],
+  "availability_zones": ["us-east-2a", "us-east-2b"],
+  "main_route_table": "rtb-01e8aa4c24ff91229",
+  "internet_gateway": "igw-0d8eb3a332c6effea",
+  "route": "0.0.0.0/0",
+  "verification": "Root verified actual VPC, subnet, effective main route and available gateway attachment through AWS APIs on 2026-11-03. This file contains no credentials.",
+  "initial_desired_count": 1,
+  "maximum_desired_count": 2,
+  "broadcast_or_clip_admission_enabled_by_this_file": false
+}

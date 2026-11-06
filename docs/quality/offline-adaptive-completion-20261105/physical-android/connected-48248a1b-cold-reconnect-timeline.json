@@ -1,0 +1,92 @@
+{
+  "runId": "48248a1b-826a-49b0-86be-c643078135da",
+  "coldProcess": "mw3w0uwb-778xg9gu",
+  "processStartedAtEpochMs": 1793903831147,
+  "coldTimeline": [
+    {
+      "atProcessMs": 203,
+      "event": "Initial connected/reachable true reported by the app"
+    },
+    {
+      "atProcessMs": 1201,
+      "event": "First auth health request failed"
+    },
+    {
+      "atProcessMs": 1203,
+      "event": "Native encrypted original image opened as decrypted-local"
+    },
+    {
+      "atProcessMs": 1617,
+      "event": "Auth user request failed"
+    },
+    {
+      "atProcessMs": 1733,
+      "event": "Feed request failed"
+    },
+    {
+      "atProcessMs": 5446,
+      "event": "Second auth health request failed"
+    },
+    {
+      "atProcessMs": 5447,
+      "event": "App reported disconnected and unreachable"
+    },
+    {
+      "atProcessMs": 5551,
+      "event": "Same local original image opened again"
+    },
+    {
+      "atProcessMs": 5711,
+      "event": "Native image onDisplay for decrypted-local original"
+    }
+  ],
+  "reconnectTimeline": [
+    {
+      "atProcessMs": 29749,
+      "event": "App reports connected and reachable"
+    },
+    {
+      "atProcessMs": 30976,
+      "event": "Feed HTTP 200"
+    },
+    {
+      "atProcessMs": 32655,
+      "event": "Content signing HTTP 200"
+    },
+    {
+      "atProcessMs": 32944,
+      "event": "Measured feed rows by IDs HTTP 200"
+    },
+    {
+      "atProcessMs": 33501,
+      "event": "Same decrypted-local image onDisplay again, with no new image cache-open or remote source observation"
+    }
+  ],
+  "notificationPromptObserved": true,
+  "notificationPromptTextReadUTC": "2026-11-05T18:37:15.198Z",
+  "secondDenialSelectorUTC": "2026-11-05T18:37:17.888Z",
+  "initialColdImageOnDisplayUTC": "2026-11-05T18:37:16.858Z",
+  "limitations": [
+    "No snapshot-restored, auth-ready or app-state event is present, so their exact timings are unknown.",
+    "The native image opened before its first display, so 5711ms cannot be assigned wholly to decryption.",
+    "A real notification permission overlay occurred during this launch. This is not an isolated prompt-free startup benchmark.",
+    "Recording PTS alignment to observer wall clock is coarse, not exact synchronization.",
+    "The later same-local onDisplay after measured feed rows is consistent with the identified list hierarchy remount, not direct component mount instrumentation.",
+    "Appium host, device observer and video clock samples are not synchronized tightly enough to order prompt dismissal against the precise 5711ms native callback.",
+    "An earlier pictured background behind the system prompt may be a retained launch/activity frame and is not independent cold decoder proof."
+  ],
+  "notificationOverlaySamples": [
+    {
+      "recordingPTS": 116,
+      "observation": "Notification permission dialog over a pictured synthetic feed"
+    },
+    {
+      "recordingPTS": 120,
+      "observation": "Pictured canary with offline banner and no dialog"
+    },
+    {
+      "recordingPTS": 122,
+      "observation": "Pictured canary with offline banner and no dialog"
+    }
+  ]
+}

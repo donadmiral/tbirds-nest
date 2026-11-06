@@ -1,0 +1,724 @@
+{
+  "refresh-retains-displayed-image-observer.json": {
+    "process": "mw3xk24o-tsrehnpl",
+    "startedAt": 1793906406600,
+    "events": [
+      {
+        "type": "process-started",
+        "at": 1793906406601,
+        "elapsedMs": 1,
+        "processElapsedMs": 1
+      },
+      {
+        "type": "network-state",
+        "at": 1793906406924,
+        "elapsedMs": 324,
+        "isConnected": true,
+        "isInternetReachable": true,
+        "processElapsedMs": 324
+      },
+      {
+        "type": "http-result",
+        "at": 1793906407357,
+        "elapsedMs": 299,
+        "path": "/auth/v1/health",
+        "status": 401,
+        "processElapsedMs": 757
+      },
+      {
+        "type": "http-result",
+        "at": 1793906415240,
+        "elapsedMs": 622,
+        "path": "/rest/v1/rpc/get_feed",
+        "status": 200,
+        "processElapsedMs": 8640
+      },
+      {
+        "type": "http-result",
+        "at": 1793906415384,
+        "elapsedMs": 96,
+        "path": "/auth/v1/user",
+        "status": 200,
+        "processElapsedMs": 8784
+      },
+      {
+        "type": "http-result",
+        "at": 1793906415601,
+        "elapsedMs": 50,
+        "path": "/auth/v1/health",
+        "status": 401,
+        "processElapsedMs": 9001
+      },
+      {
+        "type": "http-result",
+        "at": 1793906416177,
+        "elapsedMs": 576,
+        "path": "/rest/v1/rpc/get_feed",
+        "status": 200,
+        "processElapsedMs": 9577
+      },
+      {
+        "type": "http-result",
+        "at": 1793906416343,
+        "elapsedMs": 132,
+        "path": "/auth/v1/user",
+        "status": 200,
+        "processElapsedMs": 9743
+      },
+      {
+        "type": "http-result",
+        "at": 1793906416594,
+        "elapsedMs": 1203,
+        "path": "/functions/v1/content-media-sign",
+        "status": 200,
+        "processElapsedMs": 9994
+      },
+      {
+        "type": "http-result",
+        "at": 1793906416865,
+        "elapsedMs": 510,
+        "path": "/functions/v1/content-media-sign",
+        "status": 200,
+        "processElapsedMs": 10265
+      },
+      {
+        "type": "http-result",
+        "at": 1793906417139,
+        "elapsedMs": 92,
+        "path": "/rest/v1/rpc/get_feed_rows_by_ids_v1",
+        "status": 200,
+        "processElapsedMs": 10539
+      },
+      {
+        "type": "http-result",
+        "at": 1793906417966,
+        "elapsedMs": 111,
+        "path": "/auth/v1/user",
+        "status": 200,
+        "processElapsedMs": 11366
+      },
+      {
+        "type": "http-result",
+        "at": 1793906418395,
+        "elapsedMs": 355,
+        "path": "/rest/v1/rpc/get_feed_visibility",
+        "status": 200,
+        "processElapsedMs": 11795
+      },
+      {
+        "type": "http-result",
+        "at": 1793906418793,
+        "elapsedMs": 193,
+        "path": "/auth/v1/user",
+        "status": 200,
+        "processElapsedMs": 12193
+      },
+      {
+        "type": "http-result",
+        "at": 1793906419195,
+        "elapsedMs": 394,
+        "path": "/functions/v1/content-media-sign",
+        "status": 200,
+        "processElapsedMs": 12595
+      },
+      {
+        "type": "image-displayed",
+        "at": 1793906419690,
+        "elapsedMs": 13090,
+        "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+        "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+        "sourceClass": "remote",
+        "processElapsedMs": 13090
+      },
+      {
+        "type": "cache-sealed",
+        "at": 1793906420916,
+        "elapsedMs": 14316,
+        "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+        "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+        "kind": "image",
+        "sourceVersion": "cdb229b3-357e-4f16-bb9c-15c71eee44fe",
+        "cipherFile": "9163a594a878444052d83abfe3ff5d27c09273b835a605c52b58eb026cdf90df.bin",
+        "bytes": 1564,
+        "sourceClass": "remote",
+        "processElapsedMs": 14316
+      },
+      {
+        "type": "cache-opened",
+        "at": 1793906420980,
+        "elapsedMs": 14380,
+        "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+        "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+        "kind": "image",
+        "sourceVersion": "cdb229b3-357e-4f16-bb9c-15c71eee44fe",
+        "cipherFile": "9163a594a878444052d83abfe3ff5d27c09273b835a605c52b58eb026cdf90df.bin",
+        "plainFile": "9163a594a878444052d83abfe3ff5d27c09273b835a605c52b58eb026cdf90df.png",
+        "bytes": 1564,
+        "sourceClass": "decrypted-local",
+        "processElapsedMs": 14380
+      },
+      {
+        "type": "image-displayed",
+        "at": 1793906421050,
+        "elapsedMs": 14450,
+        "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+        "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+        "sourceClass": "decrypted-local",
+        "processElapsedMs": 14450
+      },
+      {
+        "type": "cache-sealed",
+        "at": 1793906422319,
+        "elapsedMs": 15719,
+        "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+        "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+        "kind": "video",
+        "sourceVersion": "1acc0815-974c-4a7c-992f-cb99d46ada96",
+        "cipherFile": "ce52d5f9d67e9fd86f3663de9cda7f7125c9b742a6cd10941424b9a04c47014e.bin",
+        "bytes": 74058,
+        "sourceClass": "remote",
+        "processElapsedMs": 15719
+      },
+      {
+        "type": "cache-opened",
+        "at": 1793906426136,
+        "elapsedMs": 19536,
+        "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+        "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+        "kind": "video",
+        "sourceVersion": "1acc0815-974c-4a7c-992f-cb99d46ada96",
+        "cipherFile": "ce52d5f9d67e9fd86f3663de9cda7f7125c9b742a6cd10941424b9a04c47014e.bin",
+        "plainFile": "ce52d5f9d67e9fd86f3663de9cda7f7125c9b742a6cd10941424b9a04c47014e.mp4",
+        "bytes": 74058,
+        "sourceClass": "decrypted-local",
+        "processElapsedMs": 19536
+      },
+      {
+        "type": "video-progress",
+        "at": 1793906429106,
+        "elapsedMs": 22506,
+        "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+        "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+        "currentTime": 0.21699999272823334,
+        "playing": true,
+        "firstFrame": true,
+        "sourceClass": "remote",
+        "processElapsedMs": 22506
+      },
+      {
+        "type": "video-progress",
+        "at": 1793906429362,
+        "elapsedMs": 22762,
+        "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+        "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+        "currentTime": 0.47099998593330383,
+        "playing": true,
+        "firstFrame": true,
+        "sourceClass": "remote",
+        "processElapsedMs": 22762
+      },
+      {
+        "type": "http-result",
+        "at": 1793906451360,
+        "elapsedMs": 414,
+        "path": "/rest/v1/rpc/get_feed",
+        "status": 200,
+        "processElapsedMs": 44760
+      },
+      {
+        "type": "http-result",
+        "at": 1793906451873,
+        "elapsedMs": 333,
+        "path": "/auth/v1/user",
+        "status": 200,
+        "processElapsedMs": 45273
+      },
+      {
+        "type": "http-result",
+        "at": 1793906452881,
+        "elapsedMs": 684,
+        "path": "/functions/v1/content-media-sign",
+        "status": 200,
+        "processElapsedMs": 46281
+      },
+      {
+        "type": "http-result",
+        "at": 1793906453360,
+        "elapsedMs": 61,
+        "path": "/rest/v1/rpc/get_feed_visibility",
+        "status": 200,
+        "processElapsedMs": 46760
+      },
+      {
+        "type": "http-result",
+        "at": 1793906453637,
+        "elapsedMs": 104,
+        "path": "/auth/v1/user",
+        "status": 200,
+        "processElapsedMs": 47037
+      },
+      {
+        "type": "http-result",
+        "at": 1793906454022,
+        "elapsedMs": 377,
+        "path": "/functions/v1/content-media-sign",
+        "status": 200,
+        "processElapsedMs": 47422
+      }
+    ]
+  },
+  "offline-cold-image-decrypted-and-displayed-observer.json": {
+    "process": "mw3xltwn-ex4rhcwo",
+    "startedAt": 1793906489255,
+    "events": [
+      {
+        "type": "process-started",
+        "at": 1793906489255,
+        "elapsedMs": 0,
+        "processElapsedMs": 0
+      },
+      {
+        "type": "network-state",
+        "at": 1793906489477,
+        "elapsedMs": 222,
+        "isConnected": true,
+        "isInternetReachable": true,
+        "processElapsedMs": 222
+      },
+      {
+        "type": "cache-opened",
+        "at": 1793906490480,
+        "elapsedMs": 1225,
+        "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+        "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+        "kind": "image",
+        "sourceVersion": "cdb229b3-357e-4f16-bb9c-15c71eee44fe",
+        "cipherFile": "9163a594a878444052d83abfe3ff5d27c09273b835a605c52b58eb026cdf90df.bin",
+        "plainFile": "9163a594a878444052d83abfe3ff5d27c09273b835a605c52b58eb026cdf90df.png",
+        "bytes": 1564,
+        "sourceClass": "decrypted-local",
+        "processElapsedMs": 1225
+      },
+      {
+        "type": "http-failed",
+        "at": 1793906490483,
+        "elapsedMs": 112,
+        "path": "/auth/v1/health",
+        "processElapsedMs": 1228
+      },
+      {
+        "type": "http-failed",
+        "at": 1793906490581,
+        "elapsedMs": 11,
+        "path": "/auth/v1/user",
+        "processElapsedMs": 1326
+      },
+      {
+        "type": "http-failed",
+        "at": 1793906490706,
+        "elapsedMs": 19,
+        "path": "/rest/v1/rpc/get_feed",
+        "processElapsedMs": 1451
+      },
+      {
+        "type": "http-failed",
+        "at": 1793906494774,
+        "elapsedMs": 23,
+        "path": "/auth/v1/health",
+        "processElapsedMs": 5519
+      },
+      {
+        "type": "network-state",
+        "at": 1793906494774,
+        "elapsedMs": 5519,
+        "isConnected": false,
+        "isInternetReachable": false,
+        "processElapsedMs": 5519
+      },
+      {
+        "type": "http-failed",
+        "at": 1793906494787,
+        "elapsedMs": 20,
+        "path": "/rest/v1/rpc/get_feed",
+        "processElapsedMs": 5532
+      },
+      {
+        "type": "cache-opened",
+        "at": 1793906494878,
+        "elapsedMs": 5623,
+        "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+        "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+        "kind": "image",
+        "sourceVersion": "cdb229b3-357e-4f16-bb9c-15c71eee44fe",
+        "cipherFile": "9163a594a878444052d83abfe3ff5d27c09273b835a605c52b58eb026cdf90df.bin",
+        "plainFile": "9163a594a878444052d83abfe3ff5d27c09273b835a605c52b58eb026cdf90df.png",
+        "bytes": 1564,
+        "sourceClass": "decrypted-local",
+        "processElapsedMs": 5623
+      },
+      {
+        "type": "image-displayed",
+        "at": 1793906495024,
+        "elapsedMs": 5769,
+        "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+        "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+        "sourceClass": "decrypted-local",
+        "processElapsedMs": 5769
+      }
+    ]
+  },
+  "offline-cold-video-decrypted-and-playing-observer.json": {
+    "process": "mw3xltwn-ex4rhcwo",
+    "startedAt": 1793906489255,
+    "events": [
+      {
+        "type": "process-started",
+        "at": 1793906489255,
+        "elapsedMs": 0,
+        "processElapsedMs": 0
+      },
+      {
+        "type": "network-state",
+        "at": 1793906489477,
+        "elapsedMs": 222,
+        "isConnected": true,
+        "isInternetReachable": true,
+        "processElapsedMs": 222
+      },
+      {
+        "type": "cache-opened",
+        "at": 1793906490480,
+        "elapsedMs": 1225,
+        "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+        "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+        "kind": "image",
+        "sourceVersion": "cdb229b3-357e-4f16-bb9c-15c71eee44fe",
+        "cipherFile": "9163a594a878444052d83abfe3ff5d27c09273b835a605c52b58eb026cdf90df.bin",
+        "plainFile": "9163a594a878444052d83abfe3ff5d27c09273b835a605c52b58eb026cdf90df.png",
+        "bytes": 1564,
+        "sourceClass": "decrypted-local",
+        "processElapsedMs": 1225
+      },
+      {
+        "type": "http-failed",
+        "at": 1793906490483,
+        "elapsedMs": 112,
+        "path": "/auth/v1/health",
+        "processElapsedMs": 1228
+      },
+      {
+        "type": "http-failed",
+        "at": 1793906490581,
+        "elapsedMs": 11,
+        "path": "/auth/v1/user",
+        "processElapsedMs": 1326
+      },
+      {
+        "type": "http-failed",
+        "at": 1793906490706,
+        "elapsedMs": 19,
+        "path": "/rest/v1/rpc/get_feed",
+        "processElapsedMs": 1451
+      },
+      {
+        "type": "http-failed",
+        "at": 1793906494774,
+        "elapsedMs": 23,
+        "path": "/auth/v1/health",
+        "processElapsedMs": 5519
+      },
+      {
+        "type": "network-state",
+        "at": 1793906494774,
+        "elapsedMs": 5519,
+        "isConnected": false,
+        "isInternetReachable": false,
+        "processElapsedMs": 5519
+      },
+      {
+        "type": "http-failed",
+        "at": 1793906494787,
+        "elapsedMs": 20,
+        "path": "/rest/v1/rpc/get_feed",
+        "processElapsedMs": 5532
+      },
+      {
+        "type": "cache-opened",
+        "at": 1793906494878,
+        "elapsedMs": 5623,
+        "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+        "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+        "kind": "image",
+        "sourceVersion": "cdb229b3-357e-4f16-bb9c-15c71eee44fe",
+        "cipherFile": "9163a594a878444052d83abfe3ff5d27c09273b835a605c52b58eb026cdf90df.bin",
+        "plainFile": "9163a594a878444052d83abfe3ff5d27c09273b835a605c52b58eb026cdf90df.png",
+        "bytes": 1564,
+        "sourceClass": "decrypted-local",
+        "processElapsedMs": 5623
+      },
+      {
+        "type": "image-displayed",
+        "at": 1793906495024,
+        "elapsedMs": 5769,
+        "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+        "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+        "sourceClass": "decrypted-local",
+        "processElapsedMs": 5769
+      },
+      {
+        "type": "cache-opened",
+        "at": 1793906499329,
+        "elapsedMs": 10074,
+        "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+        "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+        "kind": "video",
+        "sourceVersion": "1acc0815-974c-4a7c-992f-cb99d46ada96",
+        "cipherFile": "ce52d5f9d67e9fd86f3663de9cda7f7125c9b742a6cd10941424b9a04c47014e.bin",
+        "plainFile": "ce52d5f9d67e9fd86f3663de9cda7f7125c9b742a6cd10941424b9a04c47014e.mp4",
+        "bytes": 74058,
+        "sourceClass": "decrypted-local",
+        "processElapsedMs": 10074
+      },
+      {
+        "type": "video-progress",
+        "at": 1793906500317,
+        "elapsedMs": 11062,
+        "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+        "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+        "currentTime": 0.42500001192092896,
+        "playing": true,
+        "firstFrame": true,
+        "sourceClass": "decrypted-local",
+        "processElapsedMs": 11062
+      },
+      {
+        "type": "video-progress",
+        "at": 1793906500533,
+        "elapsedMs": 11278,
+        "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+        "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+        "currentTime": 0.671999990940094,
+        "playing": true,
+        "firstFrame": true,
+        "sourceClass": "decrypted-local",
+        "processElapsedMs": 11278
+      },
+      {
+        "type": "http-failed",
+        "at": 1793906504484,
+        "elapsedMs": 11,
+        "path": "/auth/v1/health",
+        "processElapsedMs": 15229
+      }
+    ]
+  },
+  "restored-network-refresh-retains-image-observer.json": {
+    "process": "mw3xltwn-ex4rhcwo",
+    "startedAt": 1793906489255,
+    "events": [
+      {
+        "type": "process-started",
+        "at": 1793906489255,
+        "elapsedMs": 0,
+        "processElapsedMs": 0
+      },
+      {
+        "type": "network-state",
+        "at": 1793906489477,
+        "elapsedMs": 222,
+        "isConnected": true,
+        "isInternetReachable": true,
+        "processElapsedMs": 222
+      },
+      {
+        "type": "cache-opened",
+        "at": 1793906490480,
+        "elapsedMs": 1225,
+        "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+        "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+        "kind": "image",
+        "sourceVersion": "cdb229b3-357e-4f16-bb9c-15c71eee44fe",
+        "cipherFile": "9163a594a878444052d83abfe3ff5d27c09273b835a605c52b58eb026cdf90df.bin",
+        "plainFile": "9163a594a878444052d83abfe3ff5d27c09273b835a605c52b58eb026cdf90df.png",
+        "bytes": 1564,
+        "sourceClass": "decrypted-local",
+        "processElapsedMs": 1225
+      },
+      {
+        "type": "http-failed",
+        "at": 1793906490483,
+        "elapsedMs": 112,
+        "path": "/auth/v1/health",
+        "processElapsedMs": 1228
+      },
+      {
+        "type": "http-failed",
+        "at": 1793906490581,
+        "elapsedMs": 11,
+        "path": "/auth/v1/user",
+        "processElapsedMs": 1326
+      },
+      {
+        "type": "http-failed",
+        "at": 1793906490706,
+        "elapsedMs": 19,
+        "path": "/rest/v1/rpc/get_feed",
+        "processElapsedMs": 1451
+      },
+      {
+        "type": "http-failed",
+        "at": 1793906494774,
+        "elapsedMs": 23,
+        "path": "/auth/v1/health",
+        "processElapsedMs": 5519
+      },
+      {
+        "type": "network-state",
+        "at": 1793906494774,
+        "elapsedMs": 5519,
+        "isConnected": false,
+        "isInternetReachable": false,
+        "processElapsedMs": 5519
+      },
+      {
+        "type": "http-failed",
+        "at": 1793906494787,
+        "elapsedMs": 20,
+        "path": "/rest/v1/rpc/get_feed",
+        "processElapsedMs": 5532
+      },
+      {
+        "type": "cache-opened",
+        "at": 1793906494878,
+        "elapsedMs": 5623,
+        "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+        "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+        "kind": "image",
+        "sourceVersion": "cdb229b3-357e-4f16-bb9c-15c71eee44fe",
+        "cipherFile": "9163a594a878444052d83abfe3ff5d27c09273b835a605c52b58eb026cdf90df.bin",
+        "plainFile": "9163a594a878444052d83abfe3ff5d27c09273b835a605c52b58eb026cdf90df.png",
+        "bytes": 1564,
+        "sourceClass": "decrypted-local",
+        "processElapsedMs": 5623
+      },
+      {
+        "type": "image-displayed",
+        "at": 1793906495024,
+        "elapsedMs": 5769,
+        "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+        "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+        "sourceClass": "decrypted-local",
+        "processElapsedMs": 5769
+      },
+      {
+        "type": "cache-opened",
+        "at": 1793906499329,
+        "elapsedMs": 10074,
+        "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+        "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+        "kind": "video",
+        "sourceVersion": "1acc0815-974c-4a7c-992f-cb99d46ada96",
+        "cipherFile": "ce52d5f9d67e9fd86f3663de9cda7f7125c9b742a6cd10941424b9a04c47014e.bin",
+        "plainFile": "ce52d5f9d67e9fd86f3663de9cda7f7125c9b742a6cd10941424b9a04c47014e.mp4",
+        "bytes": 74058,
+        "sourceClass": "decrypted-local",
+        "processElapsedMs": 10074
+      },
+      {
+        "type": "video-progress",
+        "at": 1793906500317,
+        "elapsedMs": 11062,
+        "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+        "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+        "currentTime": 0.42500001192092896,
+        "playing": true,
+        "firstFrame": true,
+        "sourceClass": "decrypted-local",
+        "processElapsedMs": 11062
+      },
+      {
+        "type": "video-progress",
+        "at": 1793906500533,
+        "elapsedMs": 11278,
+        "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+        "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+        "currentTime": 0.671999990940094,
+        "playing": true,
+        "firstFrame": true,
+        "sourceClass": "decrypted-local",
+        "processElapsedMs": 11278
+      },
+      {
+        "type": "http-failed",
+        "at": 1793906504484,
+        "elapsedMs": 11,
+        "path": "/auth/v1/health",
+        "processElapsedMs": 15229
+      },
+      {
+        "type": "network-state",
+        "at": 1793906518923,
+        "elapsedMs": 29668,
+        "isConnected": true,
+        "isInternetReachable": true,
+        "processElapsedMs": 29668
+      },
+      {
+        "type": "http-result",
+        "at": 1793906520253,
+        "elapsedMs": 419,
+        "path": "/rest/v1/rpc/get_feed",
+        "status": 200,
+        "processElapsedMs": 30998
+      },
+      {
+        "type": "http-result",
+        "at": 1793906520613,
+        "elapsedMs": 201,
+        "path": "/auth/v1/user",
+        "status": 200,
+        "processElapsedMs": 31358
+      },
+      {
+        "type": "http-result",
+        "at": 1793906522466,
+        "elapsedMs": 1689,
+        "path": "/functions/v1/content-media-sign",
+        "status": 200,
+        "processElapsedMs": 33211
+      },
+      {
+        "type": "http-result",
+        "at": 1793906522786,
+        "elapsedMs": 117,
+        "path": "/rest/v1/rpc/get_feed_rows_by_ids_v1",
+        "status": 200,
+        "processElapsedMs": 33531
+      },
+      {
+        "type": "http-result",
+        "at": 1793906523365,
+        "elapsedMs": 113,
+        "path": "/rest/v1/rpc/get_feed_visibility",
+        "status": 200,
+        "processElapsedMs": 34110
+      },
+      {
+        "type": "http-result",
+        "at": 1793906523933,
+        "elapsedMs": 388,
+        "path": "/auth/v1/user",
+        "status": 200,
+        "processElapsedMs": 34678
+      },
+      {
+        "type": "http-result",
+        "at": 1793906524353,
+        "elapsedMs": 410,
+        "path": "/functions/v1/content-media-sign",
+        "status": 200,
+        "processElapsedMs": 35098
+      }
+    ]
+  }
+}

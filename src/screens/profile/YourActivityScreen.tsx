@@ -12,6 +12,9 @@ import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { themedSheet, useTheme } from '../../theme/useTheme';
+import { createScreenReadGuard, isReadAccessDenied, requireReadRows } from '../../../shared/readContinuity';
+import { orderTimeout } from '../../../shared/orderRequest';
+import { hydratePostMedia, withoutPrivateMedia } from '../../services/contentMedia';
 
 type Kind = 'likes' | 'comments' | 'reposts' | 'saved';
 type Item = { key: string; post_id: string; when: string; note: string | null; text: string; image: string | null };
@@ -26,31 +29,48 @@ export default function YourActivityScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { t, isDark } = useTheme();
-  const { profile } = useAuthStore();
+  const userId = useAuthStore(state => state.profile?.id ?? null);
   const [kind, setKind] = useState<Kind>('likes');
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const scope = userId ? `${userId}:${kind}` : null;
+  const [reads] = useState(() => createScreenReadGuard(scope));
+  reads.setScope(scope);
 
   const load = useCallback(async () => {
-    if (!profile?.id) return;
-    setLoading(true);
-    const tab = TABS.find((x) => x.key === kind)!;
-    const sel = kind === 'comments' ? 'id, post_id, created_at, body, content' : 'post_id, created_at';
-    const { data: rows } = await supabase.from(tab.table).select(sel).eq('user_id', profile.id).order('created_at', { ascending: false }).limit(60);
-    const list = (rows as any[]) || [];
-    const ids = Array.from(new Set(list.map((r) => r.post_id).filter(Boolean)));
-    const posts: Record<string, any> = {};
-    if (ids.length) {
-      const { data: ps } = await supabase.from('posts').select('id, content, body, article_title, post_media(url, media_type)').in('id', ids);
-      (ps || []).forEach((p: any) => { posts[p.id] = p; });
-    }
-    setItems(list.filter((r) => posts[r.post_id]).map((r, i) => {
-      const p = posts[r.post_id];
-      return { key: (r.id || r.post_id) + ':' + i, post_id: r.post_id, when: r.created_at, note: kind === 'comments' ? (r.body || r.content || '') : null, text: p.article_title || p.content || p.body || 'Post', image: (p.post_media || []).find((m: any) => m.media_type === 'image')?.url || null };
-    }));
-    setLoading(false);
-  }, [profile?.id, kind]);
-  useEffect(() => { load(); }, [load]);
+    if (!userId) { setLoading(false); return; }
+    const current = reads.begin(userId ? `${userId}:${kind}` : null);
+    if (!current()) return;
+    setLoading(true); setLoadError(null);
+    try {
+      const tab = TABS.find((x) => x.key === kind)!;
+      const sel = kind === 'comments' ? 'id, post_id, created_at, body, content' : 'post_id, created_at';
+      const { data: rows, error } = await orderTimeout(supabase.from(tab.table).select(sel).eq('user_id', userId).order('created_at', { ascending: false }).limit(60), 15000, 'Your activity could not be loaded.');
+      if (error) throw error;
+      if (!current()) return;
+      const list = requireReadRows<any>(rows);
+      const ids = Array.from(new Set(list.map((r) => r.post_id).filter(Boolean)));
+      const posts: Record<string, any> = {};
+      if (ids.length) {
+        const { data: ps, error: postError } = await orderTimeout(supabase.from('posts').select('id, content, body, article_title, post_media(url, media_type)').in('id', ids), 15000, 'Your activity could not be loaded.');
+        if (postError) throw postError;
+        if (!current()) return;
+        const secured = await hydratePostMedia(requireReadRows<any>(ps)).catch(() => {
+          if (current()) setLoadError('Some activity images could not load. Tap to retry.');
+          return withoutPrivateMedia(requireReadRows<any>(ps));
+        });
+        secured.forEach((p: any) => { posts[p.id] = p; });
+      }
+      if (current()) setItems(list.filter((r) => posts[r.post_id]).map((r, i) => {
+        const p = posts[r.post_id];
+        return { key: (r.id || r.post_id) + ':' + i, post_id: r.post_id, when: r.created_at, note: kind === 'comments' ? (r.body || r.content || '') : null, text: p.article_title || p.content || p.body || 'Post', image: (p.post_media || []).find((m: any) => m.media_type === 'image')?.url || null };
+      }));
+    } catch (error) {
+      if (current()) { if (isReadAccessDenied(error)) setItems([]); setLoadError('Your activity could not be refreshed. Tap to retry.'); }
+    } finally { if (current()) setLoading(false); }
+  }, [userId, kind, reads]);
+  useEffect(() => { setItems([]); setLoading(!!userId); setLoadError(null); void load(); return () => reads.invalidate(); }, [load, userId, reads]);
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
@@ -65,9 +85,11 @@ export default function YourActivityScreen() {
           <TouchableOpacity key={x.key} onPress={() => setKind(x.key)} style={[s.tab, kind === x.key && s.tabOn]} activeOpacity={0.8}><Text style={[s.tabTxt, kind === x.key && s.tabTxtOn]}>{x.label}</Text></TouchableOpacity>
         ))}
       </View>
-      {loading ? <ActivityIndicator color={t.ink.primary} style={{ marginTop: 30 }} /> : (
+      {loadError ? <TouchableOpacity accessibilityRole="button" onPress={() => { void load(); }}><Text accessibilityRole="alert" style={s.empty}>{loadError}</Text></TouchableOpacity> : null}
+      {loading && items.length === 0 ? <ActivityIndicator color={t.ink.primary} style={{ marginTop: 30 }} /> : (
         <FlatList data={items} keyExtractor={(i) => i.key} contentContainerStyle={{ paddingBottom: insets.bottom + 30 }}
-          ListEmptyComponent={<Text style={s.empty}>Nothing here yet.</Text>}
+          refreshing={loading} onRefresh={() => { void load(); }}
+          ListEmptyComponent={loadError ? null : <Text style={s.empty}>Nothing here yet.</Text>}
           renderItem={({ item }) => (
             <TouchableOpacity style={s.row} activeOpacity={0.75} onPress={() => (navigation as any).navigate('Post', { postId: item.post_id })}>
               {item.image ? <Image source={{ uri: item.image }} style={s.thumb} /> : <View style={[s.thumb, { backgroundColor: t.surface.sunken }]} />}

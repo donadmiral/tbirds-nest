@@ -1,0 +1,89 @@
+{
+  "recorded_at_utc": "2026-11-05T00:09:28.185496+00:00",
+  "node_version": "v24.22.1",
+  "base_revision": "145d16cfd5b084dc5567fab27ef4cbf0b56b3359",
+  "validated_tree_before_this_report": "736c5417f75ccbdb1655210c6c15ed9a5de370f0",
+  "suites": {
+    "native": {
+      "tests": 3306,
+      "pass": 3306,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 140793.38452,
+      "log_sha256": "f2aada594c073e35d7e54271837449841226941e75da2476e88bed859246dd17",
+      "application_source_unchanged_from_parent": true,
+      "validated_on_revision": "2fe16672e0d9373b57ad06f53a57b80974083abb"
+    },
+    "web": {
+      "tests": 970,
+      "pass": 970,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 34931.853532,
+      "log_sha256": "037598523f3cdc209b66e467f9ad121976fc829203bb896bdebedae93ef0b8fd"
+    },
+    "admin": {
+      "tests": 343,
+      "pass": 343,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 36446.474553,
+      "log_sha256": "95a1dda249b6a4ccb08eb9fc8576e12fdff581fbcb46971eeeb905f118689511",
+      "application_source_unchanged_from_parent": true,
+      "validated_on_revision": "2fe16672e0d9373b57ad06f53a57b80974083abb"
+    }
+  },
+  "typecheck": {
+    "native": {
+      "exit_code": 0,
+      "flags": [
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "application_source_unchanged_from_parent": true
+    },
+    "web": {
+      "exit_code": 0,
+      "flags": [
+        "--noEmit",
+        "--incremental",
+        "false"
+      ]
+    },
+    "admin": {
+      "exit_code": 0,
+      "flags": [
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "application_source_unchanged_from_parent": true
+    }
+  },
+  "browser_execution": {
+    "local": "blocked_by_socket_policy",
+    "fixtures_compiled": true,
+    "acceptance": "requires_existing_CI_browser_runners"
+  },
+  "device_timing_measured": false,
+  "competitor_benchmark_performed": false,
+  "parent_revision": "2fe16672e0d9373b57ad06f53a57b80974083abb",
+  "real_component_image_regressions": 21,
+  "retained_ios_hierarchy_regressions": 6,
+  "historical_connected_receipt_reuse": "not_applicable_to_this_release",
+  "messages_scroll_observer_regressions": 7,
+  "messages_observer_lint": {
+    "new_diagnostics": 0,
+    "existing_file_errors": 3,
+    "existing_file_warnings": 17,
+    "rule_suppressions_added": false
+  },
+  "unchanged_native_build_inputs_from_parent": true
+}

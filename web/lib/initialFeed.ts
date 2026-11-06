@@ -25,9 +25,9 @@ export async function loadInitialFeed(supabase: SupabaseClient, owner: string): 
       error = 'Some media could not load. Please try again.';
     }
     console.info(JSON.stringify({ event: 'platinum.feed.initial', durationMs: Math.round(performance.now() - started), rows: rows.length, outcome: error ? 'media_error' : 'ok' }));
-    return { owner, rows, mutedWords, error };
+    return { owner, rows, mutedWords, error, preferencesReady: true };
   } catch {
     console.info(JSON.stringify({ event: 'platinum.feed.initial', durationMs: Math.round(performance.now() - started), rows: 0, outcome: 'error' }));
-    return { owner, rows: [], mutedWords: [], error: 'Your feed could not load yet. Please try again.' };
+    return { owner, rows: [], mutedWords: [], error: 'Your feed could not load yet. Please try again.', preferencesReady: false };
   }
 }

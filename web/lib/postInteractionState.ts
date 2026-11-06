@@ -3,6 +3,8 @@ import { readPostCounters } from '../../shared/postCounters';
 
 export type PostInteractionSeed = { liked: boolean; bookmarked: boolean; likesCount: number; bookmarksCount?: number };
 export type PostInteractionSnapshot = PostInteractionSeed & { bookmarksCount: number; pending: boolean; error: string | null; uncertain: boolean };
+type Confirmed = PostInteractionSeed & { bookmarksCount: number };
+type ReadRequest = { id: string; owner: string; epoch: number; resolve: (value: Confirmed) => void; reject: (reason: Error) => void };
 type Kind = "like" | "bookmark";
 type Actions = Record<Kind, (id: string, on: boolean, viewer: string, isCurrent?: () => boolean) => Promise<boolean>>;
 type Entry = { value: PostInteractionSnapshot | null; listeners: Set<() => void>; version: number; touched: boolean; reconcile: boolean; changedAt: number; liveAt: number };
@@ -15,6 +17,11 @@ export function createPostInteractionStore(client: SupabaseClient, actions: Acti
   let viewer: string | null | undefined;
   let generation = 0;
   let ready: Promise<void> | null = null;
+  let scheduled = false;
+  let queuedReads: ReadRequest[] = [];
+  const readBatches: ReadRequest[][] = [];
+  let activeReadBatches = 0;
+  let viewerLookup: { epoch: number; promise: Promise<string | null> } | null = null;
 
   function entry(id: string) {
     let result = entries.get(id);
@@ -37,6 +44,9 @@ export function createPostInteractionStore(client: SupabaseClient, actions: Acti
     const initial = viewer === undefined;
     viewer = next;
     generation++;
+    for (const batch of readBatches.splice(0)) {
+      for (const request of batch) request.reject(new Error("The account changed."));
+    }
     if (initial && next) return;
     entries.forEach((target) => {
       if (!initial) target.version++;
@@ -64,16 +74,25 @@ export function createPostInteractionStore(client: SupabaseClient, actions: Acti
       if (!observed) setViewer(error ? null : data.session?.user.id ?? null);
     }).catch(() => { if (!observed) setViewer(null); }).finally(resolve);
   }
-  async function currentViewer() {
+  function currentViewer(): Promise<string | null> {
     const epoch = generation;
-    const { data, error } = await client.auth.getSession();
-    if (epoch !== generation) return null;
-    if (error) throw error;
-    const id = data.session?.user.id ?? null;
-    setViewer(id);
-    return id;
+    // One lookup lets a mounted group reach the read queue together even when
+    // the auth client serializes access to its session lock.
+    if (viewerLookup?.epoch === epoch) return viewerLookup.promise;
+    const promise = (async () => {
+      const { data, error } = await client.auth.getSession();
+      if (epoch !== generation) return null;
+      if (error) throw error;
+      const id = data.session?.user.id ?? null;
+      setViewer(id);
+      return id;
+    })();
+    viewerLookup = { epoch, promise };
+    const clear = () => { if (viewerLookup?.promise === promise) viewerLookup = null; };
+    void promise.then(clear, clear);
+    return promise;
   }
-  async function read(id: string, owner: string): Promise<PostInteractionSeed & { bookmarksCount: number }> {
+  async function readOne(id: string, owner: string): Promise<Confirmed> {
     const [post, like, bookmark] = await Promise.all([
       readPostCounters(client, [id], async () => {
         const value = await client.from('posts').select('likes_count,comments_count,reposts_count,bookmarks_count,views_count').eq('id', id).maybeSingle();
@@ -90,6 +109,88 @@ export function createPostInteractionStore(client: SupabaseClient, actions: Acti
       throw new Error("Could not confirm post interactions");
     }
     return { liked: !!like.data, bookmarked: !!bookmark.data, likesCount: post.data.likes_count, bookmarksCount: post.data.bookmarks_count };
+  }
+
+  async function readMany(ids: string[], owner: string): Promise<Map<string, Confirmed>> {
+    if (ids.length === 1) return new Map([[ids[0], await readOne(ids[0], owner)]]);
+    const [posts, likes, bookmarks] = await Promise.all([
+      readPostCounters(client, ids, async () => {
+        const value = await client.from('posts').select('id,likes_count,comments_count,reposts_count,bookmarks_count,views_count').in('id', ids);
+        if (value.error || !Array.isArray(value.data)) throw new Error("Could not confirm post interactions");
+        return value.data.map(row => ({ ...row, post_id: row.id }));
+      }),
+      client.from("post_likes").select("post_id").in("post_id", ids).eq("user_id", owner),
+      client.from("post_bookmarks").select("post_id").in("post_id", ids).eq("user_id", owner),
+    ]);
+    const selected = new Set(ids);
+    const membership = (result: { data: unknown; error: unknown }) => {
+      if (result.error || !Array.isArray(result.data)) throw new Error("Could not confirm post interactions");
+      const found = new Set<string>();
+      for (const row of result.data) {
+        if (!row || !selected.has(row.post_id) || found.has(row.post_id)) throw new Error("Could not confirm post interactions");
+        found.add(row.post_id);
+      }
+      return found;
+    };
+    const liked = membership(likes), bookmarked = membership(bookmarks);
+    const confirmed = new Map<string, Confirmed>();
+    for (const post of posts) {
+      if (!selected.has(post.post_id) || confirmed.has(post.post_id)) throw new Error("Could not confirm post interactions");
+      if (!Number.isSafeInteger(post.likes_count) || post.likes_count < 0
+        || !Number.isSafeInteger(post.bookmarks_count) || post.bookmarks_count < 0) continue;
+      confirmed.set(post.post_id, { liked: liked.has(post.post_id), bookmarked: bookmarked.has(post.post_id),
+        likesCount: post.likes_count, bookmarksCount: post.bookmarks_count });
+    }
+    return confirmed;
+  }
+
+  function drainReads() {
+    while (activeReadBatches < 2 && readBatches.length) {
+      const requests = readBatches.shift()!;
+      const { epoch, owner } = requests[0];
+      if (epoch !== generation || owner !== viewer) {
+        for (const request of requests) request.reject(new Error("The account changed."));
+        continue;
+      }
+      activeReadBatches++;
+      const ids = [...new Set(requests.map(request => request.id))];
+      void readMany(ids, owner).then(values => {
+        for (const request of requests) {
+          const value = values.get(request.id);
+          if (generation !== epoch || viewer !== owner) request.reject(new Error("The account changed."));
+          else if (!value) request.reject(new Error("Could not confirm post interactions"));
+          else request.resolve(value);
+        }
+      }, () => {
+        for (const request of requests) request.reject(new Error("Could not confirm post interactions"));
+      }).finally(() => { activeReadBatches--; drainReads(); });
+    }
+  }
+
+  function read(id: string, owner: string): Promise<Confirmed> {
+    return new Promise((resolve, reject) => {
+      queuedReads.push({ id, owner, epoch: generation, resolve, reject });
+      if (scheduled) return;
+      scheduled = true;
+      // Remounting a feed can refresh many cards in one turn. Coalesce those
+      // confirmations without delaying input or replaying any mutation.
+      void Promise.resolve().then(() => {
+        scheduled = false;
+        const queued = queuedReads;
+        queuedReads = [];
+        const active: ReadRequest[] = [];
+        for (const request of queued) {
+          if (request.epoch !== generation || request.owner !== viewer) request.reject(new Error("The account changed."));
+          else active.push(request);
+        }
+        const ids = [...new Set(active.map(request => request.id))];
+        for (let offset = 0; offset < ids.length; offset += 100) {
+          const selected = new Set(ids.slice(offset, offset + 100));
+          readBatches.push(active.filter(request => selected.has(request.id)));
+        }
+        drainReads();
+      });
+    });
   }
 
   async function run(id: string, mutation?: { kind: Kind; on: boolean }) {

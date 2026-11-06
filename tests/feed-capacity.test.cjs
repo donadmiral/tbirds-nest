@@ -20,6 +20,8 @@ const previewModule = { exports: {} };
 vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../shared/sharedPostPreview.ts'), 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.CommonJS } }).outputText, { exports: previewModule.exports, module: previewModule });
 const historyModule = { exports: {} };
 vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../shared/sessionHistory.ts'), 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } }).outputText, { exports: historyModule.exports, module: historyModule, AbortController });
+const historyPagesModule = { exports: {} };
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../shared/feedHistoryPages.ts'), 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } }).outputText, { exports: historyPagesModule.exports, module: historyPagesModule });
 
 
 const source = fs.readFileSync(path.join(__dirname, '../src/screens/feed/FeedScreen.tsx'), 'utf8');
@@ -30,7 +32,7 @@ function visit(node) {
   if (ts.isVariableDeclaration(node) && node.name.getText(ast) === '[mutedWords, setMutedWords]') {
     callbacks.mutedInitial = node.initializer.arguments[0];
   }
-  if (ts.isVariableDeclaration(node) && ['loadFeed', 'loadMore', 'commitFeedWindow', 'bindFeedHistory'].includes(node.name.getText(ast))) {
+  if (ts.isVariableDeclaration(node) && ['loadFeed', 'loadMore', 'commitFeedWindow', 'bindFeedHistory', 'reportHistoryVisible', 'remeasureHistory'].includes(node.name.getText(ast))) {
     callbacks[node.name.getText(ast)] = node.initializer.arguments[0];
   }
   if (ts.isVariableDeclaration(node) && node.name.getText(ast) === 'liveFence') callbacks.liveFence = node.initializer;
@@ -44,6 +46,11 @@ function visit(node) {
     && node.arguments[0]?.getText(ast).includes('preparedPageWindow.current')) callbacks.preparePage = node.arguments[0];
   if (ts.isCallExpression(node) && node.expression.getText(ast) === 'useLayoutEffect'
     && node.arguments[0]?.getText(ast).includes('feedTabs.read')) callbacks.restoreTab = node.arguments[0];
+  if (ts.isCallExpression(node) && ['useEffect', 'useLayoutEffect'].includes(node.expression.getText(ast))
+    && node.arguments[0]?.getText(ast).includes('value.replaceHot(posts)')) {
+    callbacks.syncHistoryPosts = node.arguments[0];
+    callbacks.syncHistoryPostsPhase = node.expression.getText(ast);
+  }
   ts.forEachChild(node, visit);
 }
 visit(ast);
@@ -71,6 +78,9 @@ function harness({ previewRows = [], quotedRows = [], heldTable = null, rpc } = 
     feedLiveDeniedAt: { current: {} }, feedLiveAppliedAt: { current: {} },
     feedStampFloor: { current: -1 }, historyRef: { current: null }, historyReady: { current: false },
     historyAlive: { current: true }, historyStop: { current: null }, historyRects: { current: new Map() },
+    historyGeometryScope: { current: null }, historyPageNodes: { current: new Map() }, historyRowNodes: { current: new Map() }, historyPageHeights: { current: new Map() },
+    ...historyPagesModule.exports,
+    historyMeasureGeneration: { current: 0 }, setHistoryMeasureEpoch() {},
     setHistoryWindow(value) { historyWindow = value; },
     createNativeSessionHistory: options => historyModule.exports.createSessionHistory({ ...options, namespace: 'feed-fixture-' + historyNumber++,
       storage: { read: async keys => keys.map(key => historyDisk.get(key) ?? null),
@@ -78,9 +88,9 @@ function harness({ previewRows = [], quotedRows = [], heldTable = null, rpc } = 
         clear: async prefix => { for (const key of historyDisk.keys()) if (key.startsWith(prefix)) historyDisk.delete(key); } } }),
     interactionChangedAt: { current: {} }, busyKeysRef: { current: {} },
     feedSnapshotFresh, mergeNativeFeedLive,
-    postsRef: { current: postState }, realtimeTimerRef: { current: null },
+    postsRef: { current: postState }, promoRowsRef: { current: [] }, realtimeTimerRef: { current: null },
     feedRequestRef: { current: 0 }, feedRefreshRequestRef: { current: null }, resolvedFeedRequestRef: { current: 0 }, pageRequestRef: { current: 0 },
-    feedScopeRef: { current: 'viewer-a:latest:all' }, discoverCatRef: { current: 'all' },
+    feedScopeRef: { current: 'viewer-a:latest:all' }, visibleFeedScope: 'viewer-a:latest:all', discoverCatRef: { current: 'all' },
     feedMediaScopeRef: { current: null }, navigationScope: () => currentUser + ':session-1',
     retainFeedMedia: (_old, incoming) => incoming,
     discoverPageRef: { current: { asOf: '2026-01-01T00:00:00.000Z', offset: 0 } },
@@ -100,7 +110,7 @@ function harness({ previewRows = [], quotedRows = [], heldTable = null, rpc } = 
     withoutPrivateMedia: rows => rows.map(row => ({ ...row, media_url: null,
       post_media: row.post_media?.map(media => ({ ...media, url: null, edit: { ...media.edit, coverUrl: null } })) })),
     hydrateShares() {}, hydrateCollabs() {}, hydratePolls() {}, scorePost: () => 0,
-    setLoading(value) { loading = value; }, setVisibleFeedScope() {}, setRefreshing() {}, setLoadingMore() {}, setFeedError(error) { if (error) errors.push(error); },
+    setLoading(value) { loading = value; }, setVisibleFeedScope(value) { scope.visibleFeedScope = value; }, setRefreshing() {}, setLoadingMore() {}, setFeedError(error) { if (error) errors.push(error); },
     setProfilesMap() {}, setLikedPosts() {}, setBookmarkedPosts() {}, setRepostedPosts() {},
     setLikerNames() {}, setQuotedMap(update) { quotedState = typeof update === 'function' ? update(quotedState) : update; }, setWtfSuggestions() {},
     setPosts(update) { postState = typeof update === 'function' ? update(postState) : update; scope.postsRef.current = postState; },
@@ -168,6 +178,144 @@ function retainedFeed() {
   const measure = () => { const history = h.scope.historyRef.current; history.getSnapshot().pages.forEach(page => history.measure(page.index, 100)); history.setAnchor(h.posts.at(-1).id); };
   return { h, refresh, more, measure, denied, reads };
 }
+
+function measuredVisibility(h, offset = 0) {
+  let visible = [];
+  Object.assign(h.scope, {
+    displayPosts: h.posts, historyHeaderHeight: { current: 0 }, historyViewport: { current: 445 },
+    onViewableItemsChanged: value => { visible = value.viewableItems.map(item => item.item.id); },
+  });
+  h.scope.scrollOffsetRef.current = offset;
+  h.scope.reportHistoryVisible = compile('reportHistoryVisible', h.scope);
+  return {
+    get visible() { return Array.from(visible); },
+    report() { h.scope.displayPosts = h.posts; h.scope.reportHistoryVisible(); return Array.from(visible); },
+    measure() { h.scope.displayPosts = h.posts; compile('remeasureHistory', h.scope)(); return Array.from(visible); },
+  };
+}
+
+test('unchanged refresh retains mounted video eligibility and measured offsets on later pages', async () => {
+  const { h, refresh } = retainedFeed();
+  await refresh();
+  h.scope.historyRef.current.measure(0, 1000);
+  h.scope.historyRef.current.measure(1, 900);
+  const rect = { page: 1, y: 0, height: 300 };
+  h.scope.historyRects.current.set('feed-6', rect);
+  const visibility = measuredVisibility(h, 1000);
+  assert.deepEqual(visibility.report(), ['feed-6']);
+  const previous = h.scope.historyRef.current;
+  await refresh(); // Identical native keys and frames produce no new onLayout.
+  assert.notEqual(h.scope.historyRef.current, previous, 'A real foreground refresh replaces the reading session');
+  assert.equal(h.scope.historyRects.current.get('feed-6'), rect);
+  assert.equal(h.historyWindow.pages[0].height, 1000);
+  assert.equal(h.historyWindow.pages[1].height, 900);
+  assert.deepEqual(visibility.report(), ['feed-6'], 'A still-visible video stays eligible without a remount or fresh layout event');
+  await h.scope.historyRef.current.dispose();
+});
+
+test('reordered and removed rows discard stale geometry and measure the retained native views', async () => {
+  const { h, refresh } = retainedFeed();
+  await refresh();
+  h.scope.historyRef.current.measure(0, 1000);
+  for (const [n, id] of ['feed-0', 'feed-1', 'feed-2'].entries()) h.scope.historyRects.current.set(id, { page: 0, y: n * 300, height: 300 });
+  const visibility = measuredVisibility(h);
+  assert.equal(visibility.report()[0], 'feed-0');
+  const rows = [h.posts[1], h.posts[0], ...h.posts.slice(3)];
+  await h.scope.commitFeedWindow(rows, false, () => true);
+  assert.equal(h.scope.historyRects.current.has('feed-0'), false);
+  assert.equal(h.scope.historyRects.current.has('feed-2'), false);
+  assert.deepEqual(visibility.report(), [], 'Old positions cannot activate reordered or removed content');
+  const parent = { measure: done => done(0, 0, 320, 950) };
+  h.scope.historyPageNodes.current.set(0, parent);
+  for (const [id, y] of [['feed-1', 0], ['feed-0', 300], ['feed-2', 600]]) {
+    h.scope.historyRowNodes.current.set(id, { page: 0, node: { measureLayout(actualParent, done) {
+      assert.equal(actualParent, parent); done(0, y, 320, 300);
+    } } });
+  }
+  assert.equal(visibility.measure()[0], 'feed-1');
+  assert.equal(h.scope.historyRects.current.get('feed-0').y, 300);
+  assert.equal(h.scope.historyRects.current.has('feed-2'), false);
+  assert.equal(h.scope.historyRowNodes.current.has('feed-2'), false);
+  assert.equal(h.historyWindow.pages[0].height, 950);
+  await h.scope.historyRef.current.dispose();
+});
+
+test('pending native measurements cannot repopulate a replaced history, changed tab or changed account', async () => {
+  for (const transition of ['refresh', 'tab', 'account']) {
+    const { h, refresh } = retainedFeed(); await refresh();
+    const visibility = measuredVisibility(h), pending = [];
+    h.scope.historyPageNodes.current.set(0, { measure: done => pending.push(() => done(0, 0, 320, 1000)) });
+    h.scope.historyRowNodes.current.set('feed-0', { page: 0, node: { measureLayout(_parent, done) { pending.push(() => done(0, 0, 320, 300)); } } });
+    visibility.measure(); assert.equal(pending.length, 2);
+    if (transition === 'tab') h.scope.feedScopeRef.current = 'viewer-a:trending:all';
+    if (transition === 'account') { h.switchAccount(); h.scope.feedScopeRef.current = 'viewer-b:latest:all'; }
+    await h.scope.commitFeedWindow(h.posts, false, () => true);
+    if (transition !== 'refresh') {
+      assert.equal(h.scope.historyPageNodes.current.size, 0);
+      assert.equal(h.scope.historyRowNodes.current.size, 0);
+    }
+    pending.forEach(done => done());
+    assert.equal(h.scope.historyRects.current.size, 0, transition);
+    assert.equal(h.historyWindow.pages[0].height, 0, transition);
+    assert.deepEqual(visibility.report(), [], transition);
+    await h.scope.historyRef.current.dispose();
+  }
+});
+
+test('a late measurement cannot reactivate a removed post in the same reading history', async () => {
+  const { h, refresh } = retainedFeed(); await refresh();
+  const visibility = measuredVisibility(h), pending = [];
+  h.scope.historyRef.current.measure(0, 1000);
+  h.scope.historyPageNodes.current.set(0, { measure() {} });
+  h.scope.historyRowNodes.current.set('feed-0', { page: 0, node: { measureLayout(_parent, done) { pending.push(() => done(0, 0, 320, 300)); } } });
+  visibility.measure(); assert.equal(pending.length, 1);
+  // Keep the callback's displayPosts from the old render while the actual
+  // authorization/history update has already removed this row.
+  h.scope.historyRef.current.replaceHot(h.posts.slice(1));
+  pending[0]();
+  assert.equal(h.scope.displayPosts.some(post => post.id === 'feed-0'), true, 'The retired callback still has the old rendered list');
+  assert.equal(visibility.visible.includes('feed-0'), false);
+  await h.scope.historyRef.current.dispose();
+});
+
+test('an empty tab render cannot erase a history committed before passive effects flush', async () => {
+  const h = harness();
+  h.scope.historyReady.current = true;
+  h.scope.posts = [];
+  h.scope.setPosts([]);
+  h.scope.visibleFeedScope = h.scope.feedScopeRef.current;
+  const sync = compile('syncHistoryPosts', h.scope);
+  const passive = [];
+  // Layout effects belong to the committed empty render. A passive effect can
+  // remain pending while the asynchronous reader installs its next history.
+  if (callbacks.syncHistoryPostsPhase === 'useLayoutEffect') sync();
+  else passive.push(sync);
+  await compile('loadFeed', h.scope)();
+  assert.deepEqual(Array.from(h.posts, row => row.id), ['shown']);
+  passive.forEach(effect => effect());
+  assert.deepEqual(Array.from(h.posts, row => row.id), ['shown']);
+  assert.equal(h.historyWindow.pages.length, 1);
+  assert.equal(h.historyWindow.pages[0].rows.length, 1);
+  await h.scope.historyRef.current.dispose();
+});
+
+test('the committed posts synchronization still updates current rows and removes denied content', async () => {
+  const h = harness();
+  h.scope.historyReady.current = true;
+  await compile('loadFeed', h.scope)();
+  h.scope.visibleFeedScope = h.scope.feedScopeRef.current;
+  h.scope.posts = h.posts.map(row => ({ ...row, likes_count: 19 }));
+  h.scope.setPosts(h.scope.posts);
+  const sync = compile('syncHistoryPosts', h.scope);
+  sync();
+  assert.equal(h.historyWindow.rows[0].likes_count, 19);
+  h.scope.posts = [];
+  h.scope.setPosts([]);
+  sync();
+  assert.equal(h.historyWindow.rows.length, 0);
+  assert.equal(h.historyWindow.pages[0].rows.length, 0);
+  await h.scope.historyRef.current.dispose();
+});
 
 test('native feed callbacks bound long reading and reauthorize measured cold pages in original order', async () => {
   const f = retainedFeed(); await f.refresh(); const visited = new Set();

@@ -1,0 +1,169 @@
+{
+  "deviceFarmRun": "48248a1b-826a-49b0-86be-c643078135da",
+  "appSourceCommit": "c8052ba7bb10f367a5e26337e94f3b080a48d7ce",
+  "apkSha256": "f2a3f0d1797690bdc5d776695e6d8cbc646d873d361a6a34f0aedb28349a15ac",
+  "videoSha256": "bbcf1db554673e534d60d8c0413567de94ed5e33688cbe8ff7079dea4a416ddd",
+  "functionalStagesPassed": 7,
+  "visualNoFlashAcceptance": false,
+  "method": "Every native-PTS decoded sample in two bounded public-canary refresh windows, followed by manual review of every unresolved candidate and both neighboring visible frames.",
+  "nativeHierarchy": {
+    "file": "restored-network-refresh-retains-image.xml",
+    "sha256": "df8b0043ad2d5e7dcc0e8f81a866329e6393180df48f1bff053c680f7b12e047",
+    "imageResourceId": "native-feed-image-79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+    "nativeBounds": [
+      0,
+      1077,
+      1080,
+      1888
+    ],
+    "displayed": true,
+    "sourceClass": "decrypted-local"
+  },
+  "recordingGeometry": {
+    "encoded": [
+      800,
+      800
+    ],
+    "phoneViewport": [
+      220,
+      0,
+      360,
+      800
+    ],
+    "scaleFromNative": 0.3333333333333333,
+    "imageCrop": [
+      220,
+      359,
+      360,
+      270
+    ],
+    "movingImageSearchMaximumVerticalPixels": 400
+  },
+  "onlineRefresh": {
+    "firstPTS": 71.0,
+    "lastPTS": 75.6,
+    "decodedFrames": 116,
+    "imageVisibleFrames": 116,
+    "unresolvedFrames": 0,
+    "exactDuplicateViewportFrames": 43,
+    "nearDuplicateViewportFrames": 114,
+    "nextStage": "Messages navigation begins outside this measured window."
+  },
+  "restoredNetworkRefresh": {
+    "firstPTS": 145.0,
+    "lastPTS": 150.8,
+    "decodedFrames": 146,
+    "imageVisibleFrames": 145,
+    "blankFrames": 1,
+    "blankPTS": [
+      147.48
+    ],
+    "previousVisiblePTS": 147.44,
+    "nextVisiblePTS": 147.52,
+    "blankEncodedPresentationIntervalMs": 40,
+    "visibleNeighborBracketMs": 80,
+    "exactDuplicateViewportFrames": 50,
+    "nearDuplicateViewportFrames": 138,
+    "manualFinding": "The media rectangle is gray at PTS147.48 while its 1/2 carousel badge remains visible. The same rectangle contains the expected four colored quadrants and central ellipse in the preceding and following frames.",
+    "nextStage": "Final teardown begins outside this measured window."
+  },
+  "nativeFrameIntervalMs": 40,
+  "observerStartEpochMs": 1793903831147,
+  "observerProcess": "mw3w0uwb-778xg9gu",
+  "observerEvidenceSha256": "846cde0e6e182d7de7305164b97f66f65e502cdf0810779de38e250c086524d6",
+  "safeSourceEvents": [
+    {
+      "type": "network-state",
+      "elapsedMs": 203,
+      "isConnected": true
+    },
+    {
+      "type": "cache-opened",
+      "elapsedMs": 1203,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+      "sourceVersion": "cdb229b3-357e-4f16-bb9c-15c71eee44fe",
+      "sourceClass": "decrypted-local"
+    },
+    {
+      "type": "network-state",
+      "elapsedMs": 5447,
+      "isConnected": false
+    },
+    {
+      "type": "cache-opened",
+      "elapsedMs": 5551,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+      "sourceVersion": "cdb229b3-357e-4f16-bb9c-15c71eee44fe",
+      "sourceClass": "decrypted-local"
+    },
+    {
+      "type": "image-displayed",
+      "elapsedMs": 5711,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+      "sourceClass": "decrypted-local"
+    },
+    {
+      "type": "cache-opened",
+      "elapsedMs": 9931,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+      "sourceVersion": "1acc0815-974c-4a7c-992f-cb99d46ada96",
+      "sourceClass": "decrypted-local"
+    },
+    {
+      "type": "network-state",
+      "elapsedMs": 29749,
+      "isConnected": true
+    },
+    {
+      "type": "image-displayed",
+      "elapsedMs": 33501,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+      "sourceClass": "decrypted-local"
+    }
+  ],
+  "sourceTransitionFinding": "The observer reports another decrypted-local image onDisplay at +33501 ms after network reconnection at +29749 ms. It records no later image cache-open or remote-image onDisplay. URI identity and exact render keys are not instrumented, so the source mechanism is not proven by this recording.",
+  "timeAlignment": "Native PTS is exact within the recording. Device clock and sanitized action timestamps place the selected window around the real restored-network refresh, without millisecond synchronization of host, device, and recording clocks.",
+  "privacy": "Only the synthetic public image rectangle and safe aggregate evidence are retained. Raw login video, full frames and Appium credential-value logs remain outside repository evidence.",
+  "crops": [
+    {
+      "name": "refresh-boundary-147.44.png",
+      "pts": 147.44,
+      "sha256": "61ec7709b4acb98f1caa4d766b685dcfe1b939c60b80c5627b772bfd705fd800",
+      "size": [
+        360,
+        270
+      ]
+    },
+    {
+      "name": "refresh-boundary-147.48.png",
+      "pts": 147.48,
+      "sha256": "97b606419a941546b58b554978f6cf1238d497774f87313beea94045243bb2d7",
+      "size": [
+        360,
+        270
+      ]
+    },
+    {
+      "name": "refresh-boundary-147.52.png",
+      "pts": 147.52,
+      "sha256": "e13d91b845ec64cd92be42f8e016063d441041495ed7fe1ec35746d991dab58b",
+      "size": [
+        360,
+        270
+      ]
+    }
+  ],
+  "aggregateSha256": "f4923480b01c8f5bda458dd1622318bd3cc5ff98206a12244fc21c035ee10c13",
+  "limitations": [
+    "This is one observed Pixel8a run, not a percentile or fleet startup claim.",
+    "The 40ms encoded presentation interval is not an exact measurement of physical screen blank duration.",
+    "Duplicate encoded frames do not establish the physical capture cadence.",
+    "All matched captured samples do not prove absence of flashes between capture samples.",
+    "Seven post-action functional assertions can pass while an intermediate recorded frame is blank."
+  ]
+}

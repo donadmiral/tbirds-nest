@@ -1,0 +1,407 @@
+{
+  "version": 1,
+  "process": "mw3w0uwb-778xg9gu",
+  "startedAt": 1793903831147,
+  "connectedBackend": true,
+  "events": [
+    {
+      "type": "process-started",
+      "at": 1793903831148,
+      "elapsedMs": 1,
+      "processElapsedMs": 1
+    },
+    {
+      "type": "network-state",
+      "at": 1793903831350,
+      "elapsedMs": 203,
+      "isConnected": true,
+      "isInternetReachable": true,
+      "processElapsedMs": 203
+    },
+    {
+      "type": "http-failed",
+      "at": 1793903832348,
+      "elapsedMs": 156,
+      "path": "/auth/v1/health",
+      "processElapsedMs": 1201
+    },
+    {
+      "type": "cache-opened",
+      "at": 1793903832350,
+      "elapsedMs": 1203,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+      "kind": "image",
+      "sourceVersion": "cdb229b3-357e-4f16-bb9c-15c71eee44fe",
+      "cipherFile": "e74b3d30a58d472b0089a0928fd4963e8d4f83ac680a33d8cd1d0b5377c5f07e.bin",
+      "plainFile": "e74b3d30a58d472b0089a0928fd4963e8d4f83ac680a33d8cd1d0b5377c5f07e.png",
+      "bytes": 1564,
+      "sourceClass": "decrypted-local",
+      "processElapsedMs": 1203
+    },
+    {
+      "type": "http-failed",
+      "at": 1793903832744,
+      "elapsedMs": 13,
+      "path": "/rest/v1/rpc/get_catchup_feed",
+      "processElapsedMs": 1597
+    },
+    {
+      "type": "http-failed",
+      "at": 1793903832747,
+      "elapsedMs": 11,
+      "path": "/rest/v1/rpc/get_trending_topics",
+      "processElapsedMs": 1600
+    },
+    {
+      "type": "http-failed",
+      "at": 1793903832764,
+      "elapsedMs": 14,
+      "path": "/auth/v1/user",
+      "processElapsedMs": 1617
+    },
+    {
+      "type": "http-failed",
+      "at": 1793903832855,
+      "elapsedMs": 21,
+      "path": "/rest/v1/rpc/get_catchup_feed",
+      "processElapsedMs": 1708
+    },
+    {
+      "type": "http-failed",
+      "at": 1793903832873,
+      "elapsedMs": 9,
+      "path": "/rest/v1/rpc/get_my_actors",
+      "processElapsedMs": 1726
+    },
+    {
+      "type": "http-failed",
+      "at": 1793903832880,
+      "elapsedMs": 13,
+      "path": "/rest/v1/rpc/get_feed",
+      "processElapsedMs": 1733
+    },
+    {
+      "type": "http-failed",
+      "at": 1793903832988,
+      "elapsedMs": 110,
+      "path": "/rest/v1/rpc/get_active_promos",
+      "processElapsedMs": 1841
+    },
+    {
+      "type": "http-failed",
+      "at": 1793903833018,
+      "elapsedMs": 17,
+      "path": "/rest/v1/rpc/live_directory",
+      "processElapsedMs": 1871
+    },
+    {
+      "type": "http-failed",
+      "at": 1793903833024,
+      "elapsedMs": 25,
+      "path": "/rest/v1/rpc/live_directory",
+      "processElapsedMs": 1877
+    },
+    {
+      "type": "http-failed",
+      "at": 1793903833025,
+      "elapsedMs": 12,
+      "path": "/rest/v1/rpc/get_context_unread",
+      "processElapsedMs": 1878
+    },
+    {
+      "type": "http-failed",
+      "at": 1793903833026,
+      "elapsedMs": 11,
+      "path": "/rest/v1/rpc/get_profile",
+      "processElapsedMs": 1879
+    },
+    {
+      "type": "http-failed",
+      "at": 1793903833036,
+      "elapsedMs": 8,
+      "path": "/rest/v1/rpc/get_paged_reader_capabilities",
+      "processElapsedMs": 1889
+    },
+    {
+      "type": "http-failed",
+      "at": 1793903836593,
+      "elapsedMs": 23,
+      "path": "/auth/v1/health",
+      "processElapsedMs": 5446
+    },
+    {
+      "type": "network-state",
+      "at": 1793903836594,
+      "elapsedMs": 5447,
+      "isConnected": false,
+      "isInternetReachable": false,
+      "processElapsedMs": 5447
+    },
+    {
+      "type": "http-failed",
+      "at": 1793903836609,
+      "elapsedMs": 27,
+      "path": "/rest/v1/rpc/get_feed",
+      "processElapsedMs": 5462
+    },
+    {
+      "type": "http-failed",
+      "at": 1793903836625,
+      "elapsedMs": 17,
+      "path": "/rest/v1/rpc/get_feed_live_capability",
+      "processElapsedMs": 5478
+    },
+    {
+      "type": "http-failed",
+      "at": 1793903836629,
+      "elapsedMs": 18,
+      "path": "/rest/v1/rpc/home_marketplace_recommendations",
+      "processElapsedMs": 5482
+    },
+    {
+      "type": "http-failed",
+      "at": 1793903836630,
+      "elapsedMs": 16,
+      "path": "/rest/v1/rpc/live_directory",
+      "processElapsedMs": 5483
+    },
+    {
+      "type": "http-failed",
+      "at": 1793903836638,
+      "elapsedMs": 22,
+      "path": "/rest/v1/rpc/live_directory",
+      "processElapsedMs": 5491
+    },
+    {
+      "type": "cache-opened",
+      "at": 1793903836698,
+      "elapsedMs": 5551,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+      "kind": "image",
+      "sourceVersion": "cdb229b3-357e-4f16-bb9c-15c71eee44fe",
+      "cipherFile": "e74b3d30a58d472b0089a0928fd4963e8d4f83ac680a33d8cd1d0b5377c5f07e.bin",
+      "plainFile": "e74b3d30a58d472b0089a0928fd4963e8d4f83ac680a33d8cd1d0b5377c5f07e.png",
+      "bytes": 1564,
+      "sourceClass": "decrypted-local",
+      "processElapsedMs": 5551
+    },
+    {
+      "type": "image-displayed",
+      "at": 1793903836858,
+      "elapsedMs": 5711,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+      "sourceClass": "decrypted-local",
+      "processElapsedMs": 5711
+    },
+    {
+      "type": "cache-opened",
+      "at": 1793903841078,
+      "elapsedMs": 9931,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+      "kind": "video",
+      "sourceVersion": "1acc0815-974c-4a7c-992f-cb99d46ada96",
+      "cipherFile": "e449da636d7f7b3dc0346b4cce10a3b7a078cf8ba1d3a4a5c571addf81571064.bin",
+      "plainFile": "e449da636d7f7b3dc0346b4cce10a3b7a078cf8ba1d3a4a5c571addf81571064.mp4",
+      "bytes": 74058,
+      "sourceClass": "decrypted-local",
+      "processElapsedMs": 9931
+    },
+    {
+      "type": "video-progress",
+      "at": 1793903841744,
+      "elapsedMs": 10597,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+      "currentTime": 0.2460000067949295,
+      "playing": true,
+      "firstFrame": true,
+      "sourceClass": "decrypted-local",
+      "processElapsedMs": 10597
+    },
+    {
+      "type": "video-progress",
+      "at": 1793903841994,
+      "elapsedMs": 10847,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+      "currentTime": 0.4959999918937683,
+      "playing": true,
+      "firstFrame": true,
+      "sourceClass": "decrypted-local",
+      "processElapsedMs": 10847
+    },
+    {
+      "type": "http-failed",
+      "at": 1793903845663,
+      "elapsedMs": 18,
+      "path": "/auth/v1/health",
+      "processElapsedMs": 14516
+    },
+    {
+      "type": "http-result",
+      "at": 1793903860896,
+      "elapsedMs": 293,
+      "path": "/rest/v1/rpc/get_profile",
+      "status": 200,
+      "processElapsedMs": 29749
+    },
+    {
+      "type": "network-state",
+      "at": 1793903860896,
+      "elapsedMs": 29749,
+      "isConnected": true,
+      "isInternetReachable": true,
+      "processElapsedMs": 29749
+    },
+    {
+      "type": "http-result",
+      "at": 1793903861847,
+      "elapsedMs": 87,
+      "path": "/rest/v1/rpc/home_marketplace_recommendations",
+      "status": 200,
+      "processElapsedMs": 30700
+    },
+    {
+      "type": "http-result",
+      "at": 1793903862123,
+      "elapsedMs": 362,
+      "path": "/rest/v1/rpc/get_feed",
+      "status": 200,
+      "processElapsedMs": 30976
+    },
+    {
+      "type": "http-result",
+      "at": 1793903862437,
+      "elapsedMs": 159,
+      "path": "/auth/v1/user",
+      "status": 200,
+      "processElapsedMs": 31290
+    },
+    {
+      "type": "http-result",
+      "at": 1793903862440,
+      "elapsedMs": 193,
+      "path": "/rest/v1/rpc/get_post_engagement_counts_v1",
+      "status": 200,
+      "processElapsedMs": 31293
+    },
+    {
+      "type": "http-result",
+      "at": 1793903862861,
+      "elapsedMs": 297,
+      "path": "/rest/v1/rpc/get_poll",
+      "status": 200,
+      "processElapsedMs": 31714
+    },
+    {
+      "type": "http-result",
+      "at": 1793903863802,
+      "elapsedMs": 1250,
+      "path": "/functions/v1/content-media-sign",
+      "status": 200,
+      "processElapsedMs": 32655
+    },
+    {
+      "type": "http-result",
+      "at": 1793903864091,
+      "elapsedMs": 87,
+      "path": "/rest/v1/rpc/get_feed_rows_by_ids_v1",
+      "status": 200,
+      "processElapsedMs": 32944
+    },
+    {
+      "type": "image-displayed",
+      "at": 1793903864648,
+      "elapsedMs": 33501,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+      "sourceClass": "decrypted-local",
+      "processElapsedMs": 33501
+    },
+    {
+      "type": "http-result",
+      "at": 1793903864894,
+      "elapsedMs": 339,
+      "path": "/rest/v1/rpc/get_poll",
+      "status": 200,
+      "processElapsedMs": 33747
+    },
+    {
+      "type": "http-result",
+      "at": 1793903864911,
+      "elapsedMs": 378,
+      "path": "/rest/v1/rpc/get_catchup_feed",
+      "status": 200,
+      "processElapsedMs": 33764
+    },
+    {
+      "type": "http-result",
+      "at": 1793903864912,
+      "elapsedMs": 367,
+      "path": "/rest/v1/rpc/get_trending_topics",
+      "status": 200,
+      "processElapsedMs": 33765
+    },
+    {
+      "type": "http-result",
+      "at": 1793903865103,
+      "elapsedMs": 535,
+      "path": "/rest/v1/rpc/live_directory",
+      "status": 200,
+      "processElapsedMs": 33956
+    },
+    {
+      "type": "http-result",
+      "at": 1793903865104,
+      "elapsedMs": 535,
+      "path": "/rest/v1/rpc/live_directory",
+      "status": 200,
+      "processElapsedMs": 33957
+    },
+    {
+      "type": "http-result",
+      "at": 1793903865123,
+      "elapsedMs": 190,
+      "path": "/rest/v1/rpc/get_trending_stories",
+      "status": 200,
+      "processElapsedMs": 33976
+    },
+    {
+      "type": "http-result",
+      "at": 1793903865241,
+      "elapsedMs": 671,
+      "path": "/rest/v1/rpc/get_feed_visibility",
+      "status": 200,
+      "processElapsedMs": 34094
+    },
+    {
+      "type": "http-result",
+      "at": 1793903865341,
+      "elapsedMs": 770,
+      "path": "/rest/v1/rpc/get_recent_likers",
+      "status": 200,
+      "processElapsedMs": 34194
+    },
+    {
+      "type": "http-result",
+      "at": 1793903865436,
+      "elapsedMs": 195,
+      "path": "/auth/v1/user",
+      "status": 200,
+      "processElapsedMs": 34289
+    },
+    {
+      "type": "http-result",
+      "at": 1793903865831,
+      "elapsedMs": 359,
+      "path": "/functions/v1/content-media-sign",
+      "status": 200,
+      "processElapsedMs": 34684
+    }
+  ],
+  "retentionScope": "Only the synthetic canary, generic RPC/auth/signing outcomes and state. HTTP elapsedMs is request duration. processElapsedMs is derived from at minus process startedAt. No raw URLs, auth values or other post media."
+}

@@ -115,14 +115,16 @@ export async function readSupportConversation(client: SupportClient, owner: stri
   if (ticketRead.status === 'rejected') throw ticketRead.reason;
   if (ticketRead.value.error) throw ticketRead.value.error;
   const ticket = ticketRead.value.data as SupportTicket | null;
-  if (!ticket) return { ticket: null, messages: [] as SupportMessage[], historyError: null };
+  if (!ticket) return { ticket: null, messages: [] as SupportMessage[], historyError: null, historyFailure: null };
   if (ticket.id !== ticketId || ticket.user_id !== owner || !STATUSES.has(ticket.status)) throw new Error('SUPPORT_TICKET_UNCONFIRMED');
   const historyUnavailable = messageRead.status === 'rejected' || !!messageRead.value.error || !Array.isArray(messageRead.value.data);
+  const historyFailure = messageRead.status === 'rejected' ? messageRead.reason
+    : messageRead.value.error || (!Array.isArray(messageRead.value.data) ? new Error('SUPPORT_HISTORY_UNCONFIRMED') : null);
   const messages = historyUnavailable ? [] : messageRead.value.data as SupportMessage[];
   // Older migrations copied the original question into history. Show it once,
   // while still displaying a fresh ticket whose history is genuinely empty.
   const replies = messages.filter(message => !(message.sender === 'member' && message.body === ticket.body && message.created_at === ticket.created_at));
-  return { ticket, messages: replies, historyError: historyUnavailable ? 'Replies could not be loaded. Please try again.' : null };
+  return { ticket, messages: replies, historyError: historyUnavailable ? 'Replies could not be loaded. Please try again.' : null, historyFailure };
 }
 
 async function requestIdentity(store: SupportRetryStore, crypto: SupportCrypto, owner: string, operation: string, payload: unknown, context: SupportWriteContext, milliseconds: number) {

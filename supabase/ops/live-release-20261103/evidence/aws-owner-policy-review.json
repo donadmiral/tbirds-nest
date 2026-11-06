@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "checked_at": "2026-11-03T05:56:24.156717+00:00",
+  "authorization": "User explicitly authorized owner-level AWS policy review and continuing renderer/service completion.",
+  "account": "518317808503",
+  "region": "us-east-2",
+  "settings_origin": "https://settings.aws.com",
+  "verified_settings_page": "https://settings.aws.com/projects/activate-advanced",
+  "signed_in_owner_verified": true,
+  "project_active": true,
+  "current_plan": "FREE",
+  "displayed_credit_usd": 100,
+  "policy_management_controls_available": false,
+  "activation_screen": {
+    "upgrade_required": true,
+    "activation_irreversible": true,
+    "spend_limits_removed_by_activation": true,
+    "root_email_verification_required": true,
+    "final_activation_control_disabled": true
+  },
+  "performed": {
+    "paid_upgrade": false,
+    "advanced_activation": false,
+    "organization_policy_read": false,
+    "organization_policy_change": false,
+    "provider_retest": false
+  },
+  "policy_diagnosis": {
+    "known_provider_result": "role_assumption_denied",
+    "attached_policy_still_unverified": true,
+    "published_external_principal_restriction_is_hypothesis": true,
+    "upgrade_alone_is_not_provider_acceptance": true
+  },
+  "next_step": "Owner decision on paid upgrade and irreversible advanced activation, followed by reading actual effective policies and reviewing an exact-role correction if supported. Renderer deployment proceeds independently where current-plan permissions allow.",
+  "sources": [
+    "https://docs.aws.amazon.com/accounts/latest/reference/upgrade-account.html",
+    "https://docs.aws.amazon.com/accounts/latest/reference/activate-advanced-features.html",
+    "https://docs.aws.amazon.com/accounts/latest/reference/remove-org-policies.html",
+    "https://docs.aws.amazon.com/accounts/latest/reference/scps-and-rcps-for-projects.html"
+  ],
+  "screenshot": "aws-owner-policy-review.jpg"
+}

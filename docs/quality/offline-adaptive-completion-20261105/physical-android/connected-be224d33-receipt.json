@@ -1,0 +1,61 @@
+{
+  "passed": false,
+  "checks": [
+    {
+      "name": "online-image-displayed",
+      "elapsedSeconds": 15.317,
+      "passed": true
+    },
+    {
+      "name": "online-video-playing",
+      "elapsedSeconds": 25.836,
+      "passed": true
+    },
+    {
+      "name": "refresh-retains-displayed-image",
+      "elapsedSeconds": 42.517,
+      "passed": true
+    },
+    {
+      "name": "navigation-retains-decoded-originals",
+      "elapsedSeconds": 58.816,
+      "passed": true
+    }
+  ],
+  "proofs": {
+    "warmFiles": [
+      {
+        "kind": "image",
+        "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+        "sourceVersion": "cdb229b3-357e-4f16-bb9c-15c71eee44fe",
+        "plainSha256": "bf9c4f48284934c45eed10cb0ae05bafec9f87cea89fafbfd739313b265f55ba",
+        "sealedSha256": "fed8ff02005f99d6a2b71e044201377f715294ec64befa4d64923dca42990e95",
+        "plainBytes": 1564,
+        "sealedBytes": 1592
+      },
+      {
+        "kind": "video",
+        "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+        "sourceVersion": "1acc0815-974c-4a7c-992f-cb99d46ada96",
+        "plainSha256": "d333c5aa0febc777f19efefb40f91c90d0bab00fca268fa2fa5dcdd3a997787e",
+        "sealedSha256": "df69993157bae53084f6b819b64acd79536dc93c16d769fa1bf5b04325104dee",
+        "plainBytes": 74058,
+        "sealedBytes": 74086
+      }
+    ]
+  },
+  "physicalDevice": true,
+  "deviceName": "44151JEKB09466",
+  "deviceOS": "14",
+  "abi": "arm64-v8a",
+  "qemu": "",
+  "apkSha256": "f2a3f0d1797690bdc5d776695e6d8cbc646d873d361a6a34f0aedb28349a15ac",
+  "sourceCommit": "c8052ba7bb10f367a5e26337e94f3b080a48d7ce",
+  "runId": "554e817b-78b8-4e64-9a94-b2aa80fdca4d",
+  "harnessSha256": "fc2addb4be595cb5c07cb1010b552b032d518b30bf875688dd2641b743b78a01",
+  "fixtureBackend": false,
+  "connectedQaProject": "uaulhuelcfkjwojtymmw",
+  "offlineOriginalMediaAcceptance": false,
+  "networkRestored": true,
+  "scope": "One public image/video carousel, actual QA auth/capabilities, native encryption, refresh and offline cold decoded media."
+}

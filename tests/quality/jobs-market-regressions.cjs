@@ -26,6 +26,7 @@ function loadModule(file, client, overrides = {}) {
     module, exports: module.exports,
     require: (id) => {
       if (id === '../../shared/hiring') return loadModule('shared/hiring.ts', client);
+      if (id === '../../shared/readContinuity') return loadModule('shared/readContinuity.ts', client);
       assert.ok(id in imports, `Unexpected import ${id}`); return imports[id];
     },
     console: { log() {} }, Date, Map, Set, Number, Error,

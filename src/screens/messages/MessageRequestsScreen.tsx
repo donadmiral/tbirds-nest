@@ -2,7 +2,7 @@ import { themedSheet, useTheme } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList, Image,
   ActivityIndicator, StatusBar, Alert,
@@ -13,6 +13,8 @@ import { Feather } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
+import { createScreenReadGuard, isReadAccessDenied, requireReadRows } from '../../../shared/readContinuity';
+import { orderTimeout } from '../../../shared/orderRequest';
 
 type MessageRequest = {
   conversation_id: string;
@@ -59,25 +61,28 @@ export default function MessageRequestsScreen({ navigation }: any) {
   const [requests, setRequests] = useState<MessageRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyIds, setBusyIds] = useState<Record<string, boolean>>({});
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reads] = useState(() => createScreenReadGuard(myId));
+  reads.setScope(myId);
+  useEffect(() => { setRequests([]); setBusyIds({}); setLoading(!!myId); setLoadError(null); }, [myId]);
 
   const load = useCallback(async () => {
-    if (!myId) return;
+    if (!myId) { setLoading(false); return; }
+    const current = reads.begin(myId);
+    if (!current()) return;
+    setLoadError(null); setLoading(true);
     try {
-      const { data, error } = await supabase.rpc('get_message_requests');
-      if (error) {
-        console.log('[Requests load error]', error);
-        setRequests([]);
-      } else {
-        setRequests((data || []) as MessageRequest[]);
-      }
+      const { data, error } = await orderTimeout(supabase.rpc('get_message_requests'), 15000, 'Message requests could not be loaded.');
+      if (error) throw error;
+      if (current()) setRequests(requireReadRows<MessageRequest>(data));
     } catch (e) {
-      console.log('[Requests load]', e);
+      if (current()) { if (isReadAccessDenied(e)) setRequests([]); setLoadError('Message requests could not be refreshed. Tap to retry.'); }
     } finally {
-      setLoading(false);
+      if (current()) setLoading(false);
     }
-  }, [myId]);
+  }, [myId, reads]);
 
-  useFocusEffect(useCallback(() => { load(); }, [load]));
+  useFocusEffect(useCallback(() => { void load(); return () => reads.invalidate(); }, [load, reads]));
 
   const setBusy = (id: string, v: boolean) =>
     setBusyIds(p => { const n = { ...p }; if (v) n[id] = true; else delete n[id]; return n; });
@@ -223,19 +228,23 @@ export default function MessageRequestsScreen({ navigation }: any) {
         </Text>
       </View>
 
-      {loading ? (
+      {loadError ? <TouchableOpacity accessibilityRole="button" onPress={() => { void load(); }}><Text accessibilityRole="alert" style={{ padding: 16, color: t.status.danger }}>{loadError}</Text></TouchableOpacity> : null}
+      {loading && requests.length === 0 ? (
         <View style={s.loader}>
           <ActivityIndicator color="#000" />
         </View>
-      ) : requests.length === 0 ? (
+      ) : requests.length === 0 && !loadError ? (
         <View style={s.empty}>
           <Feather name="inbox" size={44} color="#E5E5EA" />
           <Text style={s.emptyTitle}>No requests</Text>
           <Text style={s.emptySub}>New messages from outside your school will show up here.</Text>
         </View>
       ) : (
-        <FlatList ListEmptyComponent={<EmptyState icon="user-plus" title="No message requests" line="Messages from people you do not follow wait here." />}
+        <FlatList
+ ListEmptyComponent={loadError ? null : <EmptyState icon="user-plus" title="No message requests" line="Messages from people you do not follow wait here." />}
           data={requests}
+          refreshing={loading}
+          onRefresh={() => { void load(); }}
           keyExtractor={(r) => r.conversation_id}
           renderItem={renderItem}
           contentContainerStyle={{ padding: 14, gap: 10, paddingBottom: insets.bottom + TAB_BAR_CLEARANCE + 24 }}

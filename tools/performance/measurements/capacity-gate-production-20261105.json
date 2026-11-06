@@ -1,0 +1,162 @@
+{
+  "version": 1,
+  "kind": "production-capacity-acceptance-assessment",
+  "targetDau": 5000000,
+  "assessedAt": "2026-11-05T15:23:45.426646+00:00",
+  "passed": false,
+  "testExecutionStatus": "representative-five-million-load-not-run",
+  "meaning": "Acceptance fails. This is not a failed executed five-million load test; required measurement and reservation evidence are absent, and the configured prepared-feed scheduler is below even the one-snapshot-per-DAU planning requirement.",
+  "evidenceSource": "tools/performance/measurements/capacity-constraints-20261105.json",
+  "gateSourceSha256": "e45ab1235cfb92186ffa2bdf1c15ba8f1735f94e3e0d4b0208e6f7d4eacca386",
+  "inputReceipt": {
+    "version": 1,
+    "kind": "read-only-provider-capacity-snapshot",
+    "dauEquivalent": 5000000,
+    "sourceCommit": "4f1162f50c5938353c43ac09438a487bb17d36af",
+    "endedAt": "2026-11-05T15:23:45.426646+00:00",
+    "durationSeconds": 0,
+    "releases": {},
+    "correctness": {},
+    "metrics": {},
+    "regions": [],
+    "observedPeaks": {},
+    "reservations": {},
+    "cost": {}
+  },
+  "evaluation": {
+    "version": 1,
+    "passed": false,
+    "dauEquivalent": 5000000,
+    "sourceCommit": "4f1162f50c5938353c43ac09438a487bb17d36af",
+    "evaluatedAt": "2026-11-05T15:23:45.426Z",
+    "failures": [
+      "The receipt must describe authenticated mixed load",
+      "This stage requires at least 86400 measured seconds",
+      "Measured traffic must bind to the versioned base workload assumptions",
+      "At least 520834 distinct authenticated accounts must exercise this stage",
+      "Completed API operations must cover the modeled sustained demand, not only a short peak",
+      "Delivered media bytes must cover modeled sustained demand",
+      "Offered arrivals must not be silently dropped or delayed by a saturated generator",
+      "Non-overlapping measured windows must hold API, media and realtime peak demand together for at least 900 seconds",
+      "Observed api_requests_per_second must reach the modeled stage demand of 57870.37037037037",
+      "Observed media_bytes_per_second must reach the modeled stage demand of 65798611111.11111",
+      "Observed realtime_connections must reach the modeled stage demand of 442709",
+      "web release must match the tested commit",
+      "native release must match the tested commit",
+      "admin release must match the tested commit",
+      "backend release must match the tested commit",
+      "Correctness evidence missing or failed: authorization",
+      "Correctness evidence missing or failed: noCrossAccountData",
+      "Correctness evidence missing or failed: counters",
+      "Correctness evidence missing or failed: idempotency",
+      "Correctness evidence missing or failed: messages",
+      "Correctness evidence missing or failed: exports",
+      "Correctness evidence missing or failed: viralPost",
+      "Correctness evidence missing or failed: reconnectBurst",
+      "Correctness evidence missing or failed: failureRecovery",
+      "Measured feed_p95_ms must be at most 500",
+      "Measured inbox_p95_ms must be at most 400",
+      "Measured write_p95_ms must be at most 500",
+      "Measured admin_p95_ms must be at most 1500",
+      "Measured server_error_ratio must be at most 0.005",
+      "Measured database_cpu_peak_ratio must be at most 0.7",
+      "Measured database_connections_peak_ratio must be at most 0.7",
+      "Measured replica_lag_seconds must be at most 5",
+      "Measured notification_oldest_seconds must be at most 30",
+      "Measured counter_snapshot_lag_seconds must be at most 5",
+      "Measured media_job_oldest_seconds must be at most 300",
+      "Measured regional_playback_p95_ms must be at most 2500",
+      "Measured playback_rebuffer_ratio must be at most 0.01",
+      "Measured recovery_seconds must be at most 300",
+      "Playback needs at least three distinct measured regions",
+      "Observed peak missing: api_requests_per_second",
+      "Current provider capacity with 30% reserve is required: api_requests_per_second",
+      "Observed peak missing: realtime_connections",
+      "Current provider capacity with 30% reserve is required: realtime_connections",
+      "Observed peak missing: realtime_events_per_second",
+      "Current provider capacity with 30% reserve is required: realtime_events_per_second",
+      "Observed peak missing: media_bytes_per_second",
+      "Current provider capacity with 30% reserve is required: media_bytes_per_second",
+      "Observed peak missing: media_jobs_per_second",
+      "Current provider capacity with 30% reserve is required: media_jobs_per_second",
+      "Observed peak missing: push_requests_per_second",
+      "Current provider capacity with 30% reserve is required: push_requests_per_second",
+      "A measured monthly cost projection must fit the explicitly approved budget"
+    ]
+  },
+  "modeledDemand": {
+    "scenario": "base",
+    "scenarioSha256": "f7f0c6c4af3b659517ddffc41c6ff95e709a766c8f90b7fc828eba3beffe3b24",
+    "averageApiRps": 11574.074074074075,
+    "peakApiRps": 57870.37037037037,
+    "averageMediaBytesPerSecond": 13159722222.222221,
+    "peakMediaBytesPerSecond": 65798611111.11111,
+    "peakRealtimeConnections": 442709,
+    "minimumDistinctAccounts": 520834,
+    "minimumPeakHoldSeconds": 900
+  },
+  "configurationFailures": [
+    {
+      "component": "prepared-feed scheduler",
+      "observed": "One job each 10 seconds, one snapshot per job, eight-second statement deadline",
+      "maximumConfiguredPerDay": 8640,
+      "minimumModeledPerDay": 5000000,
+      "minimumModelAssumption": "One prepared snapshot per daily user",
+      "belowAverageDemandFactor": 578.7037037037037
+    },
+    {
+      "component": "provider reservations",
+      "observed": "No current reservations in operational registry for auth, database, frontend, media, push, realtime or calls",
+      "required": "Current provider-confirmed throughput limits and 30 percent reserve at tested peaks"
+    },
+    {
+      "component": "operating budget",
+      "observed": "No scale budget or approval evidence in operational registry",
+      "required": "A concrete projected monthly cost and corresponding approved budget"
+    },
+    {
+      "component": "test infrastructure",
+      "observed": "Existing CI uses an isolated 2-CPU/2-GiB PostgreSQL container and direct local SQL; no regional mixed-traffic runner deployment or sustained production-equivalent result exists",
+      "required": "Production-equivalent isolated environment, synthetic accounts and datasets, regional authenticated load clients, backend telemetry and a 24-hour run"
+    }
+  ],
+  "requiredInfrastructureInputs": [
+    {
+      "name": "application and auth",
+      "requiredPeakApplicationRps": 57870.37037037037,
+      "authAssumption": "One auth operation per DAU gives 57.87 operations/s average and 289.35/s peak. Derive actual token refresh, sign-in and validation demand from measured session behavior.",
+      "inputs": [
+        "Dedicated non-production target origin and release SHAs",
+        "Synthetic authentication account pool and token renewal plan",
+        "Confirmed API gateway, auth and database connection-pool quotas"
+      ]
+    },
+    {
+      "name": "prepared feeds and database",
+      "inputs": [
+        "A scheduler and worker fleet that sustains the measured snapshot arrival/refresh rate with bounded oldest work",
+        "Measured per-worker throughput under mixed read/write contention",
+        "Compute, storage IOPS, pool, replica and retention configuration sized from this measurement",
+        "Synthetic data representing feed histories, follower graph, viral engagement and private visibility"
+      ]
+    },
+    {
+      "name": "realtime and media",
+      "inputs": [
+        "Reserved realtime connections and event fanout with at least 30 percent headroom",
+        "At least three measured playback regions",
+        "Reserved media delivery/origin authorization throughput and encoding jobs/s",
+        "Provider limits for push, live and reconnect bursts"
+      ]
+    },
+    {
+      "name": "run control and cost",
+      "inputs": [
+        "A priced run budget and approved monthly operating budget",
+        "Hard request/byte/job ceilings plus kill switch",
+        "Continuous latency, queue-age, CPU, connection, error, rebuffer and recovery telemetry",
+        "At least 24 hours at representative mixed demand with verified peak windows"
+      ]
+    }
+  ]
+}

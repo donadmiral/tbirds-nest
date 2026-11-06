@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-11-03",
+  "scope": "Narrow Storage signing permission-probe compatibility fix",
+  "production_observation_source": "Parent agent authenticated Supabase function, Storage and PostgreSQL logs",
+  "observed_failure": {
+    "worker_source_and_check_http_status": 200,
+    "storage_sign_upload_http_status": 500,
+    "postgres_error": "INVALID_CLIP_OBJECT",
+    "function": "live_streams.clip_bind_storage_owner",
+    "cause": "The rollback-only signing INSERT has no user_metadata, while the trigger previously required the actual upload provenance and hash."
+  },
+  "migration": {
+    "path": "supabase/migrations/20261103082746_live_clip_signed_upload_preflight.sql",
+    "sha256": "d8f58ad1372b8ade313881c5d385e5155a591afed63a89b3b489caeb4c4d2e4d",
+    "created_with": "Supabase CLI migration new live_clip_signed_upload_preflight",
+    "reported_applied_by_parent": ["QA", "production"]
+  },
+  "probe_requirements": [
+    "Trigger operation is INSERT",
+    "Authenticated request role is service_role",
+    "Documented storage.allow_only_operation exactly matches object.sign_upload_url",
+    "version is the literal1 probe marker",
+    "metadata and user_metadata are absent or empty JSON objects",
+    "Canonical output path identifies the exact owner, session, clip and current lease",
+    "The current leased job passes the existing clip_check_job source, Auth-session, copyright and admission checks",
+    "The asset is one of the requested clip formats or valid thumbnail/captions"
+  ],
+  "unchanged_boundaries": [
+    "Actual uploads still require clip/job/lease provenance and a64-character lowercase SHA-256",
+    "UPDATE cannot use the signing-probe exception",
+    "Normal current-lease, source-rights, owner binding and asset-format checks remain",
+    "No new table, Storage privilege, RLS policy or runtime gate",
+    "No Edge Function or renderer image change",
+    "Completion still verifies actual Storage object metadata and manifest"
+  ],
+  "primary_source_evidence": [
+    {
+      "url": "https://supabase.com/docs/guides/storage/schema/helper-functions",
+      "finding": "allow_only_operation performs exact normalized matching and returns false when the current operation or requested name is absent."
+    },
+    {
+      "url": "https://github.com/supabase/storage/blob/master/src/http/routes/operations.ts",
+      "finding": "SIGN_UPLOAD_URL is storage.object.sign_upload_url; the actual signed upload uses the distinct storage.object.upload_signed operation."
+    },
+    {
+      "url": "https://github.com/supabase/storage/blob/master/src/storage/object.ts",
+      "retrieved_via": "Official GitHub repository read tool",
+      "finding": "signUploadObjectUrl invokes uploader.canUpload before issuing the upload capability; metadata is optional."
+    },
+    {
+      "url": "https://github.com/supabase/storage/blob/master/src/storage/uploader.ts",
+      "finding": "authorizeUpload constructs version1 with optional metadata and userMetadata, then attempts the object write through Database.testPermission."
+    },
+    {
+      "url": "https://github.com/supabase/storage/blob/master/src/storage/database/pg.ts",
+      "retrieved_via": "Official GitHub repository read tool",
+      "latest_file_commit_observed": "25cd705168c45820131f6edd2fb8a719d651d648",
+      "finding": "StoragePgDB.testPermission runs the supplied operation inside withTransaction, deliberately throws its dedicated TestPermissionRollbackError, and returns the operation result only after that deliberate rollback. Other exceptions propagate."
+    }
+  ],
+  "verification": {
+    "command": "node --test supabase/tests/rpc-authorization/test-live-clips.mjs",
+    "passed": 17,
+    "failed": 0,
+    "new_focused_cases": 5,
+    "existing_cases": 12,
+    "test_file_sha256": "f4f2b1000ea3448fbae2fff8a1739b9da16acc1fe6fc9f926e25568d071c5225",
+    "coverage": [
+      "Successful probe rolls back and cannot make the clip ready",
+      "Absent or different operation, ordinary roles, non-probe version and nonempty metadata are denied",
+      "Wrong owner/session/lease and unrequested assets are denied",
+      "Revoked Auth session, paused worker gate, expired lease and removed recording rights are denied",
+      "Actual signed upload still requires complete provenance; UPDATE cannot enter the exception",
+      "Existing completion, publication, revocation, erasure and private-audience cases remain passing"
+    ],
+    "scoped_diff_check": "passed",
+    "hosted_mutations_by_this_agent": false,
+    "actual_post_fix_renderer_acceptance": "Pending parent operator receipt; not inferred from local tests or migration apply."
+  }
+}

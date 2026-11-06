@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "change": "Deterministic UUID-desc author tie ordering in canonical and indexed feed ranking; remove legacy_tie full-scan bailout.",
+  "source_migration": "supabase/migrations/20261105045938_deterministic_feed_author_ties.sql",
+  "timestamp_source": "Provider-recorded migration version, decoded as UTC; observed_at is independent database readback time.",
+  "validation": {
+    "environments_match": true,
+    "expected_function_hashes": {
+      "fallback": "0103f3e49f09b6636156939f2c357e86",
+      "score": "91a9a925f0c61c31a8d8e5f533f5c89c",
+      "select_page": "4e1f1c94929807bd03cde8255c8d21cc"
+    },
+    "pglite_regressions": {
+      "passed": 7,
+      "failed": 0,
+      "test_file": "supabase/tests/feed-ties-db.test.cjs"
+    },
+    "unchanged_contracts": [
+      "SQL SECURITY INVOKER",
+      "Authenticated execute access",
+      "No anonymous execute access",
+      "Ranking weights and diversity multipliers",
+      "Marketplace exclusion and visibility predicates",
+      "Cursor comparison and strict frontier bounds",
+      "Future-timestamp and proof-budget fallbacks"
+    ]
+  },
+  "environments": [
+    {
+      "environment": "qa",
+      "observed_at": "2026-11-05T05:04:08.32628+00:00",
+      "migration_name": "deterministic_feed_author_ties",
+      "provider_migration_version": "20261105050347",
+      "migration_timestamp_utc": "2026-11-05T05:03:47Z",
+      "functions": [
+        {
+          "name": "fallback",
+          "settings": [
+            "search_path=public"
+          ],
+          "source_md5": "0103f3e49f09b6636156939f2c357e86",
+          "volatility": "s",
+          "anon_execute": false,
+          "security_definer": false,
+          "authenticated_execute": true
+        },
+        {
+          "name": "score",
+          "settings": [
+            "search_path=public"
+          ],
+          "source_md5": "91a9a925f0c61c31a8d8e5f533f5c89c",
+          "volatility": "s",
+          "anon_execute": false,
+          "security_definer": false,
+          "authenticated_execute": true
+        },
+        {
+          "name": "select_page",
+          "settings": [
+            "search_path=\"\""
+          ],
+          "source_md5": "4e1f1c94929807bd03cde8255c8d21cc",
+          "volatility": "s",
+          "anon_execute": false,
+          "security_definer": false,
+          "authenticated_execute": true
+        }
+      ]
+    },
+    {
+      "environment": "production",
+      "observed_at": "2026-11-05T05:04:07.508424+00:00",
+      "migration_name": "deterministic_feed_author_ties",
+      "provider_migration_version": "20261105050355",
+      "migration_timestamp_utc": "2026-11-05T05:03:55Z",
+      "functions": [
+        {
+          "name": "fallback",
+          "settings": [
+            "search_path=public"
+          ],
+          "source_md5": "0103f3e49f09b6636156939f2c357e86",
+          "volatility": "s",
+          "anon_execute": false,
+          "security_definer": false,
+          "authenticated_execute": true
+        },
+        {
+          "name": "score",
+          "settings": [
+            "search_path=public"
+          ],
+          "source_md5": "91a9a925f0c61c31a8d8e5f533f5c89c",
+          "volatility": "s",
+          "anon_execute": false,
+          "security_definer": false,
+          "authenticated_execute": true
+        },
+        {
+          "name": "select_page",
+          "settings": [
+            "search_path=\"\""
+          ],
+          "source_md5": "4e1f1c94929807bd03cde8255c8d21cc",
+          "volatility": "s",
+          "anon_execute": false,
+          "security_definer": false,
+          "authenticated_execute": true
+        }
+      ]
+    }
+  ],
+  "authenticated_read_checks": [
+    {
+      "environment": "qa",
+      "status": "passed",
+      "principal": "existing authorized test owner and active session",
+      "mode": "for_you",
+      "row_limit": 25,
+      "rows": 10,
+      "elapsed_ms": 239.363,
+      "statement_timeout_ms": 3000,
+      "read_only": true,
+      "observed_at": "2026-11-05T05:06:38.498538+00:00"
+    },
+    {
+      "environment": "production",
+      "status": "not_run",
+      "reason": "The known test owner had no matching active session. Guard exited before get_feed. No alternative identity was used.",
+      "row_limit": 25,
+      "statement_timeout_ms": 3000,
+      "read_only": true
+    }
+  ]
+}

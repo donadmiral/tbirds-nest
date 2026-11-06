@@ -154,7 +154,7 @@ test('native trim playback preserves paused seek positions and loops only while 
       assert.ok(target,'Missing real source import '+name);return evaluate(target);
     };
     const code=ts.transpileModule(providedSource ?? fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText;
-    vm.runInNewContext(code,{module,exports:module.exports,require:requireLocal,AbortController,console},{filename:file});
+    vm.runInNewContext(code,{module,exports:module.exports,require:requireLocal,AbortController,console,process:{env:{}}},{filename:file});
     return module.exports;
   }
   // Retain the layer's real imports, including the shipping player-controller

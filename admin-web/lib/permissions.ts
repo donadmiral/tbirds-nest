@@ -3,19 +3,19 @@ const LEAD = ['super_admin', 'platform_admin'];
 export const STAFF_ROLES = new Set([...LEAD, 'trust_safety', 'support_agent', 'ops_engineer', 'market_reviewer', 'jobs_reviewer', 'verification_reviewer', 'finance_admin', 'analyst', 'auditor_readonly']);
 export const VERIFICATION_ROLES = new Set([...LEAD, 'verification_reviewer']);
 export const ADS_ROLES = new Set([...LEAD, 'market_reviewer', 'finance_admin']);
-const ALL_DESKS = ['/dashboard', '/analytics', '/calls', '/queue', '/reports', '/users', '/support', '/market', '/jobs', '/businesses', '/organizations', '/ads', '/content', '/stories', '/music', '/payments', '/audit', '/staff', '/system'];
+const ALL_DESKS = ['/dashboard', '/analytics', '/calls', '/live', '/queue', '/reports', '/users', '/support', '/market', '/jobs', '/businesses', '/organizations', '/ads', '/content', '/stories', '/music', '/payments', '/audit', '/staff', '/system'];
 const ROLE_DESKS: Record<string, readonly string[]> = {
   super_admin: ALL_DESKS,
   platform_admin: ALL_DESKS.filter(d => d !== '/staff'),
-  trust_safety: ['/dashboard', '/reports', '/users', '/support', '/content', '/stories', '/music', '/audit'],
+  trust_safety: ['/dashboard', '/reports', '/users', '/support', '/content', '/stories', '/music', '/live', '/audit'],
   support_agent: ['/dashboard', '/support', '/users', '/audit'],
-  ops_engineer: ['/dashboard', '/system', '/analytics', '/calls', '/audit'],
+  ops_engineer: ['/dashboard', '/system', '/analytics', '/calls', '/live', '/audit'],
   market_reviewer: ['/dashboard', '/market', '/businesses', '/ads', '/payments', '/reports', '/audit'],
   jobs_reviewer: ['/dashboard', '/jobs', '/audit'],
   verification_reviewer: ['/dashboard', '/queue', '/users', '/audit'],
-  finance_admin: ['/dashboard', '/payments', '/ads', '/audit'],
-  analyst: ['/dashboard', '/analytics', '/audit'],
-  auditor_readonly: ['/dashboard', '/analytics', '/audit'],
+  finance_admin: ['/dashboard', '/payments', '/ads', '/live', '/audit'],
+  analyst: ['/dashboard', '/analytics', '/live', '/audit'],
+  auditor_readonly: ['/dashboard', '/analytics', '/live', '/audit'],
 };
 export function allowedDesks(role: string): Set<string> {
   return new Set(Object.hasOwn(ROLE_DESKS, role) ? ROLE_DESKS[role] : []);

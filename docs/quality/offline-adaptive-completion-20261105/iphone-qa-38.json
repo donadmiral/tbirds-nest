@@ -1,0 +1,16 @@
+{
+  "status": "FINISHED",
+  "source": "1aa2b521231fd24bf6f7e6d9aae6f4e11f6de8b3",
+  "qualityRunId": 42089356958,
+  "gradedHLSRunId": 42089357028,
+  "buildId": "6395bd07-4a3d-4eac-92ff-f8766dc79c35",
+  "installPage": "https://expo.dev/accounts/donadmiral/projects/platinum-circles/builds/6395bd07-4a3d-4eac-92ff-f8766dc79c35",
+  "buildNumber": "38",
+  "workflowRunId": 42089356900,
+  "workflowJobId": 127463006716,
+  "workflowConclusion": "success",
+  "finalReceiptAtUTC": "2026-11-05T19:19:03.2380487Z",
+  "workflowURL": "https://github.com/donadmiral/tbirds-nest/actions/runs/42089356900",
+  "exactCommitInCheckoutLog": true,
+  "gatesReadFromFinalReceipt": true
+}

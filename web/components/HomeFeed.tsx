@@ -8,6 +8,7 @@ import { hydratePostMedia, retainFeedMedia } from "@/lib/contentMedia";
 import { getFeedCache } from "@/lib/feedCache";
 import { dataSaverEnabled } from '@/lib/mediaPrefs';
 import { renewFeedMedia } from "../../shared/feedMedia";
+import { HISTORY_PAGE_ROWS } from '../../shared/sessionHistory';
 import { createFeedLive, feedLiveWindow } from '../../shared/feedLive';
 import { applyPostInteractionsLive } from '@/lib/usePostInteractions';
 
@@ -40,7 +41,7 @@ const FeedPostCard = memo(PostCard);
 
 /** Only measured, complete pages leave the DOM. Ordinary wheel/touch scrolling
  * stays with the browser; the two spacers retain the exact document geometry. */
-function FeedHistoryPage({ index, height, measure, children }: { index: number; height: number;
+function FeedHistoryPage({ index, height, epoch, measure, children }: { index: number; height: number; epoch: number;
   measure: (index: number, height: number) => void; children: ReactNode }) {
   const content = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
@@ -48,7 +49,7 @@ function FeedHistoryPage({ index, height, measure, children }: { index: number; 
     const update = () => measure(index, node.getBoundingClientRect().height);
     update(); const observer = new ResizeObserver(update); observer.observe(node);
     return () => observer.disconnect();
-  }, [index, measure]);
+  }, [index, measure, epoch]);
   return <div data-history-page={index} style={{ minHeight: height || undefined }}><div ref={content}>{children}</div></div>;
 }
 
@@ -80,10 +81,17 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
   const navigationSession = useSyncExternalStore(navigationStore.subscribe, navigationStore.getSnapshot, navigationStore.getServerSnapshot);
   const [controller] = useState(() => createHomeFeedController(supabase, seed, getFeedCache(), value => {
     window.dispatchEvent(new CustomEvent('pc-performance', { detail: { event: 'feed', ...value } }));
-  }, rows => renewFeedMedia(rows, value => hydratePostMedia(value)),
+  }, (rows, signal) => renewFeedMedia(rows, value => hydratePostMedia(value, supabase, signal)),
     navigationStore.getSnapshot().owner === seed.owner
       ? navigationStore.cache.read<HomeFeedMemory>(navigationStore.getSnapshot().scope, 'home:personal') : null,
-    { scope: () => navigationStore.getSnapshot().scope, retain: retainFeedMedia }, createWebSessionHistory));
+    { scope: () => navigationStore.getSnapshot().scope, retain: retainFeedMedia }, createWebSessionHistory,
+    async (owner, signal) => {
+      const { data, error } = await supabase.from('profiles').select('muted_words').eq('id', owner).abortSignal(signal).maybeSingle();
+      if (error || !data || (data.muted_words !== null && (!Array.isArray(data.muted_words) || data.muted_words.some((word: unknown) => typeof word !== 'string')))) {
+        throw new Error('Content preferences could not be loaded.');
+      }
+      return data.muted_words ?? [];
+    }));
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot, controller.getSnapshot);
   const { mode, rows: posts, loading, loadingMore, hasMore, error, pending: pendingNew } = state;
   const uidRef = useRef<string | null>(seed.owner);
@@ -392,17 +400,17 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
           feeds never scrolls out of reach. The gold underline marks the active
           feed; the dot-in-a-ring read as decoration at this size. */}
       <div className="pc-feed-tabs sticky top-[112px] z-10 mb-4 border-b border-ink/10 bg-[var(--canvas)] md:top-[68px]">
-        <div className="flex items-center gap-1 overflow-x-auto overflow-y-hidden">
+        <nav aria-label="Feed destinations" className="flex items-center gap-2 overflow-x-auto overflow-y-hidden overscroll-x-contain">
           {MODES.map((m) => {
             const active = mode === m.key;
             return (
               <span key={m.key} className="contents">
-              {m.key === 'trending' ? <Link href="/discover" className="min-w-0 flex-1 whitespace-nowrap px-1 py-3 text-center text-[13px] text-muted hover:text-ink sm:flex-none sm:px-3.5 sm:text-[14.5px]">Discover</Link> : null}
+              {m.key === 'trending' ? <Link href="/discover" className="inline-flex min-h-12 shrink-0 items-center justify-center whitespace-nowrap px-3.5 py-3 text-center text-[13px] text-muted hover:text-ink sm:text-[14.5px]">Discover</Link> : null}
               <button
                 aria-pressed={active}
                 onClick={() => setMode(m.key)}
                 className={
-                  "relative min-w-0 flex-1 whitespace-nowrap px-1 py-3 text-[13px] transition-colors duration-[180ms] sm:flex-none sm:px-3.5 sm:text-[14.5px] " +
+                  "relative min-h-12 shrink-0 whitespace-nowrap px-3.5 py-3 text-[13px] transition-colors duration-[180ms] sm:text-[14.5px] " +
                   (active ? "font-semibold text-ink" : "text-muted hover:text-ink/80")
                 }
               >
@@ -418,7 +426,7 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
             );
           })}
           <LiveEntry />
-        </div>
+        </nav>
       </div>
 
       <StoryRings />
@@ -433,7 +441,7 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
         </div>
       ) : null}
 
-      {error && posts.length > 0 ? <div role="status" className="mb-3 flex items-center justify-between gap-3 rounded-xl bg-surface px-4 py-3 text-sm"><span>{error}</span><button className="font-semibold" onClick={() => load(false, true)}>Retry</button></div> : null}
+      {error && posts.length > 0 ? <div role="status" data-feed-refresh-error className="fixed bottom-24 left-1/2 z-30 flex w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center justify-between gap-3 rounded-xl border border-ink/10 bg-surface px-4 py-3 text-sm shadow-md md:bottom-6"><span>{error}</span><button className="font-semibold" onClick={() => load(false, true)}>Retry</button></div> : null}
       {loading && posts.length === 0 ? (
         <div>
           <Skeleton />
@@ -458,7 +466,9 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
         <div>
           <div ref={listRef} data-feed-content="true">
             {state.history?.before ? <div aria-hidden="true" data-history-before="true" style={{ height: state.history.before, overflowAnchor: 'none' }} /> : null}
-            {(state.history?.pages ?? [{ index: 0, first: 0, rows: posts, height: 0 }]).map(page => {
+            {(state.history?.pages ?? Array.from({ length: Math.ceil(posts.length / HISTORY_PAGE_ROWS) }, (_, index) => ({
+              index, first: index * HISTORY_PAGE_ROWS, rows: posts.slice(index * HISTORY_PAGE_ROWS, (index + 1) * HISTORY_PAGE_ROWS), height: 0,
+            }))).map(page => {
               const cards = page.rows.filter(p => !isMarketplacePost(p)).map((p, localIndex) => {
               const i = page.first + localIndex;
               const slot = i === 1 ? promos[0] : (i > 1 && (i - 1) % 6 === 0 ? promos[Math.floor((i - 1) / 6)] : null);
@@ -472,7 +482,7 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
                 </div>
               );
               });
-              return state.history ? <FeedHistoryPage key={page.index} index={page.index} height={page.height} measure={controller.measurePage}>{cards}</FeedHistoryPage> : cards;
+              return <FeedHistoryPage key={page.index} index={page.index} height={page.height} epoch={state.historyEpoch} measure={controller.measurePage}>{cards}</FeedHistoryPage>;
             })}
             {state.history?.after ? <div aria-hidden="true" data-history-after="true" style={{ height: state.history.after, overflowAnchor: 'none' }} /> : null}
           </div>

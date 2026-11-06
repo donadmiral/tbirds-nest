@@ -1,0 +1,51 @@
+{
+  "bucket": "platinum-live-production-livebucket-6v2z2lrobdn3",
+  "ok": true,
+  "objects": [
+    {
+      "key": "live/bea38e73-71f1-411d-ae0a-2a91974cea01/43168782-6130-4e5f-b56f-d66c341e9152/master.m3u8",
+      "ok": true,
+      "status": 200,
+      "bytes": 120,
+      "sha256": "8208f34c7210aa4bb92dfc38362040b8be4bb5cd06656f6e37dd0dd8730d4098",
+      "version_id": "_M_ng6IW_M8p1yL5TVkkdjXQYhjj6pwD",
+      "etag": "\"d91ca110fafd3b166c3b8388979fb62e\""
+    },
+    {
+      "key": "live/bea38e73-71f1-411d-ae0a-2a91974cea01/43168782-6130-4e5f-b56f-d66c341e9152/media.m3u8",
+      "ok": true,
+      "status": 200,
+      "bytes": 237,
+      "sha256": "9964aeb08a8b0602ab6f3a9c0bcc6b69d464331697e7ba4a6f793d8fdcf024bd",
+      "version_id": "ALyKQarUEIlWPJ4J6HwQf27zTpVj25tZ",
+      "etag": "\"0b56f55b8f1ebac8e26caeb567bcb3e9\""
+    },
+    {
+      "key": "live/bea38e73-71f1-411d-ae0a-2a91974cea01/43168782-6130-4e5f-b56f-d66c341e9152/segment000.ts",
+      "ok": true,
+      "status": 200,
+      "bytes": 12596,
+      "sha256": "167d4a621fe2e9bd3ee72e2a268a5a712726f4bdb49e456cb5f48ab9ce38f0d7",
+      "version_id": "x5ZB5AkZg3_q2SJOIbcGBFZ6Jt06InQm",
+      "etag": "\"4083ef7eaa515721d366466943a740a7\""
+    },
+    {
+      "key": "live/bea38e73-71f1-411d-ae0a-2a91974cea01/43168782-6130-4e5f-b56f-d66c341e9152/segment001.ts",
+      "ok": true,
+      "status": 200,
+      "bytes": 11844,
+      "sha256": "b17c4ebb64a77f4c3496d287d81f5132c52b2280e04af1dee681e973d3794b2b",
+      "version_id": "qGtsUHtbonPdFtKsri11YMVG21tWgNUw",
+      "etag": "\"88278e4123d897e7d0657efe7ba75477\""
+    },
+    {
+      "key": "live/bea38e73-71f1-411d-ae0a-2a91974cea01/43168782-6130-4e5f-b56f-d66c341e9152/segment002.ts",
+      "ok": true,
+      "status": 200,
+      "bytes": 11844,
+      "sha256": "d92b3ac97e9d8fa1e8efa68ade28d772626298775b9682322f15a2671821c3b3",
+      "version_id": "ndniWSkCk0loSdLDBje4D9ebB03RI3sj",
+      "etag": "\"24ad43a2aa0432e381e8bda1d8d14191\""
+    }
+  ]
+}

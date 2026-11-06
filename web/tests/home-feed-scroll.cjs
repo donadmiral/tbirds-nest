@@ -35,11 +35,13 @@ function scenario(memory) {
   const clock = class extends Date { static now() { return now; } };
   const cache = load('../shared/feedTabCache.ts', {}, { Date: clock });
   const marketplace = load('../shared/marketplaceRecommendations.ts');
-  const { createHomeFeedController } = load('lib/homeFeedController.ts', { '../../shared/feedTabCache': cache, '../../shared/marketplaceRecommendations': marketplace });
+  const { createHomeFeedController } = load('lib/homeFeedController.ts', { '../../shared/feedTabCache': cache,
+    '../../shared/contentMedia': load('../shared/contentMedia.ts'), '../../shared/marketplaceRecommendations': marketplace });
   let reply = async (name, args) => ({ data: name === 'get_feed_visibility' ? args.p_ids.map(post_id => ({ post_id, snapshot_eligible: true })) : Array.from({ length: 20 }, (_, index) => row(args.p_mode + '-' + index)), error: null });
   const client = { rpc(name, args) { calls.push({ name, args }); return reply(name, args); } };
   const snapshots = { setAccount() {}, revision: () => 0, write: async () => {}, clear: async () => {}, read: async () => null };
-  const controller = createHomeFeedController(client, { owner: 'alice', rows: Array.from({ length: 20 }, (_, index) => row('seed-' + index)), mutedWords: [], error: null }, snapshots, undefined, undefined, memory);
+  const controller = createHomeFeedController(client, { owner: 'alice', rows: Array.from({ length: 20 }, (_, index) => row('seed-' + index)), mutedWords: [], error: null },
+    snapshots, undefined, undefined, memory, undefined, undefined, async () => []);
   const rootElement = { isConnected: true, dataset: { feedOwner: 'alice', feedMode: 'for_you' } };
   const { restoreHomeFeedScroll } = load('lib/homeFeedScroll.ts', {}, { window, document, performance: { now: () => now },
     setTimeout(callback, delay) { const id = ++nextId; timers.set(id, { callback, at: now + delay }); return id; },

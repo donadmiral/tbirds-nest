@@ -1,0 +1,18 @@
+{
+  "standard": "platinum-live-v2",
+  "registeredUsers": 5000000,
+  "otherRoomViewers": 100,
+  "averageVideoMbps": 1.8,
+  "headroom": 2,
+  "clipJobsPerMinute": 60,
+  "clipRenderP95Seconds": 30,
+  "peakRoomMessagesPerSecond": 20,
+  "otherRoomMessagesPerSecond": 1,
+  "stages": [
+    {"broadcasts": 25, "eventViewers": 2500},
+    {"broadcasts": 100, "eventViewers": 10000},
+    {"broadcasts": 250, "eventViewers": 25000},
+    {"broadcasts": 500, "eventViewers": 50000},
+    {"broadcasts": 1000, "eventViewers": 100000}
+  ]
+}

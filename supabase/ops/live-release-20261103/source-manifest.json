@@ -1,0 +1,38 @@
+{
+  "format": 1,
+  "units": [
+    {
+      "path": "supabase/migrations/20261103000609_live_portable_control_plane.sql",
+      "sha256": "3a26cbe1ef492639d46ad8b449a97b54d409c1214a7e8dc2119bda4e2328448f",
+      "bytes": 129313
+    },
+    {
+      "path": "supabase/migrations/20261103002857_live_clips_and_distribution.sql",
+      "sha256": "523f3b73ce796b3745fef9e26b3c07d8c5a10d6b9fa0a4c700a3314183dd7476",
+      "bytes": 75996
+    },
+    {
+      "path": "supabase/migrations/20261103002858_live_interactivity.sql",
+      "sha256": "128b789123e16420cdc4d4ce7e3e67019a72dbe6aca17596e28ca0bf0d5bf63b",
+      "bytes": 27830
+    },
+    {
+      "path": "supabase/migrations/20261103002832_live_clip_content_delivery.sql",
+      "sha256": "021a18082259213cbad8e1c7cdef79a46515ca4dea72ec745ea671e9133d1a91",
+      "bytes": 6605
+    },
+    {
+      "path": "supabase/migrations/20261103004609_live_foreign_key_indexes.sql",
+      "sha256": "297ec7993e3398a8197269592b47063a5be1b8cc9264c796dc471bb889c43833",
+      "bytes": 1277
+    },
+    {
+      "path": "supabase/migrations/20261103005625_live_retained_relationship_indexes.sql",
+      "sha256": "e42604e9f664d41d27259d8fbb64f4b637c808de9467961eb9ef75d5fcafa52a",
+      "bytes": 427
+    }
+  ],
+  "release_sha256": "4505fbe62f71d72980f6aa55f688562e9430305317c343f1aa92567007e09313",
+  "activation": "off",
+  "measured_capacity": false
+}

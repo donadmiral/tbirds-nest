@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "kind": "local-prepared-feed-regression",
+  "measuredAt": "2026-11-05T16:19:06.113Z",
+  "sourceCommit": "7f804a32ce66c8f7f817409f15f56ae913256f86",
+  "uncommittedFilesBoundBySha256": true,
+  "command": "PREPARED_FEED_NARROW=1 node --test supabase/tests/prepared-feed-db.test.cjs",
+  "engine": "PGlite PostgreSQL WASM",
+  "tests": 24,
+  "passed": 24,
+  "failed": 0,
+  "skipped": 0,
+  "exitCode": 0,
+  "durationMs": 44830.78476,
+  "sourceFiles": {
+    "supabase/migrations/20261105155522_prepared_frontier_final_proof.sql": "decb79252ed2609c4a4527d1eb1779843d25d3fc75cfbc243562372ec44c648c",
+    "supabase/migrations/20261105160752_prepared_mass_integer_seek.sql": "bbe3dbbdfdf941d30c1c8ec416c2ff942fca4f22d5f717893389dc120af80739",
+    "supabase/tests/prepared-feed-db.test.cjs": "4e3dfc6cec6836a88de2c98f59af6b765320fe92834e7499b665f06ca6779d50",
+    "supabase/tests/feed-scale-fixture.cjs": "471bbe4030a39d6fa56ce89b3cc9fa61785d70d6a3da4a817ef36e9b610b98e0",
+    "tools/performance/prepared-feed-load.cjs": "7ff3ebe691a42a12d31a66ac1a38efa6fb686d6bf90db523ba74336e870d4843",
+    ".github/workflows/capacity-foundation.yml": "33cce675c3ebd86856c6d58fa973bb7819435aa78f8191da90ab3fda7a92220a"
+  },
+  "nativePostgresExpandedGate": "pending",
+  "productionCapacityEstablished": false,
+  "limitations": [
+    "Correctness and query-plan regression evidence. This is not native PostgreSQL throughput or connection evidence.",
+    "The unchanged 250,000-post expanded workload must run in the isolated CI PostgreSQL container.",
+    "No production migration, feature flag, provider quota or budget changed."
+  ]
+}

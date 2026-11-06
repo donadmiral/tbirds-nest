@@ -1,0 +1,153 @@
+{
+  "checked_at": "2026-11-06 16:53:17 UTC",
+  "candidate": "79b5cd90e70e4eea6df34814796cb4ee8f21aa14",
+  "database_migration_sha256": "cfe1fe3d331cb2e97201165a02518dc92c465f8d5cfce2901912a40691c053c4",
+  "qa_worker": "dpl_6Pnzayat4pwR2VepSKhWQqsgdPVo",
+  "production_worker": "dpl_8WG5oST68Ju4LNGW7ppFPmYoErPT",
+  "verified_edge": [
+    {
+      "environment": "qa",
+      "slug": "media-broker",
+      "version": 5,
+      "bundle_sha256": "9a2762b01f872b8d493778a9c8bdab6e38bcba419e19783843b65abfca4c636a",
+      "source_bytes_match": true,
+      "verify_jwt_unchanged": true
+    },
+    {
+      "environment": "qa",
+      "slug": "media-content",
+      "version": 10,
+      "bundle_sha256": "0535d3f53b3d27506d57c3296bce24e6d9d42770db338b6b2789a65afb46eb7e",
+      "source_bytes_match": true,
+      "verify_jwt_unchanged": true
+    },
+    {
+      "environment": "production",
+      "slug": "media-broker",
+      "version": 11,
+      "bundle_sha256": "9a2762b01f872b8d493778a9c8bdab6e38bcba419e19783843b65abfca4c636a",
+      "source_bytes_match": true,
+      "verify_jwt_unchanged": true
+    },
+    {
+      "environment": "production",
+      "slug": "media-content",
+      "version": 11,
+      "bundle_sha256": "0535d3f53b3d27506d57c3296bce24e6d9d42770db338b6b2789a65afb46eb7e",
+      "source_bytes_match": true,
+      "verify_jwt_unchanged": true
+    }
+  ],
+  "database_guards": "Owner, current post binding, immutable source version, exact allowed filter recipe, explicit approval, positive derived object identity, active immutable publication lease, item/version/hash/size/enrollment limits, current ticket and same-post proof. Queries served through role-restricted RPCs. Other posters, HLS rollout gates and bucket access unchanged.",
+  "verification": {
+    "qa": {
+      "dispatch": {
+        "status": 200,
+        "timeout": false,
+        "response_shape": {
+          "bytes": "20934",
+          "error": null,
+          "state": "ready",
+          "width": "640",
+          "height": "360"
+        }
+      },
+      "results": [
+        {
+          "marker": true,
+          "attempts": 1,
+          "finished": true,
+          "hash_valid": true,
+          "jpeg_header": true,
+          "jpeg_trailer": true,
+          "recipe_matches": true,
+          "current_eligible": true,
+          "actual_jpeg_bytes": 20934,
+          "progressive_bytes": 937496,
+          "output_lease_matches": true,
+          "source_version_matches": true
+        }
+      ]
+    },
+    "qa_live_unauthorized_http": {
+      "poster": 403,
+      "compatible": 403
+    },
+    "production": {
+      "dispatch": {
+        "status": 200,
+        "timeout": false,
+        "response_shape": {
+          "bytes": "10985",
+          "error": null,
+          "state": "ready",
+          "width": "360",
+          "height": "640"
+        }
+      },
+      "results": [
+        {
+          "marker": true,
+          "attempts": 1,
+          "finished": true,
+          "hash_valid": true,
+          "jpeg_header": true,
+          "jpeg_trailer": true,
+          "recipe_matches": true,
+          "current_eligible": true,
+          "actual_jpeg_bytes": 10985,
+          "progressive_bytes": 8983741,
+          "output_lease_matches": true,
+          "source_version_matches": true
+        }
+      ]
+    },
+    "all_other_production_video_rows_unchanged": true,
+    "other_rows_count": 4,
+    "total_production_enrolled": 1,
+    "local_edge_tests": "34 passed including authorized HTTP 206 and post-storage revocation on the compatible path",
+    "local_worker_suite": "61 passed including real FFmpeg decoding, JPEG pixel/filter validation, bounds, immutable hash and broker authorization",
+    "local_database": "Dedicated PostgreSQL regression passed, including source replacement, changed recipe, ownership, sibling ticket refusal and erasure"
+  },
+  "scoped_advisors": {
+    "qa": {
+      "security": [
+        {
+          "name": "rls_enabled_no_policy",
+          "level": "INFO",
+          "object": null
+        }
+      ],
+      "performance": [
+        {
+          "name": "unindexed_foreign_keys",
+          "level": "INFO",
+          "object": null
+        }
+      ],
+      "health": []
+    },
+    "production": {
+      "security": [
+        {
+          "name": "rls_enabled_no_policy",
+          "level": "INFO",
+          "object": null
+        }
+      ],
+      "performance": [
+        {
+          "name": "unindexed_foreign_keys",
+          "level": "INFO",
+          "object": null
+        }
+      ],
+      "health": []
+    }
+  },
+  "limitations": [
+    "Original codec not measured; normalized fallback H.264/AAC output is from a verified current publication.",
+    "Two additional legacy rows missing coverUrl lacked physical owner and matching post binding; no server-generated cover was authorized for them.",
+    "QA HTTP canaries demonstrated live refusal; successful authenticated end-user viewing is separately checked on the live web app."
+  ]
+}

@@ -1,3 +1,4 @@
+import {usePostVideoRepresentation} from '../lib/usePostVideoRepresentation';
 import { postAspectRatio, type PostFrameRecipe } from '../../shared/postMediaEditing';
 import PostCaption from './PostCaption';
 /**
@@ -392,13 +393,14 @@ function VideoItem({
   }, []);
 
   const [captionTime,setCaptionTime] = useState(item.edit?.trimStart ?? 0);
-  const player = useVideoPlayer(item.url, p => {
+  const displayed=usePostVideoRepresentation(item.url,item.edit);
+  const player = useVideoPlayer(displayed.source||null, p => {
     p.loop = true;
     p.playbackRate = item.edit?.speed || 1;
     p.muted = !!item.edit?.muted;
     p.volume = item.edit?.muted ? 0 : 1.0;
     try { (p as any).timeUpdateEventInterval = 0.1; } catch {}
-  });
+  },displayed.original);
 
   useEffect(() => {
     if (isActive) player.play();
@@ -480,13 +482,14 @@ function CarouselVideoItem({
   }, []);
 
   const [captionTime,setCaptionTime] = useState(item.edit?.trimStart ?? 0);
-  const player = useVideoPlayer(item.url, p => {
+  const displayed=usePostVideoRepresentation(item.url,item.edit);
+  const player = useVideoPlayer(displayed.source||null, p => {
     p.loop = true;
     p.playbackRate = item.edit?.speed || 1;
     p.muted = !!item.edit?.muted;
     p.volume = item.edit?.muted ? 0 : 1.0;
     try { (p as any).timeUpdateEventInterval = 0.1; } catch {}
-  });
+  },displayed.original);
 
   useEffect(() => {
     if (isActive) player.play();

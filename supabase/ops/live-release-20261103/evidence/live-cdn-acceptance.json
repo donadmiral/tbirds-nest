@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "project_ref": "prlkikhckbifseosbukl",
+  "checked_at": "2026-11-03T05:06:32.943Z",
+  "fixture_session_id": "bea38e73-71f1-411d-ae0a-2a91974cea01",
+  "fixture_instance_id": "43168782-6130-4e5f-b56f-d66c341e9152",
+  "fixture_file_count": 5,
+  "acceptance_scope": "isolated_synthetic_cdn_delivery",
+  "provider_broadcast_verified": false,
+  "measured_capacity_verified": false,
+  "ok": true,
+  "passed": 15,
+  "total": 15,
+  "probes": [
+    {
+      "name": "signer_capability",
+      "ok": true,
+      "status": 200,
+      "elapsed_ms": 3021
+    },
+    {
+      "name": "hls_manifest_and_segments",
+      "ok": true,
+      "status": 200,
+      "elapsed_ms": 5907
+    },
+    {
+      "name": "segment_head",
+      "ok": true,
+      "status": 200,
+      "elapsed_ms": 31
+    },
+    {
+      "name": "segment_range",
+      "ok": true,
+      "status": 206,
+      "elapsed_ms": 77
+    },
+    {
+      "name": "authenticated_options",
+      "ok": true,
+      "status": 204,
+      "elapsed_ms": 2611
+    },
+    {
+      "name": "shared_cache_across_capabilities",
+      "ok": true,
+      "status": 200,
+      "elapsed_ms": 65
+    },
+    {
+      "name": "unsigned_denied",
+      "ok": true,
+      "status": 403,
+      "elapsed_ms": 11
+    },
+    {
+      "name": "bad_signature_denied",
+      "ok": true,
+      "status": 403,
+      "elapsed_ms": 9
+    },
+    {
+      "name": "expired_denied",
+      "ok": true,
+      "status": 403,
+      "elapsed_ms": 12
+    },
+    {
+      "name": "overlong_denied",
+      "ok": true,
+      "status": 403,
+      "elapsed_ms": 12
+    },
+    {
+      "name": "wrong_session_denied",
+      "ok": true,
+      "status": 403,
+      "elapsed_ms": 8
+    },
+    {
+      "name": "wrong_key_id_denied",
+      "ok": true,
+      "status": 403,
+      "elapsed_ms": 7
+    },
+    {
+      "name": "wrong_instance_scope_denied",
+      "ok": true,
+      "status": 403,
+      "elapsed_ms": 8
+    },
+    {
+      "name": "write_method_denied",
+      "ok": true,
+      "status": 403,
+      "elapsed_ms": 7
+    },
+    {
+      "name": "unauthenticated_s3_denied",
+      "ok": true,
+      "status": 403,
+      "elapsed_ms": 4284
+    }
+  ]
+}

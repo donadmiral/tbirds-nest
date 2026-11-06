@@ -106,6 +106,9 @@ function runtime({ platform = 'android', qa = false, env = {} } = {}) {
     if (name === './fixture-runtime.cjs') return { installFixtureRuntime(value) { assert.equal(value, fixture); runtimeInstalled = true; events.push('runtime'); } };
     if (name === './capture-boundary-trace.cjs') return require('../native/capture-boundary-trace.cjs');
     if (name === './navigation-timing.cjs') return require('../native/navigation-timing.cjs');
+    if (name === './input-diagnostics.cjs') return evaluate(source('tests/native/input-diagnostics.cjs'), 'tests/native/input-diagnostics.cjs', () => {
+      throw Error('The pure input observer must not load native modules during bootstrap.');
+    });
     if (name === './install-fixture-transport.cjs') return { installFixtureTransport(value) { assert.equal(value, fixture); transportInstalled = true; sandbox.fetch = fixture.fetch; events.push('transport'); } };
     if (name === '../../src/navigation/linking') {
       // Treat the first app dependency as auth-capable, so the QA bootstrap

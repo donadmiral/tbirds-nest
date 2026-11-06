@@ -1,0 +1,24 @@
+{
+  "checked_at": "2026-11-05T05:17:36.085735+00:00",
+  "environment": "production",
+  "master": {
+    "status": 200,
+    "bytes": 1354,
+    "hls": true
+  },
+  "variant": {
+    "status": 200,
+    "bytes": 521,
+    "hls": true
+  },
+  "segment": {
+    "status": 200,
+    "bytes": 109228,
+    "cache_control": null
+  },
+  "decode_exit": 0,
+  "invalid_ticket_status": 403,
+  "worker_source": "10569531d167c68a6274f67c2889d37a6f53473d",
+  "job_id": "259ef2b5-b924-4c5a-a8ce-e604435e63f0",
+  "scope": "One canonical production source, real HLS playlist and segment, independent decode. Not regional throughput or physical device playback."
+}

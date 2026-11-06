@@ -1,22 +1,34 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { Play, Pause, Volume2, VolumeX, RotateCcw, RotateCw, Maximize, Minimize, Eye, RectangleHorizontal } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { autoplayEnabled, dataSaverEnabled } from "@/lib/mediaPrefs";
 import { PLAYBACK_SPEEDS, playbackWindow, clampVideoTime, formatVideoTime } from "@/lib/videoPlayback";
 import { videoPreloads } from '@/lib/videoReadiness';
 import { getNavigationStore } from '@/lib/navigationCache';
-import { attachAdaptiveVideo } from '@/lib/adaptiveVideo';
+import { attachAdaptiveVideo, clearAdaptiveVideo, prefetchAdaptiveVideo } from '@/lib/adaptiveVideo';
+import { useVideoFrame } from '@/lib/videoFrames';
 
 import {PostSoundtrack} from './PostSoundtrack';
 import type {SoundtrackSelection} from '../../shared/soundtrack';
 import { PostCaption } from './PostCaption';
 import type { PostFrameRecipe } from '../../shared/postMediaEditing';
 import { applyPostPlayback, postPlaybackSettings } from '../../shared/postVoiceEffects';
+import { protectedPostVideo } from '../../shared/mediaDelivery';
+import { useBoundPostVideo } from '@/lib/useBoundPostVideo';
+import { imageDisplayIdentity } from '../../shared/imageDisplayIdentity';
 import { discoverFrame } from '../../shared/discover';
 
 let activeStop: (() => void) | null = null;
+const feedCandidates = new Set<() => void>();
+function offerFeedPlayback() {
+  // Observers on adjoining cards can fire in either order for the same scroll.
+  // Offer the free slot only after the current observer/cleanup batch finishes.
+  void Promise.resolve().then(() => {
+    for (const candidate of feedCandidates) { if (activeStop) break; candidate(); }
+  });
+}
 const PREF_KEY = "pc:video-prefs";
 function readPrefs(): { muted: boolean; speed: number } {
   try {
@@ -37,9 +49,9 @@ function remember(src: string, time: number) {
 const viewSession = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : String(Date.now());
 
 type WebVideo = HTMLVideoElement & { webkitEnterFullscreen?: () => void };
-export type PostMediaEditRecipe = PostFrameRecipe & { rotation?: number; flipX?: boolean; speed?:number|null; coverAt?:number|null; coverUrl?:string|null; soundtrack?:SoundtrackSelection|null; scale?: number; translateNX?: number; translateNY?: number; fit?: "cover" | "contain"; filterId?: string | null; filterAmt?: number; adjust?: { con?: number; hi?: number; sh?: number; grain?: number; bri?: number; warm?: number; tint?: number; sat?: number; fade?: number; vig?: number } | null; trimStart?: number | null; trimEnd?: number | null; muted?: boolean };
+export type PostMediaEditRecipe = PostFrameRecipe & { generatedPosterV1?: boolean; rotation?: number; flipX?: boolean; speed?:number|null; coverAt?:number|null; coverUrl?:string|null; thumbnail?:string|null; soundtrack?:SoundtrackSelection|null; scale?: number; translateNX?: number; translateNY?: number; fit?: "cover" | "contain"; filterId?: string | null; filterAmt?: number; adjust?: { con?: number; hi?: number; sh?: number; grain?: number; bri?: number; warm?: number; tint?: number; sat?: number; fade?: number; vig?: number } | null; trimStart?: number | null; trimEnd?: number | null; muted?: boolean };
 type Props = {
-  src: string; postId: string; viewsCount?: number | null;
+  src: string; postId: string; mediaId?: string; sourceVersion?: string; viewsCount?: number | null;
   width?: number; height?: number; onDims?: (w: number, h: number) => void;
   edit?: PostMediaEditRecipe | null; immersive?: boolean; onExpand?: () => void;
   fullFrame?: boolean;
@@ -47,10 +59,37 @@ type Props = {
 };
 
 export function VideoPlayer(props: Props) {
-  return <VideoPlayback key={props.src + ":" + props.postId} {...props} />;
+  const representations=protectedPostVideo(props.src,props.edit,process.env.NEXT_PUBLIC_SUPABASE_URL??'');
+  if(representations) return <BoundRepresentationPlayer {...props} representations={representations}/>;
+  return renderVideoPlayer(props);
+}
+function BoundRepresentationPlayer({representations,...props}:Props&{representations:{poster:string;compatible:string}}){
+  const allowed=useBoundPostVideo(props.src);const [failed,setFailed]=useState<string|null>(null);
+  const pending=useRef<{url:string;scope:string}|null>(null);
+  if(!allowed)return <div aria-label="Video unavailable"/>;
+  const nav=getNavigationStore(),scope=nav.getSnapshot().scope;
+  const choice=JSON.stringify([props.postId,props.mediaId,props.sourceVersion,imageDisplayIdentity(representations.compatible,process.env.NEXT_PUBLIC_SUPABASE_URL??'')]);
+  const compatible=failed!==choice;
+  // Grant renewal must not interrupt a working or manually paused original. Only an active delivery failure
+  // or the explicit Retry control can switch this mounted item back and forth. Each switch carries one intent.
+  const switchTo=(preferCompatible:boolean)=>{
+    if(!scope || scope!==nav.getSnapshot().scope)return;
+    pending.current={url:preferCompatible?representations.compatible:props.src,scope};
+    setFailed(preferCompatible?null:choice);
+  };
+  const src=compatible?representations.compatible:props.src;
+  const consumeIntent=()=>{const intent=pending.current;pending.current=null;return !!intent && intent.url===src && intent.scope===nav.getSnapshot().scope;};
+  return renderVideoPlayer({...props,src,poster:props.edit?.coverUrl||props.edit?.thumbnail||representations.poster},compatible?()=>switchTo(false):undefined,compatible?undefined:()=>switchTo(true),consumeIntent);
+}
+function renderVideoPlayer(props: Props,onRepresentationError?:()=>void,retryPreferred?:()=>void,consumeIntent?:()=>boolean) {
+  // Strip only a recognized first-party capability token from the view identity.
+  // Never send this identity as a request or use it to authorize a different object.
+  const identity = props.sourceVersion ? imageDisplayIdentity(props.src, process.env.NEXT_PUBLIC_SUPABASE_URL ?? '') : props.src;
+  const mediaKey = JSON.stringify([props.postId, props.mediaId, props.sourceVersion, identity]);
+  return <VideoPlayback key={mediaKey} mediaKey={mediaKey} onRepresentationError={onRepresentationError} retryPreferred={retryPreferred} consumeIntent={consumeIntent} {...props} />;
 }
 
-function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersive = false, fullFrame = false, edit = null, onExpand, allowPlayback = true, soundtrack=null,poster=null,mediaOverlay }: Props) {
+function VideoPlayback({ src: latestSource, onRepresentationError, retryPreferred, consumeIntent, mediaKey, postId, sourceVersion, viewsCount, width, height, onDims, immersive = false, fullFrame = false, edit = null, onExpand, allowPlayback = true, soundtrack=null,poster=null,mediaOverlay }: Props & { mediaKey: string; onRepresentationError?:()=>void; retryPreferred?:()=>void; consumeIntent?:()=>boolean }) {
   const ref = useRef<WebVideo | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const viewportRef = useRef<HTMLDivElement | null>(null);
@@ -62,8 +101,20 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
   const wantsPlayback = useRef(false);
   const warmLease = useRef<ReturnType<typeof videoPreloads.register> | null>(null);
   const [requested, setRequested] = useState(false);
+  const pausedByUser = useRef(false);
+  const [heldSource, setHeldSource] = useState(latestSource);
+  // An active decoder can finish with its current grant. The next load uses
+  // the new grant; a failure on the old grant can switch immediately.
+  const src = requested ? heldSource : latestSource;
+  if (!requested && heldSource !== latestSource) setHeldSource(latestSource);
+  const resumeRenewal = useRef(false);
   const [frameReady, setFrameReady] = useState(false);
   const [posterFailed, setPosterFailed] = useState(false);
+  // The still shown before the first frame: the stored cover, a live clip's poster, or, when the post has neither or
+  // the cover no longer loads, a frame the browser decodes from the video itself; never while the player is already
+  // fetching the same video for playback, and never under data saver.
+  const still = poster || edit?.coverUrl || edit?.thumbnail || null;
+  const decodedStill = useVideoFrame(!frameReady && !requested && (!still || posterFailed) ? src : null, edit?.coverAt ?? edit?.trimStart ?? undefined, sourceVersion);
   const frameReadyRef = useRef(false);
   const frameRequest = useRef<number | null>(null);
   const frameGeneration = useRef(0);
@@ -84,6 +135,8 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
   const [notice, setNotice] = useState("");
   const trimStart = edit?.trimStart;
   const trimEnd = edit?.trimEnd;
+  const playConfig = useRef({ src, trimStart, trimEnd });
+  useLayoutEffect(() => { playConfig.current = { src, trimStart, trimEnd }; }, [src, trimStart, trimEnd]);
   const range = playbackWindow(duration, trimStart, trimEnd);
   const elapsed = Math.max(0, Math.min(range.duration, time - range.start));
   const expanded = fs || immersive;
@@ -105,19 +158,24 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
   const stop = useCallback(function stopVideo() {
     playRequest.current += 1;
     wantsPlayback.current = false;
+    resumeRenewal.current = false;
     setRequested(false);
     warmLease.current?.activate(false);
     const v = ref.current;
-    if (v) { remember(src, v.currentTime); v.pause(); }
+    if (v) { remember(mediaKey, v.currentTime); v.pause(); }
     if (activeStop === stopVideo) activeStop = null;
     setPlaying(false);
     void reportDwell();
-  }, [reportDwell, src]);
+  }, [reportDwell, mediaKey]);
 
   const playNow = useCallback((explicit = false) => {
     const v = ref.current;
     if (!v || !allowPlayback || sessionRevoked.current || document.documentElement.dataset.platinumCallActive==='true') return;
+    if (!explicit && (pausedByUser.current || wantsPlayback.current || document.hidden)) return;
+    if (!explicit && !immersive && activeStop && activeStop !== stop) return;
     if (activeStop && activeStop !== stop) activeStop();
+    if (explicit) pausedByUser.current = false;
+    const { src, trimStart, trimEnd } = playConfig.current;
     activeStop = stop;
     wantsPlayback.current = true;
     setRequested(true);
@@ -129,7 +187,7 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
     const request = playRequest.current += 1;
     const bounds = playbackWindow(v.duration, trimStart, trimEnd);
     if (bounds.duration) {
-      const resume = v.ended ? bounds.start : positions.get(src) ?? v.currentTime;
+      const resume = v.ended ? bounds.start : positions.get(mediaKey) ?? v.currentTime;
       v.currentTime = clampVideoTime(resume >= bounds.end ? bounds.start : resume, bounds);
     }
     v.play().then(() => {
@@ -137,9 +195,23 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
       setNotice("");
     }, () => {
       if (request !== playRequest.current) return;
+      stop();
       if (explicit) setNotice("Playback could not start. Try playing again.");
     });
-  }, [allowPlayback, stop, src, trimStart, trimEnd]);
+  }, [allowPlayback, immersive, mediaKey, stop]);
+
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el || !allowPlayback || process.env.NEXT_PUBLIC_ADAPTIVE_MEDIA !== 'true' || typeof IntersectionObserver === 'undefined') return;
+    // Resolve capabilities farther ahead than the byte-buffer window. This
+    // warms HLS selection without allocating a decoder or fetching a segment.
+    const discovery = new IntersectionObserver(([entry]) => {
+      if (entry?.isIntersecting && !document.hidden && !dataSaverEnabled() && !sessionRevoked.current)
+        prefetchAdaptiveVideo(src);
+    }, { rootMargin: '200% 0px', threshold: 0 });
+    discovery.observe(el);
+    return () => discovery.disconnect();
+  }, [allowPlayback, src]);
 
   useEffect(() => {
     const el = wrapRef.current;
@@ -171,13 +243,21 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
     // play() promise started directly by the user's click (notably Data Saver).
     if (loadSource) {
       const attachment = attachAdaptiveVideo(v, src, { shouldPlay: () => wantsPlayback.current }); adaptiveAttachment.current = attachment;
+      if (resumeRenewal.current && wantsPlayback.current) {
+        resumeRenewal.current = false;
+        const request = playRequest.current;
+        attachment.ensure();
+        void v.play().catch(() => {
+          if (request === playRequest.current && wantsPlayback.current) { stop(); setFailed(true); }
+        });
+      }
       return () => { attachment.dispose(); if (adaptiveAttachment.current === attachment) adaptiveAttachment.current = null; };
     }
     frameGeneration.current++;
     if (frameRequest.current !== null) v.cancelVideoFrameCallback?.(frameRequest.current);
     frameRequest.current = null; frameReadyRef.current = false; setFrameReady(false);
     if (v.currentSrc || v.getAttribute('src')) { v.pause(); v.removeAttribute('src'); v.load(); }
-  }, [loadSource, src]);
+  }, [loadSource, src, stop]);
 
   useEffect(() => {
     if (!requested || frameReady) return;
@@ -190,7 +270,7 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
     return store.subscribe(() => {
       const next = store.getSnapshot();
       if (session.initialized && next.scope !== session.scope) {
-        sessionRevoked.current = true; positions.clear(); stop(); warmLease.current?.approach(null); setNearViewport(false);
+        sessionRevoked.current = true; clearAdaptiveVideo(); stop(); positions.clear(); warmLease.current?.approach(null); setNearViewport(false);
       }
       session = next;
     });
@@ -206,14 +286,27 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
     window.addEventListener("platinum:stop-media",stop);
     // Opening theater is an explicit viewing action. Feed playback follows preferences.
     if (immersive) playNow();
-    const io = typeof IntersectionObserver === "undefined" ? null : new IntersectionObserver(([entry]) => {
-      if (!entry || document.fullscreenElement === el || document.pictureInPictureElement === ref.current) return;
-      if (entry.intersectionRatio >= 0.6 && !document.hidden) {
-        if (!immersive && ref.current?.paused && autoplayEnabled() && !dataSaverEnabled()) playNow();
-      } else stop();
-    }, { threshold: [0, 0.6] });
-    io?.observe(el);
-    return () => { io?.disconnect(); document.removeEventListener("visibilitychange", outsidePage); window.removeEventListener("platinum:stop-media",stop); stop(); };
+    // The Discover viewer already supplies its active slide. Treating layout
+    // changes in that dialog as feed scrolls interrupted an intentional play.
+    let inAutoplayZone = false, disposed = false;
+    const candidate = () => {
+      if (!disposed && inAutoplayZone && !document.hidden && !activeStop && !document.fullscreenElement && !document.pictureInPictureElement
+        && ref.current?.paused && autoplayEnabled() && !dataSaverEnabled()) playNow();
+    };
+    const io = immersive || typeof IntersectionObserver === "undefined" ? null : new IntersectionObserver(([entry]) => {
+      if (disposed || !entry || document.fullscreenElement === el || document.pictureInPictureElement === ref.current) return;
+      inAutoplayZone = entry.intersectionRatio >= 0.6;
+      if (inAutoplayZone) candidate();
+      else if (entry.intersectionRatio <= 0.05 && wantsPlayback.current) { stop(); offerFeedPlayback(); }
+    }, { threshold: [0, 0.05, 0.6] });
+    if (io) { feedCandidates.add(candidate); io.observe(el); }
+    return () => {
+      disposed = true; feedCandidates.delete(candidate); io?.disconnect(); document.removeEventListener("visibilitychange", outsidePage);
+      window.removeEventListener("platinum:stop-media",stop);
+      const owned = activeStop === stop;
+      stop();
+      if (owned) offerFeedPlayback();
+    };
   }, [allowPlayback, immersive, playNow, stop]);
 
   useEffect(() => {
@@ -230,7 +323,15 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
     };
   }, []);
 
-  function togglePlay() { if (ref.current?.paused) playNow(true); else stop(); }
+  // Start only after this mount has installed its source ownership and session cleanup.
+  useEffect(()=>{
+    if(consumeIntent?.() && !document.hidden && !pausedByUser.current && !wantsPlayback.current)playNow(true);
+  },[consumeIntent,playNow]);
+
+  function togglePlay() {
+    if (ref.current?.paused) playNow(true);
+    else { pausedByUser.current = true; stop(); }
+  }
   async function togglePip() {
     const v = ref.current;
     if (!v || !pipAvailable) return;
@@ -255,7 +356,7 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
     const target = clampVideoTime(next, bounds);
     v.currentTime = target;
     setTime(target);
-    remember(src, target);
+    remember(mediaKey, target);
   }
   function seekBy(delta: number) { if (ref.current) seekTo(ref.current.currentTime + delta); }
   async function toggleFullscreen() {
@@ -361,14 +462,24 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
         onWaiting={waitForData}
         onStalled={waitForData}
         onPause={() => { clearStall(); setPlaying(false); void reportDwell(); }}
-        onEnded={() => { stop(); remember(src, range.start); }}
-        onError={() => { if (adaptiveAttachment.current?.recover()) return; stop(); setFailed(true); setNotice(""); }}
+        onEnded={() => { pausedByUser.current = true; stop(); remember(mediaKey, range.start); }}
+        onError={() => {
+          if (wantsPlayback.current && !sessionRevoked.current && src !== latestSource) {
+            remember(mediaKey, ref.current?.currentTime || positions.get(mediaKey) || 0);
+            resumeRenewal.current = true;
+            setHeldSource(latestSource);
+            return;
+          }
+          if (adaptiveAttachment.current?.recover()) return;
+          if(onRepresentationError && !sessionRevoked.current && wantsPlayback.current){onRepresentationError();return;}
+          stop(); setFailed(true); setNotice("");
+        }}
         onLoadedMetadata={() => {
           const v = ref.current;
           if (!v) return;
           setDuration(v.duration); setSourceSize({width:v.videoWidth,height:v.videoHeight}); setFailed(false); applyPostPlayback(v,edit,speed); v.volume=edit?.muted ? 0 : soundtrack?.originalVolume??1;
           const bounds = playbackWindow(v.duration, trimStart, trimEnd);
-          if (bounds.duration) { v.currentTime = clampVideoTime(positions.get(src) ?? bounds.start, bounds); setTime(v.currentTime); }
+          if (bounds.duration) { v.currentTime = clampVideoTime(positions.get(mediaKey) ?? bounds.start, bounds); setTime(v.currentTime); }
           setPipAvailable(!!document.pictureInPictureEnabled && typeof v.requestPictureInPicture === "function" && v.videoWidth > 0);
           if (v.videoWidth && v.videoHeight) onDims?.(v.videoWidth, v.videoHeight);
         }}
@@ -379,12 +490,14 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
           const bounds = playbackWindow(v.duration, trimStart, trimEnd);
           if (bounds.duration && v.currentTime < bounds.start) v.currentTime = bounds.start;
           if (trimEnd && bounds.duration && v.currentTime >= bounds.end && !v.paused) v.currentTime = bounds.start;
-          setTime(v.currentTime); remember(src, v.currentTime);
+          setTime(v.currentTime); remember(mediaKey, v.currentTime);
         }}
         className="block h-full w-full"
       />
       {!frameReady ? <div data-video-poster={src} aria-hidden="true" className="pointer-events-none absolute inset-0 flex items-center justify-center bg-[#0B1E3D]">
-        {!posterFailed && (poster || edit?.coverUrl) ? <img key={poster || edit?.coverUrl} src={poster || edit?.coverUrl || undefined} alt="" loading="lazy" decoding="async" onError={() => setPosterFailed(true)} style={{ objectFit: showFullFrame ? 'contain' : expanded ? 'cover' : edit?.fit || 'cover' }} className="h-full w-full" /> : <span className="text-sm text-white/80">Video</span>}
+        {!posterFailed && still ? <img key={still} src={still} alt="" loading="lazy" decoding="async" onError={() => setPosterFailed(true)} style={{ objectFit: showFullFrame ? 'contain' : expanded ? 'cover' : edit?.fit || 'cover' }} className="h-full w-full" />
+          : decodedStill.src ? <img key="decoded-still" src={decodedStill.src} alt="" decoding="async" data-video-frame="ready" style={{ objectFit: showFullFrame ? 'contain' : expanded ? 'cover' : edit?.fit || 'cover' }} className="h-full w-full" />
+          : <span className="text-sm text-white/80">Video</span>}
       </div> : null}
       {frameReady ? <>{mediaOverlay}<PostCaption captions={edit?.captions} time={time} /></> : null}
       </div>
@@ -392,7 +505,7 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
       {!playing && !failed && allowPlayback ? <button type="button" onClick={() => playNow(true)} aria-label="Play video" className={"absolute left-1/2 top-1/2 z-[5] flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-ink/70 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-pearl"}><Play size={24} /></button> : null}
       {failed ? <div role="status" className="absolute inset-x-3 top-3 z-10 rounded-xl bg-black/85 p-4 text-center text-sm text-white">
         <p>This video could not load. Check your connection or try again.</p>
-        <button type="button" className="mt-2 rounded-full border border-white/40 px-4 py-2" onClick={() => { setFailed(false); setNotice(""); ref.current?.load(); playNow(true); }}>Retry video</button>
+        <button type="button" className="mt-2 rounded-full border border-white/40 px-4 py-2" onClick={() => { if(!allowPlayback || sessionRevoked.current || document.hidden || document.documentElement.dataset.platinumCallActive==='true')return; if(retryPreferred){retryPreferred();return;} setFailed(false); setNotice(""); ref.current?.load(); playNow(true); }}>Retry video</button>
       </div> : null}
       {typeof viewsCount === "number" && viewsCount > 0 && !failed ? <span className="absolute left-2 top-2 flex items-center gap-1 rounded-md bg-ink/60 px-1.5 py-0.5 text-[11px] text-white"><Eye size={12} /> {viewsCount >= 1000 ? (viewsCount / 1000).toFixed(1).replace(/\.0$/, "") + "K" : viewsCount}</span> : null}
       <div className={expanded ? "relative flex shrink-0 flex-col gap-1 bg-[#0b0b0d] px-3 pb-3 pt-2" : "absolute inset-x-0 bottom-0 flex flex-col gap-1 bg-gradient-to-t from-black/90 to-transparent px-2 pb-1 pt-4 opacity-100 transition-opacity focus-within:opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus:opacity-100"} onClick={(e) => e.stopPropagation()}>

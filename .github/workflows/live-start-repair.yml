@@ -1,0 +1,102 @@
+name: Live start and scheduling acceptance
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/live-completion-20261102]
+    paths: [.github/workflows/live-start-repair.yml]
+permissions:
+  contents: read
+concurrency:
+  group: live-start-repair
+  cancel-in-progress: false
+jobs:
+  repair:
+    if: github.repository == 'donadmiral/tbirds-nest' && github.ref == 'refs/heads/codex/live-completion-20261102'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    outputs:
+      sha: ${{ steps.publish.outputs.sha }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: 22, cache: npm}
+      - name: Apply reviewed exact-preimage repairs
+        run: |
+          node tools/repair-live-start-flow.cjs
+          node tools/repair-live-start-guards.cjs
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Native form and service regression tests
+        run: node --test tests/live-ui-repair.test.cjs tests/live-setup.test.cjs tests/live-studio-events.test.cjs tests/live-native-contracts.test.cjs tests/live-native-clips.test.cjs
+      - name: Native TypeScript
+        run: npx tsc --noEmit --incremental false
+      - name: Install locked web and admin dependencies
+        run: |
+          npm ci --prefix web --ignore-scripts --no-audit --no-fund &
+          web_pid=$!
+          npm ci --prefix admin-web --ignore-scripts --no-audit --no-fund &
+          admin_pid=$!
+          wait "$web_pid"
+          wait "$admin_pid"
+      - name: Web and admin TypeScript
+        run: |
+          (cd web && npx tsc --noEmit --incremental false) &
+          web_pid=$!
+          (cd admin-web && npx tsc --noEmit --incremental false) &
+          admin_pid=$!
+          wait "$web_pid"
+          wait "$admin_pid"
+      - name: Web and admin Live service contracts
+        run: |
+          node --test web/tests/live-runtime.cjs web/tests/live-connections.cjs web/tests/live-search-history.cjs web/tests/live-optional-flows.cjs
+          node --test admin-web/tests/live-operations.cjs admin-web/tests/live-clips.cjs
+      - name: Browser start, schedule, preview and media lifecycle journeys
+        timeout-minutes: 4
+        run: |
+          cd web
+          npx playwright install --with-deps chromium
+          cd ..
+          node web/tests/browser/live-start-run.cjs
+      - name: Publish verified source and acceptance receipt
+        id: publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          branch=codex/live-completion-20261102
+          test "$(git ls-remote origin refs/heads/$branch | cut -f1)" = "$GITHUB_SHA"
+          git diff --check
+          evidence=supabase/ops/live-release-20261103/evidence/live-start-browser
+          mkdir -p "$evidence"
+          cp /tmp/pc-live-start-evidence/receipt.json "$evidence/receipt.json"
+          cp /tmp/pc-live-start-evidence/live-now-studio.png "$evidence/live-now-studio.png"
+          git add web/components/LiveSessionView.tsx web/components/LiveStudio.tsx src/screens/feed/LiveSessionScreen.tsx admin-web/components/LiveOperations.tsx tests/live-ui-repair.test.cjs "$evidence/receipt.json" "$evidence/live-now-studio.png"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'fix(live): verify immediate preview, scheduling and persistent studio across clients'
+          gh auth setup-git
+          git push origin HEAD:refs/heads/$branch
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "Verified source: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+          cat /tmp/pc-live-start-evidence/receipt.json >> "$GITHUB_STEP_SUMMARY"
+  qa-build:
+    needs: repair
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ needs.repair.outputs.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: 22, cache: npm}
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Build verified internal iPhone QA app
+        env:
+          GITHUB_SHA: ${{ needs.repair.outputs.sha }}
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          CI: '1'
+          EXPO_PUBLIC_APP_ENV: qa
+        run: node tools/build-live-qa.mjs

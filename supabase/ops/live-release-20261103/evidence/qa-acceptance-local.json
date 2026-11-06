@@ -1,0 +1,20 @@
+{
+  "result": "passed",
+  "passed_checks": 14,
+  "rollback_verified": true,
+  "synthetic_rows_remaining": 0,
+  "sql_sha256": "3e168d57d8acd455786b0e31f38a30638f673937b3460453bf8aca40d650fe8b",
+  "scope": "Local PGlite deployed production-schema fixture plus the exact live-release-20261103/release.sql; not a hosted result.",
+  "rollback_comparisons": [
+    "auth.users",
+    "auth.sessions",
+    "public.profiles",
+    "live_streams.sessions",
+    "live_streams.commands",
+    "live_streams.interaction_polls",
+    "live_streams.interaction_poll_votes"
+  ],
+  "transaction_local_success_count_cleared": true,
+  "credentials_or_passwords_created": false,
+  "hosted_calls": 0
+}

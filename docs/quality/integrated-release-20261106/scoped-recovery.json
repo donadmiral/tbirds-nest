@@ -1,0 +1,35 @@
+{
+  "source_commit": "61ca71b894008362e638e4a11cf33a962745c638",
+  "production_observation": "The real failing scoped request at 17:10:38 UTC timed out during initial authorization before Storage. No ETag mismatch was observed.",
+  "scope": "One complete-body transport-timeout retry shared by both fresh scoped proofs. Original 12s deadline, cancellation, session/object/lease/version checks preserved. No retry of refusals, application/HTTP errors or arbitrary RPCs.",
+  "focused_tests_passed": 52,
+  "qa_live": {
+    "ok": true,
+    "stage": "finished",
+    "poster": {
+      "ms": 1077,
+      "mime": "image/jpeg",
+      "bytes": 20934,
+      "valid": true,
+      "status": 200,
+      "contentRange": null
+    },
+    "cleaned": true,
+    "compatible": {
+      "ms": 1939,
+      "mime": "video/mp4",
+      "bytes": 32,
+      "valid": true,
+      "status": 206,
+      "contentRange": "bytes 0-31/937496"
+    },
+    "signStatus": 200
+  },
+  "qa_disposable_account_remaining": 0,
+  "qa_probe_restored_to_410": true,
+  "qa_media_version": 11,
+  "production_media_version": 12,
+  "source_files_verified": true,
+  "verify_jwt_unchanged": true,
+  "common_bundle_sha256": "17e17c5b80ba96eab61214b1c2f91d2069cb6aadf1bcc0f59170abb8d24d36ea"
+}

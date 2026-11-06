@@ -1,0 +1,216 @@
+{
+  "scope": "Platinum Discover cover / live chat, presence and guest-stage database release",
+  "local_database_tests": {
+    "passed": 24,
+    "failed": 0,
+    "skipped": 0
+  },
+  "database_function_bodies_match": true,
+  "database_checks": "Read-only independent records. No provider/live broadcast, physical-device or web UI acceptance is implied.",
+  "legacy_verified_before_release": {
+    "production_video_rows": 5,
+    "production_rows_lacking_coverUrl": 3,
+    "eligible_for_existing_live_clip_cover_backfill": 0,
+    "approved_general_poster_backfill": false
+  },
+  "environments": [
+    {
+      "migrations": [
+        {
+          "name": "live_chat_followers_only",
+          "version": "20261106153734"
+        },
+        {
+          "name": "live_guest_leave_and_removal",
+          "version": "20261106161933"
+        },
+        {
+          "name": "live_viewer_counts_job",
+          "version": "20261106153735"
+        },
+        {
+          "name": "video_posts_keep_their_cover",
+          "version": "20261106153733"
+        }
+      ],
+      "functions": [
+        {
+          "acl": "{postgres=X/postgres}",
+          "name": "live_streams.clip_publish_one",
+          "owner": "postgres",
+          "body_md5": "163c5b778d9972530a06c2110d394e77",
+          "configuration": [
+            "search_path=pg_catalog, public, pg_temp"
+          ],
+          "security_definer": true,
+          "catalog_excluding_body_md5": "f99f7ae024262fe463bd05969d8a9116"
+        },
+        {
+          "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+          "name": "live_streams.command",
+          "owner": "postgres",
+          "body_md5": "04126acdd3e14065b1672540d9fcd250",
+          "configuration": [
+            "search_path=\"\""
+          ],
+          "security_definer": true,
+          "catalog_excluding_body_md5": "b42fcdcc514faeffead27c91c1360d86"
+        },
+        {
+          "acl": "{postgres=X/postgres}",
+          "name": "live_streams.refresh_viewer_counts",
+          "owner": "postgres",
+          "body_md5": "a18cf6d9ceae1b048d1cb01d408ff583",
+          "configuration": [
+            "search_path=\"\""
+          ],
+          "security_definer": true,
+          "catalog_excluding_body_md5": "a93b4f09b8bfe801ac441659a213835c"
+        },
+        {
+          "acl": "{postgres=X/postgres,service_role=X/postgres}",
+          "name": "public.studio_publish_row",
+          "owner": "postgres",
+          "body_md5": "84024b21ab7f576facc6eb98fa1084d8",
+          "configuration": [
+            "search_path=public"
+          ],
+          "security_definer": true,
+          "catalog_excluding_body_md5": "ff6a0adab6d10e3cf4701153b851c65c"
+        }
+      ],
+      "cron": {
+        "name": "platinum-live-viewer-counts",
+        "active": true,
+        "schedule": "* * * * *",
+        "last_ended": "2026-11-06T16:24:00.184249+00:00",
+        "last_started": "2026-11-06T16:24:00.169318+00:00",
+        "last_recorded_status": "succeeded",
+        "matches_expected_command": true
+      },
+      "observed_at": "2026-11-06 16:24:11.226661+00",
+      "scoped_advisors": {
+        "health": {
+          "pre_count": 0,
+          "post_count": 0,
+          "added": [],
+          "unchanged": []
+        },
+        "security": {
+          "pre_count": 0,
+          "post_count": 0,
+          "added": [],
+          "unchanged": []
+        },
+        "performance": {
+          "pre_count": 0,
+          "post_count": 0,
+          "added": [],
+          "unchanged": []
+        }
+      },
+      "environment": "qa",
+      "preexisting_permissions_and_settings_retained": true,
+      "next_run": "Every minute at the next UTC minute boundary; cron.job does not store a predicted next timestamp."
+    },
+    {
+      "migrations": [
+        {
+          "name": "live_chat_followers_only",
+          "version": "20261106160438"
+        },
+        {
+          "name": "live_guest_leave_and_removal",
+          "version": "20261106162238"
+        },
+        {
+          "name": "live_viewer_counts_job",
+          "version": "20261106160440"
+        },
+        {
+          "name": "video_posts_keep_their_cover",
+          "version": "20261106160436"
+        }
+      ],
+      "functions": [
+        {
+          "acl": "{postgres=X/postgres}",
+          "name": "live_streams.clip_publish_one",
+          "owner": "postgres",
+          "body_md5": "163c5b778d9972530a06c2110d394e77",
+          "configuration": [
+            "search_path=pg_catalog, public, pg_temp"
+          ],
+          "security_definer": true,
+          "catalog_excluding_body_md5": "bb5526ecf1a80ac66f25d8119d7df5da"
+        },
+        {
+          "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+          "name": "live_streams.command",
+          "owner": "postgres",
+          "body_md5": "04126acdd3e14065b1672540d9fcd250",
+          "configuration": [
+            "search_path=\"\""
+          ],
+          "security_definer": true,
+          "catalog_excluding_body_md5": "c7d20580174d92091acc31a6348d1d7e"
+        },
+        {
+          "acl": "{postgres=X/postgres}",
+          "name": "live_streams.refresh_viewer_counts",
+          "owner": "postgres",
+          "body_md5": "a18cf6d9ceae1b048d1cb01d408ff583",
+          "configuration": [
+            "search_path=\"\""
+          ],
+          "security_definer": true,
+          "catalog_excluding_body_md5": "cf55023b19e6fcc4eb23865afef75a81"
+        },
+        {
+          "acl": "{postgres=X/postgres,service_role=X/postgres}",
+          "name": "public.studio_publish_row",
+          "owner": "postgres",
+          "body_md5": "84024b21ab7f576facc6eb98fa1084d8",
+          "configuration": [
+            "search_path=public"
+          ],
+          "security_definer": true,
+          "catalog_excluding_body_md5": "cc7ca5dbc54d5f66868b057f25def139"
+        }
+      ],
+      "cron": {
+        "name": "platinum-live-viewer-counts",
+        "active": true,
+        "schedule": "* * * * *",
+        "last_ended": "2026-11-06T16:24:00.294413+00:00",
+        "last_started": "2026-11-06T16:24:00.231471+00:00",
+        "last_recorded_status": "succeeded",
+        "matches_expected_command": true
+      },
+      "observed_at": "2026-11-06 16:24:14.885863+00",
+      "scoped_advisors": {
+        "health": {
+          "pre_count": 0,
+          "post_count": 0,
+          "added": [],
+          "unchanged": []
+        },
+        "security": {
+          "pre_count": 0,
+          "post_count": 0,
+          "added": [],
+          "unchanged": []
+        },
+        "performance": {
+          "pre_count": 0,
+          "post_count": 0,
+          "added": [],
+          "unchanged": []
+        }
+      },
+      "environment": "production",
+      "preexisting_permissions_and_settings_retained": true,
+      "next_run": "Every minute at the next UTC minute boundary; cron.job does not store a predicted next timestamp."
+    }
+  ]
+}

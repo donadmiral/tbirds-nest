@@ -1,0 +1,147 @@
+{
+  "capturedAt": "2026-11-05T19:30:28.196Z",
+  "run": {
+    "run": {
+      "arn": "arn:aws:devicefarm:us-west-2:481552727043:run:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/5e9ac2ed-7dac-47db-b033-4cbee2c273af",
+      "name": "Platinum 1aa2b52 stable feed cold recovery",
+      "type": "APPIUM_PYTHON",
+      "platform": "ANDROID_APP",
+      "created": "2026-11-05T19:19:12.856000+00:00",
+      "status": "COMPLETED",
+      "result": "PASSED",
+      "started": "2026-11-05T19:19:12.856000+00:00",
+      "stopped": "2026-11-05T19:23:14.001000+00:00",
+      "counters": {
+        "total": 3,
+        "passed": 3,
+        "failed": 0,
+        "warned": 0,
+        "errored": 0,
+        "stopped": 0,
+        "skipped": 0
+      },
+      "totalJobs": 1,
+      "completedJobs": 1,
+      "billingMethod": "METERED",
+      "deviceMinutes": {
+        "total": 2.97,
+        "metered": 2.61,
+        "unmetered": 0
+      },
+      "appUpload": "arn:aws:devicefarm:us-west-2:481552727043:upload:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/2b5d50cf-22d5-48d9-90e3-e4afc0e53e33",
+      "jobTimeoutMinutes": 10,
+      "radios": {
+        "wifi": true,
+        "bluetooth": false,
+        "nfc": true,
+        "gps": true
+      },
+      "skipAppResign": true,
+      "testSpecArn": "arn:aws:devicefarm:us-west-2:481552727043:upload:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/91dc3d2a-1247-44a0-ab1f-b338f8cf983d",
+      "deviceSelectionResult": {
+        "filters": [
+          {
+            "attribute": "ARN",
+            "operator": "EQUALS",
+            "values": [
+              "arn:aws:devicefarm:us-west-2::device:49DF63F491EE48C1B5B3944104705D62"
+            ]
+          }
+        ],
+        "matchedDevicesCount": 1,
+        "maxDevices": 1
+      },
+      "insightsTypes": [
+        "TEST_REPORT"
+      ],
+      "insights": {
+        "status": "COMPLETED",
+        "jobReport": {
+          "message": "Results: 1 Executed | 1 passed, Median job duration: 178.34 seconds, Average job duration: 178.34 seconds.",
+          "metrics": {
+            "jobsTotal": 1,
+            "jobsPassed": 1,
+            "jobsFailed": 0,
+            "jobsSkipped": 0,
+            "jobsErrored": 0,
+            "jobsStopped": 0,
+            "jobsPassedPercentage": 100,
+            "totalJobExecutionDurationSeconds": 178.34,
+            "averageJobExecutionDurationSeconds": 178.34,
+            "medianJobExecutionDurationSeconds": 178.34
+          }
+        }
+      }
+    }
+  },
+  "suites": {
+    "suites": [
+      {
+        "arn": "arn:aws:devicefarm:us-west-2:481552727043:suite:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/5e9ac2ed-7dac-47db-b033-4cbee2c273af/00000/00000",
+        "name": "Setup Suite",
+        "created": "2026-11-05T19:19:21.146000+00:00",
+        "status": "COMPLETED",
+        "result": "PASSED",
+        "counters": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0,
+          "warned": 0,
+          "errored": 0,
+          "stopped": 0,
+          "skipped": 0
+        },
+        "message": "Successful test lifecycle of Setup Test",
+        "deviceMinutes": {
+          "total": 0.28,
+          "metered": 0.09,
+          "unmetered": 0
+        }
+      },
+      {
+        "arn": "arn:aws:devicefarm:us-west-2:481552727043:suite:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/5e9ac2ed-7dac-47db-b033-4cbee2c273af/00000/00001",
+        "name": "Tests Suite",
+        "created": "2026-11-05T19:19:21.167000+00:00",
+        "status": "COMPLETED",
+        "result": "PASSED",
+        "counters": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0,
+          "warned": 0,
+          "errored": 0,
+          "stopped": 0,
+          "skipped": 0
+        },
+        "message": "Tests passed",
+        "deviceMinutes": {
+          "total": 2.52,
+          "metered": 2.52,
+          "unmetered": 0
+        }
+      },
+      {
+        "arn": "arn:aws:devicefarm:us-west-2:481552727043:suite:fdaa717f-3d4f-42f7-870e-c0739d4edc6c/5e9ac2ed-7dac-47db-b033-4cbee2c273af/00000/00002",
+        "name": "Teardown Suite",
+        "created": "2026-11-05T19:19:21.188000+00:00",
+        "status": "COMPLETED",
+        "result": "PASSED",
+        "counters": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0,
+          "warned": 0,
+          "errored": 0,
+          "stopped": 0,
+          "skipped": 0
+        },
+        "message": "Successful test lifecycle of Teardown Test",
+        "deviceMinutes": {
+          "total": 0.17,
+          "metered": 0,
+          "unmetered": 0
+        }
+      }
+    ]
+  }
+}

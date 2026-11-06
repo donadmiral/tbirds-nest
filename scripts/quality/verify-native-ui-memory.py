@@ -15,6 +15,7 @@ import subprocess
 import sys
 
 root = Path(sys.argv[1] if len(sys.argv) > 1 else 'native-ui-logs/memory-capture')
+expected_platform = sys.argv[2] if len(sys.argv) > 2 else None
 receipt = json.loads((root / 'receipt.json').read_text())
 assert receipt['version'] == 1 and receipt['mode'] == 'full-production-memory-capture'
 assert receipt['networkForwarded'] is False and receipt['nativeMemoryVersion'] == 1
@@ -37,12 +38,30 @@ def verified(item):
     assert len(data) == item['bytes'] and hashlib.sha256(data).hexdigest() == item['sha256'], name
     return file
 
+def verify_capture_geometry(data, environment, platform):
+    """Bind raw PNG pixels to the native scale receipt, independently of the PNG."""
+    assert platform in ('ios', 'android'), 'Require the native runner platform'
+    assert type(environment) is dict and environment.get('platform') == platform, 'Capture platform does not match its native runner'
+    scale = environment.get('pixelRatio')
+    assert type(scale) in (int, float) and math.isfinite(scale) and scale > 0, 'Require the independently recorded native pixel ratio'
+    # Installed view-shot uses a device-scaled UIKit point context on iOS.
+    # Android instead resizes its bitmap to the requested exact pixel dimensions.
+    if platform == 'ios':
+        assert scale in (1, 2, 3), 'Require a bounded supported iOS screen scale'
+        expected = (720 * int(scale), 1280 * int(scale))
+    else:
+        expected = (720, 1280)
+    assert len(data) >= 24 and data[:8] == b'\x89PNG\r\n\x1a\n', 'Require a captured PNG'
+    actual = struct.unpack('>II', data[16:24])
+    assert actual == expected, ('Capture pixels must match the independent native scale', actual, expected)
+    return {'platform': platform, 'pixelRatio': scale, 'width': actual[0], 'height': actual[1]}
+
 movie = verified(complete['movie'])
 captures = complete['captures']
+capture_geometry = None
 for capture in captures:
     data = verified(capture).read_bytes()
-    assert data[:8] == b'\x89PNG\r\n\x1a\n'
-    assert struct.unpack('>II', data[16:24]) == (720, 1280), capture
+    capture_geometry = verify_capture_geometry(data, complete.get('captureEnvironment'), expected_platform)
 assert len(captures) == 12, 'Five backgrounds and seven bounded artwork captures must be retained'
 scenes = [capture for capture in captures if capture['layer'] == 'background']
 assert len(scenes) == 5
@@ -134,6 +153,7 @@ def green_count(data):
 
 measurements = {'duration': duration, 'expectedDuration': expected_duration,
     'geometry': geometry,
+    'captureGeometry': capture_geometry,
     'decodedFrames': len(times), 'maximumFrameGap': max(b - a for a, b in zip(times, times[1:])),
     'captures': len(captures), 'scenes': []}
 clock = 0

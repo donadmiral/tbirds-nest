@@ -1,4 +1,4 @@
-const BUCKETS = ['post-media', 'story-media', 'media', 'chat-media', 'chat-files'];
+const BUCKETS = ['post-media', 'story-media', 'media', 'chat-media', 'chat-files', 'live-clips'];
 export function mediaDeliveryUrl(base: string, bucket: string, path: string, token: string): string {
   return `${new URL(base).origin}/functions/v1/media-content/${encodeURIComponent(bucket)}/${path.split('/').map(encodeURIComponent).join('/')}?token=${encodeURIComponent(token)}`;
 }
@@ -17,6 +17,18 @@ export function isMediaDeliveryCapability(value: string, base: string): boolean 
   return !!mediaDeliveryObject(value, base) && /^[0-9a-f]{64}$/.test(new URL(value).searchParams.get('token') || '');
 }
 export function privateImageCachePolicy(value?: string | null): 'none' | 'memory-disk' {
-  return value && /\/(?:storage\/v1\/(?:object|render\/image)\/(?:sign|authenticated)\/(?:post-media|story-media|media|chat-media|chat-files)|functions\/v1\/media-content)\/|\/functions\/v1\/limited-media-file(?:[/?]|$)/.test(value)
+  if (value?.startsWith('data:image/')) return 'none';
+  return value && /\/(?:storage\/v1\/(?:object|render\/image)\/(?:sign|authenticated)\/(?:post-media|story-media|media|chat-media|chat-files|live-clips)|functions\/v1\/media-content)\/|\/functions\/v1\/limited-media-file(?:[/?]|$)/.test(value)
     ? 'none' : 'memory-disk';
+}
+
+/** Display-time siblings of one exact, authenticated post-video capability. Never persist these derived URLs. */
+export function protectedPostVideo(source: unknown, edit: unknown, base:string): { poster:string; compatible:string } | null {
+  if(typeof source!=='string'||!edit||typeof edit!=='object'||!Object.prototype.hasOwnProperty.call(edit,'generatedPosterV1')||(edit as {generatedPosterV1?:unknown}).generatedPosterV1!==true)return null;
+  try {
+    const origin=new URL(base),u=new URL(source);if(origin.protocol!=='https:'||origin.username||origin.password||origin.search||origin.hash||origin.pathname!=='/'||u.origin!==origin.origin)return null;
+    const token=/^\?token=([a-f0-9]{64})$/.exec(u.search)?.[1],object=mediaDeliveryObject(source,base);
+    if(!token||!object||object.bucket!=='post-media'||source!==mediaDeliveryUrl(origin.origin,object.bucket,object.path,token))return null;
+    return {poster:source+'&representation=poster',compatible:source+'&representation=compatible'};
+  }catch{return null;}
 }

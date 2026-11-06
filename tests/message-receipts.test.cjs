@@ -11,6 +11,22 @@ function compile(source, globals = {}) {
   return module.exports;
 }
 const receipts = compile(fs.readFileSync(path.join(root, 'shared/messageReceipts.ts'),'utf8'));
+test('group seen summary uses shared watermarks and resets immediately for a newer message', () => {
+  const rows = [
+    { user_id: 'me', last_read_at: '2026-11-05T12:02:00Z' },
+    { user_id: 'one', last_read_at: '2026-11-05T12:01:00Z' },
+    { user_id: 'two', last_read_at: '2026-11-05T12:00:00Z' },
+    { user_id: 'three', last_read_at: null },
+    { user_id: 'one', last_read_at: '2026-11-05T12:01:00Z' },
+  ];
+  const old = { sender_id: 'me', created_at: '2026-11-05T12:00:30Z' };
+  assert.deepEqual(Array.from(receipts.groupReadersForMessage(rows, old, 'me')), ['one']);
+  assert.deepEqual(Array.from(receipts.groupReadersForMessage(rows, { ...old, created_at: '2026-11-05T12:01:30Z' }, 'me')), []);
+  for (const message of [undefined, { ...old, sender_id: 'one' }, { ...old, created_at: 'bad timestamp' }]) {
+    assert.deepEqual(Array.from(receipts.groupReadersForMessage(rows, message, 'me')), []);
+  }
+  assert.deepEqual(Array.from(receipts.groupReadersForMessage(rows, old, null)), []);
+});
 function nativeRead(globals) {
   const source = fs.readFileSync(path.join(root,'src/screens/messages/ChatScreen.tsx'),'utf8');
   const ast = ts.createSourceFile('chat.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);

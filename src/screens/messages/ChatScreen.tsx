@@ -55,6 +55,7 @@ import VoiceNote from '../../components/VoiceNote';
 import { ShareDetailsSheet } from '../../components/messages/ShareDetailsSheet';
 import { CounterOfferDialog } from '../../components/messages/CounterOfferDialog';
 import { parseChatAttachmentCard, attachmentCardText, attachmentCardLinks } from '../../../shared/chatAttachmentCards';
+import { PrivateChatVideo } from "../../components/messages/PrivateChatVideo";
 import { PrivateMediaViewer } from '../../components/messages/PrivateMediaViewer';
 import PaymentBubble, { ChatPayment } from '../../components/PaymentBubble';
 import ChatInfoSections from '../../components/ChatInfoSections';
@@ -68,8 +69,10 @@ import { canForwardMessage } from '../../../shared/messageContent';
 import { MESSAGE_PAGE_SIZE, olderMessageFilter, mergeMessagePage, type MessageCursor } from '../../../shared/messageHistory';
 import { createThreadWindow, type ThreadWindow, type ThreadSnapshot } from '../../../shared/threadWindow';
 import { retainRecord } from '../../../shared/retainedMaps';
-import { acknowledgeConversationRead, canMarkConversationRead } from '../../../shared/messageReceipts';
+import { acknowledgeConversationRead, canMarkConversationRead, groupReadersForMessage, type GroupReadWatermark } from '../../../shared/messageReceipts';
 import { createTypingActivity, type TypingRow } from '../../../shared/typingActivity';
+import { createRecoveryReader } from '../../../shared/recoveryReader';
+import { isReadAccessDenied } from '../../../shared/readContinuity';
 import { parseStoryMessageReference } from '../../../shared/storyMessageReference';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) { UIManager.setLayoutAnimationEnabledExperimental(true); }
@@ -529,24 +532,38 @@ export default function ChatScreen() {
   const textSendPending = useRef(false);
   const [otherTyping, setOtherTyping] = useState(false);
   const [typingUserId, setTypingUserId] = useState<string | null>(null);
-  const [seenByNames, setSeenByNames] = useState<string[]>([]);
-  const [memberReads, setMemberReads] = useState<any[]>([]);
+  const receiptScope = `${navigationScope() || ''}:${session?.user.id || ''}:${currentUserId || ''}:${conversationId || ''}`;
+  const receiptScopeRef = useRef(receiptScope); receiptScopeRef.current = receiptScope;
+  const [receiptState, setReceiptState] = useState<{ scope: string; rows: GroupReadWatermark[] }>({ scope: receiptScope, rows: [] });
+  const memberReads = receiptState.scope === receiptScope ? receiptState.rows : [];
+  const seenByNames = useMemo(() => isGroup
+    ? groupReadersForMessage(memberReads, messages[0], currentUserId) : [],
+  [isGroup, memberReads, messages, currentUserId]);
   useEffect(() => {
-    if (!isGroup || !conversationId || !currentUserId) { setMemberReads([]); return; }
+    if (!isGroup || !conversationId || !currentUserId || !focused) return;
     let live = true;
-    const pull = async () => {
-      try {
-        const { data } = await supabase.from('conversation_members')
-          .select('user_id, last_read_at')
-          .eq('conversation_id', conversationId)
-          .neq('user_id', currentUserId);
-        if (live && data) setMemberReads(data);
-      } catch {}
-    };
-    pull();
-    const iv = setInterval(pull, 6000);
-    return () => { live = false; clearInterval(iv); };
-  }, [isGroup, conversationId, currentUserId]);
+    const reader = createRecoveryReader({
+      active: AppState.currentState === 'active', intervalMs: 6000,
+      read: async signal => {
+        const current = () => live && !signal.aborted && receiptScopeRef.current === receiptScope;
+        try {
+          const { data, error } = await supabase.from('conversation_members')
+            .select('user_id, last_read_at')
+            .eq('conversation_id', conversationId)
+            .neq('user_id', currentUserId).abortSignal(signal);
+          if (error) throw error;
+          if (!Array.isArray(data) || data.some(row => typeof row?.user_id !== 'string')) throw new Error('Group read status could not be verified.');
+          if (current()) setReceiptState({ scope: receiptScope, rows: data });
+        } catch (error) {
+          if (current() && isReadAccessDenied(error)) setReceiptState({ scope: receiptScope, rows: [] });
+          throw error;
+        }
+      },
+    });
+    const appState = AppState.addEventListener('change', state => reader.setActive(state === 'active'));
+    reader.refresh();
+    return () => { live = false; reader.dispose(); appState.remove(); };
+  }, [isGroup, conversationId, currentUserId, focused, receiptScope]);
   const [seenSheet, setSeenSheet] = useState<{ msg: any; rows: { name: string; avatar: string | null; seenAt: string | null }[] } | null>(null);
   const [lastStatus, setLastStatus] = useState<OutgoingStatus>(null);
 
@@ -578,7 +595,7 @@ export default function ChatScreen() {
   const editPending = useRef(false);
   const pinPending = useRef(false);
   const forwardPending = useRef(false);
-  const [fullscreenVideo, setFullscreenVideo] = useState<string | null>(null);
+  const [fullscreenVideo, setFullscreenVideo] = useState<{ uri: string; messageId: string } | null>(null);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [starredIds, setStarredIds] = useState<Set<string>>(new Set());
   const [savingToDevice, setSavingToDevice] = useState(false);
@@ -1223,33 +1240,6 @@ useEffect(() => {
       });
     } catch (e: any) { setLiveGroupCall(null); Alert.alert('Could not join', e?.message || 'The call may have ended.'); }
   }, [liveGroupCall, conversationId, chatTitle]);
-
-  useEffect(() => {
-    if (!isGroup || !conversationId || !currentUserId) return;
-    let live = true;
-    const check = async () => {
-      try {
-        const newest = messagesRef.current?.[0];
-        if (!newest || newest.sender_id !== currentUserId || !newest.created_at) {
-          if (live) setSeenByNames(prev => prev.length ? [] : prev);
-          return;
-        }
-        const { data } = await supabase
-          .from('conversation_members')
-          .select('user_id, last_read_at')
-          .eq('conversation_id', conversationId)
-          .neq('user_id', currentUserId)
-          .gt('last_read_at', newest.created_at);
-        if (!live) return;
-        const names: string[] = (data || []).map((r: any) => String(r.user_id));
-        setSeenByNames(prev =>
-          prev.length === names.length && prev.every((n, i) => n === names[i]) ? prev : names);
-      } catch {}
-    };
-    check();
-    const iv = setInterval(check, 5000);
-    return () => { live = false; clearInterval(iv); };
-  }, [isGroup, conversationId, currentUserId]);
 
 const openSeenInfo = useCallback(async (msg: any) => {
     if (!conversationId || !msg?.created_at) return;
@@ -2113,7 +2103,7 @@ const pickAndSendDocument = useCallback(async () => {
               ) : null}
               {msg.media_type === 'video' && msg.media_url && !msg.view_limit ? (
                 <TouchableOpacity style={[s.videoThumb, { width: MSG_IMG_MAX_W, height: MSG_VID_H }]}
-                  activeOpacity={0.85} onPress={() => setFullscreenVideo(msg.media_url!)}
+                  activeOpacity={0.85} onPress={() => setFullscreenVideo({ uri: msg.media_url!, messageId: msg.id })}
                   onLongPress={() => setSelectedMsg(msg)}>
                   {msg.thumbnail_url ? (
                     <ExpoImage source={{ uri: msg.thumbnail_url }} style={StyleSheet.absoluteFillObject} contentFit="cover" />
@@ -2225,7 +2215,7 @@ const pickAndSendDocument = useCallback(async () => {
               setShowInfoModal(false);
               setTimeout(() => {
                 if(scope !== attachmentScopeRef.current || !mountedRef.current) return;
-                if (m.media_type === 'video') setFullscreenVideo(m.media_url);
+                if (m.media_type === 'video') setFullscreenVideo({ uri: m.media_url, messageId: m.id });
                 else setFullscreenImg(m.media_url);
               }, 250);
             }}>
@@ -3045,7 +3035,7 @@ const pickAndSendDocument = useCallback(async () => {
         const scope=attachmentScope; if(attachmentScopeRef.current!==scope || useAuthStore.getState().session?.user.id !== session?.user.id)return false;
         return doSend(attachmentCardText(card),JSON.stringify(card),'link');
       }}/>}
-      {privateMedia && privateMedia.userId === session?.user.id && privateMedia.scope === attachmentScope && <PrivateMediaViewer key={privateMedia.userId+':'+privateMedia.id} messageId={privateMedia.id} userId={privateMedia.userId}
+      {focused && privateMedia && privateMedia.userId === session?.user.id && privateMedia.scope === attachmentScope && <PrivateMediaViewer key={privateMedia.userId+':'+privateMedia.id} messageId={privateMedia.id} userId={privateMedia.userId}
         onClose={() => setPrivateMedia(current => current?.id === privateMedia.id && current?.userId === privateMedia.userId && current?.scope === privateMedia.scope ? null : current)} onConsumed={remaining => { if (remaining <= 0 && attachmentScopeRef.current === privateMedia.scope) setViewedOutIds(prev => new Set(prev).add(privateMedia.id)); }} />}
       <Modal visible={!!fullscreenImg} transparent animationType="fade" onRequestClose={() => setFullscreenImg(null)}>
         <View style={s.fullscreenRoot}>
@@ -3091,14 +3081,14 @@ const pickAndSendDocument = useCallback(async () => {
           <TouchableOpacity style={s.fullscreenClose} onPress={() => setFullscreenVideo(null)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
             <Feather name="x" size={24} color="#FFF" />
           </TouchableOpacity>
-          {fullscreenVideo && <VideoPlayer uri={fullscreenVideo} width={SCREEN_W} height={SCREEN_W * 0.75} fullscreen />}
+          {fullscreenVideo && session?.user.id && <PrivateChatVideo key={fullscreenVideo.messageId} messageId={fullscreenVideo.messageId} userId={session.user.id} uri={fullscreenVideo.uri} active={focused} style={{ width: SCREEN_W, flex: 1 }} onClose={() => setFullscreenVideo(null)} />}
           {fullscreenVideo && (
             <View style={s.fullscreenActions}>
-              <TouchableOpacity style={s.fsActionBtn} onPress={() => saveMediaToDevice(fullscreenVideo, 'video')} disabled={savingToDevice} activeOpacity={0.7}>
+              <TouchableOpacity style={s.fsActionBtn} onPress={() => saveMediaToDevice(fullscreenVideo.uri, 'video')} disabled={savingToDevice} activeOpacity={0.7}>
                 {savingToDevice ? <ActivityIndicator color="#FFF" size={14} /> : <Feather name="download" size={16} color="#FFF" />}
                 <Text style={s.fsActionTxt}>{savingToDevice ? 'Saving...' : 'Save'}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={s.fsActionBtn} onPress={() => Share.share({ message: fullscreenVideo })} activeOpacity={0.7}>
+              <TouchableOpacity style={s.fsActionBtn} onPress={() => Share.share({ message: fullscreenVideo.uri })} activeOpacity={0.7}>
                 <Feather name="share" size={16} color="#FFF" />
                 <Text style={s.fsActionTxt}>Share</Text>
               </TouchableOpacity>

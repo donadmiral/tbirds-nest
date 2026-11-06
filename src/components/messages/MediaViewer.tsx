@@ -9,7 +9,9 @@ import { themedSheet } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, Modal, Pressable, FlatList, Dimensions, ActivityIndicator, StatusBar, Alert, Share, BackHandler } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
-import { VideoView, useVideoPlayer } from 'expo-video';
+import { PrivateChatVideo } from './PrivateChatVideo';
+import { useAuthStore } from '../../stores/authStore';
+import { useIsFocused } from '@react-navigation/native';
 import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system/legacy';
 import { Feather } from '@expo/vector-icons';
@@ -29,27 +31,10 @@ type Props = {
   onClose: () => void;
 };
 
-function VideoSlide({ url, active }: { url: string; active: boolean }) {
-  const player = useVideoPlayer(url, (p) => { p.loop = false; });
-  useEffect(() => {
-    try {
-      if (active) player.play();
-      else player.pause();
-    } catch {}
-  }, [active, player]);
-  return (
-    <VideoView
-      style={styles.media}
-      player={player}
-      contentFit="contain"
-      nativeControls
-      fullscreenOptions={{ enable: true }}
-    />
-  );
-}
-
 export default function MediaViewer({ visible, items, initialIndex, onClose }: Props) {
   const [index, setIndex] = useState(initialIndex);
+  const userId = useAuthStore(state => state.session?.user.id);
+  const focused = useIsFocused();
   const [saving, setSaving] = useState(false);
   const listRef = useRef<FlatList<MediaViewerItem>>(null);
 
@@ -101,7 +86,7 @@ export default function MediaViewer({ visible, items, initialIndex, onClose }: P
     Share.share({ message: current.url });
   }, [current]);
 
-  if (!visible || items.length === 0) return null;
+  if (!visible || !focused || items.length === 0) return null;
 
   return (
     <Modal
@@ -134,7 +119,7 @@ export default function MediaViewer({ visible, items, initialIndex, onClose }: P
           renderItem={({ item, index: idx }) => (
             <View style={styles.slide}>
               {item.kind === 'video' ? (
-                <VideoSlide url={item.url} active={idx === index} />
+                <PrivateChatVideo messageId={item.id} userId={userId || ''} uri={item.url} active={visible && idx === index} style={styles.media} onClose={onClose} />
               ) : (
                 <ExpoImage
                   source={{ uri: item.url }}

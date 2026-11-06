@@ -8,10 +8,10 @@ import { subscribeNavigationScope } from './navigationCache';
 import { clearAdaptiveMedia, knownAdaptiveMedia, resolveAdaptiveMedia } from '../../shared/adaptiveMedia';
 
 type EngineState = {
-  uri: string | null; owner: string | null; postId: string | null;
+  uri: string | null; owner: string | null; surfaceOwner: string | null; postId: string | null;
   player: VideoPlayer | null; ready: boolean; failed: boolean; foreground: boolean; version: number;
 };
-const empty: EngineState = { uri: null, owner: null, postId: null, player: null, ready: false, failed: false, foreground: AppState.currentState === 'active', version: 0 };
+const empty: EngineState = { uri: null, owner: null, surfaceOwner: null, postId: null, player: null, ready: false, failed: false, foreground: AppState.currentState === 'active', version: 0 };
 export const useVideoEngine = create<EngineState & { set: (p: Partial<EngineState>) => void }>((set) => ({ ...empty, set }));
 
 const pool = createVideoReadinessPool(() => {
@@ -40,22 +40,21 @@ export function enginePosition(uri: string): number {
   if (state.uri !== uri || !state.ready) return 0;
   try { return Number(state.player?.currentTime) || 0; } catch { return 0; }
 }
-export function prefetchFeedVideos(sources: PreparedVideoSource[]) {
-  if (process.env.EXPO_PUBLIC_ADAPTIVE_MEDIA !== 'true') { pool.prefetch(sources); return; }
-  // Discovery happens on the two nearby sources. An immediately claimed card
-  // plays its original without waiting or replacing an already visible player.
-  const generation = ++prefetchGeneration;
-  void Promise.all(sources.slice(0, 2).map(source => resolveAdaptiveMedia(source.uri))).then(() => {
-    if (generation === prefetchGeneration) pool.prefetch(sources.slice(0, 2));
-  });
+export function prefetchFeedVideos(sources: PreparedVideoSource[], fartherSources: PreparedVideoSource[] = []) {
+  // Start bytes now using any already warm HLS capability. A slow readiness
+  // endpoint must not delay both lookahead buffers or reset prepared players.
+  pool.prefetch(sources);
+  if (process.env.EXPO_PUBLIC_ADAPTIVE_MEDIA === 'true')
+    void Promise.all([...sources.slice(0, 2), ...fartherSources.slice(0, 2)]
+      .filter(source => (source.expiresAt ?? Infinity) > Date.now())
+      .map(source => resolveAdaptiveMedia(source.uri)));
 }
-let prefetchGeneration = 0;
 export function releaseEngine() {
   pool.release();
   useVideoEngine.getState().set({ owner: null });
 }
 export function clearVideoEngine() {
-  prefetchGeneration++; clearAdaptiveMedia();
+  clearAdaptiveMedia();
   useVideoEngine.getState().set({ ...empty, foreground: AppState.currentState === 'active' });
   pool.clear();
   pendingSeek = null;
@@ -76,7 +75,7 @@ export function useSharedVideo(o: { uri: string; visible: boolean; screenActive:
     p.muted = !!o.muted;
     p.preservesPitch = o.preservesPitch ?? true;
     p.playbackRate = o.rate || 1;
-    useVideoEngine.getState().set({ owner: id, uri: o.uri, postId: o.postId ?? null, player: p, ready: entry.ready, failed: entry.failed, version: entry.identity });
+    useVideoEngine.getState().set({ owner: id, surfaceOwner: id, uri: o.uri, postId: o.postId ?? null, player: p, ready: entry.ready, failed: entry.failed, version: entry.identity });
     return () => {
       const current = useVideoEngine.getState();
       if (current.owner !== id) return;
@@ -98,7 +97,9 @@ export function useSharedVideo(o: { uri: string; visible: boolean; screenActive:
       try { p.currentTime = o.startAt; } catch {}
     }
   }, [owns, state.player, state.ready, o.uri, o.rate, o.preservesPitch, o.startAt, id]);
-  const canHold = !state.owner && state.uri === o.uri;
+  // Keep the last painted surface attached while the card crosses the autoplay
+  // threshold. A second card with the same URL must never attach this player.
+  const canHold = !state.owner && state.surfaceOwner === id && state.uri === o.uri;
   const retry = () => {
     const current = useVideoEngine.getState();
     if (current.owner !== id || current.uri !== o.uri || current.player !== state.player) return;

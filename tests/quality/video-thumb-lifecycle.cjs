@@ -14,6 +14,7 @@ function harness() {
   const instance = name => { if (!instances.has(name)) instances.set(name, { slots: [], effects: [] }); return instances.get(name); };
   const react = {
     useState(value) { const {slots}=active,i = cursor++; if (!(i in slots)) slots[i] = typeof value === 'function' ? value() : value; return [slots[i], v => { slots[i] = typeof v === 'function' ? v(slots[i]) : v; }]; },
+    useRef(value) { const {slots}=active,i = cursor++; return slots[i] ??= { current: value }; },
     useEffect(fn, deps) { const {slots,effects}=active,i = cursor++; if (!slots[i] || deps.some((d, j) => !Object.is(d, slots[i].deps[j]))) effects.push(() => { slots[i]?.cleanup?.(); slots[i] = { deps, cleanup: fn() }; }); },
     useSyncExternalStore(subscribe,snapshot) { const {slots}=active,i=cursor++; if(!(i in slots))slots[i]={cleanup:subscribe(()=>{})}; return snapshot(); },
   };
@@ -52,6 +53,23 @@ test('short videos request their first frame once and failures expose a readable
   const h = harness(); h.render('short'); h.flush();await tick(); assert.equal(h.requests[0].options.time, 0); h.requests[0].reject(Error('Unavailable')); await tick();
   const tree = h.render('short'); assert.match(tree.props.accessibilityLabel, /unavailable/);
   assert.equal(walk(tree).some(n => n.type === 'Spinner'), false); assert.equal(tree.props.pointerEvents, 'none');
+});
+
+test('encrypted fallback stays visible until the real video poster displays and disappears on expiry or account change', () => {
+  const h = harness(), fallback = 'data:image/jpeg;base64,/9j/abcd';
+  const props = { allowDecode: false, fallbackPosterUri: fallback };
+  const first = walk(h.render('video', 'real-cover', props)).filter(node => node.type === 'Image');
+  assert.equal(first.length, 2); assert.equal(first[0].props.cachePolicy, 'none');
+  assert.equal(first[0].props.source.uri, fallback); assert.equal(first[1].props.source.uri, 'real-cover');
+  first[1].props.onDisplay();
+  assert.equal(walk(h.render('video', 'real-cover', props)).filter(node => node.type === 'Image').length, 1);
+  first[1].props.onError(); first[1].props.onDisplay();
+  const failed = walk(h.render('video', 'real-cover', props)).filter(node => node.type === 'Image');
+  assert.equal(failed.length, 1); assert.equal(failed[0].props.source.uri, fallback);
+  assert.equal(walk(h.render('video', null, { allowDecode: false })).some(node => node.type === 'Image'), false);
+  h.render('video', null, props); h.changeScope('account-b:2');
+  assert.equal(walk(h.render('video', null, props)).some(node => node.type === 'Image'), false);
+  h.dispose();
 });
 test('a missing cached image fails visibly and a new signed URL gets a fresh frame', async () => {
   const h = harness(); h.render('signed-one'); h.flush();await tick(); h.requests[0].resolve({ uri: 'file:///cache/gone.jpg' }); await tick();
@@ -138,11 +156,39 @@ test('preview deadlines show a truthful fallback without exceeding two actual na
   const h=harness();
   for(let i=0;i<13;i++)h.render(`pending-${i}`,null,{},`tile-${i}`);
   h.flush();await tick();assert.equal(h.requests.length,2);h.deadlines();
-  for(let i=0;i<13;i++)assert.match(h.render(`pending-${i}`,null,{},`tile-${i}`).props.accessibilityLabel,/unavailable/);
+  // Only the two tiles a decoder actually took time out; the tiles still in line keep waiting.
+  for(let i=0;i<2;i++)assert.match(h.render(`pending-${i}`,null,{},`tile-${i}`).props.accessibilityLabel,/unavailable/);
+  for(let i=2;i<13;i++){const tree=h.render(`pending-${i}`,null,{},`tile-${i}`);assert.match(tree.props.accessibilityLabel,/Loading/);assert.ok(walk(tree).some(n=>n.type==='Spinner'));}
   assert.equal(h.requests.length,2);
   h.changeScope('account-b:2');await tick();
   h.requests[0].resolve({uri:'file:///cache/abandoned-0.jpg'});h.requests[1].resolve({uri:'file:///cache/abandoned-1.jpg'});await tick();
   assert.equal(h.requests.length,2,'Old queued work never starts after account invalidation');
   assert.deepEqual(h.removed.sort(),['file:///cache/abandoned-0.jpg','file:///cache/abandoned-1.jpg']);
   for(let i=0;i<13;i++)h.dispose(`tile-${i}`);
+});
+
+test('a freed decoder starts the next waiting tile and its deadline begins only then',async()=>{
+  const h=harness();
+  for(let i=0;i<3;i++)h.render(`line-${i}`,null,{},`tile-${i}`);
+  h.flush();await tick();assert.equal(h.requests.length,2);
+  h.requests[0].resolve({uri:'file:///cache/line-0.jpg'});await tick();
+  assert.equal(h.requests.length,3,'the third tile starts as soon as a decoder is free');
+  assert.equal(h.requests[2].uri,'line-2');
+  assert.equal(walk(h.render('line-0',null,{},'tile-0')).find(n=>n.type==='Image').props.source.uri,'file:///cache/line-0.jpg');
+  h.deadlines();
+  assert.equal(walk(h.render('line-0',null,{},'tile-0')).find(n=>n.type==='Image').props.source.uri,'file:///cache/line-0.jpg');
+  assert.match(h.render('line-1',null,{},'tile-1').props.accessibilityLabel,/unavailable/);
+  assert.match(h.render('line-2',null,{},'tile-2').props.accessibilityLabel,/unavailable/);
+  h.requests[2].resolve({uri:'file:///cache/line-2.jpg'});await tick();
+  assert.equal(walk(h.render('line-2',null,{},'tile-2')).find(n=>n.type==='Image').props.source.uri,'file:///cache/line-2.jpg','a late frame still replaces the fallback');
+  for(let i=0;i<3;i++)h.dispose(`tile-${i}`);
+});
+test('a tile that scrolls away leaves the line without taking a decoder',async()=>{
+  const h=harness();
+  for(let i=0;i<4;i++)h.render(`row-${i}`,null,{},`tile-${i}`);
+  h.flush();await tick();assert.equal(h.requests.length,2);
+  h.dispose('tile-2');
+  h.requests[1].resolve({uri:'file:///cache/row-1.jpg'});await tick();
+  assert.equal(h.requests.length,3);assert.equal(h.requests[2].uri,'row-3');
+  for(const name of ['tile-0','tile-1','tile-3'])h.dispose(name);
 });

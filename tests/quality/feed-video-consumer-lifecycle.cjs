@@ -49,6 +49,11 @@ function harness(extraProps = {}) {
       if (!same(slots[i]?.deps, deps)) slots[i] = { value: fn, deps };
       return slots[i].value;
     },
+    useMemo(fn, deps) {
+      const i = cursor++;
+      if (!same(slots[i]?.deps, deps)) slots[i] = { value: fn(), deps };
+      return slots[i].value;
+    },
     useEffect(fn, deps) {
       const i = cursor++, old = slots[i];
       if (!same(old?.deps, deps)) {
@@ -61,7 +66,7 @@ function harness(extraProps = {}) {
     useVideoEngine: { getState: () => state },
     useSharedVideo: () => ({
       player: state.player, ownerId: 'visible-card', owns: state.owner === 'visible-card',
-      sourceReady: state.ready, failed: false, canHold: false, version: 1, retry() {},
+      sourceReady: state.ready, failed: false, canHold: state.owner === null && state.player === player, version: 1, retry() {},
     }),
   };
   const jsx = (type, props) => ({ type, props });
@@ -75,6 +80,13 @@ function harness(extraProps = {}) {
     '../theme/useTheme': { themedSheet: () => ({}), useTheme() {} },
     '../stores/settingsStore': { useSettingsStore: select => select({ autoplayVideos: true }) },
     '../../shared/mediaDelivery': { privateImageCachePolicy: () => 'none' },
+    '../lib/imageDisplayIdentity': { imageDisplayIdentity: uri => uri },
+    '../hooks/useFeedStartupPreview': { useFeedStartupPreview: () => null },
+    '../lib/offlinePlaybackSelection': { selectOfflinePlayback: (_previous, identity, remote, local) => ({ identity, uri: local || remote }) },
+    '../hooks/useOfflineFeedMedia': { useOfflineFeedMedia: () => null },
+    '../../shared/contentMedia': {},
+    '../lib/usePostVideoRepresentation': require('./unmarked-post-video-fixture.cjs'),
+    '../lib/navigationCache': {}, '../services/supabase': {},
     '../../shared/postVoiceEffects': { postPlaybackSettings: () => ({ rate: 1, preservesPitch: true }) },
     '../../shared/postMediaEditing': {}, '../../shared/carouselNavigation': {}, '../../shared/soundtrack': {},
     './PostCaption': { default: 'PostCaption' }, './PostSoundtrack': { default: 'PostSoundtrack' }, './VideoThumb': { default: 'VideoThumb' },
@@ -99,6 +111,9 @@ function harness(extraProps = {}) {
     emit(name, event) { for (const fn of [...listeners.get(name) || []]) fn(event); },
     deadline() { return [...timers.values()].find(timer => timer.delay === 12000)?.fn; },
     transfer() { state = { ...state, owner: 'next-card' }; },
+    hold() { state = { ...state, owner: null }; },
+    reclaim() { state = { ...state, owner: 'visible-card', player, ready: true }; },
+    ready(value) { state = { ...state, ready: value }; },
     release() { state = { owner: null, uri: null, player: null, ready: false }; released = true; },
     reads: () => reads, releasedAccesses: () => releasedAccesses, queued: () => updates.length,
     dispose() { slots.forEach(slot => slot?.cleanup?.()); },
@@ -148,4 +163,40 @@ test('live playback events still seek the saved trim and update the soundtrack c
   h.native.playing = false; h.emit('playingChange', { isPlaying: false }); h.flushUpdates();
   clock = walk(h.render()).find(node => node.type === 'PostSoundtrack').props.clock;
   assert.equal(clock.playing, false); assert.equal(h.releasedAccesses(), 0); h.dispose();
+});
+
+test('a partially visible paused card keeps its painted surface through scroll and refresh renders', () => {
+  const h = harness();
+  const initial = walk(h.render()).find(node => node.type === 'VideoView');
+  initial.props.onFirstFrameRender(); h.flushEffects(); h.flushUpdates();
+  assert.equal(walk(h.render()).some(node => node.type === 'VideoThumb'), false);
+  h.hold();
+  let tree = walk(h.render()); h.flushEffects(); h.flushUpdates();
+  assert.equal(tree.find(node => node.type === 'VideoView').props.player, h.player);
+  assert.equal(tree.some(node => node.type === 'VideoThumb'), false, 'Crossing the autoplay threshold does not flash the poster');
+  h.reclaim(); tree = walk(h.render()); h.flushEffects(); h.flushUpdates();
+  assert.equal(tree.find(node => node.type === 'VideoView').props.player, h.player);
+  assert.equal(tree.some(node => node.type === 'VideoThumb'), false, 'An unchanged source refresh keeps its painted frame');
+  h.ready(false); tree = walk(h.render());
+  assert.equal(tree.find(node => node.type === 'VideoView').props.player, h.player, 'Buffering does not destroy the surface');
+  assert.equal(tree.some(node => node.type === 'VideoThumb'), false);
+  h.dispose();
+});
+
+test('returning to a detached pooled player waits for a new frame and ignores the retired surface callback', () => {
+  const h = harness();
+  const first = walk(h.render()).find(node => node.type === 'VideoView');
+  first.props.onFirstFrameRender(); h.flushEffects(); h.flushUpdates();
+  assert.equal(walk(h.render()).some(node => node.type === 'VideoThumb'), false);
+  h.transfer();
+  assert.equal(walk(h.render()).some(node => node.type === 'VideoView'), false);
+  h.flushEffects(); h.flushUpdates(); h.reclaim();
+  let tree = walk(h.render());
+  assert.equal(tree.some(node => node.type === 'VideoThumb'), true, 'The new surface starts covered even when its player is buffered');
+  first.props.onFirstFrameRender(); h.flushEffects(); h.flushUpdates();
+  tree = walk(h.render());
+  assert.equal(tree.some(node => node.type === 'VideoThumb'), true, 'A late callback cannot expose an unpainted surface');
+  tree.find(node => node.type === 'VideoView').props.onFirstFrameRender(); h.flushUpdates();
+  assert.equal(walk(h.render()).some(node => node.type === 'VideoThumb'), false);
+  h.dispose();
 });

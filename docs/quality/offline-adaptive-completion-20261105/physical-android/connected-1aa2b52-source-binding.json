@@ -1,0 +1,21 @@
+{
+  "sourceCommit": "1aa2b521231fd24bf6f7e6d9aae6f4e11f6de8b3",
+  "workflowRun": 42089356884,
+  "artifactSha256": "06f6f24a737e7d48e02e3288897b3081fcf23c87de22a2d76f8071328ddcaee3",
+  "apkSha256": "33074f84155b178973eec8515be8505cb6253df035619684257fed5035b1cbcb",
+  "apkBytes": 75580645,
+  "abi": "arm64-v8a",
+  "javascriptBundled": true,
+  "disposableDebuggableQa": true,
+  "connectedQaBackend": true,
+  "syntheticBackend": false,
+  "testPackageSha256": "4694ce03c26dd0a04cc60299686c475e504fc58c1385ce42ca9ba65c34f03d43",
+  "unboundTestPackageSha256": "d81d87fede3bf5227c6eb7f0689facf5d467ba87f3e69f3f128c6c8f8ff3e2d1",
+  "harnessSha256": "4cdedb8c2dec2fabcc97f39d1ce092be10a5655d143399e07ed2d7a7e922783a",
+  "networkReadbackHelperSha256": "971392cd00f04e996243fd68e71de25e5b9db781ac403f33d8a0e30ddec18e6c",
+  "testSpecSha256": "2cba1c853f634e824601d9e133fa0fa19db25627068f0f7d6332b05c7097c79e",
+  "sourceFilesVerified": 808,
+  "sourceBindingsPassed": true,
+  "canaryRunId": "554e817b-78b8-4e64-9a94-b2aa80fdca4d",
+  "physicalDeviceAcceptance": false
+}

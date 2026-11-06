@@ -1,0 +1,48 @@
+{
+  "sourceCommit": "c8052ba7bb10f367a5e26337e94f3b080a48d7ce",
+  "deviceRun": "f760d34a-d0f9-40a7-8670-418d7b484ee2",
+  "result": "FAILED",
+  "passedChecks": 3,
+  "failedAssertion": "Displayed decrypted-local canary image after Messages to Feed navigation",
+  "observedImage": "Fully displayed, sourceClass remote after refresh publication",
+  "coldOfflineAssertionsReached": false,
+  "networkRestored": true,
+  "assertionsChanged": false,
+  "rerunScheduled": false,
+  "capturedElements": {
+    "refresh-retains-displayed-image": [
+      {
+        "resource-id": null,
+        "content-desc": "Native feed image displayed remote 79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+        "bounds": "[0,1077][1080,1888]",
+        "displayed": "true"
+      },
+      {
+        "resource-id": "native-feed-image-79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+        "content-desc": "Native feed image displayed remote 79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+        "bounds": "[0,1077][1080,1888]",
+        "displayed": "true"
+      }
+    ],
+    "failure": [
+      {
+        "resource-id": null,
+        "content-desc": "Native feed image displayed remote 79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+        "bounds": "[0,1077][1080,1888]",
+        "displayed": "true"
+      },
+      {
+        "resource-id": "native-feed-image-79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+        "content-desc": "Native feed image displayed remote 79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+        "bounds": "[0,1077][1080,1888]",
+        "displayed": "true"
+      }
+    ]
+  },
+  "rawArtifactSha256": {
+    "customer-artifacts.zip": "2773f6195878e25741ca07acec4c876be385427da9f404397daecbb4ba6bcfbf",
+    "test-spec-output.txt": "a5fae2d7ffdc11b266de8e2c07b5f7250bf71f8d95f4f82639689f48e77156d0",
+    "video.mp4": "04bfbc4a74d32bfd0c495f780e909bd5b44d91a454297253fcdd2b6f83e392f4"
+  },
+  "rawAppiumLogsRetainedPublicly": false
+}

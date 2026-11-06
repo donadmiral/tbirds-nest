@@ -1,0 +1,31 @@
+{
+  "deviceFarmRun": "5e9ac2ed-7dac-47db-b033-4cbee2c273af",
+  "canaryRunMarker": "554e817b-78b8-4e64-9a94-b2aa80fdca4d",
+  "receiptSha256": "98f576c8c2509d35588a3391cb040c6ead7a393ce403b1f574c149afc5c051da",
+  "sourceBindingSha256": "aad57d979370d21964957967e6af0139e94e64d82a1092987868a6f806bc4a3a",
+  "checks": {
+    "sevenDistinctPassingChecks": true,
+    "exactAppSource": true,
+    "exactApk": true,
+    "sameReviewedHarness": true,
+    "sameReviewedNetworkHelper": true,
+    "sameReviewedSpec": true,
+    "warmColdExactFileProofsMatch": true,
+    "allOriginalsEncryptedByteExpansion": true,
+    "strictOfflineSettings": true,
+    "actualSubscriptionBinding": true,
+    "networkRestored": true,
+    "advancingColdVideo": true,
+    "noOfflineDownload": true,
+    "noSuccessfulHostedResultOffline": true,
+    "realQaPhysicalNoFixture": true
+  },
+  "allSourceAndFunctionalChecksVerified": true,
+  "observedColdImageOnDisplayMs": 5769,
+  "observedColdNativeVideoSeconds": [
+    0.42500001192092896,
+    0.671999990940094
+  ],
+  "recordingAcceptanceReceipt": "verified-refresh-observation.json",
+  "scope": "One recorded physical Pixel8a QA canary. Timing is from observer start, not a clean startup or percentile claim."
+}

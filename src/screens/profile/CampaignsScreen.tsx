@@ -10,11 +10,14 @@ import { KeyboardAvoidingView, Platform ,
  * picks one of the business's own posts and inserts the row that
  * get_active_promos serves into the feed. RLS (can_act_as) is the gate.
  */
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { SafeAreaView } from '../../components/SafeArea';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
+import { useAuthStore } from '../../stores/authStore';
+import { createScreenReadGuard, isReadAccessDenied, requireReadRows } from '../../../shared/readContinuity';
+import { orderTimeout } from '../../../shared/orderRequest';
 
 const DURATIONS = [{ d: 3, label: '3 days' }, { d: 7, label: '7 days' }, { d: 14, label: '14 days' }, { d: 30, label: '30 days' }];
 
@@ -41,26 +44,38 @@ export default function CampaignsScreen() {
   const [days, setDays] = useState(7);
   const [cap, setCap] = useState('');
   const [saving, setSaving] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const userId = useAuthStore(state => state.session?.user.id ?? null);
+  const scope = userId && businessId ? `${userId}:${businessId}` : null;
+  const [reads] = useState(() => createScreenReadGuard(scope));
+  reads.setScope(scope);
+  useEffect(() => { setRows([]); setPostsById({}); setMyPosts([]); setPickOpen(false); setTarget(null); setLoading(!!scope); setLoadError(null); }, [scope]);
 
   const load = useCallback(async () => {
-    if (!businessId) return;
+    if (!scope) { setLoading(false); return; }
+    const current = reads.begin(scope);
+    if (!current()) return;
+    setLoadError(null);
     try {
-      const { data: promos, error } = await supabase.from('promoted_posts')
-        .select('*').eq('advertiser_id', businessId).order('created_at', { ascending: false });
+      const { data: promos, error } = await orderTimeout(supabase.from('promoted_posts')
+        .select('*').eq('advertiser_id', businessId).order('created_at', { ascending: false }), 15000, 'Campaigns could not be loaded.');
       if (error) throw error;
-      setRows(promos ?? []);
-      const ids = Array.from(new Set((promos ?? []).map((r: any) => r.post_id)));
+      if (!current()) return;
+      const campaigns = requireReadRows<any>(promos);
+      setRows(campaigns);
+      const ids = Array.from(new Set(campaigns.map((r: any) => r.post_id)));
       if (ids.length) {
-        const { data: posts } = await supabase.from('posts').select('id, content, article_title').in('id', ids);
+        const { data: posts, error: postError } = await orderTimeout(supabase.from('posts').select('id, content, article_title').in('id', ids), 15000, 'Campaign posts could not be loaded.');
+        if (postError) throw postError;
         const m: Record<string, any> = {};
-        (posts ?? []).forEach((p: any) => { m[p.id] = p; });
-        setPostsById(m);
-      }
-    } catch (e: any) { Alert.alert('Could not load campaigns', e?.message || ''); }
-    finally { setLoading(false); }
-  }, [businessId]);
+        requireReadRows<any>(posts).forEach((p: any) => { m[p.id] = p; });
+        if (current()) setPostsById(m);
+      } else setPostsById({});
+    } catch (e) { if (current()) { if (isReadAccessDenied(e)) { setRows([]); setPostsById({}); } setLoadError('Campaigns could not be refreshed. Tap to retry.'); } }
+    finally { if (current()) setLoading(false); }
+  }, [businessId, scope, reads]);
 
-  useFocusEffect(useCallback(() => { load(); }, [load]));
+  useFocusEffect(useCallback(() => { void load(); return () => reads.invalidate(); }, [load, reads]));
 
   const openPicker = useCallback(async () => {
     try {
@@ -126,7 +141,8 @@ export default function CampaignsScreen() {
         </TouchableOpacity>
       </View>
 
-      {loading ? (
+      {loadError ? <TouchableOpacity accessibilityRole="button" onPress={() => { void load(); }}><Text accessibilityRole="alert" style={{ padding: 16, color: t.status.danger }}>{loadError}</Text></TouchableOpacity> : null}
+      {loading && rows.length === 0 ? (
         <ListRowSkeleton />
       ) : rows.length === 0 ? (
         <View style={st.center}>

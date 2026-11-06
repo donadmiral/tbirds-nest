@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "checked_at": "2026-11-03T07:39:22.142Z",
+  "scope": "Time-limited read-only comparison of existing Daily IAM role and storage configuration with current official requirements.",
+  "account_id": "518317808503",
+  "region": "us-east-2",
+  "official_reference": "https://docs.daily.co/docs/guides/features/recording/custom-s3-storage",
+  "requirements": {
+    "trusted_account": "291871421005",
+    "external_id": "platinumcircles",
+    "external_id_kind": "Daily domain name, not domain UUID",
+    "max_session_duration": 43200,
+    "versioning": "Enabled",
+    "probe_object": "daily-co-test-upload.txt"
+  },
+  "actual_role": {
+    "role": {
+      "Arn": "arn:aws:iam::518317808503:role/platinum-live-production-DailyWriter-3ZGHqfqMNzKI",
+      "RoleName": "platinum-live-production-DailyWriter-3ZGHqfqMNzKI",
+      "MaxSessionDuration": 43200,
+      "AssumeRolePolicyDocument": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Principal": {
+              "AWS": "arn:aws:iam::291871421005:root"
+            },
+            "Action": "sts:AssumeRole",
+            "Condition": {
+              "StringEquals": {
+                "sts:ExternalId": "platinumcircles"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "inline": [
+      {
+        "name": "PlatinumLiveOnly",
+        "document": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Action": [
+                "s3:GetBucketLocation",
+                "s3:ListBucket",
+                "s3:ListBucketVersions",
+                "s3:ListBucketMultipartUploads"
+              ],
+              "Resource": "arn:aws:s3:::platinum-live-production-livebucket-6v2z2lrobdn3",
+              "Effect": "Allow"
+            },
+            {
+              "Action": [
+                "s3:PutObject",
+                "s3:GetObject",
+                "s3:GetObjectVersion",
+                "s3:DeleteObject",
+                "s3:AbortMultipartUpload",
+                "s3:ListMultipartUploadParts"
+              ],
+              "Resource": "arn:aws:s3:::platinum-live-production-livebucket-6v2z2lrobdn3/live/*",
+              "Effect": "Allow"
+            },
+            {
+              "Action": "s3:PutObject",
+              "Resource": "arn:aws:s3:::platinum-live-production-livebucket-6v2z2lrobdn3/daily-co-test-upload.txt",
+              "Effect": "Allow"
+            }
+          ]
+        }
+      }
+    ],
+    "attached": []
+  },
+  "actual_bucket": {
+    "versioning": {
+      "Status": "Enabled"
+    },
+    "region": "us-east-2",
+    "probe": {
+      "versions": [],
+      "delete_markers": [],
+      "is_truncated": false
+    }
+  },
+  "aws_api_calls": [
+    {
+      "service": "iam",
+      "operation": "GetRole",
+      "status": "success"
+    },
+    {
+      "service": "iam",
+      "operation": "ListRolePolicies",
+      "status": "success",
+      "n_items": {
+        "PolicyNames": 1
+      }
+    },
+    {
+      "service": "iam",
+      "operation": "ListAttachedRolePolicies",
+      "status": "success",
+      "n_items": {
+        "AttachedPolicies": 0
+      }
+    },
+    {
+      "service": "iam",
+      "operation": "GetRolePolicy",
+      "status": "success"
+    },
+    {
+      "service": "s3",
+      "operation": "GetBucketVersioning",
+      "status": "success"
+    },
+    {
+      "service": "s3",
+      "operation": "GetBucketLocation",
+      "status": "success"
+    },
+    {
+      "service": "s3",
+      "operation": "ListObjectVersions",
+      "status": "success"
+    }
+  ],
+  "prior_actual_operator_result": {
+    "operation_id": "4e5e9445-975b-42e6-937f-a10b167a978e",
+    "finished_at": "2026-11-03T06:59:37.087666Z",
+    "account_plan": "PAID_ACTIVE",
+    "provider_status": 400,
+    "provider_error": "invalid-request-error",
+    "provider_reason": "role_assumption_denied",
+    "cleanup_confirmed": true,
+    "source_receipt": "live-daily-after-paid-acceptance.json"
+  },
+  "finding": "The current role trust exactly matches all three documented Daily account, ExternalId and session-duration requirements. The scoped policy permits documented multipart work under live/* and the exact root test upload. Bucket versioning and region match. No verified narrow IAM/configuration defect was found.",
+  "limitations": [
+    "No new provider verification was triggered because no configuration correction was identified.",
+    "No exact effective external-principal/account policy denial was observed; organization-policy causality remains unproven.",
+    "The test object has no observed versions; successful S3 delivery, HLS configuration and real broadcast acceptance remain unverified."
+  ],
+  "mutations_performed": false,
+  "trust_or_permission_widening": false,
+  "followup": "Root owns remaining renderer/scheduler work under the user time limit. Do not repeat broad policy probes or assume this role review proves Daily access."
+}

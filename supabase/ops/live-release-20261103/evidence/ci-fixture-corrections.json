@@ -1,0 +1,74 @@
+{
+  "checked_at": "2026-11-03T01:15:27.989Z",
+  "runtime_source_commit": "2e265ef0915ed83cbf5ba79f22f3ea1f1a717d8d",
+  "scope": "Narrow test harness, fixture and CI dependency corrections after initial hosted quality run. No deployed runtime source changed.",
+  "original_run_id": 41557353330,
+  "corrections": [
+    {
+      "file": "web/tests/quality/social-regressions.cjs",
+      "cause": "Search page now imports useRecentSearches, but the existing VM test harness did not provide that hook.",
+      "change": "Give each harness a real isolated recent-search store/storage adapter; bind only that harness on account changes. Preserve existing assertions and add one isolation/account-switch regression.",
+      "verification": [
+        {
+          "command": "node web/tests/quality/social-regressions.cjs",
+          "passed": 29,
+          "failed": 0
+        },
+        {
+          "command": "node web/tests/quality/live-search-history.cjs",
+          "passed": 23,
+          "failed": 0
+        }
+      ],
+      "runtime_changed": false
+    },
+    {
+      "file": "supabase/tests/notification-worker-db.test.cjs",
+      "cause": "Two clock_timestamp() evaluations could make the fixture lifetime slightly exceed the exact two-minute production constraint.",
+      "change": "Capture one materialized tick timestamp for both created_at and expires_at, preserving the production guard.",
+      "verification": [
+        {
+          "check": "Syntax and diff check",
+          "passed": true
+        },
+        {
+          "check": "Focused PGlite exercise of actual seed and production constraint",
+          "assertions": 3,
+          "results": [
+            "Exactly 120 seconds accepted",
+            "Expired timestamp remains expired",
+            "121 seconds rejected"
+          ]
+        }
+      ],
+      "full_postgresql_suite_rerun_locally": false,
+      "runtime_changed": false
+    },
+    {
+      "file": ".github/workflows/typecheck.yml",
+      "cause": "Media worker tests import the pinned @vercel/sandbox SDK, but CI did not install that worker's dependencies.",
+      "change": "Add existing worker lockfile to cache inputs and run npm ci --prefix workers/media-renditions before existing gates.",
+      "evidence": "ci-worker-dependencies.json",
+      "focused_tests_passed": 23,
+      "focused_tests_failed": 0,
+      "runtime_changed": false
+    },
+    {
+      "file": "web/tests/browser/ui-router-adapter.tsx",
+      "cause": "The synthetic router emitted popstate on push/replace; the departing Messages fixture cleared its retained thread before unmount.",
+      "change": "Use a dedicated fixture-navigation event for push/replace; preserve real browser popstate for Back/Forward. Original zero-blank-frame assertions remain unchanged.",
+      "evidence": "browser-router-fixture/receipt.json",
+      "verification": {
+        "home_frames": 40,
+        "message_frames": 77,
+        "blank_frames": 0,
+        "history_checks_passed": 4,
+        "trusted_history_events": 5,
+        "browser_errors": 0
+      },
+      "runtime_changed": false
+    }
+  ],
+  "hosted_followup_ci": "Awaiting publication and rerun; focused checks are not described as a green full hosted CI run.",
+  "native_distribution_performed": false
+}

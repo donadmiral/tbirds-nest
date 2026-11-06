@@ -1,4 +1,5 @@
 const { Directory, File, Paths } = require('expo-file-system');
+const { Platform, PixelRatio } = require('react-native');
 const Crypto = require('expo-crypto');
 const { requireNativeModule } = require('expo-modules-core');
 const { fixtureRuntime } = require('./fixture-runtime.cjs');
@@ -46,6 +47,7 @@ async function cleaned(attempt) {
 async function observeExport(actualExport, options) {
   const fixture = fixtureRuntime();
   const attempt = { number: receipt.attempts.length + 1, baseline: workFiles(), captureUris: [], captures: [],
+    captureEnvironment: { platform: Platform.OS, pixelRatio: PixelRatio.get() },
     progress: [], started: Date.now(), status: 'running' };
   if (attempt.baseline.length) throw new Error('A previous memory export left private temporary files.');
   receipt.nativeMemoryVersion = requireNativeModule('Boomerang').memoryMovieVersion;

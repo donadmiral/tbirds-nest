@@ -1,0 +1,58 @@
+name: Repair Live alert routing and deliver QA
+on:
+  push:
+    branches: [codex/live-completion-20261102]
+    paths: [tools/repair-live-notification-route.cjs, .github/workflows/live-notification-delivery.yml]
+permissions:
+  contents: read
+concurrency:
+  group: live-notification-repair
+  cancel-in-progress: false
+jobs:
+  repair:
+    if: github.repository == 'donadmiral/tbirds-nest' && github.ref == 'refs/heads/codex/live-completion-20261102'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions: {contents: write}
+    outputs:
+      sha: ${{ steps.save.outputs.sha }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: 22, cache: npm}
+      - run: node tools/repair-live-notification-route.cjs
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: node --test tests/live-notification-route.test.cjs tests/live-setup.test.cjs tests/live-ui-repair.test.cjs tests/live-studio-events.test.cjs tests/live-native-contracts.test.cjs tests/live-native-clips.test.cjs
+      - run: npx tsc --noEmit --incremental false
+      - id: save
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: |
+          set -euo pipefail
+          branch=codex/live-completion-20261102
+          test "$(git ls-remote origin refs/heads/$branch | cut -f1)" = "$(git rev-parse HEAD)"
+          git diff --check
+          git add shared/notificationTap.ts src/navigation/AppNavigator.tsx
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'fix(live): open follower push alerts in the correct stream'
+          gh auth setup-git
+          git push origin HEAD:refs/heads/$branch
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+  qa:
+    needs: repair
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {ref: '${{ needs.repair.outputs.sha }}', persist-credentials: false}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: 22, cache: npm}
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Deliver the tested iPhone QA revision
+        env:
+          GITHUB_SHA: ${{ needs.repair.outputs.sha }}
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_PUBLIC_APP_ENV: qa
+          CI: '1'
+        run: node tools/build-live-qa.mjs

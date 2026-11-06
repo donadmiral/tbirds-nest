@@ -42,6 +42,31 @@ const create = load(
 const M = "10000000-0000-4000-8000-000000000001",
   R = "20000000-0000-4000-8000-000000000001",
   U = "30000000-0000-4000-8000-000000000001";
+test('private and legacy browser transports call fetch without replacing its receiver', async () => {
+  for (const [file, name, legacy] of [
+    ['shared/privateMedia.ts', 'createPrivateViewSession', false],
+    ['shared/legacyLimitedMedia.ts', 'createLegacyLimitedViewSession', true],
+  ]) {
+    let requests = 0;
+    const transport = load(file)[name]({
+      endpoint: 'https://qa.supabase.co/functions/v1/' + (legacy ? 'chat-media-sign' : 'private-media-session'),
+      token: 'synthetic-bearer', apiKey: 'synthetic-only', messageId: M, requestId: R,
+      current: () => true, hide() {},
+      fetch: function (_url, init) {
+        'use strict';
+        assert.equal(this, undefined, 'Native browser fetch must not receive the options object as its receiver');
+        requests++;
+        if (JSON.parse(init.body).action === 'close') return Promise.resolve(Response.json({ closed: true }));
+        return Promise.resolve(Response.json({ requestId: R, mediaType: 'video', remaining: 0,
+          expiresAt: new Date(Date.now() + 60000).toISOString(), watermark: 'synthetic',
+          ...(legacy ? { urls: { [M]: `https://qa.supabase.co/functions/v1/limited-media-file?messageId=${M}&requestId=${R}` } } : {}),
+        }));
+      },
+    });
+    assert.equal((await transport.open()).remaining, 0);
+    await transport.close(); assert.equal(requests, 2);
+  }
+});
 function harness(opts = {}) {
   const rpcs = [],
     reads = [];

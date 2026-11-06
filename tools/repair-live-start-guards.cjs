@@ -1,0 +1,10 @@
+const fs=require('node:fs'),assert=require('node:assert/strict');
+let file='web/components/LiveStudio.tsx',source=fs.readFileSync(file,'utf8');
+const guard=/    if\(controlLock.current[^\n]+const version=epoch.current;/;
+assert.ok(guard.test(source));
+source=source.replace(guard,"    if(controlLock.current||busy||['ended','cancelled','ending'].includes(detail.session.state)||(action==='start'&&(!joined||detail.capabilities.broadcast!==true||!participants.some(p=>p.tracks.video.state==='playable'||p.tracks.screenVideo.state==='playable'||p.tracks.audio.state==='playable'))))return;controlLock.current=true;setBusy(true);setError('');setNotice('');const version=epoch.current;");
+const disabled=/disabled=\{!joined\|\|busy\|\|detail.capabilities.broadcast!==true[^}]+\}/;
+assert.ok(disabled.test(source));
+source=source.replace(disabled,"disabled={!joined||busy||detail.capabilities.broadcast!==true||['ended','cancelled','ending'].includes(detail.session.state)||!participants.some(p=>p.tracks.video.state==='playable'||p.tracks.screenVideo.state==='playable'||p.tracks.audio.state==='playable')}");
+fs.writeFileSync(file,source);
+file='tests/live-ui-repair.test.cjs';source=fs.readFileSync(file,'utf8');assert.ok(source.includes('console, URL, Date, Promise, setTimeout'));fs.writeFileSync(file,source.replace('console, URL, Date, Promise, setTimeout','console, URL, Date, Promise, Error, setTimeout'));

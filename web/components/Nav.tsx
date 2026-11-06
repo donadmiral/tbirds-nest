@@ -1,7 +1,7 @@
 "use client";
 import NextImage from "next/image";
 
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { NavigationLink as Link } from './NavigationLink';
 import { usePathname } from "next/navigation";
 import { BarChart3, PanelLeftClose, PanelLeftOpen, User } from "lucide-react";
@@ -27,7 +27,7 @@ export function Nav({ name, username, business = false, avatarUrl = null, verifi
   const pathname = usePathname();
   const unread = useUnreadNotifications() ?? 0;
   const profileHref = username ? "/" + encodeURIComponent(username) : "/settings/username";
-  useEffect(() => {
+  useLayoutEffect(() => {
     const restore = () => { const value = savedCollapse(); setCollapsed(value); document.documentElement.classList.toggle("nav-collapsed", value); };
     restore();
     const storage = (event: StorageEvent) => { if (event.key === COLLAPSE_KEY || event.key === null) restore(); };

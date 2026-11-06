@@ -1,17 +1,18 @@
 import { themedSheet, useTheme } from '../../theme/useTheme';
 import '../../components/EmptyState';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
-  ActivityIndicator, StatusBar,
+  ActivityIndicator, StatusBar, RefreshControl,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../services/supabase';
-import { signChatMediaMap, isChatMediaUrl } from '../../services/chatMediaService';
 import { useAuthStore } from '../../stores/authStore';
+import { createScreenReadGuard, isReadAccessDenied, requireReadRows } from '../../../shared/readContinuity';
+import { orderTimeout } from '../../../shared/orderRequest';
 
 type SavedMsg = {
   id: string;
@@ -41,18 +42,22 @@ function relTime(d?: string | null) {
 export default function SavedMessagesScreen({ navigation }: any) {
   const { t, isDark } = useTheme();
   const insets = useSafeAreaInsets();
-  const { profile } = useAuthStore();
-  const userId = profile?.id ?? null;
+  const userId = useAuthStore(state => state.profile?.id ?? null);
   const [saved, setSaved]   = useState<SavedMsg[]>([]);
   const [loading, setLoading] = useState(true);
-  const accountRef = useRef(userId); accountRef.current = userId;
-  useEffect(() => { setSaved([]); }, [userId]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reads] = useState(() => createScreenReadGuard(userId));
+  reads.setScope(userId);
+  useEffect(() => { setSaved([]); setLoading(!!userId); setRefreshing(false); setLoadError(null); }, [userId]);
 
   const load = useCallback(async () => {
-    if (!userId) return;
-    setLoading(true);
+    if (!userId) { setLoading(false); return; }
+    const current = reads.begin(userId);
+    if (!current()) return;
+    setLoadError(null);
     try {
-      const { data } = await supabase
+      const { data, error } = await orderTimeout(supabase
         .from('saved_messages')
         .select(`
           id, message_id, saved_at,
@@ -63,23 +68,35 @@ export default function SavedMessagesScreen({ navigation }: any) {
           )
         `)
         .eq('user_id', userId)
-        .order('saved_at', { ascending: false });
-      const savedRows = (data || []) as any[];
-      const signedMap = await signChatMediaMap(savedRows.map((r: any) => r.message).filter(Boolean));
-      savedRows.forEach((r: any) => { if (r.message && isChatMediaUrl(r.message.media_url)) r.message.media_url = signedMap[r.message.id] || null; });
-      if (accountRef.current === userId) setSaved(savedRows as unknown as SavedMsg[]);
+        .order('saved_at', { ascending: false }), 15000, 'Saved messages could not be loaded.');
+      if (error) throw error;
+      // This list renders text previews. Chat authorizes attachments when opened.
+      if (current()) setSaved(requireReadRows<SavedMsg>(data));
     } catch (e) {
-      console.log('SAVED_MSGS_ERR', e);
+      if (current()) {
+        if (isReadAccessDenied(e)) setSaved([]);
+        setLoadError('Saved messages could not be refreshed. Tap to retry.');
+      }
     } finally {
-      if (accountRef.current === userId) setLoading(false);
+      if (current()) { setLoading(false); setRefreshing(false); }
     }
-  }, [userId]);
+  }, [userId, reads]);
 
-  useFocusEffect(useCallback(() => { load(); }, [load]));
+  useFocusEffect(useCallback(() => { void load(); return () => reads.invalidate(); }, [load, reads]));
 
-  const unsave = async (id: string, msgId: string) => {
-    await supabase.from('saved_messages').delete().eq('id', id);
-    setSaved(prev => prev.filter(s => s.id !== id));
+  const unsave = async (id: string) => {
+    reads.begin(userId);
+    const current = reads.capture(userId);
+    if (!current()) return;
+    try {
+      const { error } = await orderTimeout(supabase.from('saved_messages').delete().eq('id', id), 15000, 'The saved message could not be removed.');
+      if (error) throw error;
+      if (current()) { reads.begin(userId); setSaved(prev => prev.filter(s => s.id !== id)); }
+    } catch {
+      if (current()) setLoadError('The saved message could not be removed. Tap to retry the list.');
+    } finally {
+      if (current()) { setLoading(false); setRefreshing(false); }
+    }
   };
 
   const renderItem = ({ item }: { item: SavedMsg }) => {
@@ -103,7 +120,7 @@ export default function SavedMessagesScreen({ navigation }: any) {
             <Text style={s.cardConv}>{convName}</Text>
             <Text style={s.cardDate}>{relTime(item.saved_at)}</Text>
           </View>
-          <TouchableOpacity onPress={() => unsave(item.id, item.message_id)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <TouchableOpacity onPress={() => unsave(item.id)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
             <Feather name="bookmark" size={16} color="#2563EB" />
           </TouchableOpacity>
         </View>
@@ -124,7 +141,8 @@ export default function SavedMessagesScreen({ navigation }: any) {
         <View style={{ width: 40 }} />
       </View>
 
-      {loading
+      {loadError ? <TouchableOpacity accessibilityRole="button" onPress={() => { setRefreshing(true); void load(); }}><Text accessibilityRole="alert" style={{ padding: 16, color: t.status.danger }}>{loadError}</Text></TouchableOpacity> : null}
+      {loading && saved.length === 0
         ? <View style={s.center}><ActivityIndicator color="#000" /></View>
         : (
           <FlatList
@@ -133,7 +151,9 @@ export default function SavedMessagesScreen({ navigation }: any) {
             renderItem={renderItem}
             contentContainerStyle={{ padding: 14, gap: 10, paddingBottom: insets.bottom + TAB_BAR_CLEARANCE + 24 }}
             showsVerticalScrollIndicator={false}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); void load(); }} />}
             ListEmptyComponent={
+              loadError ? null :
               <View style={s.empty}>
                 <Feather name="bookmark" size={44} color="#E5E5EA" />
                 <Text style={s.emptyTitle}>No saved messages</Text>

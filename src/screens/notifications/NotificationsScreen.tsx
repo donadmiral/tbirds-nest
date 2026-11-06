@@ -1,7 +1,7 @@
 import { ListRowSkeleton } from '../../components/skeletons';
 import { showMessage } from 'react-native-flash-message';
 import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
-import { Alert, ScrollView , View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Image, RefreshControl, StatusBar } from 'react-native';
+import { Alert, AppState, ScrollView , View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Image, RefreshControl, StatusBar } from 'react-native';
 import { TapTopSectionList } from '../../components/TapTopList';
 import EmptyState from '../../components/EmptyState';
 import TierName from '../../components/TierName';
@@ -25,10 +25,15 @@ import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { useFocusEffect } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { hydratePostMedia, hydrateStoryMedia, withoutPrivateMedia } from '../../services/contentMedia';
+import { liveNotificationSessionId } from '../../../shared/notificationTap';
 import { orderTimeout } from '../../../shared/orderRequest';
-import { supabase } from '../../services/supabase';
+import { isReadAccessDenied } from '../../../shared/readContinuity';
+import { createInboxRefreshQueue } from '../../../shared/inboxRefreshQueue';
+import { supabase, SUPABASE_URL } from '../../services/supabase';
+import { notificationMediaKeys, notificationThumbnails, retainNotificationRows, retainNotificationSnapshot, retainNotificationSources, type NotificationMediaSnapshot } from '../../../shared/notificationMediaContinuity';
 import { useAuthStore } from '../../stores/authStore';
 import { navigationScope } from '../../lib/navigationCache';
+import { notificationStartup } from '../../services/startupContentSnapshots';
 import { typeSize, fontWeight, radius, space } from '../../constants/tokens';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 
@@ -125,6 +130,7 @@ function quote(s?: string | null): string {
 }
 
 function lineFor(n: Notif): { lead: string; rest: string } {
+  if (n.type === 'live_stream') return { lead:n.message||'Live update',rest:'' };
   if (n.type === 'system') return { lead: 'System', rest: ' · ' + (n.message || 'System alert') };
   const name = n.actor_name || 'Someone';
   const others = n.others_count;
@@ -233,11 +239,13 @@ export default function NotificationsScreen({ navigation }: any) {
   const { t, isDark } = useTheme();
   const userId = useAuthStore(state => state.session?.user.id || '');
 
-  const [rows, setRows] = useState<Notif[]>([]);
+  const [initialNotifications] = useState(() => userId ? notificationStartup.peek(userId) : null);
+  const [rows, setRows] = useState<Notif[]>(initialNotifications ?? []);
+  const networkNotificationsReady = useRef(false);
   const [filt, setFilt] = useState('all');
   const [thumbs, setThumbs] = useState<Record<string, string>>({});
   const reqCount = rows.filter(r => r.type === 'follow_request').length;
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(initialNotifications === null);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<Record<string, boolean>>({});
@@ -246,6 +254,8 @@ export default function NotificationsScreen({ navigation }: any) {
   const cursorRef = useRef({offset:0,asOf:new Date().toISOString()});
   const generation=useRef(0), pageLock=useRef(false), owner=useRef(userId), rowsRef=useRef<Notif[]>([]);owner.current=userId;rowsRef.current=rows;
   const mounted = useRef(true);
+  const mediaScope = useRef<string | null>(null);
+  const thumbSources = useRef<NotificationMediaSnapshot>({ scope: null, posts: [], stories: [] });
 
   useEffect(() => {
     const lifecycleGeneration = generation;
@@ -256,19 +266,36 @@ export default function NotificationsScreen({ navigation }: any) {
   const hydrateThumbs = useCallback(async (batch:Notif[],run:number,actor:string,scope:string|null) => {
     const current = () => mounted.current && run === generation.current && owner.current === actor && navigationScope() === scope;
     if (!scope || !current()) return;
-    const postIds=Array.from(new Set(batch.map(row=>row.post_id||(row.data as any)?.post_id).filter(Boolean)));
-    const storyIds=Array.from(new Set(batch.map(row=>(row.data as any)?.story_id).filter(Boolean)));
-    const add:Record<string,string>={};
-    const [postResult,storyResult]=await Promise.all([
-      postIds.length?deadline(supabase.from('posts').select('id, media_url, post_media(url, media_type, sort_order)').in('id',postIds)):Promise.resolve({data:[],error:null}),
-      storyIds.length?deadline(supabase.from('stories').select('id, thumbnail_url, media_url, media_type').in('id',storyIds)):Promise.resolve({data:[],error:null}),
-    ]);
-    if (!current()) return;
-    if(postResult.error)throw postResult.error;if(storyResult.error)throw storyResult.error;
-    const [posts,stories]=await Promise.all([hydratePostMedia(postResult.data||[]),hydrateStoryMedia(storyResult.data||[])]);
-    posts.forEach((post:any)=>{const media=[...(post.post_media||[])].sort((a:any,b:any)=>(a.sort_order||0)-(b.sort_order||0));const url=media.find((item:any)=>item.media_type==='image')?.url||(post.media_url&&!/\.(mp4|mov|m4v)($|\?)/i.test(post.media_url)?post.media_url:null);if(url)add['p:'+post.id]=url;});
-    stories.forEach((story:any)=>{const url=story.thumbnail_url||(story.media_type!=='video'?story.media_url:null);if(url)add['s:'+story.id]=url;});
-    if(current())setThumbs(old=>current()?({...old,...add}):old);
+    const keys = notificationMediaKeys(batch);
+    const postIds = [...keys.posts], storyIds = [...keys.stories];
+    const replace = (posts: any[], stories: any[]) => {
+      if (!current()) return;
+      const previous = thumbSources.current.scope === scope ? thumbSources.current : { scope, posts: [], stories: [] };
+      thumbSources.current = { scope,
+        posts: [...previous.posts.filter(row => !keys.posts.has(row.id)), ...posts],
+        stories: [...previous.stories.filter(row => !keys.stories.has(row.id)), ...stories],
+      };
+      setThumbs(notificationThumbnails(thumbSources.current));
+    };
+    try {
+      const [postResult,storyResult]=await Promise.all([
+        postIds.length?deadline(supabase.from('posts').select('id, media_url, post_media(url, media_type, sort_order)').in('id',postIds)):Promise.resolve({data:[],error:null}),
+        storyIds.length?deadline(supabase.from('stories').select('id, thumbnail_url, media_url, media_type').in('id',storyIds)):Promise.resolve({data:[],error:null}),
+      ]);
+      if (!current()) return;
+      if(postResult.error)throw postResult.error;if(storyResult.error)throw storyResult.error;
+      if (!Array.isArray(postResult.data) || !Array.isArray(storyResult.data)) throw new Error('Activity media could not be verified.');
+      const previous = thumbSources.current;
+      // Remove missing or changed objects before waiting for new capabilities.
+      replace(retainNotificationSources(previous.posts, postResult.data, SUPABASE_URL, previous.scope, scope),
+        retainNotificationSources(previous.stories, storyResult.data, SUPABASE_URL, previous.scope, scope));
+      const [posts,stories]=await Promise.all([hydratePostMedia(postResult.data),hydrateStoryMedia(storyResult.data)]);
+      replace(posts, stories);
+    } catch (error) {
+      // A failed grant cannot extend the last successful capability.
+      replace([], []);
+      throw error;
+    }
   },[]);
   const hydrateRows = useCallback(async (batch: Notif[], published: Notif[], run: number, actor: string, scope: string | null, clearOnError = false) => {
     const current = () => mounted.current && run === generation.current && owner.current === actor && navigationScope() === scope;
@@ -285,27 +312,33 @@ export default function NotificationsScreen({ navigation }: any) {
     const outcomes = await Promise.allSettled([decorate(), hydrateThumbs(batch, run, actor, scope)]);
     if (current() && outcomes.some(result => result.status === 'rejected')) {
       if (clearOnError) {
+        thumbSources.current = { scope, posts: [], stories: [] };
         setThumbs({});
-        setRows(rows => current() ? rows.map(row => row === before.get(row.notification_id) ? withoutPrivateMedia([row])[0] : row) : rows);
       }
+      setRows(rows => current() ? rows.map(row => row === before.get(row.notification_id) ? withoutPrivateMedia([row])[0] : row) : rows);
       setError('Some activity photos could not load. Your activity is available. Pull down to retry.');
     }
   }, [hydrateThumbs]);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (signal?: AbortSignal) => {
     const run=++generation.current,actor=userId,scope=navigationScope();pageLock.current=false;setLoadingMore(false);setError(null);
     const snapshot=new Date().toISOString();cursorRef.current={offset:0,asOf:snapshot};
-    const current = () => mounted.current && run === generation.current && owner.current === actor && navigationScope() === scope;
+    const current = () => mounted.current && !signal?.aborted && run === generation.current && owner.current === actor && navigationScope() === scope;
     if(!actor || !scope){setRows([]);setThumbs({});setLoading(false);setRefreshing(false);return;}
     try {
-      const {data,error:err}=await deadline(supabase.rpc('get_notifications_page',{p_limit:60,p_offset:0,p_as_of:snapshot}));if(err)throw err;
+      const request=supabase.rpc('get_notifications_page',{p_limit:60,p_offset:0,p_as_of:snapshot});
+      const {data,error:err}=await deadline(signal ? request.abortSignal(signal) : request);if(err)throw err;
       if(!current())return;
       if (!Array.isArray(data) || data.some(row => !row || typeof row.notification_id !== 'string')) throw new Error('The activity response could not be verified. Please retry.');
-      const batch=data as Notif[],published=withoutPrivateMedia(batch);
-      setRows(invitesFirst(published));setThumbs({});cursorRef.current.offset=batch.length;setDone(batch.length<60);
+      const batch=data as Notif[],published=retainNotificationRows(rowsRef.current,batch,SUPABASE_URL,mediaScope.current,scope);
+      networkNotificationsReady.current = true;
+      void notificationStartup.write(actor, batch).catch(() => {});
+      mediaScope.current=scope;
+      thumbSources.current=retainNotificationSnapshot(thumbSources.current,batch,SUPABASE_URL,scope);
+      setRows(invitesFirst(published));setThumbs(notificationThumbnails(thumbSources.current));cursorRef.current.offset=batch.length;setDone(batch.length<60);
       setLoading(false);setRefreshing(false);
       void hydrateRows(batch,published,run,actor,scope);
-    }catch(e:any){if(current())setError(e?.message||'Notifications could not be loaded.');}
+    }catch(e:any){if(current()){if(isReadAccessDenied(e)){networkNotificationsReady.current=true;void notificationStartup.clear(actor).catch(()=>{});setRows([]);setThumbs({});thumbSources.current={scope:null,posts:[],stories:[]};mediaScope.current=null;}setError(e?.message||'Notifications could not be loaded.');if(signal)throw e;}}
     finally{if(current()){setLoading(false);setRefreshing(false);}}
   },[userId,hydrateRows]);
   const loadMore=useCallback(async()=>{
@@ -324,7 +357,37 @@ export default function NotificationsScreen({ navigation }: any) {
     }catch(e:any){if(current())setError(e?.message||'More notifications could not be loaded.');}
     finally{if(current()){pageLock.current=false;setLoadingMore(false);}}
   },[userId,done,hydrateRows]);
-  useEffect(()=>{generation.current++;pageLock.current=false;setRows([]);setThumbs({});setBusy({});setDone(false);setLoading(!!userId);setError(null);},[userId]);
+  useEffect(()=>{
+    generation.current++;pageLock.current=false;mediaScope.current=null;thumbSources.current={scope:null,posts:[],stories:[]};networkNotificationsReady.current=false;
+    const cached = userId ? notificationStartup.peek(userId) : null;
+    setRows(cached ?? []);setThumbs({});setBusy({});setDone(false);setLoading(!!userId && cached === null);setError(null);
+    if (!userId) return;
+    const scope = navigationScope();
+    let restored = cached !== null;
+    const restore = () => {
+      if (networkNotificationsReady.current || !mounted.current || owner.current !== userId || navigationScope() !== scope) return;
+      const saved = notificationStartup.peek(userId);
+      if (saved !== null) { restored = true; setRows(saved); setLoading(false); }
+      else if (restored) { restored = false; setRows([]); setError('Reconnect to refresh your activity.'); }
+    };
+    const stop = notificationStartup.subscribe(restore);
+    void notificationStartup.hydrate(userId).then(restore).catch(() => {});
+    return stop;
+  },[userId]);
+  useEffect(() => {
+    const sources = [...rows, ...thumbSources.current.posts, ...thumbSources.current.stories] as Array<{ _mediaExpiresAt?: number }>;
+    const expires = sources.map(row => row._mediaExpiresAt).filter((value): value is number => typeof value === 'number' && Number.isFinite(value));
+    if (!expires.length) return;
+    const timer = setTimeout(() => {
+      const now = Date.now();
+      setRows(previous => previous.map(row => typeof (row as any)._mediaExpiresAt === 'number' && (row as any)._mediaExpiresAt <= now ? withoutPrivateMedia([{ ...row, _mediaExpiresAt: undefined }])[0] : row));
+      const previous = thumbSources.current;
+      const unexpired = (row: any) => typeof row._mediaExpiresAt !== 'number' || row._mediaExpiresAt > now;
+      thumbSources.current = { ...previous, posts: previous.posts.filter(unexpired), stories: previous.stories.filter(unexpired) };
+      setThumbs(notificationThumbnails(thumbSources.current));
+    }, Math.max(0, Math.min(...expires) - Date.now()));
+    return () => clearTimeout(timer);
+  }, [rows, thumbs]);
   useEffect(()=>{
     const timer=setInterval(()=>{
       const run=generation.current,actor=userId,scope=navigationScope(),batch=rowsRef.current;
@@ -334,19 +397,26 @@ export default function NotificationsScreen({ navigation }: any) {
     return()=>clearInterval(timer);
   },[userId,hydrateRows]);
 
-  useFocusEffect(useCallback(() => { load(); }, [load]));
-
-  // New notifications arrive while the screen is open.
-  useEffect(() => {
+  // A burst of notification events needs one refresh, plus at most one trailing
+  // refresh for events received while that request is in flight.
+  useFocusEffect(useCallback(() => {
     if (!userId) return;
+    let live = true;
+    const updates = createInboxRefreshQueue({
+      active: AppState.currentState === 'active',
+      read: (_ids, signal) => load(signal),
+      onError: () => { if (live) { setError('Activity could not be refreshed. Pull down to retry.'); setLoading(false); setRefreshing(false); } },
+    });
     const ch = supabase
       .channel('notifs:' + userId)
       .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notifications', filter: `recipient_id=eq.${userId}` },
-        () => { load(); })
-      .subscribe();
-    return () => { supabase.removeChannel(ch); };
-  }, [userId, load]);
+        () => updates.refresh())
+      .subscribe(status => { if (status === 'SUBSCRIBED') updates.refresh(); });
+    const appState = AppState.addEventListener('change', state => updates.setActive(state === 'active'));
+    updates.refreshNow();
+    return () => { live = false; updates.dispose(); appState.remove(); void supabase.removeChannel(ch); };
+  }, [userId, load]));
 
   const markAllRead = async () => {
     const unread = rows.filter(r => r.unread_in_group > 0);
@@ -379,6 +449,11 @@ export default function NotificationsScreen({ navigation }: any) {
     }
 
     const d = n.data || {};
+    if(n.type==='live_stream'){
+      const sessionId=liveNotificationSessionId(n.type,d);
+      if(sessionId)navigation.navigate('LiveSession',{sessionId});
+      return;
+    }
     if (n.post_id || d.post_id) {
       navigation.navigate('Post', { postId: n.post_id || d.post_id, commentId: d.comment_id });
     } else if (n.type === 'story_mention' && d.story_id && n.actor_id) {

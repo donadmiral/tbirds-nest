@@ -1,0 +1,211 @@
+{
+  "schema_version": 1,
+  "checked_at": "2026-11-03T06:07:10.782930+00:00",
+  "source_commit": "57a0553421df911dfa977f593b4e606c00c0bba8",
+  "result": "local_preparation_passed_real_provider_and_devices_pending",
+  "scope": "Native source/configuration and safety of the ordinary-user real-provider acceptance helper. No hosted request, provider write, gate change, native compilation or distribution was performed in this preparation.",
+  "environment": {
+    "system": "Linux",
+    "architecture": "x86_64",
+    "node": "v24.22.1",
+    "present": [
+      "node",
+      "java",
+      "ffmpeg",
+      "ffprobe"
+    ],
+    "unavailable": [
+      "adb",
+      "emulator",
+      "sdkmanager",
+      "avdmanager",
+      "Android SDK roots",
+      "xcrun",
+      "xcodebuild",
+      "idb",
+      "idevice_id",
+      "ideviceinfo",
+      "maestro",
+      "watchman",
+      "/dev/bus/usb",
+      "/dev/kvm",
+      "native ios project in main checkout",
+      "native android project in main checkout",
+      "exposed mobile or simulator control tool"
+    ],
+    "connected_physical_devices": 0,
+    "usable_simulators": 0
+  },
+  "tests": [
+    {
+      "command": "node --test tests/live-native-contracts.test.cjs tests/live-native-clips.test.cjs tests/device-permissions.test.cjs",
+      "exit_code": 0,
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "duration_ms": 503.516472,
+      "kind": "Node contract and permission tests; no native device runtime"
+    },
+    {
+      "command": "node --test supabase/tests/live-user-journey-helper.test.cjs",
+      "exit_code": 0,
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0,
+      "duration_ms": 459.89366,
+      "kind": "Synthetic HTTP safety/contract tests; no hosted requests",
+      "initial_test_fixture_correction": "Corrected expected probe totals from 22/24 to actual 21/23; all runtime probe expectations passed on the initial run."
+    }
+  ],
+  "disposable_prebuild": {
+    "working_directory": "/workspace/scratch/4c1d55b8bab6/live-native-prebuild-t8ueexwt",
+    "command": "node /workspace/scratch/4c1d55b8bab6/tbirds-nest/node_modules/expo/bin/cli prebuild --no-install --platform all",
+    "exit_code": 0,
+    "environment": {
+      "CI": "1",
+      "EXPO_OFFLINE": "1",
+      "EXPO_NO_DOTENV": "1",
+      "EXPO_NO_TELEMETRY": "1",
+      "EXPO_PUBLIC_APP_ENV": "qa",
+      "EXPO_PUBLIC_SUPABASE_URL": "https://uaulhuelcfkjwojtymmw.supabase.co",
+      "EXPO_PUBLIC_SUPABASE_ANON_KEY": "native-prebuild-synthetic-no-provider-key"
+    },
+    "credentials_used": false,
+    "native_compile_performed": false,
+    "native_install_performed": false,
+    "ios": {
+      "extension_bundle_identifier": "app.platinumcircles.mobile.qa.ScreenCaptureExtension",
+      "rtc_app_group": "group.app.platinumcircles.mobile.qa",
+      "app_groups": [
+        "group.app.platinumcircles.mobile.qa"
+      ],
+      "extension_app_groups": [
+        "group.app.platinumcircles.mobile.qa"
+      ],
+      "background_modes": [
+        "audio",
+        "voip",
+        "fetch"
+      ],
+      "broadcast_extension": {
+        "NSExtensionPointIdentifier": "com.apple.broadcast-services-upload",
+        "NSExtensionPrincipalClass": "$(PRODUCT_MODULE_NAME).SampleHandler",
+        "RPBroadcastProcessMode": "RPBroadcastProcessModeSampleBuffer"
+      },
+      "sample_handler_uses_daily_rp_handler": true,
+      "xcode_extension_target_present": true
+    },
+    "android": {
+      "media_projection_permission_present": true,
+      "activity_picture_in_picture_enabled": true,
+      "daily_library_media_projection_service_present": true
+    },
+    "generated_file_hashes": {
+      "ios/PlatinumQA/Info.plist": "830f258fbd6cddd82b598ea36129415b1d2c81b8848d30dfc95b3bd285080b6f",
+      "ios/PlatinumQA/PlatinumQA.entitlements": "5c35c4cf651b95406f33077208059ff6a4ab7e35165b3bcdaa2b0facd65a36e2",
+      "ios/ScreenCaptureExtension/Info.plist": "da8ee48e796512132723a2f7ae4bfb3df7831fab068c0bad9f6686061aa904d9",
+      "ios/ScreenCaptureExtension/ScreenCaptureExtension.entitlements": "678e76bc07bc52d359f6b4b4ea7bc894723f0c5edd25112be597c181055db1ba",
+      "ios/ScreenCaptureExtension/SampleHandler.swift": "efdb31d3e2b87906bbd97539894477af64402e4e5fc6490959a1cdd2ace7f203",
+      "android/app/src/main/AndroidManifest.xml": "c3d301d56c6d6512f9f7748e8cc187aa62f466fa3b4378296dfb89747edf32b2"
+    }
+  },
+  "source_fixture": {
+    "directory": "/workspace/scratch/4c1d55b8bab6/platinum-live-e2e-bspk32",
+    "command": "node supabase/ops/live-release-20261103/prepare-live-e2e-fixture.mjs --directory /workspace/scratch/4c1d55b8bab6",
+    "exit_code": 0,
+    "manifest": {
+      "schema_version": 1,
+      "purpose": "real_live_source_acceptance",
+      "created_at": "2026-11-03T05:58:12.161Z",
+      "duration_seconds": 150,
+      "visual_clock": true,
+      "chirp_interval_seconds": 5,
+      "generated_locally": true,
+      "uploaded": false,
+      "instructions": "Play this source in a shared window or film its moving clock with the physical test camera. Start source playback when the broadcast starts. Read actual recording bounds before submitting any clip range.",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 960,
+          "height": 540
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000"
+        }
+      ],
+      "files": [
+        {
+          "name": "source.mp4",
+          "bytes": 45670694,
+          "sha256": "862512f00afc5d6c19b0f76cba81d61011a7eb8b1dd281e602b193ee70dc7676"
+        },
+        {
+          "name": "source-captions.vtt",
+          "bytes": 1656,
+          "sha256": "45321dc04c2a59affe7808fb06620a023b944cead497ece95d40dc732ae62a77"
+        },
+        {
+          "name": "clip-specifications.json",
+          "bytes": 3039,
+          "sha256": "c31998442b3dbc9a80d82eeac7928fc6ec8f273505b46cc8b075e1f5459e5b3c"
+        }
+      ]
+    },
+    "audiovisual_inspection_performed": false,
+    "provider_upload_performed": false
+  },
+  "acceptance_helper": {
+    "path": "supabase/ops/live-release-20261103/verify-live-user-journey.mjs",
+    "hosted_execution_performed": false,
+    "phases": [
+      "live",
+      "replay",
+      "revoked"
+    ],
+    "ordinary_user_count": 3,
+    "successful_probe_totals": {
+      "live": 21,
+      "replay": 21,
+      "revoked": 23
+    },
+    "max_requests_per_run": 40,
+    "request_timeout_ms": 8000,
+    "api_response_max_bytes": 65536,
+    "playlist_max_bytes": 262144,
+    "media_sample_max_bytes": 65536,
+    "stores_keys_or_signed_urls": false,
+    "mutates_session_or_provider_lifecycle": false
+  },
+  "acceptance_limits": {
+    "actual_provider_broadcast_verified": false,
+    "actual_live_clip_verified": false,
+    "actual_post_stream_clip_verified": false,
+    "physical_ios_camera_screen_share_pip_verified": false,
+    "physical_android_camera_screen_share_pip_verified": false,
+    "native_binary_compile_verified": false,
+    "native_distribution_performed": false,
+    "five_million_user_capacity_measured": false,
+    "existing_synthetic_native_fixture_is_provider_acceptance": false
+  },
+  "required_continuation": [
+    "Owner resolves Daily role/S3/provider account requirements and configures acceptance gates deliberately.",
+    "Operator signs in three distinct ordinary test users; optional separate fourth user for guest camera.",
+    "Operator executes one bounded invite-only real broadcast and distinct live/replay clips, then revokes the viewer and runs the read-only helper in each phase.",
+    "Physical iOS and Android devices execute the dedicated camera, permissions, screen capture, PiP and media handoff matrix."
+  ],
+  "source_sha256": {
+    "supabase/ops/live-release-20261103/prepare-live-e2e-fixture.mjs": "91c15b65e9b3a58de5e2ce1a5b951aaac0b99610abd280f88abd3151446a11a9",
+    "supabase/ops/live-release-20261103/verify-live-user-journey.mjs": "d8560f282b0b924a3629ebbf6ed5e87ae18bb9695410f55d9bc90bcaa840a45b",
+    "supabase/ops/live-release-20261103/real-provider-acceptance.md": "86bc5fc19b67f2fb62fa5c76e0fe05433966809b1e25671d8f6b96323749b31b",
+    "supabase/tests/live-user-journey-helper.test.cjs": "2a82950e544c9cf1e41f751127d80790c071f899da37cbd1ade5e4630503849c",
+    "src/components/LiveStudio.tsx": "777cda08f5937e39f30631d859b4aa80c606154f1df706eb0c6584430340a5ce",
+    "src/contexts/LivePlaybackContext.tsx": "637869f3383ad75216ae6c49e9429ef11007ca43ecfaedafca5b40b4ef944e63",
+    "src/services/liveClipService.ts": "aaed7967dc2e3d6a79e7fb190713be57b4c3a8dc50f984a3bd4fba020237098d",
+    "app.json": "5d19691c35ac2ae966dda9ecc7dca524d4b19ede808335a0aa91bf8e07cd1600",
+    "app.config.js": "b59c5ad8fca40e523557e3de9e23f296fc78b7b735d34084a31da6a579cee710",
+    "package-lock.json": "571d7c15173508d3fe033aa88a1fa63148a6a6720565d6965d72d9ed088c5440"
+  }
+}

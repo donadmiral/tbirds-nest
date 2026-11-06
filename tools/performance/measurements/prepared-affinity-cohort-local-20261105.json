@@ -1,0 +1,49 @@
+{
+  "kind": "local-affinity-cohort-regression",
+  "measuredAt": "2026-11-05T17:20:44.127Z",
+  "database": {
+    "runtime": "PGlite",
+    "command": "PREPARED_FEED_NARROW=1 node --test supabase/tests/prepared-feed-db.test.cjs",
+    "tests": 32,
+    "passed": 32,
+    "failed": 0,
+    "durationMs": 132532.702862
+  },
+  "contracts": {
+    "command": "node --test tests/capacity-workload.test.cjs tests/capacity-isolation.test.cjs tests/capacity-gate.test.cjs tests/prepared-feed-workers.test.cjs",
+    "tests": 17,
+    "passed": 17,
+    "failed": 0,
+    "durationMs": 3294.21779
+  },
+  "generatedWorkerSqlCurrent": true,
+  "sourceFiles": {
+    "supabase/migrations/20261105171503_prepared_affinity_cohort_bound.sql": "66e98fad8f7e3edbc456fcac29f7005c93b5f45b8cdf96c7ac9f66a37ced4bd6",
+    "supabase/tests/prepared-feed-db.test.cjs": "dcbcce0006a1fd74d70967b4b25323b2730b1962d9ecf0f5684fcd472a6db93f",
+    "tools/performance/prepared-feed-load.cjs": "7393d60bc90068a73fa9149c0ffeb0ee2ac5cc3fcc19e5b893e94006e078730b",
+    "supabase/ops/prepared-feed-worker-v2/policy.json": "a012ef95255f2e92b05eab86fa616e29b9a502e344ca91c5183812886659e36d",
+    "supabase/ops/prepared-feed-worker-v2/activate.sql": "12925280c4bdcf275b06dd1115b2907b81432fea1b6fbe9c85ae37109b96fcd1",
+    "tools/performance/prepared-feed-migration-preflight.sql": "1ed518b24b6423b00fa506ed77a6bade4c18cd260d6f0533b11bdf6d46d01873"
+  },
+  "unchanged": {
+    "generatedPosts": 250000,
+    "authenticatedActors": 128,
+    "candidateMaximumBeforeFinalBatch": 10000,
+    "finalBatchMaximum": 128,
+    "freshSnapshotSeconds": 60,
+    "hostedStatementTimeoutMs": 8000,
+    "isolatedStatementTimeoutMs": 30000,
+    "workerLanes": 4,
+    "workerIntervalMs": 1000,
+    "steadyRate": 100,
+    "steadySeconds": 60,
+    "soakRate": 60,
+    "soakSeconds": 120,
+    "cpu": 2,
+    "memoryGiB": 2,
+    "maxConnections": 60
+  },
+  "nativeExpandedPending": true,
+  "hostedChangesApplied": false,
+  "productionCapacityEstablished": false
+}

@@ -13,6 +13,8 @@ function load(nativeModule) {
     'react-native': { StyleSheet: { create: value => value } },
     'expo-modules-core': { requireNativeViewManager: () => null, requireOptionalNativeModule: () => nativeModule },
     'expo-video': {},
+    '../../src/lib/useAdaptiveVideoPlayer': {},
+    '../../shared/adaptiveMedia': { knownAdaptiveMedia: () => null },
     './storyComposition': { storyVideoPreviewAvailable: true },
     '../../src/components/stories/StoryPixelImage': {},
     '../../shared/storyColorMatrix': {},
@@ -23,7 +25,7 @@ function load(nativeModule) {
   vm.runInNewContext(code, { exports, require: name => {
     if (!(name in imports)) throw new Error('Unexpected import: ' + name);
     return imports[name];
-  }, Date, Promise });
+  }, Date, Promise, process: { env: {} } });
   return exports;
 }
 

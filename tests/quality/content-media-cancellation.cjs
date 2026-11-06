@@ -174,6 +174,7 @@ test('web hydration forwards the optional signal while omitted-signal callers ke
   const web = compile('web/lib/contentMedia.ts', {
     process: { env: { NEXT_PUBLIC_SUPABASE_URL: base } },
     require(name) {
+      if (name === '../../shared/adaptiveMedia') return { acceptAdaptiveMedia() {} };
       if (name === '../../shared/contentMedia') return media;
       if (name === './supabase/client') return { createClient: () => h.client };
       if (name === '../../shared/feedMediaReuse') return {};
@@ -199,6 +200,7 @@ test('all web hydration adapters preserve their previous client argument and for
   const web = compile('web/lib/contentMedia.ts', {
     process: { env: { NEXT_PUBLIC_SUPABASE_URL: base } },
     require(name) {
+      if (name === '../../shared/adaptiveMedia') return { acceptAdaptiveMedia() {} };
       if (name === '../../shared/contentMedia') return {
         hydrateContentMedia(...args) { calls.push(args); return args[2]; },
         hydrateOwnerUploadMedia(...args) { calls.push(args); return args[2]; },
@@ -210,6 +212,6 @@ test('all web hydration adapters preserve their previous client argument and for
   });
   for (const method of ['hydratePostMedia', 'hydrateStoryMedia', 'hydrateStoryDraftMedia', 'hydrateMemoryAlbumMedia', 'hydrateHighlightMedia', 'hydrateUploadMedia', 'hydrateSoundMedia']) {
     const rows = [row]; assert.equal(web[method](rows, client, controller.signal), rows);
-    const args = calls.pop(); assert.equal(args[0], client); assert.equal(args[1], base); assert.equal(args[2], rows); assert.equal(args.at(-1), controller.signal);
+    const args = calls.pop(); assert.equal(args[0], client); assert.equal(args[1], base); assert.equal(args[2], rows); assert.equal(args.at(-2), controller.signal); assert.equal(typeof args.at(-1), 'function');
   }
 });

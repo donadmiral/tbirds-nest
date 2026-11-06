@@ -1,0 +1,31 @@
+{
+  "checkedAt": "2026-11-05T18:29:13Z",
+  "tests": {
+    "networkReadbackRegression": {
+      "passed": 5,
+      "failed": 0
+    },
+    "exactDeviceNodeCollected": 1
+  },
+  "sourceHashes": {
+    "tests/native/physical-connected/network_settings.py": "971392cd00f04e996243fd68e71de25e5b9db781ac403f33d8a0e30ddec18e6c",
+    "tests/native/physical-connected/restore-network.py": "41d20146b95a80120ef4d1bc5b4aad341bdc9e28cbfbdd7f59b3a7ab2059de53",
+    "tests/native/physical-connected/tests/test_connected.py": "4cdedb8c2dec2fabcc97f39d1ce092be10a5655d143399e07ed2d7a7e922783a",
+    "tests/native/physical-connected/tests/test_network_settings.py": "9fffb2fa2348e2749c6a4eb790e3a83399ae3aca54063ec7f066e5c9d9ddb8ae"
+  },
+  "actualDeviceRerunComplete": false,
+  "assertionsPreserved": [
+    "seven UI and cache stages",
+    "physical airplane mode on and Wi-Fi off",
+    "actual subscription mobile-data setting off",
+    "app observes disconnected state",
+    "fresh process",
+    "native image display and two advancing decoded video samples",
+    "original clear byte hashes and unchanged retained ciphertext",
+    "no successful hosted request while offline",
+    "exact original radio restoration"
+  ],
+  "settingWritesAdded": false,
+  "reference": "https://android.googlesource.com/platform/prebuilts/fullsdk/sources/android-30/+/3da604b8524188eb6965fc43d22d6b4bfd7bd6b3/com/android/internal/telephony/GlobalSettingsHelper.java",
+  "beforeDataToggleBindingValidation": true
+}

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { ResourceRefreshNotice } from "@/components/ResourceRefreshNotice";
 import { useAccountResource } from "@/lib/useAccountResource";
 import { useViewerIdentity } from "@/lib/useViewerIdentity";
 import { withTimeout } from "@/lib/withTimeout";
@@ -26,7 +27,7 @@ export default function TwoFactorPage() {
 }
 
 function TwoFactorSettings() {
-  const { client, data: factors, loading, error, retry, assertOwner } = useAccountResource(fetchFactors, []);
+  const { client, data: factors, loading, error, retry, assertOwner, refreshError, refreshing } = useAccountResource(fetchFactors, []);
   const [enrolling, setEnrolling] = useState<{ id: string; qr: string; secret: string } | null>(null);
   const [code, setCode] = useState("");
   const [message, setMessage] = useState<string | null>(null);
@@ -106,6 +107,7 @@ function TwoFactorSettings() {
 
   return <div className="mx-auto max-w-[640px] px-4 py-6">
     <h1 className="mt-4 flex items-center gap-2 font-display text-[24px] font-bold text-ink"><ShieldCheck size={22} className="text-accent" /> Two-factor authentication</h1>
+      <ResourceRefreshNotice error={refreshError} refreshing={refreshing} retry={retry} />
     {error ? <ErrorState title={error} onRetry={retry} /> : loading ? <p role="status" className="py-6 text-muted">Loading authenticators…</p> : enrolling ? <div className="mt-5">
       <p className="text-[13.5px] text-ink/60">Scan this with your authenticator app, then enter the six-digit code it shows.</p>
       {enrolling.qr ? <div className="mt-4 inline-block rounded-2xl bg-white p-3"><Image src={enrolling.qr} alt="QR code to set up your authenticator" width={240} height={240} unoptimized /></div> : null}

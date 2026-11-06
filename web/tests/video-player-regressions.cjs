@@ -30,8 +30,9 @@ const flush = async screen => { await new Promise(resolve => setImmediate(resolv
 const event = (key, selector = '') => ({ key, defaultPrevented: false, target: { closest: q => selector && q.includes(selector) ? {} : null },
   preventDefault() { this.defaultPrevented = true; }, stopPropagation() { this.stopped = true; } });
 
-function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, duration = 100 } = {}) {
+function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, duration = 100, preview = null } = {}) {
   let currentHooks, ioCallback, warmCallback;
+  const feedObservers = new Map();
   const listeners = new Map();
   const add = (type, callback) => { const set = listeners.get(type) || new Set(); set.add(callback); listeners.set(type, set); };
   const remove = (type, callback) => listeners.get(type)?.delete(callback);
@@ -50,11 +51,18 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
     if (name === 'react') return new Proxy({}, { get: (_, key) => (...args) => currentHooks[key](...args) });
     if (name === 'react/jsx-runtime') return runtime;
     if (name === 'next/image') return {__esModule:true,default:'img'};
+    if (name === '@/lib/videoFrames') return { useVideoFrame: () => ({ state: 'idle', src: null }) };
+    if (name.includes('shared/mediaDelivery')) return moduleFor(compile('../shared/mediaDelivery.ts'));
+    if (name === '@/lib/useBoundPostVideo') return {useBoundPostVideo: () => !!session.scope};
+    if (name.includes('shared/imageDisplayIdentity')) return moduleFor(compile('../shared/imageDisplayIdentity.ts'));
+    if (name === './contentMedia') return moduleFor(compile('../shared/contentMedia.ts'));
     if (name === '@/lib/videoPlayback') return helper;
     if (name === '@/lib/videoReadiness') return preloadModule;
     if (name === '@/lib/adaptiveVideo') return moduleFor(compile('lib/adaptiveVideo.ts'));
     if (name.includes('shared/adaptiveMedia')) return sharedModule('adaptiveMedia.ts');
     if (name === '@/lib/navigationCache') return { getNavigationStore: () => navigationStore };
+    if (name === '@/lib/useOfflineMedia') return { useOfflineMedia: (_id, media) => media };
+    if (name === '@/lib/useFeedPreview') return { useFeedPreview: () => preview };
     if (name.includes('shared/soundtrack')) return soundtrackHelpers;
     if (name.includes('shared/discover')) return discoverHelpers;
     if (name.includes('shared/carouselNavigation')) return sharedModule('carouselNavigation.ts');
@@ -75,8 +83,8 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
   };
   function moduleFor(code) {
     const module = { exports: {} };
-    vm.runInNewContext(code, { module, exports: module.exports, require: requireModule, window, document, process: { env: { NEXT_PUBLIC_ADAPTIVE_MEDIA: 'false' } }, crypto: { randomUUID: () => 'test-session' },
-      IntersectionObserver: class { constructor(callback, options) { if (options?.rootMargin) warmCallback = callback; else ioCallback = callback; } observe() {} disconnect() {} },
+    vm.runInNewContext(code, { module, exports: module.exports, require: requireModule, window, document, URL, process: { env: { NEXT_PUBLIC_ADAPTIVE_MEDIA: 'false', NEXT_PUBLIC_SUPABASE_URL: 'https://media.example' } }, crypto: { randomUUID: () => 'test-session' },
+      IntersectionObserver: class { constructor(callback, options) { if (options?.rootMargin) warmCallback = callback; else this.callback = ioCallback = callback; } observe(node) {this.node=node; if(this.callback) feedObservers.set(node,this.callback);} disconnect() {if(feedObservers.get(this.node)===this.callback)feedObservers.delete(this.node);} },
       ResizeObserver: class { observe() {} disconnect() {} }, setTimeout: (...args) => { const timer = setTimeout(...args); timer.unref(); return timer; }, clearTimeout });
     return module.exports;
   }
@@ -122,7 +130,7 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
       render() {
         currentHooks = hooks; cursor = 0;
         if (kind === 'gallery') { tree = gallery.MediaGallery(props); while (typeof tree?.type === 'function') tree = tree.type(tree.props); }
-        else { const outer = module.VideoPlayer(props); tree = typeof outer.type === 'function' ? outer.type(outer.props) : outer; }
+        else { tree=module.VideoPlayer(props); while(typeof tree?.type==='function'){if(tree.key!=null)screen.mediaKey=tree.key;tree=tree.type(tree.props);} }
         const nodes = allNodes(tree);
         if (kind === 'gallery') {
           const hasInline = nodes.some(node => (node.type === 'NestedVideoPlayer' && !node.props.immersive) || (node.type === 'img' && node.props.role === 'button'));
@@ -146,6 +154,7 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
         if (video && Object.hasOwn(video.props, 'src')) { if (video.props.src) element.src = video.props.src; else element.removeAttribute('src'); }
         const pending = effects; effects = []; pending.forEach(fn => fn());
       },
+      intersect(ratio) { feedObservers.get(wrapper)?.([{intersectionRatio:ratio}]); this.render(); },
       find(predicate) { return allNodes(tree).find(predicate); },
       label(label) { return this.find(node => node.props?.['aria-label'] === label); },
       click(label) { const node = this.label(label) || this.find(n => n.type === 'button' && nodeText(n) === label); assert.ok(node, 'Missing control: ' + label); const result = node.props.onClick({ stopPropagation() {} }); this.render(); return result; },
@@ -615,4 +624,118 @@ test('hidden pages release speculative sources and an A to B to A session cannot
   s.session('account-b:2'); s.session('account-a:3'); screen.render(); screen.click('Play video');
   assert.equal(screen.element.playCalls, plays); assert.equal(screen.element.getAttribute('src'), null);
   screen.unmount();
+});
+
+test('a decrypted preview paints behind a pending full image and disappears on decode or final failure', () => {
+  const preview = { uri: 'data:image/jpeg;base64,/9j/AAAA' };
+  for (const result of ['load', 'error']) {
+    const s = scenario({ preview }), screen = s.mount({ postId: 'post', media: [{ id: 'one', url: 'one.jpg', media_type: 'image', width: 1200, height: 900 }] }, 'gallery');
+    let image = screen.find(node => node.type === 'img' && node.props.role === 'button');
+    assert.equal(image.props.style.backgroundImage, `url("${preview.uri}")`);
+    if (result === 'load') image.props.onLoad({ currentTarget: { naturalWidth: 1200, naturalHeight: 900 } });
+    else image.props.onError({ currentTarget: { src: 'one.jpg' } });
+    screen.render(); image = screen.find(node => node.type === 'img' && node.props.role === 'button');
+    assert.equal(image.props.style.backgroundImage, undefined); screen.unmount();
+  }
+});
+
+test('an offline preview reserves original geometry and never opens a false full-resolution viewer', () => {
+  const preview = { uri: 'data:image/jpeg;base64,/9j/AAAA' };
+  const screen = scenario({ preview }).mount({ postId: 'post', media: [{ id: 'one', url: preview.uri, media_type: 'image', width: 1200, height: 900, _startupPreview: true }] }, 'gallery');
+  screen.render(); // Apply the measured viewport before comparing image decode.
+  let image = screen.find(node => node.type === 'img' && node.props.role === 'img');
+  const width = image.props.style.width, height = image.props.style.height;
+  image.props.onLoad({ currentTarget: { naturalWidth: 160, naturalHeight: 120 } }); screen.render();
+  image = screen.find(node => node.type === 'img' && node.props.role === 'img');
+  assert.equal(image.props.style.width, width); assert.equal(image.props.style.height, height);
+  image.props.onClick({ preventDefault() {}, stopPropagation() {} }); screen.render();
+  assert.equal(screen.find(node => node.props?.role === 'dialog'), undefined); screen.unmount();
+});
+
+test('dimension-only video placeholders reserve the eventual video frame without creating a player', () => {
+  for (const [width, height] of [[1080,1920], [1920,1080]]) for (const edit of [null, { aspectRatio: 0.8 }]) {
+    const placeholder = { id: 'one', url: '', media_type: 'image', width, height, edit, _startupPreview: true, _startupMediaType: 'video' };
+    const screen = scenario().mount({ postId: 'post', media: [placeholder] }, 'gallery'); screen.render();
+    const box = () => screen.find(node => node.props?.className === 'flex items-center justify-center');
+    const reserved = box().props.style.height;
+    assert.equal(screen.find(node => node.type === 'NestedVideoPlayer'), undefined);
+    assert.equal(screen.find(node => node.type === 'img' && node.props.src === ''), undefined);
+    screen.update({ media: [{ id: 'one', url: 'video.mp4', media_type: 'video', width, height, edit }] });
+    assert.equal(box().props.style.height, reserved); assert.ok(screen.find(node => node.type === 'NestedVideoPlayer')); screen.unmount();
+  }
+});
+
+test('viewport changes do not interrupt a watched card, and explicit Pause survives reentry', () => {
+  const screen = scenario().mount();
+  screen.intersect(0.7); screen.videoEvent('onPlaying');
+  const calls = screen.element.playCalls;
+  for (const ratio of [0.59,0.61,0.3,0.7]) screen.intersect(ratio);
+  assert.equal(screen.element.paused, false); assert.equal(screen.element.playCalls, calls);
+  screen.click('Pause video'); screen.intersect(0); screen.intersect(1);
+  assert.equal(screen.element.paused, true); assert.equal(screen.element.playCalls, calls);
+  screen.click('Play video'); assert.equal(screen.element.paused, false); screen.unmount();
+});
+test('an adjacent feed card cannot interrupt the current video and receives the free slot when it leaves', async () => {
+  const s=scenario(), watching=s.mount(), next=s.mount({src:'next.mp4',postId:'next'});
+  watching.click('Play video'); next.intersect(0.9);
+  assert.equal(watching.element.paused,false); assert.equal(next.element.playCalls,0);
+  watching.intersect(0); await flush(next);
+  assert.equal(watching.element.paused,true); assert.equal(next.element.paused,false);
+  watching.unmount(); next.unmount();
+});
+test('Discover playback follows the selected slide, not a feed observer or a late trim recipe', () => {
+  const s=scenario(), player=s.mount({immersive:true}); player.render();
+  const starts=player.element.playCalls;
+  player.intersect(0.35); player.update({edit:{trimStart:1,trimEnd:40}});
+  assert.equal(player.element.paused,false); assert.equal(player.element.playCalls,starts);
+  player.videoEvent('onPlaying'); player.click('Pause video');
+  player.update({allowPlayback:false}); player.update({allowPlayback:true});
+  assert.equal(player.element.paused,true); assert.equal(player.element.playCalls,starts);
+  player.unmount();
+});
+test('a renewed grant keeps the source and position while watching, then recovers with the latest grant', () => {
+  const cap=n=>'https://media.example/functions/v1/media-content/post-media/testing/video.mp4?token='+n.repeat(64);
+  const player=scenario().mount({src:cap('a'),mediaId:'media',sourceVersion:'v1',immersive:true}); player.render();
+  const key=player.mediaKey, loads=player.element.loadCalls, starts=player.element.playCalls;
+  player.element.currentTime=12; player.videoEvent('onTimeUpdate');
+  player.update({src:cap('b')}); assert.equal(player.mediaKey,key);
+  assert.equal(player.element.src,cap('a')); assert.equal(player.element.loadCalls,loads);
+  assert.equal(player.element.paused,false); assert.equal(player.element.playCalls,starts); assert.equal(player.element.currentTime,12);
+  player.videoEvent('onError'); player.render(); player.videoEvent('onLoadedMetadata');
+  assert.equal(player.element.src,cap('b')); assert.equal(player.element.paused,false); assert.equal(player.element.currentTime,12);
+  player.update({src:cap('c'),sourceVersion:'v2'}); assert.notEqual(player.mediaKey,key); player.unmount();
+});
+test('a completed video stays stopped on the next observer callback', () => {
+  const player=scenario().mount(); player.intersect(1); player.videoEvent('onEnded');
+  const starts=player.element.playCalls; player.intersect(0.5); player.intersect(1);
+  assert.equal(player.element.playCalls,starts); assert.equal(player.element.paused,true); player.unmount();
+});
+
+test('enrolled clips display their protected poster and load the compatible player bytes under a separate identity',()=>{
+ const original='https://media.example/functions/v1/media-content/post-media/fixture/video.mp4?token='+'a'.repeat(64);
+ const s=scenario(),p=s.mount({src:original,edit:{generatedPosterV1:true},sourceVersion:'v1',mediaId:'media',immersive:true});p.render();
+ assert.ok(p.find(n=>n.type==='img' && n.props.src===original+'&representation=poster'));
+ assert.equal(p.element.src,original+'&representation=compatible');assert.match(p.mediaKey,/representation=compatible/);p.unmount();
+ const c=scenario().mount({src:original,edit:{generatedPosterV1:true,coverUrl:'authored-cover.jpg'},sourceVersion:'v1',immersive:true});c.render();assert.ok(c.find(n=>n.type==='img' && n.props.src==='authored-cover.jpg'));c.unmount();
+});
+
+test('an explicit Retry from the failed original reselects the latest compatible grant once, with no loop after a second failure',()=>{
+ const source=n=>'https://media.example/functions/v1/media-content/post-media/fixture/video.mp4?token='+n.repeat(64);
+ const s=scenario({autoplay:false});const p=s.mount({src:source('a'),edit:{generatedPosterV1:true},sourceVersion:'v1',mediaId:'enrolled'});p.render();
+ p.click('Play video');assert.match(p.mediaKey,/representation=compatible/);
+ p.videoEvent('onError');p.render();assert.doesNotMatch(p.mediaKey,/representation=compatible/);
+ // The original is allowed to keep its source/role through a token rotation. Retry must use the newest grant.
+ const originalKey=p.mediaKey;p.update({src:source('b')});assert.equal(p.mediaKey,originalKey);
+ p.videoEvent('onError');p.videoEvent('onError');p.render();
+ const retry=()=>{p.find(n=>n.type==='button'&&n.props.children==='Retry video').props.onClick();p.render();};retry();
+ assert.match(p.mediaKey,/representation=compatible/);assert.equal(p.element.src,source('b')+'&representation=compatible');
+ p.videoEvent('onError');p.render();assert.doesNotMatch(p.mediaKey,/representation=compatible/);
+ p.videoEvent('onError');p.render();assert.equal(p.mediaKey,originalKey);p.unmount();
+});
+test('renewal does not leave an active fallback or restart it after a manual pause',()=>{
+ const cap=n=>'https://media.example/functions/v1/media-content/post-media/fixture/video.mp4?token='+n.repeat(64);
+ const s=scenario(),p=s.mount({src:cap('a'),edit:{generatedPosterV1:true},sourceVersion:'v1',mediaId:'enrolled'});
+ p.intersect(1);p.videoEvent('onError');p.render();assert.doesNotMatch(p.mediaKey,/representation=compatible/);
+ p.key('k');assert.equal(p.element.paused,true);const plays=p.element.playCalls, key=p.mediaKey;
+ p.update({src:cap('b')});p.intersect(.7);p.intersect(1);assert.equal(p.mediaKey,key);assert.equal(p.element.playCalls,plays);assert.equal(p.element.paused,true);p.unmount();
 });

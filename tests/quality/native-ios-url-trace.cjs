@@ -176,6 +176,10 @@ for (const changedMethod of [false, true]) {
     const f = fixture();
     try {
       f.write('scripts/quality/test-ios-app-ui.sh', fs.readFileSync(path.join(root, 'scripts/quality/test-ios-app-ui.sh')));
+      const inputHelper = 'scripts/quality/native-ui-ios-input-trace.py';
+      const inputBytes = fs.readFileSync(path.join(root, inputHelper));
+      f.write(inputHelper, inputBytes);
+      f.manifest.hashes[inputHelper] = sha(inputBytes); f.saveManifest();
       f.write('ios/PlatinumQA/Supporting/Expo.plist', '<?xml version="1.0"?><plist version="1.0"><dict><key>EXUpdatesEnabled</key><true/></dict></plist>');
       if (changedMethod) f.write(delegate, f.source.replace('open url: URL,', 'open changed: URL,'));
       const stubs = {
@@ -189,10 +193,12 @@ for (const changedMethod of [false, true]) {
       };
       for (const [name, body] of Object.entries(stubs)) fs.chmodSync(f.write('bin/' + name, '#!/usr/bin/env bash\nset -eu\n' + body + '\n'), 0o755);
       const run = spawnSync('bash', ['scripts/quality/test-ios-app-ui.sh'], { cwd: f.directory,
-        env: { ...f.env, PATH: path.join(f.directory, 'bin') + path.delimiter + process.env.PATH }, encoding: 'utf8', timeout: 5000 });
+        env: { ...f.env, EXPO_PUBLIC_SUPABASE_URL: 'https://uaulhuelcfkjwojtymmw.supabase.co',
+          PATH: path.join(f.directory, 'bin') + path.delimiter + process.env.PATH }, encoding: 'utf8', timeout: 5000 });
       assert.equal(run.status, changedMethod ? 2 : 31, run.stderr);
       assert.equal(f.read('native-ui-logs/order.log'), changedMethod ? 'prepare\nprebuild\n' : 'prepare\nprebuild\npods\n');
       assert.equal(fs.existsSync(path.join(f.directory, evidence + '/source-proof.json')), !changedMethod);
+      assert.equal(fs.existsSync(path.join(f.directory, 'native-ui-logs/ios-input-trace/source-proof.json')), !changedMethod);
       if (!changedMethod) assert.equal((f.read(delegate).match(/\[native-ui-url\] entry/g) || []).length, 1);
     } finally { f.close(); }
   });

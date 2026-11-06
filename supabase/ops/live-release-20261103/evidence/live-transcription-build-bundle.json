@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-03T07:27:14.102531+00:00",
+  "bundle": {
+    "schema_version": 1,
+    "archive_path": "/workspace/scratch/4c1d55b8bab6/platinum-transcription-source-7hxho0z_/transcription-source.zip",
+    "bytes": 73506,
+    "archive_sha256": "583bb9cfeb170cd66c641c6135f127d73e0b39b8114c49fe3b9eb11e201afa12",
+    "manifest_sha256": "abb89f76e66a93851cdf22707a939ba02ce3775b3d94a3daaac620e63f5de987",
+    "file_count": 24,
+    "repository_head": "57a0553421df911dfa977f593b4e606c00c0bba8",
+    "contains_credentials": false
+  },
+  "build_contract": {
+    "project": "Builder-UhwmorEgFfEf",
+    "source_key": "source/renderer-source.zip",
+    "source_version_must_be_pinned": true,
+    "upload_only_after_previous_renderer_source_download": true,
+    "buildspec_override": "infrastructure/live-transcription/buildspec.yml",
+    "image_tag": "asr-source-abb89f76e66a93851cdf22707a939ba0",
+    "container_unit_tests": 27,
+    "reuses_existing_ecr_and_builder": true,
+    "creates_aws_resources": false,
+    "contains_provider_or_user_credentials": false,
+    "requires_actual_uid1000_metadata_read": true
+  },
+  "manifest_verified_after_unpack": true,
+  "buildspec_yaml_parsed": true,
+  "aws_actions_performed": false,
+  "superseded_bundle": {
+    "schema_version": 1,
+    "archive_path": "/workspace/scratch/4c1d55b8bab6/platinum-transcription-source-9l6ufoe1/transcription-source.zip",
+    "bytes": 72959,
+    "archive_sha256": "6a1f91ba4ca28f6678a267708beefe873319fd40bfd1ad616ee5df2edc48766a",
+    "manifest_sha256": "ccd550c296b2c2eca8a2d00f567b9784e3b1567c78eac10a9af2e4a507d76956",
+    "file_count": 24,
+    "repository_head": "57a0553421df911dfa977f593b4e606c00c0bba8",
+    "contains_credentials": false
+  },
+  "metadata_permissions_correction_receipt": "live-transcription-public-metadata-permissions.json"
+}

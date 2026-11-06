@@ -1,0 +1,59 @@
+{
+  "sourceCommit": "2e62dd9599c3989d19924049972855684bf935f5",
+  "qa": {
+    "firstRead": {
+      "cards": 10,
+      "prepared": false,
+      "milliseconds": 294.41
+    },
+    "preparedRead": {
+      "cards": 10,
+      "prepared": true,
+      "milliseconds": 221.54
+    }
+  },
+  "production": {
+    "firstRead": {
+      "cards": 20,
+      "prepared": false,
+      "milliseconds": 1684.5
+    },
+    "preparedRead": {
+      "cards": 20,
+      "prepared": true,
+      "milliseconds": 529.81
+    },
+    "postflight": {
+      "cron": [
+        {
+          "job": "prepared-feed-refresh-v1",
+          "active": true,
+          "schedule": "10 seconds",
+          "last_status": "succeeded",
+          "last_duration_ms": 7.299
+        },
+        {
+          "job": "prepared-feed-history-v1",
+          "active": true,
+          "schedule": "17 3 * * *",
+          "last_status": null,
+          "last_duration_ms": null
+        }
+      ],
+      "state": {
+        "failed": 0,
+        "queued": 1,
+        "enabled": true,
+        "oldest_due": "2026-11-05T05:34:06.688234+00:00",
+        "fresh_seconds": 60,
+        "max_ranked_rows": 200,
+        "snapshot_seconds": 300
+      },
+      "reader_can_login": false,
+      "reader_bypasses_rls": false
+    }
+  },
+  "operatorScript": "supabase/ops/prepared-feed-staged-20261105/activate-bounded-worker.sql",
+  "rollbackScript": "supabase/ops/prepared-feed-staged-20261105/rollback-bounded-worker.sql",
+  "note": "These calls use existing authorized sessions, create no users and return no post content in evidence. They verify real cron preparation, not representative production capacity."
+}

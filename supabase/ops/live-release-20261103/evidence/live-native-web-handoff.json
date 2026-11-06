@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-03T06:55:45.790711+00:00",
+  "scope": "Native entry points to existing authenticated web connections, social publish and caption review routes.",
+  "routes": [
+    "https://platinumcircles.app/live/connections",
+    "https://platinumcircles.app/live/clips/<validated UUID>/publish",
+    "https://platinumcircles.app/live/clips/<validated UUID>/captions"
+  ],
+  "authorization": "Native per-clip controls require existing can_manage from clip_get. Browser establishes its own Auth session and rechecks creator rights and provider gates. No JWT, code, token, cookie, title, caption or source URL is transferred.",
+  "tests": [
+    {
+      "command": "node --test tests/live-web-handoff.test.cjs tests/live-native-clips.test.cjs tests/live-native-contracts.test.cjs",
+      "passed": 12,
+      "failed": 0
+    },
+    {
+      "command": "node node_modules/typescript/bin/tsc --noEmit --pretty false",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "review": "React review: event-driven navigation, no added polling or duplicate API access, accessible touch targets, existing account/generation cleanup, sanitized errors.",
+  "physical_device_tested": false,
+  "native_build_distributed": false,
+  "limitations": [
+    "Browser may require the creator to sign in again.",
+    "No native OAuth token exchange or direct-publishing consent forms are implied.",
+    "Physical iOS/Android handoff and provider publishing are not accepted by local tests."
+  ],
+  "files": {
+    "src/services/liveWebHandoff.ts": "7447d039605bd1efead54b212af7aa7c8c116efeeeb15756cf46d0791b4378b9",
+    "src/screens/feed/LiveClipsScreen.tsx": "a3a03738bc8e7b8f396a4527df014aeb0a9036b43d64cd6bc46434df7fa27163",
+    "src/components/LiveClipActions.tsx": "29f3669dd7f7755d278f3ba46aea3763c78fc3388d8975723fc29f0bcc1bd33a",
+    "tests/live-web-handoff.test.cjs": "20093879b1fc6fe9cdbaf95047ed7ea37ace3632c59c1785a54e86fc0d1cfbe3"
+  }
+}

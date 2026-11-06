@@ -1,0 +1,943 @@
+{
+  "version": 1,
+  "process": "mw3uorjs-aizkbf7b",
+  "startedAt": 1793901587320,
+  "connectedBackend": true,
+  "events": [
+    {
+      "type": "process-started",
+      "at": 1793901587321,
+      "elapsedMs": 1
+    },
+    {
+      "type": "network-state",
+      "at": 1793901587752,
+      "elapsedMs": 432,
+      "isConnected": true,
+      "isInternetReachable": true
+    },
+    {
+      "type": "http-result",
+      "at": 1793901588507,
+      "elapsedMs": 493,
+      "path": "/auth/v1/health",
+      "status": 401
+    },
+    {
+      "type": "http-result",
+      "at": 1793901595353,
+      "elapsedMs": 704,
+      "path": "/auth/v1/token",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901595643,
+      "elapsedMs": 184,
+      "path": "/rest/v1/user_presence",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901595661,
+      "elapsedMs": 206,
+      "path": "/rest/v1/profiles",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901595832,
+      "elapsedMs": 183,
+      "path": "/rest/v1/user_presence",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901595951,
+      "elapsedMs": 88,
+      "path": "/rest/v1/profiles",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901595999,
+      "elapsedMs": 123,
+      "path": "/rest/v1/follows",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901596017,
+      "elapsedMs": 148,
+      "path": "/rest/v1/notifications",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901596019,
+      "elapsedMs": 157,
+      "path": "/rest/v1/rpc/get_catchup_feed",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901596037,
+      "elapsedMs": 157,
+      "path": "/rest/v1/follow_requests",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901596038,
+      "elapsedMs": 156,
+      "path": "/rest/v1/rpc/get_my_actors",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901596086,
+      "elapsedMs": 181,
+      "path": "/rest/v1/notifications",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901596101,
+      "elapsedMs": 211,
+      "path": "/rest/v1/rpc/get_active_promos",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901596149,
+      "elapsedMs": 240,
+      "path": "/rest/v1/rpc/get_context_unread",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901596183,
+      "elapsedMs": 267,
+      "path": "/rest/v1/call_participants",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901596202,
+      "elapsedMs": 288,
+      "path": "/rest/v1/call_sessions",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901596526,
+      "elapsedMs": 641,
+      "path": "/rest/v1/rpc/get_feed",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901596702,
+      "elapsedMs": 150,
+      "path": "/rest/v1/post_collaborators",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901596730,
+      "elapsedMs": 161,
+      "path": "/rest/v1/post_polls",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901596734,
+      "elapsedMs": 156,
+      "path": "/auth/v1/user",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901596734,
+      "elapsedMs": 115,
+      "path": "/rest/v1/call_participants",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901596735,
+      "elapsedMs": 190,
+      "path": "/rest/v1/rpc/get_post_engagement_counts_v1",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901596785,
+      "elapsedMs": 163,
+      "path": "/rest/v1/call_sessions",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901597692,
+      "elapsedMs": 77,
+      "path": "/auth/v1/health",
+      "status": 401
+    },
+    {
+      "type": "http-result",
+      "at": 1793901597733,
+      "elapsedMs": 73,
+      "path": "/rest/v1/rpc/get_feed_live_capability",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901597936,
+      "elapsedMs": 275,
+      "path": "/rest/v1/rpc/home_marketplace_recommendations",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901597986,
+      "elapsedMs": 323,
+      "path": "/rest/v1/user_presence",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901597987,
+      "elapsedMs": 285,
+      "path": "/rest/v1/call_sessions",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901598014,
+      "elapsedMs": 296,
+      "path": "/rest/v1/call_participants",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901598437,
+      "elapsedMs": 1662,
+      "path": "/functions/v1/content-media-sign",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901598608,
+      "elapsedMs": 929,
+      "path": "/rest/v1/rpc/get_feed",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901598895,
+      "elapsedMs": 263,
+      "path": "/rest/v1/rpc/get_post_engagement_counts_v1",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901598941,
+      "elapsedMs": 286,
+      "path": "/rest/v1/post_polls",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901598961,
+      "elapsedMs": 290,
+      "path": "/auth/v1/user",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901598964,
+      "elapsedMs": 324,
+      "path": "/rest/v1/post_collaborators",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901603244,
+      "elapsedMs": 4255,
+      "path": "/functions/v1/content-media-sign",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901603616,
+      "elapsedMs": 119,
+      "path": "/rest/v1/rpc/get_feed_rows_by_ids_v1",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901604970,
+      "elapsedMs": 318,
+      "path": "/rest/v1/announcements",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901605004,
+      "elapsedMs": 329,
+      "path": "/rest/v1/rpc/get_catchup_feed",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901605007,
+      "elapsedMs": 349,
+      "path": "/rest/v1/feature_flags",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901605009,
+      "elapsedMs": 314,
+      "path": "/auth/v1/user",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901605037,
+      "elapsedMs": 354,
+      "path": "/rest/v1/rpc/get_trending_topics",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901605195,
+      "elapsedMs": 145,
+      "path": "/rest/v1/post_media_tags",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901605275,
+      "elapsedMs": 149,
+      "path": "/rest/v1/post_media_tags",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901605279,
+      "elapsedMs": 159,
+      "path": "/rest/v1/post_media_tags",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901605279,
+      "elapsedMs": 102,
+      "path": "/rest/v1/post_media_tags",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901605303,
+      "elapsedMs": 166,
+      "path": "/rest/v1/posts",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901605303,
+      "elapsedMs": 148,
+      "path": "/rest/v1/rpc/get_poll",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901605496,
+      "elapsedMs": 302,
+      "path": "/rest/v1/post_media_tags",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901605497,
+      "elapsedMs": 272,
+      "path": "/rest/v1/rpc/live_directory",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901605497,
+      "elapsedMs": 295,
+      "path": "/rest/v1/post_media_tags",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901605497,
+      "elapsedMs": 277,
+      "path": "/rest/v1/post_media_tags",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901605498,
+      "elapsedMs": 275,
+      "path": "/rest/v1/post_media_tags",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901605498,
+      "elapsedMs": 270,
+      "path": "/rest/v1/rpc/live_directory",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901605498,
+      "elapsedMs": 259,
+      "path": "/rest/v1/profiles",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901605498,
+      "elapsedMs": 264,
+      "path": "/rest/v1/profiles",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901605498,
+      "elapsedMs": 262,
+      "path": "/rest/v1/rpc/get_trending_stories",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901605532,
+      "elapsedMs": 289,
+      "path": "/rest/v1/rpc/get_feed_visibility",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901605534,
+      "elapsedMs": 290,
+      "path": "/rest/v1/rpc/get_recent_likers",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901605683,
+      "elapsedMs": 434,
+      "path": "/rest/v1/posts",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901606020,
+      "elapsedMs": 184,
+      "path": "/auth/v1/user",
+      "status": 200
+    },
+    {
+      "type": "image-displayed",
+      "at": 1793901606507,
+      "elapsedMs": 19187,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+      "sourceClass": "remote"
+    },
+    {
+      "type": "cache-sealed",
+      "at": 1793901607535,
+      "elapsedMs": 20215,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+      "kind": "image",
+      "sourceVersion": "cdb229b3-357e-4f16-bb9c-15c71eee44fe",
+      "cipherFile": "5ba1482181bef5c7cec904b9bc04dca75f46f138ff6970324f2d2d7e8cdd98bb.bin",
+      "bytes": 1564,
+      "sourceClass": "remote"
+    },
+    {
+      "type": "cache-opened",
+      "at": 1793901607685,
+      "elapsedMs": 20365,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+      "kind": "image",
+      "sourceVersion": "cdb229b3-357e-4f16-bb9c-15c71eee44fe",
+      "cipherFile": "5ba1482181bef5c7cec904b9bc04dca75f46f138ff6970324f2d2d7e8cdd98bb.bin",
+      "plainFile": "5ba1482181bef5c7cec904b9bc04dca75f46f138ff6970324f2d2d7e8cdd98bb.png",
+      "bytes": 1564,
+      "sourceClass": "decrypted-local"
+    },
+    {
+      "type": "image-displayed",
+      "at": 1793901607786,
+      "elapsedMs": 20466,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+      "sourceClass": "decrypted-local"
+    },
+    {
+      "type": "http-result",
+      "at": 1793901607941,
+      "elapsedMs": 139,
+      "path": "/rest/v1/post_seen",
+      "status": 201
+    },
+    {
+      "type": "http-result",
+      "at": 1793901610006,
+      "elapsedMs": 3975,
+      "path": "/functions/v1/content-media-sign",
+      "status": 200
+    },
+    {
+      "type": "cache-sealed",
+      "at": 1793901610323,
+      "elapsedMs": 23003,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+      "kind": "video",
+      "sourceVersion": "1acc0815-974c-4a7c-992f-cb99d46ada96",
+      "cipherFile": "c79d6ee93723b8e7634749e620b25fb9ac816d81b7efc1c495bc5d3e4df38aa8.bin",
+      "bytes": 74058,
+      "sourceClass": "remote"
+    },
+    {
+      "type": "http-result",
+      "at": 1793901610389,
+      "elapsedMs": 125,
+      "path": "/rest/v1/profiles",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901610761,
+      "elapsedMs": 157,
+      "path": "/rest/v1/post_comments",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901610780,
+      "elapsedMs": 188,
+      "path": "/rest/v1/profiles",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901611005,
+      "elapsedMs": 229,
+      "path": "/rest/v1/profiles",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901611478,
+      "elapsedMs": 500,
+      "path": "/rest/v1/profiles",
+      "status": 200
+    },
+    {
+      "type": "cache-opened",
+      "at": 1793901619291,
+      "elapsedMs": 31971,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+      "kind": "video",
+      "sourceVersion": "1acc0815-974c-4a7c-992f-cb99d46ada96",
+      "cipherFile": "c79d6ee93723b8e7634749e620b25fb9ac816d81b7efc1c495bc5d3e4df38aa8.bin",
+      "plainFile": "c79d6ee93723b8e7634749e620b25fb9ac816d81b7efc1c495bc5d3e4df38aa8.mp4",
+      "bytes": 74058,
+      "sourceClass": "decrypted-local"
+    },
+    {
+      "type": "video-progress",
+      "at": 1793901623799,
+      "elapsedMs": 36479,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+      "currentTime": 0.3720000088214874,
+      "playing": true,
+      "firstFrame": true,
+      "sourceClass": "remote"
+    },
+    {
+      "type": "video-progress",
+      "at": 1793901624082,
+      "elapsedMs": 36762,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "0baa58bd-3ce0-4066-91e9-8521f5a76537",
+      "currentTime": 0.6320000290870667,
+      "playing": true,
+      "firstFrame": true,
+      "sourceClass": "remote"
+    },
+    {
+      "type": "http-result",
+      "at": 1793901634313,
+      "elapsedMs": 94,
+      "path": "/rest/v1/rpc/live_directory",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901634368,
+      "elapsedMs": 146,
+      "path": "/rest/v1/rpc/live_directory",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901651225,
+      "elapsedMs": 136,
+      "path": "/rest/v1/rpc/home_marketplace_recommendations",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901651556,
+      "elapsedMs": 467,
+      "path": "/rest/v1/rpc/get_feed",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901651851,
+      "elapsedMs": 160,
+      "path": "/rest/v1/post_polls",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901651855,
+      "elapsedMs": 148,
+      "path": "/auth/v1/user",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901651858,
+      "elapsedMs": 173,
+      "path": "/rest/v1/post_collaborators",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901652091,
+      "elapsedMs": 413,
+      "path": "/rest/v1/rpc/get_post_engagement_counts_v1",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901653604,
+      "elapsedMs": 1527,
+      "path": "/functions/v1/content-media-sign",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901654147,
+      "elapsedMs": 119,
+      "path": "/rest/v1/rpc/get_feed_visibility",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901654162,
+      "elapsedMs": 119,
+      "path": "/rest/v1/rpc/get_recent_likers",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901654429,
+      "elapsedMs": 381,
+      "path": "/rest/v1/posts",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901654720,
+      "elapsedMs": 142,
+      "path": "/auth/v1/user",
+      "status": 200
+    },
+    {
+      "type": "image-displayed",
+      "at": 1793901655085,
+      "elapsedMs": 67765,
+      "postId": "4c55e45b-f9cf-4ce4-8dbc-628e10531597",
+      "mediaId": "79f74b5e-5ccb-474b-8a80-ac83eef88b1d",
+      "sourceClass": "remote"
+    },
+    {
+      "type": "http-result",
+      "at": 1793901655759,
+      "elapsedMs": 663,
+      "path": "/functions/v1/content-media-sign",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901656186,
+      "elapsedMs": 190,
+      "path": "/rest/v1/profiles",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901656527,
+      "elapsedMs": 120,
+      "path": "/rest/v1/profiles",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901656711,
+      "elapsedMs": 299,
+      "path": "/rest/v1/post_comments",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901656823,
+      "elapsedMs": 107,
+      "path": "/rest/v1/profiles",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901657747,
+      "elapsedMs": 115,
+      "path": "/rest/v1/user_presence",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901660226,
+      "elapsedMs": 103,
+      "path": "/rest/v1/rpc/get_paged_reader_capabilities",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901660291,
+      "elapsedMs": 141,
+      "path": "/rest/v1/rpc/get_catchup_feed",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901660565,
+      "elapsedMs": 389,
+      "path": "/rest/v1/rpc/get_context_unread",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901660635,
+      "elapsedMs": 397,
+      "path": "/rest/v1/conversations",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901660647,
+      "elapsedMs": 388,
+      "path": "/rest/v1/conversation_settings",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901660654,
+      "elapsedMs": 414,
+      "path": "/rest/v1/conversation_members",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901660801,
+      "elapsedMs": 537,
+      "path": "/rest/v1/rpc/get_unread_counts",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901660887,
+      "elapsedMs": 712,
+      "path": "/rest/v1/rpc/record_video_view",
+      "status": 204
+    },
+    {
+      "type": "http-result",
+      "at": 1793901664022,
+      "elapsedMs": 94,
+      "path": "/rest/v1/rpc/get_catchup_feed",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901664186,
+      "elapsedMs": 212,
+      "path": "/rest/v1/rpc/get_feed_live_capability",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901664187,
+      "elapsedMs": 209,
+      "path": "/rest/v1/rpc/home_marketplace_recommendations",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901664187,
+      "elapsedMs": 184,
+      "path": "/rest/v1/rpc/live_directory",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901664187,
+      "elapsedMs": 192,
+      "path": "/rest/v1/rpc/get_catchup_feed",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901664188,
+      "elapsedMs": 178,
+      "path": "/rest/v1/rpc/live_directory",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901664372,
+      "elapsedMs": 393,
+      "path": "/rest/v1/rpc/get_feed",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901664453,
+      "elapsedMs": 95,
+      "path": "/rest/v1/rpc/get_trending_stories",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901664555,
+      "elapsedMs": 124,
+      "path": "/rest/v1/rpc/get_feed_visibility",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901664557,
+      "elapsedMs": 148,
+      "path": "/rest/v1/post_polls",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901664760,
+      "elapsedMs": 358,
+      "path": "/rest/v1/post_collaborators",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901664906,
+      "elapsedMs": 517,
+      "path": "/rest/v1/rpc/get_post_engagement_counts_v1",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901665617,
+      "elapsedMs": 137,
+      "path": "/rest/v1/rpc/get_feed_visibility",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901665704,
+      "elapsedMs": 217,
+      "path": "/rest/v1/rpc/get_recent_likers",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901665705,
+      "elapsedMs": 208,
+      "path": "/rest/v1/posts",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901666272,
+      "elapsedMs": 339,
+      "path": "/auth/v1/user",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901666720,
+      "elapsedMs": 435,
+      "path": "/functions/v1/content-media-sign",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901666984,
+      "elapsedMs": 98,
+      "path": "/rest/v1/profiles",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901667538,
+      "elapsedMs": 383,
+      "path": "/rest/v1/post_comments",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901667545,
+      "elapsedMs": 398,
+      "path": "/rest/v1/profiles",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901668123,
+      "elapsedMs": 393,
+      "path": "/rest/v1/profiles",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901693925,
+      "elapsedMs": 152,
+      "path": "/rest/v1/rpc/live_directory",
+      "status": 200
+    },
+    {
+      "type": "http-result",
+      "at": 1793901693929,
+      "elapsedMs": 162,
+      "path": "/rest/v1/rpc/live_directory",
+      "status": 200
+    }
+  ],
+  "retentionScope": "Only target canary media observations and safe endpoint status/timing. Other feed media observations omitted."
+}
