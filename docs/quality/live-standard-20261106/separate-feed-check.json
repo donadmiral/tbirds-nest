@@ -1,0 +1,39 @@
+{
+  "run": 42274895216,
+  "job": 128088579613,
+  "artifact": 13532153148,
+  "artifact_sha256": "c579dce5c40f634aa5d1684fc84ebace8c60d279b24509a8c19f9225504d039f",
+  "source_commit": "6c5ca49f36aef0dfd9323251d320562e7dec9974",
+  "profile": "expanded",
+  "total_posts": 250130,
+  "actor_count": 128,
+  "client_workers": 32,
+  "prepare_lanes": 4,
+  "distinct_prepared_viewers": 128,
+  "completed_preparations": 128,
+  "initial_sweep_ms": 198893.680491,
+  "prepared_per_second": 0.6435599144427921,
+  "fresh_window_s": 60,
+  "refresh_due_s": 45,
+  "minimum_per_second_for_60s": 2.1333333333333333,
+  "measured_rate_shortfall_factor": 3.31489467485,
+  "worker_service_ms": {
+    "count": 128,
+    "p50": 6187.391850999993,
+    "p95": 6306.601069999997,
+    "p99": 6319.813698999998,
+    "max": 6486.104008999995
+  },
+  "unprepared_read_p95_ms": 174.04558700000052,
+  "failure": {
+    "phase": "prepared_readback",
+    "code": "prepared_head_not_fresh"
+  },
+  "production_traffic": false,
+  "profile_phases_not_reached": [
+    "steady_workload",
+    "soak_workload",
+    "reconnect"
+  ],
+  "interpretation": "This run did not sustain fresh prepared heads at the expanded fixture scale. No setup defect is shown; passing a distinct-viewer count is not equivalent to all those snapshots still being fresh. Runtime data does not establish a specific optimization or a population of production users. Production code, SQL, load budgets and assertion unchanged."
+}

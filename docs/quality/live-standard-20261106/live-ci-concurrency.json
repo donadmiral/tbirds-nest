@@ -1,0 +1,143 @@
+{
+  "commit": "a451eb5ba83ee891b86573cbc55df82f68a48118",
+  "scope": "Hosted CI on disposable data, not production traffic or CDN bandwidth.",
+  "native_postgres": {
+    "id": 128105081625,
+    "name": "Isolated PostgreSQL 17 concurrency contracts",
+    "run": 42279679959,
+    "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/42279679959/job/128105081625",
+    "conclusion": "success",
+    "status": "completed",
+    "completed_at": "2026-11-06T19:27:49Z",
+    "engine": "native PostgreSQL",
+    "independent_connections": 3,
+    "leases": 12006,
+    "concurrent_delete_ms": 22.98,
+    "concurrent_delete_rows": 5000,
+    "cluster_wal_delta_bytes": 561712,
+    "renewed_and_fresh_leases_preserved": 2
+  },
+  "isolated_benchmark": {
+    "id": 128105081153,
+    "name": "measured-rooms",
+    "run": 42279679954,
+    "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/42279679954/job/128105081153",
+    "conclusion": "success",
+    "status": "completed",
+    "completed_at": "2026-11-06T19:27:26Z",
+    "postgres": "18.6",
+    "engine": "PGlite 0.5.10, single connection",
+    "timings_ms": {
+      "load_release_schema": 3585,
+      "populate_synthetic_identities": 6311,
+      "admit_1000th": 21,
+      "refuse_1001st": 8,
+      "populate_presence": 6078,
+      "count_and_cleanup_all_1000": 353,
+      "second_prune_and_skip_recent": 2,
+      "all_counts_repeated_unchanged": 209,
+      "authenticated_heartbeat_checks": 554,
+      "disconnect_burst_drain": 720,
+      "independent_prune_same_burst": 160
+    },
+    "observations": {
+      "admission": {
+        "limit": 1000,
+        "preexisting": 999,
+        "accepted": 1,
+        "overflow": "BROADCAST_CAPACITY_REACHED",
+        "overflow_state": "backstage",
+        "active_rooms": 1000
+      },
+      "counts": {
+        "active_unique_audience": 199900,
+        "large_room": 100000,
+        "other_rooms": 999,
+        "each_other_room": 100,
+        "total_seeded_leases": 201949,
+        "duplicate_tabs": 1024,
+        "expired_tabs": 1024,
+        "host_preview_excluded": 1,
+        "first": {
+          "changed": 1000,
+          "measured": 1000,
+          "expired_pruned": 1000
+        },
+        "second": {
+          "changed": 0,
+          "measured": 0,
+          "expired_pruned": 24
+        },
+        "remeasure": {
+          "changed": 0,
+          "measured": 1000,
+          "expired_pruned": 0
+        }
+      },
+      "heartbeat": {
+        "renew": {
+          "n": 96,
+          "p50_ms": 0.73,
+          "p95_ms": 1.01,
+          "max_ms": 3.43
+        },
+        "coalesced": {
+          "n": 96,
+          "p50_ms": 0.63,
+          "p95_ms": 0.86,
+          "max_ms": 2.15
+        },
+        "open_tab": {
+          "n": 96,
+          "p50_ms": 0.7,
+          "p95_ms": 1.05,
+          "max_ms": 2.66
+        },
+        "close_tab": {
+          "n": 96,
+          "p50_ms": 0.43,
+          "p95_ms": 0.7,
+          "max_ms": 1.06
+        }
+      },
+      "disconnect_burst": {
+        "expired": 101025,
+        "large_room_count_after_first_pass": 0,
+        "remaining_audience": 99900,
+        "prunes_per_pass": 1000,
+        "immediate_passes": 102,
+        "total_pruned": 101025,
+        "first_ms": 180.02,
+        "all_passes": {
+          "n": 102,
+          "p50_ms": 5.22,
+          "p95_ms": 6.28,
+          "max_ms": 180.02
+        },
+        "wal_bytes": 12757536
+      },
+      "candidate_cleanup": {
+        "restored_identical_expired_rows": 101025,
+        "max_rows": 5000,
+        "cron_seconds": 10,
+        "total_pruned": 101025,
+        "independent_transactions": 21,
+        "transaction_ms": {
+          "n": 21,
+          "p50_ms": 7.11,
+          "p95_ms": 8.65,
+          "max_ms": 18.18
+        },
+        "wal_bytes": 11625416,
+        "remaining_fresh": 99900,
+        "visible_counts_unchanged": true,
+        "wal_scope": "Whole isolated instance LSN delta, after fixture restore, no external traffic. Original includes its count updates; candidate includes only deletes."
+      }
+    }
+  },
+  "limits": [
+    "Single local PostgreSQL WASM engine. No concurrent connections, managed hardware, CDN, broadcaster, playback, heartbeat arrival rate, Realtime transport or end-to-end latency was tested.",
+    "Fixture inserted 999 preexisting active rooms. Two sequential authenticated admission attempts used the real baseline start RPC. A simulated state transition represents provider acknowledgement.",
+    "Production rollout and admission limits are unchanged. Milliseconds are observations on this runner, not service-level guarantees."
+  ]
+}

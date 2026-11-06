@@ -1,0 +1,74 @@
+{
+  "source_commit": "7552578f9c970e5af3e17b8fa1f7f2c03b9c3347",
+  "observed": "2026-11-06 18:56:13 UTC",
+  "guest_notification": {
+    "migration_sha256": "7a23289d3eaed0c4844a9370abffbcfd177eba9c086a332c5c0ff5c2114077b2",
+    "before_function_md5": "9f50a1d53dfee260bcd155e10f8701c7",
+    "after_function_md5": "f09b7a4dd6cc1c5ad3bd1592d439904c",
+    "qa_version": "20261106183247",
+    "production_version": "20261106185305",
+    "function_metadata_retained": true,
+    "hosted_qa_rolled_back_synthetic_behavior": {
+      "accepted_rows": 1,
+      "declined_rows": 1,
+      "opted_out_rows": 0,
+      "provider_calls": 0,
+      "real_recipients": 0,
+      "replays_suppressed": 3,
+      "staged_outbox_rows": 2
+    },
+    "post_install_data_backfill": false,
+    "no_real_recipient_or_provider_message": true,
+    "data_fields": [
+      "live_session_id",
+      "recipient_id",
+      "kind"
+    ],
+    "delivery": "One new stored activity row per accepted/declined transition, inside the same idempotent session command. Web/mobile Activity displays the stored message and validates the room UUID. Existing compatibility sender uses the updates channel, canonical message, quiet/per-type preferences and stored recipient binding. Expo/OS delivery is not guaranteed or tested on a real device in this operation.",
+    "qa_durable_push_outbox_enabled": true,
+    "production_legacy_push_trigger_active": true,
+    "push_deployments": [
+      {
+        "slug": "send-push-notification",
+        "version": 36,
+        "sha": "1783ceba71f45f9024b8f84f27ff2dddc51bc1911338f285e04a37b004dbc182",
+        "forwards": true
+      },
+      {
+        "slug": "process-notification-outbox",
+        "version": 3,
+        "sha": "842d2ccb3d3ea974154e1a4e3c3082cee7594b958a2820ed6a3e7084ce945161",
+        "forwards": true
+      },
+      {
+        "slug": "send-push-notification",
+        "version": 40,
+        "sha": "1783ceba71f45f9024b8f84f27ff2dddc51bc1911338f285e04a37b004dbc182",
+        "forwards": true
+      },
+      {
+        "slug": "process-notification-outbox",
+        "version": 8,
+        "sha": "842d2ccb3d3ea974154e1a4e3c3082cee7594b958a2820ed6a3e7084ce945161",
+        "forwards": true
+      }
+    ],
+    "local_tests": "22/22 scoped SQL cases and 22/22 notification routing cases, including logged-out, changed-account and duplicate responses."
+  },
+  "host_follow": {
+    "migration_sha256": "cc62d6bc4f57ff034485c158f31c1dca5069c43496b75dacc3704a30bd0b6935",
+    "qa_and_production_metadata": "Release owner confirmed operative helper body 7fe16a330058a82ff03385cada702ae4 in both projects; authenticated execute yes, anon/service_role no.",
+    "local_postgresql": "22/22 guest + follow cases passed, including explicit repeat follows/unfollows, private requests, approval/decline notification rules, reciprocal blocks and revoked sessions.",
+    "hosted_qa_behavior": {
+      "confirmed_by": "Release owner executed exact rolled-back QA transaction after independent waiter interruption",
+      "real_recipients": 0,
+      "cancelled_request": true,
+      "desired_public_calls": 4,
+      "actual_provider_calls": 0,
+      "private_request_replays": 2,
+      "pending_request_count_at_retry": 1,
+      "denied_wrong_host_blocks_invite_and_expired_session": 5
+    },
+    "scope": "No real recipients or relationship mutations performed in production."
+  }
+}
