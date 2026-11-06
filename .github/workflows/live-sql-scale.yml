@@ -5,7 +5,7 @@ on:
     paths:
       - '.github/workflows/live-sql-scale.yml'
       - 'supabase/tests/rpc-authorization/measure-live-scale.mjs'
-      - 'supabase/tests/live-lease-prune-concurrency.test.cjs'
+      - 'supabase/tests/live-lease-prune-concurrency.native.cjs'
       - 'supabase/migrations/*live*presence*.sql'
       - 'supabase/migrations/*live*viewer*count*.sql'
       - 'supabase/migrations/*live*admission*.sql'
@@ -21,7 +21,7 @@ on:
     paths:
       - '.github/workflows/live-sql-scale.yml'
       - 'supabase/tests/rpc-authorization/measure-live-scale.mjs'
-      - 'supabase/tests/live-lease-prune-concurrency.test.cjs'
+      - 'supabase/tests/live-lease-prune-concurrency.native.cjs'
       - 'supabase/migrations/*live*presence*.sql'
       - 'supabase/migrations/*live*viewer*count*.sql'
       - 'supabase/migrations/*live*admission*.sql'

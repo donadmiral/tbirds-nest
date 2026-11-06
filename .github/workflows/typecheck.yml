@@ -61,7 +61,7 @@ jobs:
           done
       - name: Verify real lock waits, retries, access boundaries and cleanup
         run: |
-          PGDATABASE=pc_scale_live_lease_lock node supabase/tests/live-lease-prune-concurrency.test.cjs
+          PGDATABASE=pc_scale_live_lease_lock node supabase/tests/live-lease-prune-concurrency.native.cjs
           PGDATABASE=pc_scale_counters node supabase/tests/engagement-counters-concurrency.test.cjs
           PGDATABASE=pc_scale_feed node supabase/tests/feed-live.test.cjs
           PGDATABASE=pc_scale_paging node supabase/tests/paged-readers-concurrency.test.cjs
