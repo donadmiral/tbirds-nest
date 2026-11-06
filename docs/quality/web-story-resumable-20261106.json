@@ -1,0 +1,27 @@
+{
+  "scope": "Web Story Composer file selection, retry, and private draft media",
+  "verified_on_utc": "2026-11-06",
+  "local": {
+    "test": "node --test web/tests/story-owner-regressions.cjs web/tests/story-quality-regressions.cjs web/tests/composer-resumable.cjs",
+    "tests_passed": 58,
+    "web_typescript": "passed"
+  },
+  "hosted_qa": {
+    "bucket": "story-media",
+    "bucket_public": false,
+    "bytes": 6291997,
+    "first_patch_offset": 6291456,
+    "head_after_lost_ack_offset": 6291456,
+    "final_patch_offset": 6291997,
+    "lost_final_ack_recovered_from_object_receipt": true,
+    "owner_download_sha256_matched": true,
+    "anonymous_public_object_status": 400,
+    "draft_audience": "only_with",
+    "draft_transaction_rolled_back": true,
+    "owner_draft_and_manifest": "allowed",
+    "other_authenticated_draft_and_manifest": "denied",
+    "published_stories": 0,
+    "actor_storage_objects_profiles_sessions_identities_after_cleanup": "all zero",
+    "scoped_qa_handler_after_cleanup": "410"
+  }
+}

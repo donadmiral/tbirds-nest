@@ -103,3 +103,18 @@ test('classification distinguishes permanent contract failures from transient fa
  assert.equal(notificationDispatchOutcome(503,{error:'Unavailable'}).outcome,'retry');
  assert.equal(notificationDispatchOutcome(429,{error:'Rate limited'}).outcome,'retry');
 });
+
+test('a mid-job capacity gate would lose or duplicate devices with today’s notification-level receipts',async()=>{
+ const messages=Array.from({length:601},(_,i)=>({to:'device-'+i}));
+ const received=[];
+ const send=async (_url,options)=>{
+  const batch=JSON.parse(options.body); received.push(...batch.map(row=>row.to));
+  return Response.json({data:batch.map((_,i)=>({status:'ok',id:'ticket-'+i}))});
+ };
+ let calls=0;
+ const partial=await delivery.sendExpoPushes(messages,{fetch:send,signal:new AbortController().signal,maySend:async()=>++calls<=5});
+ assert.equal(partial.accepted,500);assert.equal(partial.rejected,101);
+ assert.equal(notificationDispatchOutcome(200,{...partial}).outcome,'delivered');
+ await delivery.sendExpoPushes(messages,{fetch:send,signal:new AbortController().signal});
+ assert.equal(received.length,1101);assert.equal(new Set(received).size,601);
+});
