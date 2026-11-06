@@ -1,3 +1,4 @@
+import {usePostVideoRepresentation} from '../lib/usePostVideoRepresentation';
 /**
  * VideoFeedModal - the expanded video viewer opened from a feed card.
  *
@@ -47,11 +48,12 @@ export type VideoFeedActions = {
 };
 
 function VideoCell({ item, active, liked, saved, reposted, following, isOwn, startAt, actions, insetTop, insetBottom, speed, onSpeed, onComments, reportTime, shrunk }: any) {
-  const player = useVideoPlayer(item.url, (p: any) => {
+  const displayed=usePostVideoRepresentation(item.url,item.edit);
+  const player = useVideoPlayer(displayed.source||null, (p: any) => {
     p.loop = true; p.muted = !!item.edit?.muted; p.timeUpdateEventInterval = 0.1;
     applyPostPlayback(p,item.edit,speed);
     try { p.currentTime = Math.max(item.edit?.trimStart ?? 0,startAt ?? 0); } catch {}
-  });
+  },displayed.original);
   const [paused, setPaused] = useState(false);
   const [cur, setCur] = useState(0);
   const [dur, setDur] = useState(0);

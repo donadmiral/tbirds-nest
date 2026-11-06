@@ -51,6 +51,8 @@ function scopedBackend({base,brokerUrl,brokerKey,fetchImpl}){
  const storageURL=(value,kind,bucket,path)=>{const u=new URL(value);if(u.origin!==origin||u.pathname!==`/storage/v1/object/${kind}/${objectPath(bucket,path)}`||!u.searchParams.get('token'))throw new Error('invalid_transfer_url');return u;};
  return {
   base:origin,fetch:fetchImpl,
+  claimPoster:signal=>call('poster_claim',{},signal),
+  finishPoster:(args,signal)=>call('poster_finish',args,signal),
   async rpc(name,args={},signal){if(!operation[name])throw new Error('unsupported_media_operation');return call(operation[name],args,signal);},
   async download(job,destination,signal){
    const d=await call('source',jobProof(job),signal);

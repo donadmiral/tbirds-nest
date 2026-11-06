@@ -20,23 +20,39 @@ export type StillFailure = 'metadata-timeout' | 'seek-timeout' | 'decode-timeout
 // phase when metadata arrives. Retain a hard wall-clock limit even if a browser repeatedly emits media events.
 export function preparePausedStill(video: HTMLVideoElement, url: string, at: number, ready: () => void, fail: (reason:StillFailure) => void, canvasReadable:boolean) {
   let done=false, phase: 'metadata'|'seek'|'decode'='metadata', target=0, metadata=false, seekFinished=true;
-  let timer:ReturnType<typeof setTimeout>;
-  const release=()=>{clearTimeout(timer);clearTimeout(hard);video.onloadedmetadata=null;video.onloadeddata=null;video.oncanplay=null;video.onseeked=null;video.onerror=null;};
+  let timer:ReturnType<typeof setTimeout>, nudge:ReturnType<typeof setTimeout>|undefined;
+  let callback:number|null=null, presentations=0, minimumPresentation=1, mediaEvent=false, nudged=false;
+  const canObserve=typeof video.requestVideoFrameCallback==='function';
+  const release=()=>{clearTimeout(timer);clearTimeout(hard);clearTimeout(nudge);if(callback!==null)video.cancelVideoFrameCallback?.(callback);callback=null;video.onloadedmetadata=null;video.onloadeddata=null;video.oncanplay=null;video.onseeked=null;video.onerror=null;};
   const stop=(reason:StillFailure)=>{if(!done){done=true;release();fail(reason);}};
   const hard=setTimeout(()=>stop(`${phase}-timeout`),42_000);
   const arm=(next:typeof phase,ms:number)=>{phase=next;clearTimeout(timer);timer=setTimeout(()=>stop(`${phase}-timeout`),ms);};
   const inspect=()=>{if(done || !metadata || !seekFinished || video.seeking || (target>0 && Math.abs(video.currentTime-target)>.1))return;
     if(phase==='seek')arm('decode',16_000);
     if(video.readyState<2 || !video.videoWidth || !video.videoHeight)return;
-    done=true;release();video.preload='metadata';ready();
+    // Chromium can expose dimensions and HAVE_CURRENT_DATA before the decoded picture reaches the compositor.
+    // Drawing on loadedmetadata in that interval returns a correctly sized, all-black JPEG even for a red clip.
+    if(canObserve && presentations<minimumPresentation){
+      if(mediaEvent && target===0 && !nudged && nudge===undefined)nudge=setTimeout(()=>{
+        nudge=undefined;if(done || presentations>=minimumPresentation || video.seeking)return;
+        nudged=true;try{video.currentTime=0;}catch{/* The current deadline still applies. */}
+      },350);
+      return;
+    }
+    if(!canObserve && !mediaEvent)return;
+    done=true;release();ready();if(!canvasReadable)video.preload='metadata';
   };
   // The inline fallback displays pixels through the native element only. It never reads a cross-origin canvas.
   if(canvasReadable)video.crossOrigin='anonymous';
   video.muted=true;video.defaultMuted=true;video.playsInline=true;video.autoplay=false;video.controls=false;video.preload='metadata';
-  video.onerror=()=>stop('media');video.onloadeddata=inspect;video.oncanplay=inspect;video.onseeked=()=>{seekFinished=true;inspect();};
+  video.onerror=()=>stop('media');video.onloadeddata=video.oncanplay=()=>{mediaEvent=true;inspect();};video.onseeked=()=>{seekFinished=true;mediaEvent=true;inspect();};
+  function observe(){if(!canObserve || done)return;callback=video.requestVideoFrameCallback((_now,frame)=>{
+    callback=null;if(done)return;if(frame.width>0 && frame.height>0)presentations++;inspect();if(!done)observe();
+  });}
+  observe();
   video.onloadedmetadata=()=>{if(done || metadata)return;metadata=true;
     target=Number.isFinite(at)&&at>0 ? (Number.isFinite(video.duration)?Math.min(at,Math.max(0,video.duration-.05)):at) : 0;
-    if(target>0 && Math.abs(video.currentTime-target)>.02){seekFinished=false;arm('seek',16_000);try{video.currentTime=target;}catch{stop('media');return;}}
+    if(target>0 && Math.abs(video.currentTime-target)>.02){minimumPresentation=presentations+1;seekFinished=false;arm('seek',16_000);try{video.currentTime=target;}catch{stop('media');return;}}
     else arm('decode',16_000);
     if(video.readyState<2)video.preload='auto';inspect();
   };

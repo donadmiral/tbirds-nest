@@ -11,7 +11,7 @@
  * plain logic that runs the same in a test as in a browser.
  */
 import { contentObject } from '../../shared/contentMedia';
-import { mediaDeliveryObject } from '../../shared/mediaDelivery';
+import { mediaDeliveryObject, protectedPostVideo } from '../../shared/mediaDelivery';
 
 export type FrameState = { state: 'idle' | 'loading' | 'ready' | 'failed'; src: string | null };
 export type FrameCapture = (url: string, at: number, signal: AbortSignal) => Promise<string>;
@@ -22,6 +22,8 @@ const FAILED: FrameState = { state: 'failed', src: null };
 /** Only recognized first-party paths have a known token-independent object identity. */
 export function frameKey(url: string, base: string): string {
   const object = base ? contentObject(url, base) ?? mediaDeliveryObject(url, base) : null;
+  const suffix='&representation=compatible';
+  if(object && url.endsWith(suffix) && protectedPostVideo(url.slice(0,-suffix.length),{generatedPosterV1:true},base)?.compatible===url) return object.key+suffix;
   return object ? object.key : url.split('#')[0];
 }
 

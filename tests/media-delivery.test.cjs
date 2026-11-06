@@ -2,7 +2,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 function load(relative) {
  const filename=path.join(__dirname,'..',relative),exports={};
  vm.runInNewContext(ts.transpileModule(fs.readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,
-  {exports,Request,Response,Headers,URL,ReadableStream,AbortController,AbortSignal,crypto:require('node:crypto').webcrypto,
+  {exports,Request,Response,Headers,URL,ReadableStream,AbortController,AbortSignal,atob,crypto:require('node:crypto').webcrypto,
    setTimeout,clearTimeout,fetch,require:reference=>load(path.relative(path.join(__dirname,'..'),path.resolve(path.dirname(filename),reference)))});
  return exports;
 }
@@ -16,7 +16,7 @@ function harness(options={}) {
  const proof={bucket,path:objectPath,version:'object-version',expiresAt:new Date(Date.now()+300000).toISOString()};
  const handler=create({base:origin,serviceKey:'server-secret',randomId:()=>`read-${reads.length}`,
   startupTimeoutMs:options.startupTimeoutMs,streamIdleTimeoutMs:options.streamIdleTimeoutMs,diagnostic:event=>events.push(event),
-  resolveVariant:options.resolveVariant,
+  resolveVariant:options.resolveVariant,readRepresentation:options.readRepresentation,
   resolve:async(...args)=>{
    grants.push(args);
    if(options.resolve)return options.resolve({...proof},grants.length,args[3]);
@@ -235,4 +235,31 @@ test('source permission revocation still wins over a valid derived publication',
 test('a failed post-storage variant lookup is attributed to variant revalidation before any bytes leave',async()=>{
  let choices=0;const h=harness({resolveVariant:async()=>{if(choices++)throw Error('unavailable');return variant;},fetch:variantFetch});
  assert.equal((await h.handler(new Request(url))).status,503);assert.equal(h.events.at(-1).stage,'variant_revalidation');assert.equal(h.events.at(-1).bytesRead,0);
+});
+const scopedGrant={sourceVersion:'object-version',sourcePath:objectPath,sourceBucket:bucket,expiresAt:new Date(Date.now()+60000).toISOString()};
+const playbackAsset={...scopedGrant,bucket:'adaptive-media',version:'output-version',etag:'fixed-output',path:objectPath.split('/')[0]+'/_renditions_v2/20000000-0000-4000-8000-000000000002/30000000-0000-4000-8000-000000000003/fallback.mp4'};
+test('scoped poster returns only its bounded JPEG from an atomic ticket and version proof',async()=>{
+ const jpeg=Buffer.from('ffd8ffe0'+'01'.repeat(80)+'ffd9','hex');const calls=[];
+ const h=harness({readRepresentation:async(...args)=>{calls.push(args);return {...scopedGrant,bytes:jpeg.length,jpeg:jpeg.toString('base64'),hash:require('node:crypto').createHash('sha256').update(jpeg).digest('hex')}}});
+ const r=await h.handler(new Request(url+'&representation=poster'));
+ assert.equal(r.status,200);assert.equal(r.headers.get('Content-Type'),'image/jpeg');assert.match(r.headers.get('Cache-Control'),/no-store/);assert.deepEqual(Buffer.from(await r.arrayBuffer()),jpeg);
+ assert.equal(calls.length,1);assert.deepEqual(calls[0].slice(0,5),[token,bucket,objectPath,null,'poster']);assert.equal(h.reads.length+h.grants.length,0);
+});
+test('approved compatible video preserves Range, rechecks exact proof after upstream headers, never leaks origin',async()=>{
+ const versions=[];
+ const h=harness({readRepresentation:async(_t,_b,_p,v)=>{versions.push(v);return playbackAsset;},fetch:(_href,init)=>{
+  assert.equal(init.headers.Range,'bytes=0-3');return new Response('data',{status:206,headers:{'Content-Type':'video/mp4','Content-Length':'4','Content-Range':'bytes 0-3/200','ETag':'"fixed-output"'}})}});
+ const r=await h.handler(new Request(url+'&representation=compatible',{headers:{Range:'bytes=0-3'}}));
+ assert.equal(r.status,206);assert.deepEqual(versions,[null,'object-version']);assert.equal(h.grants.length,0);assert.equal(await r.text(),'data');assert.equal(r.headers.get('Content-Range'),'bytes 0-3/200');assert.equal(r.headers.get('Location'),null);assert.equal(h.reads.length,1);
+});
+test('unknown, missing, revoked or wrong-owner generated representations never receive original bytes',async()=>{
+ for(const scenario of ['no enrollment','revoked after headers','mismatched owner','wrong context']){
+  let n=0;const h=harness({readRepresentation:async()=>{n++;if(scenario==='no enrollment'||(n===2&&scenario==='revoked after headers'))return null;
+   if(scenario==='mismatched owner')return {...playbackAsset,path:playbackAsset.path.replace(/^1/,'9')};
+   if(scenario==='wrong context')return {...playbackAsset,sourcePath:'other'};return playbackAsset;},
+   fetch:()=>new Response('not allowed',{headers:{'Content-Type':'video/mp4','ETag':'"fixed-output"'}})});
+  const r=await h.handler(new Request(url+'&representation=compatible'));assert.ok([403,410,503].includes(r.status));assert.doesNotMatch(await r.text(),/not allowed/);
+  assert.equal(h.grants.length,0);assert.equal(h.reads.length,scenario==='revoked after headers'?1:0);
+ }
+ const h=harness();assert.equal((await h.handler(new Request(url+'&representation=x'))).status,400);assert.equal(h.reads.length+h.grants.length,0);
 });

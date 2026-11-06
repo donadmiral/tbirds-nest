@@ -26,6 +26,36 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  discover-frames:
+    name: Decoded Discover frames and protected video fallbacks
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      DISCOVER_FRAME_EVIDENCE: /tmp/platinum-discover-evidence
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci --prefix web --no-audit --no-fund
+      - name: Install the pinned browser and media test runtime
+        run: |
+          bash scripts/quality/install-linux-test-runtime.sh browser-media web/node_modules/playwright/cli.js
+          bash scripts/quality/install-browser-test-runtime.sh "$RUNNER_TEMP/platinum-browser"
+      - name: Exercise real slow video, authored moments, CORS and data saver
+        run: node web/tests/browser/discover-frame-run.cjs
+      - name: Keep synthetic frame evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: discover-frame-evidence
+          path: /tmp/platinum-discover-evidence/
+          if-no-files-found: warn
+          retention-days: 7
   real-browser:
     name: Connected app, Studio, admin and encoded movies
     runs-on: ubuntu-latest
@@ -106,12 +136,6 @@ jobs:
       - name: Exercise prepared feed media and shared-post source changes
         if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
         run: node web/tests/browser/media-readiness-run.cjs
-      - name: Decode actual Discover video frames and check saved data preferences
-        if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
-        env:
-          DISCOVER_FRAME_EVIDENCE: /tmp/platinum-browser-evidence/discover-frames
-        working-directory: web
-        run: node tests/browser/discover-frame-run.cjs
       - name: Exercise Live playback, interactions, clipping and sharing
         if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
         run: node web/tests/browser/live-run.cjs

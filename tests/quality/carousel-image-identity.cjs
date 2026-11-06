@@ -53,6 +53,7 @@ function harness() {
     'react-native': { View: 'View', Text: 'Text', TouchableOpacity: 'Button', ActivityIndicator: 'Spinner', FlatList: 'FlatList' },
     'expo-image': { Image: 'Image' }, 'expo-video': {}, '@expo/vector-icons': {}, '@react-navigation/native': {},
     '../theme/useTheme': { themedSheet: () => ({}), useTheme() {} },
+    '../lib/usePostVideoRepresentation': require('./unmarked-post-video-fixture.cjs'),
     '../lib/navigationCache': { navigationScope: () => scope, subscribeNavigationScope() { return () => {}; } },
     '../services/supabase': { SUPABASE_URL: base },
     '../lib/imageDisplayIdentity': identities, '../../shared/mediaDelivery': delivery,

@@ -19,6 +19,8 @@ import { createClient } from "@/lib/supabase/client";
 import type { FeedRow } from "@/lib/feed";
 import { displayImageUrl } from "@/lib/media";
 import { VerifiedBadge, getTierColor } from "@/components/VerifiedBadge";
+import { protectedPostVideo } from '../../shared/mediaDelivery';
+import { useBoundPostVideo } from '@/lib/useBoundPostVideo';
 import { VideoFrame } from "@/components/VideoFrame";
 
 // The still for a video: its stored cover when the post has one, otherwise a frame the browser decodes from the video
@@ -26,10 +28,15 @@ import { VideoFrame } from "@/components/VideoFrame";
 // expired capability, a removed file) falls back to a frame the same way. The placeholder only remains while a frame
 // is on its way or when none can be had, and it is the same placeholder as before.
 function VideoTileFrame({ media }: { media: FeedRow["media"][number] }) {
+  const generated=protectedPostVideo(media.url,media.edit,process.env.NEXT_PUBLIC_SUPABASE_URL??'');
+  const bound=useBoundPostVideo(media.url);
   const cover = media.edit?.coverUrl || media.edit?.thumbnail || null; // a live clip published to the feed names its poster `thumbnail`
   const [failedCover, setFailedCover] = useState<string | null>(null);
+  const [failedGenerated,setFailedGenerated]=useState<string|null>(null);
+  if(generated && !bound)return null;
   if (cover && failedCover !== cover) return <img key={cover} src={cover} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" onError={() => setFailedCover(cover)} />;
-  return <VideoFrame url={media.url} sourceVersion={media._sourceVersion} at={media.edit?.coverAt ?? media.edit?.trimStart ?? undefined} className="h-full w-full object-cover" fallback={<span className="flex h-full items-center justify-center gap-2 text-muted"><Play size={20} />Video</span>} />;
+  if(generated && generated.poster!==failedGenerated)return <img key={generated.poster} src={generated.poster} alt="" decoding="async" loading="lazy" className="h-full w-full object-cover" onError={()=>setFailedGenerated(generated.poster)}/>;
+  return <VideoFrame url={generated?.compatible??media.url} sourceVersion={media._sourceVersion} at={media.edit?.coverAt ?? media.edit?.trimStart ?? undefined} className="h-full w-full object-cover" fallback={<span className="flex h-full items-center justify-center gap-2 text-muted"><Play size={20} />Video</span>} />;
 }
 
 // Inline, because a tile that fails to clamp turns the grid into one column of

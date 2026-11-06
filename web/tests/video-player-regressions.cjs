@@ -52,6 +52,8 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
     if (name === 'react/jsx-runtime') return runtime;
     if (name === 'next/image') return {__esModule:true,default:'img'};
     if (name === '@/lib/videoFrames') return { useVideoFrame: () => ({ state: 'idle', src: null }) };
+    if (name.includes('shared/mediaDelivery')) return moduleFor(compile('../shared/mediaDelivery.ts'));
+    if (name === '@/lib/useBoundPostVideo') return {useBoundPostVideo: () => !!session.scope};
     if (name.includes('shared/imageDisplayIdentity')) return moduleFor(compile('../shared/imageDisplayIdentity.ts'));
     if (name === './contentMedia') return moduleFor(compile('../shared/contentMedia.ts'));
     if (name === '@/lib/videoPlayback') return helper;
@@ -128,7 +130,7 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
       render() {
         currentHooks = hooks; cursor = 0;
         if (kind === 'gallery') { tree = gallery.MediaGallery(props); while (typeof tree?.type === 'function') tree = tree.type(tree.props); }
-        else { const outer = module.VideoPlayer(props); screen.mediaKey = outer.key; tree = typeof outer.type === 'function' ? outer.type(outer.props) : outer; }
+        else { tree=module.VideoPlayer(props); while(typeof tree?.type==='function'){if(tree.key!=null)screen.mediaKey=tree.key;tree=tree.type(tree.props);} }
         const nodes = allNodes(tree);
         if (kind === 'gallery') {
           const hasInline = nodes.some(node => (node.type === 'NestedVideoPlayer' && !node.props.immersive) || (node.type === 'img' && node.props.role === 'button'));
@@ -707,4 +709,12 @@ test('a completed video stays stopped on the next observer callback', () => {
   const player=scenario().mount(); player.intersect(1); player.videoEvent('onEnded');
   const starts=player.element.playCalls; player.intersect(0.5); player.intersect(1);
   assert.equal(player.element.playCalls,starts); assert.equal(player.element.paused,true); player.unmount();
+});
+
+test('enrolled clips display their protected poster and load the compatible player bytes under a separate identity',()=>{
+ const original='https://media.example/functions/v1/media-content/post-media/fixture/video.mp4?token='+'a'.repeat(64);
+ const s=scenario(),p=s.mount({src:original,edit:{generatedPosterV1:true},sourceVersion:'v1',mediaId:'media',immersive:true});p.render();
+ assert.ok(p.find(n=>n.type==='img' && n.props.src===original+'&representation=poster'));
+ assert.equal(p.element.src,original+'&representation=compatible');assert.match(p.mediaKey,/representation=compatible/);p.unmount();
+ const c=scenario().mount({src:original,edit:{generatedPosterV1:true,coverUrl:'authored-cover.jpg'},sourceVersion:'v1',immersive:true});c.render();assert.ok(c.find(n=>n.type==='img' && n.props.src==='authored-cover.jpg'));c.unmount();
 });

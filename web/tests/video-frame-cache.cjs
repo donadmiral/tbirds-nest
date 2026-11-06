@@ -129,3 +129,8 @@ test('legacy still never seeks, plays or accepts an audio-only decoded sample as
 test('an authored time never reveals a pre-trim native frame while seek confirmation is pending',()=>{
  const h=stillHarness(2);try{h.v.readyState=4;h.v.videoWidth=100;h.v.videoHeight=200;h.v.onloadedmetadata();h.v.onloadeddata();assert.equal(h.status().ready,0);assert.equal(h.v.currentTime,2);h.v.onseeked();assert.deepEqual(h.status(),{ready:1,failed:0,plays:0,seeks:1});}finally{h.close();}
 });
+test('metadata plus readyState4 does not publish a black canvas before the decoder presents its first picture',()=>{
+ let presented, ready=0;const v={duration:4,currentTime:0,seeking:false,readyState:4,videoWidth:160,videoHeight:120,requestVideoFrameCallback(fn){presented=fn;return 1;},cancelVideoFrameCallback(){},pause(){},load(){},removeAttribute(){}};
+ const close=preparePausedStill(v,'red.mp4',0,()=>ready++,()=>assert.fail('unexpected refusal'),true);
+ try{v.onloadedmetadata();v.onloadeddata();assert.equal(ready,0);presented(123,{width:160,height:120,mediaTime:0,presentedFrames:1});assert.equal(ready,1);}finally{close();}
+});

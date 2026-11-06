@@ -38,6 +38,7 @@ import PostSoundtrack from './PostSoundtrack';
 import { readSoundtrack, type SoundtrackSelection } from '../../shared/soundtrack';
 import { Feather } from '@expo/vector-icons';
 import { navigationScope, subscribeNavigationScope } from '../lib/navigationCache';
+import {usePostVideoRepresentation} from '../lib/usePostVideoRepresentation';
 import { SUPABASE_URL } from '../services/supabase';
 import { contentObject } from '../../shared/contentMedia';
 import { useOfflineFeedMedia } from '../hooks/useOfflineFeedMedia';
@@ -154,17 +155,23 @@ function CarouselVideo({
   // seeking and muting are property writes instead of async calls.
   // One engine for the app: this surface owns it while it is on screen and in front.
   const screenFocused = useIsFocused();
+  const display=usePostVideoRepresentation(originalUri,edit);
+  const [failedCompatible,setFailedCompatible]=useState<string|null>(null);
+  const compatible=display.marked&&display.available&&failedCompatible!==display.source;
+  const visibleSource=display.available ? (compatible ? display.source : originalUri) : '';
+  if(display.marked)poster=display.available?(poster || display.poster):null;
   const cached = useFeedStartupPreview(postId, mediaId);
-  const offline = useOfflineFeedMedia(postId, mediaId, originalUri, sourceVersion, isVisible && isScreenActive && screenFocused);
+  const offline = useOfflineFeedMedia(postId, mediaId, originalUri, sourceVersion, !display.marked && isVisible && isScreenActive && screenFocused);
   const selection = useRef<OfflinePlaybackSelection | null>(null);
   const previous = selection.current, engine = useVideoEngine.getState();
-  const remote = originalUri.includes('/pc-offline-v1/') || originalUri.startsWith('data:image/') ? '' : originalUri;
-  selection.current = selectOfflinePlayback(previous, JSON.stringify([postId, mediaId, sourceVersion || originalUri]), remote,
-    offline?.kind === 'video' ? offline.uri : null, !!previous && engine.uri === previous.uri && engine.failed);
+  const remote = originalUri.includes('/pc-offline-v1/') || originalUri.startsWith('data:image/') ? '' : visibleSource;
+  selection.current = selectOfflinePlayback(previous, JSON.stringify(display.marked?[postId,mediaId,sourceVersion||originalUri,compatible?'compatible':'original',display.available]:[postId,mediaId,sourceVersion||originalUri]), remote,
+    !display.marked && offline?.kind === 'video' ? offline.uri : null, !!previous && engine.uri === previous.uri && engine.failed);
   const uri = selection.current.uri;
-  const previewPoster = cached?.kind === 'video' && (!poster || contentObject(poster, SUPABASE_URL)?.key === cached.objectKey) ? cached.uri : null;
+  const previewPoster = !display.marked && cached?.kind === 'video' && (!poster || contentObject(poster, SUPABASE_URL)?.key === cached.objectKey) ? cached.uri : null;
   const voicePlayback = postPlaybackSettings(edit);
   const { player, ownerId, owns, sourceReady, failed, canHold, version, retry } = useSharedVideo({ uri, visible: isVisible, screenActive: isScreenActive && screenFocused, postId: postId ?? null, rate: voicePlayback.rate, preservesPitch: voicePlayback.preservesPitch, muted: sessionMuted || !!(edit as any)?.muted, startAt: edit?.trimStart ?? 0 });
+  useEffect(()=>{if(compatible && failed && uri===display.source)setFailedCompatible(display.source);},[compatible,failed,uri,display.source]);
   // App/account changes can release a player before React commits the render
   // that removes this card's callbacks. Check the live engine before native use.
   const ownsCurrentPlayer = useCallback(() => {

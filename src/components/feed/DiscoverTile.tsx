@@ -1,3 +1,4 @@
+import {usePostVideoRepresentation} from '../../lib/usePostVideoRepresentation';
 import { privateImageCachePolicy } from '../../../shared/mediaDelivery';
 // src/components/feed/DiscoverTile.tsx
 // The phone Discover tile, twin of web/components/DiscoverTile.tsx. A discovery
@@ -26,6 +27,8 @@ export default function DiscoverTile({ post, author, width, onPress }: { post: T
   useTheme();
   const media = post.media ?? [];
   const first = media[0] ?? null;
+  const derived=usePostVideoRepresentation(first?.url??'',first?.edit);
+  const [failedGenerated,setFailedGenerated]=React.useState<string|null>(null);
   const isVideo = first?.media_type === 'video';
   const text = (post.content || '').trim();
   const link = post.link;
@@ -44,14 +47,14 @@ export default function DiscoverTile({ post, author, width, onPress }: { post: T
 
   if (first) {
     const stored = isVideo ? ((first as any)?.edit?.coverUrl || (first as any)?.edit?.thumbnail || null) : first.url; // a live clip published to the feed names its poster `thumbnail`
-    const cover = stored && failedCover !== stored ? stored : null;
+    const cover = stored && failedCover !== stored ? stored : derived.poster && derived.poster!==failedGenerated ? derived.poster : null;
     return (
       <TouchableOpacity style={[s.tile, { width }]} activeOpacity={0.85} onPress={onPress}>
         <View style={[s.frame, { height: width }]}>
-          {first.is_sensitive || first.edit?.sensitive ? <View style={[StyleSheet.absoluteFill, s.frameEmpty]}><Feather name="eye-off" size={24} color={getTheme().ink.muted} /><Text style={{color:getTheme().ink.secondary}}>Sensitive content</Text></View> : cover
-            ? <ExpoImage source={{ uri: cover }} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy={privateImageCachePolicy(cover)} onError={() => setFailedCover(cover)} />
+          {first.is_sensitive || first.edit?.sensitive ? <View style={[StyleSheet.absoluteFill, s.frameEmpty]}><Feather name="eye-off" size={24} color={getTheme().ink.muted} /><Text style={{color:getTheme().ink.secondary}}>Sensitive content</Text></View> : !derived.available?null:cover
+            ? <ExpoImage recyclingKey={derived.marked?cover:undefined} source={{ uri: cover }} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy={privateImageCachePolicy(cover)} onError={() => cover===derived.poster?setFailedGenerated(cover):setFailedCover(cover)} />
             : isVideo
-              ? <VideoThumb uri={first.url} fill chip={false} />
+              ? <VideoThumb uri={derived.source} fill chip={false} allowDecode={!derived.marked} />
               : <View style={[StyleSheet.absoluteFill, s.frameEmpty]}><Feather name="image" size={22} color={getTheme().ink.muted} /></View>}
           {isVideo ? <View style={s.play}><Feather name="play" size={12} color="#FFF" /></View> : null}
           {media.length > 1 ? <View style={s.count}><Text style={s.countTxt}>1/{media.length}</Text></View> : null}

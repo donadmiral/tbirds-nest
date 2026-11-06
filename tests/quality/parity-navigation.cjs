@@ -89,6 +89,7 @@ test('the expanded native carousel retains mixed attachment order and opens the 
     react: hooks, '../theme/useTheme': { themedSheet: fn => fn(palette), useTheme: () => ({ t: palette, isDark: true }) },
     'react-native': { View: 'View', Text: 'Text', FlatList: 'FlatList', TouchableOpacity: 'Button', ActivityIndicator: 'Spinner', Animated: {}, StyleSheet: {} },
     'expo-image': {}, 'expo-video': {}, '../lib/videoEngine': {},
+    '../lib/usePostVideoRepresentation': require('./unmarked-post-video-fixture.cjs'),
     '../lib/navigationCache': { navigationScope: () => 'viewer:1', subscribeNavigationScope: () => () => {} },
     '../services/supabase': { SUPABASE_URL: 'https://preview.supabase.co' },
     '../lib/offlinePlaybackSelection': load('src/lib/offlinePlaybackSelection.ts'),

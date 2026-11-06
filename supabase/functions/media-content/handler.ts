@@ -11,6 +11,8 @@ type Dependencies = {
   resolveVariant?(token: string, bucket: string, path: string, version: string, signal: AbortSignal, stage:'variant_selection'|'variant_revalidation', budget:ProofBudget): Promise<{
     bucket: string; path: string; version: string; etag: string; sourceVersion: string;
   } | { unavailable: true } | null>;
+  readRepresentation?(token:string,bucket:string,path:string,version:string|null,kind:'poster'|'compatible',signal:AbortSignal): Promise<
+    ({bytes:number;jpeg:string;hash:string} | {bucket:string;path:string;version:string;etag:string}) & {sourceVersion:string;sourcePath:string;sourceBucket:string;expiresAt:string} | null>;
   fetch: typeof fetch;
   randomId?(): string;
   diagnostic?(event: MediaDeliveryDiagnostic): void;
@@ -129,18 +131,44 @@ export function createMediaContentHandler(deps: Dependencies) {
       request.signal.addEventListener('abort', clientAbort, { once: true });
       if (request.signal.aborted) { stop('aborted'); return error(499); }
       startupTimer = setTimeout(() => stop('timeout'), deps.startupTimeoutMs ?? 12000);
-      const grant = await measure('authorization', () => deps.resolve(token, bucket, path, controller.signal, 'authorization', proof));
+      const representation = url.searchParams.get('representation');
+      if (representation !== null && (url.searchParams.getAll('representation').length !== 1 || !['poster','compatible'].includes(representation) || bucket!=='post-media')) {stop('complete');return error(400);}
+      // One RPC couples the original ticket proof with the approved derivative.
+      const scopedKind=representation==='poster'||representation==='compatible'?representation:null;
+      const readScoped=(version:string|null)=>deps.readRepresentation?.(token,bucket,path,version,scopedKind!,controller.signal)??Promise.resolve(null);
+      const scoped=scopedKind?await measure('authorization',()=>readScoped(null)):null;
+      if(scopedKind && (!scoped||scoped.sourceBucket!==bucket||scoped.sourcePath!==path||!scoped.sourceVersion)){stop('complete');return error(403);}
+      const grant=scoped?{bucket,path,version:scoped.sourceVersion,expiresAt:scoped.expiresAt}
+        :await measure('authorization',()=>deps.resolve(token,bucket,path,controller.signal,'authorization',proof));
       if (!grant || grant.bucket !== bucket || grant.path !== path || typeof grant.version !== 'string' || !grant.version) { stop('complete'); return error(403); }
       // Selection uses the persisted ticket's creation time, never a TTL guess.
       // One playback URL therefore keeps its byte layout across Range requests.
-      const chooseVariant = (phase:'variant_selection'|'variant_revalidation') => deps.resolveVariant && ['post-media', 'story-media'].includes(bucket)
-        ? measure(phase, () => deps.resolveVariant!(token, bucket, path, grant.version, controller.signal,phase,proof)) : Promise.resolve(null);
-      const variant = await chooseVariant('variant_selection');
-      if (variant && 'unavailable' in variant) { stop('complete'); return error(410); }
-      if (variant && (variant.bucket !== 'derived-media' || variant.sourceVersion !== grant.version || !variant.version || !variant.etag
-        || variant.path.split('/')[0] !== path.split('/')[0]
-        || !/^[0-9a-f-]{36}\/_derived_v1\/[0-9a-f-]{36}\/[0-9a-f-]{36}\.(mp4|mov)$/i.test(variant.path))) {
-        stop('complete'); return error(503);
+      if(representation==='poster'){
+        const result=scoped;
+        if(!result){stop('complete');return error(410);}
+        if(!('jpeg' in result)||!Number.isSafeInteger(result.bytes)||result.bytes<32||result.bytes>65536||result.jpeg.length>87384||!/^[a-f0-9]{64}$/.test(result.hash)){stop('error');return error(503);}
+        const jpeg=Uint8Array.from(atob(result.jpeg),c=>c.charCodeAt(0));
+        if(jpeg.length!==result.bytes||jpeg[0]!==255||jpeg[1]!==216||jpeg[2]!==255||jpeg.at(-2)!==255||jpeg.at(-1)!==217){stop('error');return error(503);}
+        // The SQL read checked the current ticket, post context and exact object versions
+        // atomically with returning these bytes. Never route an unknown poster to the original.
+        stop('complete');return new Response(request.method==='HEAD'?null:jpeg,{status:200,headers:{...headers,'Content-Type':'image/jpeg','Content-Length':String(jpeg.length),'ETag':'"pc-poster-'+result.hash+'"'}});
+      }
+      const chooseVariant = async(phase:'variant_selection'|'variant_revalidation') => {
+        if(representation==='compatible'){
+          const asset=phase==='variant_selection'?scoped:await measure(phase,()=>readScoped(grant.version));
+          if(asset && (asset.sourceVersion!==grant.version||asset.sourcePath!==path||asset.sourceBucket!==bucket))return {unavailable:true as const};
+          return asset && 'path' in asset ? asset : {unavailable:true as const};
+        }
+        return deps.resolveVariant && ['post-media','story-media'].includes(bucket)
+          ? measure(phase, () => deps.resolveVariant!(token, bucket, path, grant.version, controller.signal,phase,proof)) : null;
+      };
+      const variant=await chooseVariant('variant_selection');
+      if (variant && 'unavailable' in variant) {stop('complete'); return error(410);}
+      if (variant && (!variant.version||!variant.etag||variant.sourceVersion!==grant.version||variant.path.split('/')[0]!==path.split('/')[0]||
+        (representation==='compatible'
+          ? variant.bucket!=='adaptive-media'||!/^[0-9a-f-]{36}\/_renditions_v2\/[0-9a-f-]{36}\/[0-9a-f-]{36}\/fallback\.mp4$/i.test(variant.path)
+          : variant.bucket!=='derived-media'||!/^[0-9a-f-]{36}\/_derived_v1\/[0-9a-f-]{36}\/[0-9a-f-]{36}\.(mp4|mov)$/i.test(variant.path)))) {
+        stop('complete');return error(503);
       }
       const selected = variant || grant;
       const representationTag = '"pc-' + encodeURIComponent(JSON.stringify([grant.version, selected.version])) + '"';
@@ -169,7 +197,7 @@ export function createMediaContentHandler(deps: Dependencies) {
         }
         return error(upstream.status === 404 ? 410 : 503);
       }
-      const after = await measure('revalidation', () => deps.resolve(token, bucket, path, controller.signal, 'revalidation', proof));
+      const after = scopedKind?grant:await measure('revalidation', () => deps.resolve(token, bucket, path, controller.signal, 'revalidation', proof));
       if (!after || after.version !== grant.version || after.path !== path || after.bucket !== bucket) { stop('complete'); return error(403); }
       if (variant) {
         const current = await chooseVariant('variant_revalidation');
@@ -177,6 +205,7 @@ export function createMediaContentHandler(deps: Dependencies) {
           || current.etag !== variant.etag || upstream.headers.get('ETag')?.trim().replace(/^"|"$/g, '') !== variant.etag) { stop('complete'); return error(410); }
       }
       const mime = upstream.headers.get('Content-Type')?.split(';')[0].trim().toLowerCase() || '';
+      if(representation==='compatible' && mime!=='video/mp4'){stop('error');return error(415);}
       if (!(bucket === 'live-clips' && mime === 'text/vtt' && path.endsWith('/captions.vtt')) && !/^(?:image\/(?:jpeg|png|webp|gif|heic|heif|avif)|video\/(?:mp4|quicktime|webm)|audio\/[a-z0-9.+-]+|application\/(?:pdf|octet-stream))$/.test(mime)) { stop('complete'); return error(415); }
       // fetch may transparently decompress a response while retaining its
       // compressed Content-Length/Range. Those headers cannot describe the

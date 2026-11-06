@@ -85,6 +85,7 @@ function harness(extraProps = {}) {
     '../lib/offlinePlaybackSelection': { selectOfflinePlayback: (_previous, identity, remote, local) => ({ identity, uri: local || remote }) },
     '../hooks/useOfflineFeedMedia': { useOfflineFeedMedia: () => null },
     '../../shared/contentMedia': {},
+    '../lib/usePostVideoRepresentation': require('./unmarked-post-video-fixture.cjs'),
     '../lib/navigationCache': {}, '../services/supabase': {},
     '../../shared/postVoiceEffects': { postPlaybackSettings: () => ({ rate: 1, preservesPitch: true }) },
     '../../shared/postMediaEditing': {}, '../../shared/carouselNavigation': {}, '../../shared/soundtrack': {},

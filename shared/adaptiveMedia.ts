@@ -35,6 +35,7 @@ function validateAdaptiveMedia(source: string, data: any): Ready | null {
 export function adaptiveProbeUrl(source: string): string | null {
   try {
     const u = new URL(source);
+    if(u.searchParams.has('representation')) return null; // An explicit progressive representation cannot become an original-source HLS probe.
     const clip = u.pathname.match(/^\/functions\/v1\/media-content\/live-clips\/(.+)$/);
     const permitted = /^\/functions\/v1\/media-content\/(post-media|story-media)\/.+\.(mp4|mov|m4v)$/i.test(u.pathname)
       || !!(clip && liveClipPath.test(clip[1]) && !u.hash && [...u.searchParams.keys()].every(key => key === 'token'));

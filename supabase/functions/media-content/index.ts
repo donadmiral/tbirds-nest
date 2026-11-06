@@ -17,6 +17,10 @@ const originalHandler = createMediaContentHandler({ base, serviceKey, fetch: med
   async resolve(token,bucket,path,signal,stage,budget) {
     return proofTransport.run(stage,budget,signal,attempt => client.rpc('resolve_media_delivery',{p_token:token,p_bucket:bucket,p_path:path}).abortSignal(attempt));
   },
+  async readRepresentation(token,bucket,path,version,kind,signal){
+    const {data,error}=await client.rpc('read_post_representation_v1',{p_token:token,p_bucket:bucket,p_path:path,p_source_version:version,p_kind:kind}).abortSignal(signal);
+    if(error)throw Error('Media representation unavailable');return data;
+  },
   ...(Deno.env.get('MEDIA_VARIANT_DELIVERY') === 'true' ? {
     async resolveVariant(token:string,bucket:string,path:string,version:string,signal:AbortSignal,stage:'variant_selection'|'variant_revalidation',budget:ProofBudget) {
       return proofTransport.run(stage,budget,signal,attempt => client.rpc('resolve_media_variant_for_ticket_v1',{p_token:token,p_bucket:bucket,p_path:path,p_source_version:version}).abortSignal(attempt));

@@ -15,6 +15,8 @@ import type {SoundtrackSelection} from '../../shared/soundtrack';
 import { PostCaption } from './PostCaption';
 import type { PostFrameRecipe } from '../../shared/postMediaEditing';
 import { applyPostPlayback, postPlaybackSettings } from '../../shared/postVoiceEffects';
+import { protectedPostVideo } from '../../shared/mediaDelivery';
+import { useBoundPostVideo } from '@/lib/useBoundPostVideo';
 import { imageDisplayIdentity } from '../../shared/imageDisplayIdentity';
 import { discoverFrame } from '../../shared/discover';
 
@@ -47,7 +49,7 @@ function remember(src: string, time: number) {
 const viewSession = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : String(Date.now());
 
 type WebVideo = HTMLVideoElement & { webkitEnterFullscreen?: () => void };
-export type PostMediaEditRecipe = PostFrameRecipe & { rotation?: number; flipX?: boolean; speed?:number|null; coverAt?:number|null; coverUrl?:string|null; thumbnail?:string|null; soundtrack?:SoundtrackSelection|null; scale?: number; translateNX?: number; translateNY?: number; fit?: "cover" | "contain"; filterId?: string | null; filterAmt?: number; adjust?: { con?: number; hi?: number; sh?: number; grain?: number; bri?: number; warm?: number; tint?: number; sat?: number; fade?: number; vig?: number } | null; trimStart?: number | null; trimEnd?: number | null; muted?: boolean };
+export type PostMediaEditRecipe = PostFrameRecipe & { generatedPosterV1?: boolean; rotation?: number; flipX?: boolean; speed?:number|null; coverAt?:number|null; coverUrl?:string|null; thumbnail?:string|null; soundtrack?:SoundtrackSelection|null; scale?: number; translateNX?: number; translateNY?: number; fit?: "cover" | "contain"; filterId?: string | null; filterAmt?: number; adjust?: { con?: number; hi?: number; sh?: number; grain?: number; bri?: number; warm?: number; tint?: number; sat?: number; fade?: number; vig?: number } | null; trimStart?: number | null; trimEnd?: number | null; muted?: boolean };
 type Props = {
   src: string; postId: string; mediaId?: string; sourceVersion?: string; viewsCount?: number | null;
   width?: number; height?: number; onDims?: (w: number, h: number) => void;
@@ -57,14 +59,25 @@ type Props = {
 };
 
 export function VideoPlayer(props: Props) {
+  const representations=protectedPostVideo(props.src,props.edit,process.env.NEXT_PUBLIC_SUPABASE_URL??'');
+  if(representations) return <BoundRepresentationPlayer {...props} representations={representations}/>;
+  return renderVideoPlayer(props);
+}
+function BoundRepresentationPlayer({representations,...props}:Props&{representations:{poster:string;compatible:string}}){
+  const allowed=useBoundPostVideo(props.src);const [failed,setFailed]=useState<string|null>(null);
+  if(!allowed)return <div aria-label="Video unavailable"/>;
+  const compatible=failed!==representations.compatible;
+  return renderVideoPlayer({...props,src:compatible?representations.compatible:props.src,poster:props.edit?.coverUrl||props.edit?.thumbnail||representations.poster},compatible?()=>setFailed(representations.compatible):undefined);
+}
+function renderVideoPlayer(props: Props,onRepresentationError?:()=>void) {
   // Strip only a recognized first-party capability token from the view identity.
   // Never send this identity as a request or use it to authorize a different object.
   const identity = props.sourceVersion ? imageDisplayIdentity(props.src, process.env.NEXT_PUBLIC_SUPABASE_URL ?? '') : props.src;
   const mediaKey = JSON.stringify([props.postId, props.mediaId, props.sourceVersion, identity]);
-  return <VideoPlayback key={mediaKey} mediaKey={mediaKey} {...props} />;
+  return <VideoPlayback key={mediaKey} mediaKey={mediaKey} onRepresentationError={onRepresentationError} {...props} />;
 }
 
-function VideoPlayback({ src: latestSource, mediaKey, postId, sourceVersion, viewsCount, width, height, onDims, immersive = false, fullFrame = false, edit = null, onExpand, allowPlayback = true, soundtrack=null,poster=null,mediaOverlay }: Props & { mediaKey: string }) {
+function VideoPlayback({ src: latestSource, onRepresentationError, mediaKey, postId, sourceVersion, viewsCount, width, height, onDims, immersive = false, fullFrame = false, edit = null, onExpand, allowPlayback = true, soundtrack=null,poster=null,mediaOverlay }: Props & { mediaKey: string; onRepresentationError?:()=>void }) {
   const ref = useRef<WebVideo | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const viewportRef = useRef<HTMLDivElement | null>(null);
@@ -441,6 +454,7 @@ function VideoPlayback({ src: latestSource, mediaKey, postId, sourceVersion, vie
             return;
           }
           if (adaptiveAttachment.current?.recover()) return;
+          if(onRepresentationError && !sessionRevoked.current && wantsPlayback.current){onRepresentationError();return;}
           stop(); setFailed(true); setNotice("");
         }}
         onLoadedMetadata={() => {
