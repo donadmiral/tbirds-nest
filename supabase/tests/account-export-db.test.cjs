@@ -40,6 +40,11 @@ before(async()=>{
  insert into public.story_views(story_id,user_id) values('${Q}','${A}'),('${P}','${B}');
  insert into public.user_push_tokens(id,user_id,device_name,expo_push_token,voip_token) values('${P}','${A}','test phone','secret-expo-token','secret-voip-token');`);
  await db.exec(fs.readFileSync(path.join(__dirname,'../migrations/20261022173052_account_export_snapshot.sql'),'utf8'));
+ await db.exec(`create schema cron;
+   create table cron.test_jobs(name text, cadence text, command text);
+   create function cron.schedule(text,text,text) returns bigint language sql as
+     $$ insert into cron.test_jobs values ($1,$2,$3) returning 1::bigint $$;`);
+ await db.exec(fs.readFileSync(path.join(__dirname,'../migrations/20261106230356_private_account_export_parts.sql'),'utf8'));
 });
 after(async()=>{await db?.close();});
 async function as(role,uid,run){await db.exec('begin');try{await db.query("select set_config('request.jwt.claim.sub',$1,true)",[uid||'']);await db.exec('set local role '+role);return await run();}finally{await db.exec('rollback');}}
@@ -88,4 +93,109 @@ test('one statement snapshot cannot mix in a write from its own data-modifying C
   const row=(await db.query(`with inserted as (insert into public.posts(id,user_id,body) values(gen_random_uuid(),'${A}','inserted during statement') returning id) select (select count(*) from inserted)::integer as inserted,public.account_export_snapshot() as value`)).rows[0];
   assert.equal(row.inserted,1);assert.equal(row.value.posts.length,1);assert.equal((await snapshot()).posts.length,2);
  }finally{await db.exec('rollback');}
+});
+
+async function caller(uid) {
+  await db.exec('reset role');
+  await db.query("select set_config('request.jwt.claim.sub',$1,true)", [uid]);
+  await db.exec('set local role authenticated');
+}
+async function requestArchive() {
+  return (await db.query('select public.request_account_archive() as id')).rows[0].id;
+}
+async function readArchive(id, part = null) {
+  return (await db.query('select public.read_account_archive($1,$2) as value',[id,part])).rows[0].value;
+}
+async function workOne() {
+  await db.exec('reset role');
+  return (await db.query('select account_export.work_one() as result')).rows[0].result;
+}
+
+test('multipart export covers every projected field, contains only caller data and stays immutable', async () => {
+  await db.exec('begin');
+  try {
+    await caller(A);
+    const expected = await snapshot();
+    const job = await requestArchive();
+    assert.equal(await requestArchive(), job);
+    assert.equal((await readArchive(job)).status, 'queued');
+    assert.equal(await workOne(), true);
+    assert.equal(await workOne(), false);
+    await db.query("update public.posts set body = 'later content' where id = $1", [P]);
+    await caller(A);
+    const manifest = await readArchive(job);
+    assert.equal(manifest.status, 'ready');
+    assert.equal(manifest.owner_id, A);
+    assert.deepEqual(manifest.collection_counts, expected.collection_counts);
+    const part = await readArchive(job, 0);
+    assert.equal(part.next_part, null);
+    assert.equal(Buffer.byteLength(part.content), manifest.byte_count);
+    assert.doesNotMatch(part.content, /secret-|foreign|later content/);
+    const lines = part.content.trimEnd().split('\n').map(line => JSON.parse(line));
+    for (const [name, count] of Object.entries(manifest.collection_counts)) {
+      const payloads = lines.filter(line => line.collection === name).map(line => line.record);
+      assert.equal(payloads.length, count);
+      assert.deepEqual(payloads, expected[name]);
+    }
+    for (const name of ['profile','account']) assert.deepEqual(lines.find(l => l.collection === name).record, expected[name]);
+  } finally { await db.exec('rollback'); }
+});
+
+test('worker splits unicode and large individual rows, complete beyond the immediate record cap', async () => {
+  await db.exec('begin');
+  try {
+    await db.exec(`insert into public.post_likes(id,user_id,post_id)
+      select gen_random_uuid(),'${A}','${P}' from generate_series(1,50001)`);
+    await db.query("update public.posts set body=repeat('😀',150000) where id=$1",[P]);
+    await caller(A);
+    const job = await requestArchive();
+    await workOne();
+    await caller(A);
+    const manifest = await readArchive(job);
+    assert.equal(manifest.collection_counts.likes,50001);
+    assert.ok(manifest.part_count > 2);
+    const chunks = [];
+    for (let n = manifest.next_part; n !== null;) {
+      const part = await readArchive(job, n);
+      assert.equal(part.part_number, chunks.length);
+      assert.equal(part.id, job);
+      assert.equal(part.owner_id,A);
+      assert.ok(Buffer.byteLength(part.content) <= 262144);
+      if (!n) assert.deepEqual(await readArchive(job, n), part);
+      chunks.push(part.content);
+      n = part.next_part;
+    }
+    assert.equal(chunks.length, manifest.part_count);
+    const archive = chunks.join('');
+    assert.equal(Buffer.byteLength(archive), manifest.byte_count);
+    const lines = archive.trimEnd().split('\n').map(line => JSON.parse(line));
+    const ids = lines.filter(line => line.collection === 'likes').map(line => line.record.id);
+    assert.equal(new Set(ids).size, 50001);
+    assert.deepEqual(ids, [...ids].sort());
+    assert.equal(lines.find(line => line.collection === 'posts').record.body,'😀'.repeat(150000));
+  } finally { await db.exec('rollback'); }
+});
+
+test('foreign manifests, part guesses, SQL helpers, table reads and anonymous calls are denied', async () => {
+  let job;
+  try {
+    await db.exec('begin'); await caller(A);
+    job = await requestArchive(); await workOne(); await db.exec('commit');
+    for (const part of [null,0]) {
+      await assert.rejects(as('authenticated',B,() => readArchive(job,part)),/ARCHIVE_NOT_FOUND/);
+    }
+    for (const role of ['anon','service_role']) {
+      await assert.rejects(as(role,A,requestArchive), /permission denied/);
+      await assert.rejects(as(role,A,() => readArchive(job,0)), /permission denied/);
+    }
+    for (const sql of ['select * from account_export.parts','select * from account_export.jobs',
+      'select account_export.work_one()',`select * from account_export.archive_rows('${B}')`]) {
+      await assert.rejects(as('authenticated',A,() => db.query(sql)), /permission denied/);
+    }
+    for (const part of [-1,1]) await assert.rejects(as('authenticated',A,() => readArchive(job,part)), /PART_UNAVAILABLE/);
+    await db.query("update account_export.jobs set expires_at=now()-interval '1 hour' where id=$1",[job]);
+    await assert.rejects(as('authenticated',A,() => readArchive(job,0)), /ARCHIVE_NOT_FOUND/);
+    await db.query('select account_export.work_one()');
+    assert.equal((await db.query('select count(*)::integer as n from account_export.parts where job_id=$1',[job])).rows[0].n,0);
+  } finally { if (job) await db.query('delete from account_export.jobs where id=$1',[job]); }
 });

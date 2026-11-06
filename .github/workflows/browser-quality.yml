@@ -148,6 +148,8 @@ jobs:
       - name: Exercise member read failures, write recovery and actual upload controls
         if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
         run: node web/tests/browser/member-resilience-run.cjs
+      - name: Download a queued archive through member settings
+        run: node web/tests/browser/account-archive-run.cjs
       - name: Exercise Support drafts, retries and atomic reply confirmation
         if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
         run: node web/tests/browser/support-run.cjs

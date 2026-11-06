@@ -28,12 +28,6 @@ Deno.serve(async (req) => {
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(contact_email)) {
       return new Response(JSON.stringify({ error: 'That contact email does not look valid.' }), { status: 400, headers });
     }
-    const { count } = await svc.from('business_applications')
-      .select('id', { count: 'exact', head: true })
-      .eq('contact_email', contact_email).eq('status', 'submitted');
-    if ((count ?? 0) >= 3) {
-      return new Response(JSON.stringify({ error: 'There are already applications under review for this email.' }), { status: 429, headers });
-    }
     const { error } = await svc.from('business_applications').insert({
       applicant_id: null,
       company_name,
@@ -45,6 +39,9 @@ Deno.serve(async (req) => {
       registration_info: String(b.registration_info || '').trim() || null,
       desired_username,
     });
+    if (error?.code === 'PBR03') {
+      return new Response(JSON.stringify({ error: 'There are already applications under review for this email.' }), { status: 429, headers });
+    }
     if (error) throw error;
     return new Response(JSON.stringify({ ok: true }), { status: 200, headers });
   } catch (e) {

@@ -26,6 +26,7 @@ import { useSettingsStore } from '../../stores/settingsStore';
 import { typeSize, fontWeight, radius, space } from '../../constants/tokens';
 import { supabase } from '../../services/supabase';
 import { requestAccountErasure } from '../../services/accountErasureService';
+import { shareLargeAccountArchive } from '../../services/largeAccountArchive';
 import { erasureMessage } from '../../../shared/accountErasure';
 import { categoryEnabled, createNotificationPreferenceEditor, pushEnabled as notificationsEnabled,
   type NotificationCategory, type NotificationEditorState, type NotificationPreferenceKey } from '../../../shared/notificationPreferences';
@@ -77,6 +78,22 @@ export default function SettingsScreen() {
   const [appearanceOpen, setAppearanceOpen] = useState(false);
   const navigation = useNavigation<any>();
   const exportBusy = React.useRef(false);
+  const checkLargeArchive = async () => {
+    if (exportBusy.current) return;
+    const owner = useAuthStore.getState().session?.user?.id;
+    if (!owner) return;
+    exportBusy.current = true;
+    const assertOwner = () => {
+      if (useAuthStore.getState().session?.user?.id !== owner) throw new Error('The signed-in account changed.');
+    };
+    try {
+      const message = await shareLargeAccountArchive(owner, assertOwner);
+      assertOwner();
+      Alert.alert('Large account archive', message);
+    } catch (error) {
+      if (useAuthStore.getState().session?.user?.id === owner) Alert.alert('Could not export', error instanceof Error ? error.message : 'Please try again.');
+    } finally { exportBusy.current = false; }
+  };
   const insets = useSafeAreaInsets();
   const { profile, signOut } = useAuthStore();
   const ownerId = useAuthStore(st => st.session?.user.id ?? '');
@@ -323,7 +340,15 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; searc
         try {
           showMessage({ message: 'Preparing your data', description: 'This may take a moment.', type: 'info', duration: 2500 });
           const { data, error } = await supabase.functions.invoke('export-my-data', { body: {} });
-          if (error) throw error;
+          if (error) {
+            const detail = await error.context?.json?.().catch(() => null);
+            assertOwner();
+            if (detail?.code === 'EXPORT_TOO_LARGE') {
+              Alert.alert('Large account archive', await shareLargeAccountArchive(ownerId, assertOwner));
+              return;
+            }
+            throw new Error(detail?.error || 'Please try again.');
+          }
           assertOwner();
           if (data?.export_status !== 'complete' || data?.account?.id !== ownerId) throw new Error('Your complete account export is not ready. Please try again.');
           const FileSystem = require('expo-file-system/legacy');
@@ -339,6 +364,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; searc
         } catch (e: any) { Alert.alert('Could not export', e?.message || 'Please try again.'); }
         finally { exportBusy.current = false; }
       } },
+      { icon: 'archive', color: getTheme().ink.primary, label: 'Large account archive', sub: 'Request, check, or download your JSON Lines file', onPress: checkLargeArchive },
       { icon: 'slash', color: '#FF3B30', label: 'Blocked accounts', sub: 'See and undo who you blocked', onPress: () => navigation.navigate('BlockedAccounts') },
       { icon: 'user-minus', color: getTheme().ink.primary, label: 'Restricted accounts', sub: 'Their comments wait for your approval and their messages go to requests', onPress: () => navigation.navigate('RestrictedAccounts') },
       { icon: 'briefcase', color: getTheme().ink.primary, label: 'Businesses', sub: 'Pages you run, and your team', onPress: () => navigation.navigate('Businesses') }, // visible to everyone — a person creates business pages

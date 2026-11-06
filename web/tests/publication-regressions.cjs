@@ -136,6 +136,19 @@ test('a failed collapsed publication keeps its original draft and opens a concre
  finish({data:null,error:{code:'42501',message:'Temporary denied write'}});await pending;assert.equal(h.posted(),0);
  h.button(h.render(),'Review post').props.onClick();assert.equal(h.input(h.render(),'Write a caption…').props.value,'Question');assert.ok(h.button(h.render(),'Retry'));
 });
+test('overlong pasted captions remain editable and cannot be published until they fit', () => {
+  const h = harness({});
+  h.button(h.render(), 'Post').props.onClick();
+  const input = () => h.input(h.render(), 'Write a caption…');
+  input().props.onChange({ target: { value: 'a'.repeat(2001) } });
+  assert.equal(input().props.value.length, 2001);
+  assert.equal(input().props['aria-invalid'], true);
+  assert.equal(h.button(h.render(), 'Review').props.disabled, true);
+  assert.equal(h.calls.length, 0);
+  input().props.onChange({ target: { value: 'a'.repeat(2000) } });
+  assert.equal(h.button(h.render(), 'Review').props.disabled, false);
+});
+
 test('Composer refuses same-tick duplicate submissions', async () => {
   const h = harness({ posts: [{ data: { id: 'post-1' }, error: null }] });
   h.button(h.render(), 'Post').props.onClick();

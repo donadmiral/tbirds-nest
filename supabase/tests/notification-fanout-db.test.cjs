@@ -42,6 +42,7 @@ before(async()=>{
  create function notify_push_notification()returns trigger language plpgsql as $$begin insert into public.legacy_dispatch_calls values(new.id);return new;end$$;
  create trigger legacy_push after insert on notifications for each row execute function notify_push_notification();`);
  await exec(sql('20261102090627_durable_notification_fanout.sql'));
+ await exec(sql('20261106230400_group_notification_cohorts.sql'));
 });
 after(async()=>await db?.close());
 test('disabled fanout preserves the original synchronous group records and titles',async()=>{
@@ -133,4 +134,19 @@ test('calls remain on their existing path and service work never becomes a publi
  has_table_privilege('authenticated','notification_fanout.jobs','select') raw,
  has_function_privilege('service_role','claim_notification_dispatch_v1(integer,integer)','execute') service`);
  assert.deepEqual(acl,{member:false,raw:false,service:true});
+});
+
+test('one consistent conversation cohort selects exactly one group-notification path',async()=>{
+ await clear();
+ const bucket=(await value(`select (get_byte(decode(md5('${group}'),'hex'),0)*100/256)::int as b`)).b;
+ try{
+  await exec(`select configure_notification_fanout_v1(true,false);update notification_fanout.settings set group_rollout_percent=${bucket};`+message(80));
+  const immediate=(await value(`select count(*)::int n from notifications where data->>'message_id'='${id(100080)}'`)).n;
+  assert.ok(immediate>0);
+  assert.equal((await value(`select count(*)::int n from notification_fanout.jobs where message_id='${id(100080)}'`)).n,0);
+  await exec(`update notification_fanout.settings set group_rollout_percent=${bucket+1};`+message(81));
+  assert.equal((await value(`select count(*)::int n from notification_fanout.jobs where message_id='${id(100081)}'`)).n,16);
+  await drain();
+  assert.equal((await value(`select count(*)::int n from notifications where data->>'message_id'='${id(100081)}'`)).n,immediate);
+ } finally{await exec('update notification_fanout.settings set group_rollout_percent=100');}
 });

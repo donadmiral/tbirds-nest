@@ -223,12 +223,11 @@ function OwnerComposer({ ownerId, onPosted, quote, onQuoteDone, initialKind, ope
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onQuoteDone, editIdx, tagIdx, cameraOpen, musicOpen]);
 
-  function onTextChange(v: string) {
+  function onTextChange(next: string) {
     captionEdited.current=true;
-    const next = v.slice(0, MAX_CHARS);
     setText(next);
     const match = next.match(/@([\w.]*)$/);
-    if (match && match[1].length >= 1) {
+    if (next.length <= MAX_CHARS && match && match[1].length >= 1) {
       supabase.from("profiles").select("id, full_name, username, avatar_url").ilike("username", match[1] + "%").limit(5)
         .then(({ data }) => setMentions((data ?? []) as MentionHit[]));
     } else {
@@ -290,7 +289,7 @@ function OwnerComposer({ ownerId, onPosted, quote, onQuoteDone, initialKind, ope
     const generation = ownerGeneration.current;
     const current = () => mounted.current && !!ownerId && renderedOwner.current === ownerId && authenticatedOwner.current === ownerId && ownerGeneration.current === generation;
     if (!current()) return;
-    if (publishing.current || preparingFiles.current || publication.current?.progress.uncertain || (!content && items.length === 0)) return;
+    if (text.length > MAX_CHARS || publishing.current || preparingFiles.current || publication.current?.progress.uncertain || (!content && items.length === 0)) return;
     if (pollOn && pollOpts.map((x) => x.trim()).filter(Boolean).length < 2) {
       setError("Add at least two poll options before posting.");
       return;
@@ -526,7 +525,7 @@ function OwnerComposer({ ownerId, onPosted, quote, onQuoteDone, initialKind, ope
   const selected=items[Math.min(selectedMedia,Math.max(0,items.length-1))];
   const moveMedia=(direction:number)=>{const from=Math.min(selectedMedia,items.length-1),to=from+direction;if(to<0||to>=items.length)return;setItems(prev=>{const next=[...prev];[next[from],next[to]]=[next[to],next[from]];return next;});setSelectedMedia(to);};
   const removeMedia=()=>{const at=Math.min(selectedMedia,items.length-1);const item=items[at];if(item){URL.revokeObjectURL(item.preview);if(item.coverPreview)URL.revokeObjectURL(item.coverPreview);}setItems(prev=>prev.filter((_,i)=>i!==at));setSelectedMedia(Math.max(0,at-1));};
-  const readyToPublish=!pending&&!preparing&&!publicationStatus.uncertain&&(!!text.trim()||items.length>0);
+  const readyToPublish=text.length<=MAX_CHARS&&!pending&&!preparing&&!publicationStatus.uncertain&&(!!text.trim()||items.length>0);
   const publishAction=()=>{if(publicationLocked||review)return post();else{setReview(true);taRef.current?.blur();}};
   const remaining = MAX_CHARS - text.length;
   const chip = (on: boolean) => "rounded-full px-2.5 py-1 text-[12px] transition-colors duration-[140ms] " + (on ? "bg-surface-elevated font-semibold text-ink" : "bg-surface text-muted hover:text-ink");
@@ -620,8 +619,9 @@ function OwnerComposer({ ownerId, onPosted, quote, onQuoteDone, initialKind, ope
       ) : null}
       <div className={compose.author}>{myAvatar?<NextImage unoptimized width={44} height={44} src={myAvatar} alt=""/>:<span className={compose.avatar}/>}<div><div className={compose.authorName}>{myName}</div><div className={compose.audience}><Globe size={12}/><select aria-label="Post audience" value={audience} onChange={e=>setAudience(e.target.value as typeof audience)}>{AUDIENCES.map(a=><option key={a.key} value={a.key}>{a.label}</option>)}</select></div></div></div>
       {kind==="article"||inno?<input aria-label="Article title" value={articleTitle} onChange={e=>setArticleTitle(e.target.value)} placeholder="Article title (optional)" className="mb-2 w-full rounded-xl bg-surface px-3 py-3 text-base font-semibold text-ink outline-none"/>:null}
-      <textarea ref={taRef} aria-label="Post caption" readOnly={review} value={text} onChange={e=>onTextChange(e.target.value)} onPaste={onPaste} placeholder={inno?"Share your innovation":"Write a caption…"} rows={3} className={compose.caption}/>
+      <textarea ref={taRef} aria-label="Post caption" aria-invalid={remaining<0} aria-describedby={remaining<0?"caption-over-limit":undefined} readOnly={review} value={text} onChange={e=>onTextChange(e.target.value)} onPaste={onPaste} placeholder={inno?"Share your innovation":"Write a caption…"} rows={3} className={compose.caption}/>
       <div className={compose.captionMeta}><span>{text.trim() ? (captionSaved ? 'Caption saved on this device' : 'Keep this draft open') : 'Make room for a moment worth sharing.'}</span><span aria-label="Caption character count">{text.length.toLocaleString()}/{MAX_CHARS.toLocaleString()}</span></div>
+      {remaining<0 && <p id="caption-over-limit" role="status" className="text-sm text-danger">Shorten your caption by {(-remaining).toLocaleString()} {remaining===-1?"character":"characters"} to post.</p>}
       {mentions.length > 0 ? (
         <div className="absolute z-20 w-64 overflow-hidden rounded-lg border border-ink/10 bg-navy shadow-2xl">
           {mentions.map((u) => (
