@@ -146,11 +146,23 @@ jobs:
       actions: read
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-        with: {persist-credentials: false}
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {persist-credentials: false, fetch-depth: 2}
+      - name: Check whether this harness qualifies the existing foundation device candidate
+        id: ownership
+        shell: bash
+        run: |
+          source_sha=6c5ca49f36aef0dfd9323251d320562e7dec9974
+          if [[ "$(git rev-parse HEAD^)" == "$source_sha" ]] && git diff --quiet "$source_sha" HEAD -- . ':(exclude)web/tests/browser/live-connected-run.cjs' ':(exclude).github/workflows/live-release-acceptance.yml'; then
+            echo "foundation=true" >> "$GITHUB_OUTPUT"
+            echo "Foundation QA delivery owns both installable device builds for $source_sha. Connected host/viewer qualification passed on this test-only commit." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - if: steps.ownership.outputs.foundation != 'true'
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with: {node-version: 22, cache: npm}
-      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - if: steps.ownership.outputs.foundation != 'true'
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Build the exact revision after connected Live acceptance
+        if: steps.ownership.outputs.foundation != 'true'
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           GITHUB_TOKEN: ${{ github.token }}

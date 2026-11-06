@@ -75,7 +75,7 @@ async function main(){
    heartbeat.status=response.status();if(heartbeat.transport!=='failed')heartbeat.transport='response';
    const diagnostic=response.json().then(data=>{if(heartbeat.transport!=='failed')heartbeat.ok=data?.ok===true;},()=>{heartbeat.ok=false;});pendingDiagnostics.add(diagnostic);void diagnostic.finally(()=>pendingDiagnostics.delete(diagnostic));
   }if(url.origin===origin&&/\/live-(control|playback)$/.test(url.pathname)){const data=await response.json().catch(()=>({}));responses.push({actor:label,endpoint:url.pathname.split('/').pop(),status:response.status(),error:data.error?safeDiagnosticText(data.error):null,state:data.state||null,ok:typeof data.ok==='boolean'?data.ok:null});}if(/\.(m3u8|ts|m4s)$/.test(url.pathname)&&delivery.length<50){const item={actor:label,...mediaLocation(url),status:response.status(),responseClass:'pending'};delivery.push(item);const diagnostic=mediaResponseClass(response).then(value=>{item.responseClass=value;});pendingDiagnostics.add(diagnostic);void diagnostic.finally(()=>pendingDiagnostics.delete(diagnostic));}});page.on('requestfailed',request=>{const url=new URL(request.url()),heartbeat=presenceRequests.get(request);if(heartbeat){heartbeat.transport='failed';heartbeat.ok=false;}if(/\.(m3u8|ts|m4s)$/.test(url.pathname)&&delivery.length<50){const reason=request.failure()?.errorText||'';delivery.push({actor:label,...mediaLocation(url),failed:true,responseClass:/^net::ERR_[A-Z_]+$/.test(reason)?reason:'network_error'});}});return page;}
-  const host=await actor('Host');
+  const host=await actor('Host'),fixtureHostId=fixture.actors.find(a=>a.label==='Host').id;
   async function uiCommand(page,label,name,action,perform){
    // Capture the response caused by this actual control. Never replace its
    // write with actorRpc, a request replay, a fixture response or a refresh.
@@ -155,10 +155,38 @@ async function main(){
    assert.equal(await guest.getByRole('region',{name:'Live production studio',exact:true}).count(),0,'Accepting an invitation opened a camera without consent');
    checks.push('Host invitation and follower acceptance retained guest-only access without starting a camera');
   }
+  // Keep Daily IDs in runner memory only. Retain booleans, never raw scene bodies.
+  function acceptedInterview(page,previous){
+    return page.waitForResponse(r=>{
+      if(r.status()!==200||new URL(r.url()).origin!==origin||new URL(r.url()).pathname!=='/functions/v1/live-control')return false;
+      const body=r.request().postDataJSON(),scene=body?.scene,ids=scene?.connection_ids;
+      return body?.action==='scene'&&body.sessionId===sessionId&&scene?.automatic===true&&scene.preset==='interview'&&isUuid(scene.participant_id)
+        &&Array.isArray(ids)&&ids.length===2&&ids.every(isUuid)&&ids[0]!==ids[1]&&isUuid(body.requestId)
+        &&(!previous||(scene.participant_id===previous.guest&&ids[0]===previous.hostConnection&&ids[1]!==previous.guestConnection&&body.requestId!==previous.request));
+    },{timeout:90000}).then(async r=>{
+      const body=r.request().postDataJSON(),scene=body.scene;
+      return {ok:(await r.json()).ok===true,status:r.status(),guest:scene.participant_id,hostConnection:scene.connection_ids[0],guestConnection:scene.connection_ids[1],request:body.requestId};
+    },()=>null);
+  }
+  async function followTwice(guest,publicId){
+    const [response]=await Promise.all([guest.waitForResponse(r=>new URL(r.url()).origin===origin&&new URL(r.url()).pathname==='/rest/v1/rpc/set_live_host_follow_v1'),
+      guest.getByRole('button',{name:'Follow host',exact:true}).click()]);
+    const args=response.request().postDataJSON();assert.equal(response.status(),200);
+    assert.equal(args.p_session_id===publicId&&args.p_host_id===fixtureHostId&&args.p_follow===true,true,'Wrong follow target');
+    const result=await response.json();assert.ok(['following','requested'].includes(result.state));
+    const control=result.state==='following'?'Unfollow host':'Cancel follow request';
+    await guest.getByRole('button',{name:control,exact:true}).waitFor();
+    // Replay only this same desired follow as the same QA viewer. This must not toggle it off.
+    assert.equal((await actorRpc(guest,'set_live_host_follow_v1',args)).state,result.state);
+    await guest.reload();await guest.getByRole('button',{name:control,exact:true}).waitFor();
+    const [undo]=await Promise.all([guest.waitForResponse(r=>new URL(r.url()).origin===origin&&new URL(r.url()).pathname==='/rest/v1/rpc/set_live_host_follow_v1'),guest.getByRole('button',{name:control,exact:true}).click()]);
+    assert.equal(undo.status(),200);assert.equal((await undo.json()).state,'none');await guest.getByRole('button',{name:'Follow host',exact:true}).waitFor();
+    checks.push('Viewer followed from the live room, repeated the same desired state, verified it after refresh, then removed it');
+  }
   async function exerciseGuest(guest,guestActor,publicId){
    const hostStudio=host.getByRole('region',{name:'Live production studio',exact:true});
    const hostRequests=host.getByRole('region',{name:'Join the live',exact:true});
-   await guest.goto(base+'/live/'+publicId);
+   await guest.goto(base+'/live/'+publicId);await followTwice(guest,publicId);
    let stageAdmissions=0;const observeStage=request=>{if(new URL(request.url()).pathname==='/functions/v1/live-stage')stageAdmissions++;};guest.on('request',observeStage);
    await uiCommand(guest,'Outsider','live_command','request_join',()=>guest.getByRole('button',{name:'Request to join',exact:true}).click());
    await hostRequests.getByRole('button',{name:/^Accept /}).waitFor({timeout:45000});
@@ -166,13 +194,21 @@ async function main(){
    await uiCommand(guest,'Outsider','live_command','cancel_join_request',()=>guest.getByRole('button',{name:'Cancel request',exact:true}).click());
    await hostRequests.getByText('No requests yet.',{exact:true}).waitFor({timeout:45000});
    await uiCommand(guest,'Outsider','live_command','request_join',()=>guest.getByRole('button',{name:'Request to join',exact:true}).click());
+   await guest.goto(base+'/live');await guest.waitForFunction(()=>window.__qaClient&&location.pathname==='/live');
    const accepted=await uiCommand(host,'Host','live_command','accept_join_request',()=>hostRequests.getByRole('button',{name:/^Accept /}).click());
    assert.equal(accepted.args.p_payload?.user_id===guestActor.id&&accepted.data.status==='accepted',true,'Host approved a different guest request');
+   // Read only this synthetic recipient's persisted Activity row while outside the room.
+   const decision=await until('Off-room guest decision',()=>guest.evaluate(async id=>{
+     const {data,error}=await window.__qaClient.from('notifications').select('id').eq('recipient_id',window.__LIVE_ACCEPTANCE.actor.id)
+       .eq('type','live_stream').contains('data',{live_session_id:id,recipient_id:window.__LIVE_ACCEPTANCE.actor.id,kind:'guest_accepted'}).limit(2).abortSignal(AbortSignal.timeout(15000));
+     if(error)throw Error('Guest decision read failed');return data?.length;
+   },publicId),n=>n===1,20000);
+   assert.equal(decision,1);assert.equal(stageAdmissions,0);await guest.goto(base+'/live/'+publicId);
    await guest.getByRole('button',{name:'Join camera',exact:true}).waitFor({timeout:45000});
    assert.equal(stageAdmissions,0,'A guest request or approval started the camera before consent');
    assert.equal(await guest.locator('[data-live-stage]').count(),0,'Approval mounted a guest camera before consent');
-   checks.push('Guest request, cancellation, renewed request and host approval reached separate browsers without refreshing or starting a camera');
-   const automaticPublication=host.waitForResponse(r=>new URL(r.url()).origin===origin&&new URL(r.url()).pathname==='/functions/v1/live-control'&&r.request().postDataJSON()?.action==='scene'&&r.request().postDataJSON()?.scene?.automatic===true&&r.request().postDataJSON()?.scene?.preset==='interview',{timeout:60000}).then(async response=>({status:response.status(),ok:(await response.json())?.ok===true}),()=>({status:0,ok:false}));
+   checks.push('While off-room, the guest received one persisted acceptance in Activity and returned without starting a camera');
+   const automaticPublication=acceptedInterview(host,null);
    const [accessResponse]=await Promise.all([guest.waitForResponse(r=>new URL(r.url()).origin===origin&&new URL(r.url()).pathname==='/functions/v1/live-stage'),guest.getByRole('button',{name:'Join camera',exact:true}).click()]);
    guest.off('request',observeStage);
    const access=await accessResponse.json();
@@ -186,8 +222,18 @@ async function main(){
    const previousTime=hostTracks.find(tile=>!tile.local).currentTime;
    const advancing=await until('Guest remote frames advancing',()=>stageSnapshot(host),tiles=>tiles.some(tile=>!tile.local&&playingStageVideo(tile)&&tile.currentTime>previousTime+0.5),30000);
    stage.push({actor:'Outsider',observation:'local-camera',tiles:guestTracks},{actor:'Host',observation:'remote-guest-decoded',tiles:advancing});checks.push('Approved guest explicitly joined their camera and published a synthetic camera through real Daily to the host');
-   const automatic=await automaticPublication;controls.push({actor:'Host',endpoint:'live-control',action:'scene',automatic:true,...automatic});
+   const automatic=await automaticPublication;assert.ok(automatic,'No accepted automatic interview for the admitted guest');controls.push({actor:'Host',endpoint:'live-control',action:'scene',automatic:true,status:automatic.status,ok:automatic.ok});
    assert.equal(automatic.status,200,'Connected guest was not automatically selected for broadcast');assert.equal(automatic.ok,true,'Automatic guest publication was not accepted');checks.push('Joining the approved guest automatically published the host and guest interview scene without manual camera selection');
+   // Browser reload ends the Daily connection without issuing leave_stage or revoking membership.
+   const replacement=acceptedInterview(host,automatic);
+   await guest.reload();await guest.getByRole('button',{name:'Join camera',exact:true}).waitFor();
+   await guest.getByRole('button',{name:'Join camera',exact:true}).click();
+   const rebound=await replacement;assert.ok(rebound?.ok,'Returning guest did not receive a new accepted broadcast connection');
+   const rejoined=await until('Host decoded the returning guest',()=>stageSnapshot(host),tiles=>tiles.length===2&&tiles.some(t=>!t.local&&playingStageVideo(t)),45000);
+   const firstTime=rejoined.find(t=>!t.local).currentTime;
+   await until('Returning guest frames advance',()=>stageSnapshot(host),tiles=>tiles.some(t=>!t.local&&playingStageVideo(t)&&t.currentTime>firstTime+.5),30000);
+   controls.push({actor:'Host',endpoint:'live-control',action:'scene',automatic:true,status:rebound.status,ok:true,sameGuest:true,sameHostConnection:true,newGuestConnection:true,newRequest:true});
+   checks.push('Returning approved guest rejoined with fresh consent and a different Daily connection. The host published it and decoded advancing remote video');
    await hostStudio.locator('summary').filter({hasText:'Stream tools and team'}).click();
    await hostStudio.getByRole('button',{name:'Camera grid',exact:true}).click();const sources=hostStudio.getByRole('checkbox');await sources.nth(1).waitFor();assert.equal(await sources.count(),2,'Expected only the host and invited guest cameras');await sources.nth(0).check();await sources.nth(1).check();
    const [sceneResponse]=await Promise.all([host.waitForResponse(r=>new URL(r.url()).origin===origin&&new URL(r.url()).pathname==='/functions/v1/live-control'&&r.request().postDataJSON()?.action==='scene'),hostStudio.getByRole('button',{name:'Apply scene',exact:true}).click()]);
