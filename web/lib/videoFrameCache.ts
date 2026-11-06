@@ -29,7 +29,7 @@ export function createVideoFrameCache(options: { capture: FrameCapture; limit?: 
   const limit = options.limit ?? 120, concurrency = options.concurrency ?? 2, retryAfter = options.retryAfterMs ?? 60_000, now = options.now ?? (() => Date.now());
   // insertion order is recency: a frame that just arrived sits last, so the oldest ready frame is evicted first
   const states = new Map<string, FrameState>();
-  const failures = new Map<string, number>();
+  const failures = new Map<string, {at:number;url:string;prior?:string;tries:number;due?:boolean;native?:boolean}>();
   const retryTimers = new Map<string, ReturnType<typeof setTimeout>>();
   const listeners = new Map<string, Set<() => void>>();
   const waiting: Array<{ key: string; url: string; at: number }> = [];
@@ -45,12 +45,12 @@ export function createVideoFrameCache(options: { capture: FrameCapture; limit?: 
   }
   function watchRetry(key: string) {
     const failedAt = failures.get(key);
-    if (failedAt === undefined || !wanted(key) || retryTimers.has(key)) return;
+    if (!failedAt || failedAt.native || failedAt.tries>=2 || !wanted(key) || retryTimers.has(key)) return;
     const timer = setTimeout(() => {
       retryTimers.delete(key);
       if (failures.get(key) !== failedAt) return;
-      failures.delete(key); states.delete(key); notify(key);
-    }, Math.max(0, failedAt + retryAfter - now()));
+      failedAt.due=true; states.delete(key); notify(key);
+    }, Math.max(0, failedAt.at + retryAfter - now()));
     retryTimers.set(key, timer);
   }
   function trim() {
@@ -63,11 +63,14 @@ export function createVideoFrameCache(options: { capture: FrameCapture; limit?: 
     controllers.set(job.key, controller); active++;
     set(job.key, LOADING);
     options.capture(job.url, job.at, controller.signal).then(src => {
-      if (version !== generation) return;
+      if(version!==generation || controllers.get(job.key)!==controller)return;
+      if(controller.signal.aborted){states.delete(job.key);notify(job.key);return;}
       failures.delete(job.key); set(job.key, { state: 'ready', src }); trim();
     }, () => {
-      if (version !== generation) return;
-      failures.set(job.key, now()); set(job.key, FAILED); watchRetry(job.key); trim();
+      if (version !== generation || controllers.get(job.key)!==controller) return;
+      if(controller.signal.aborted){states.delete(job.key);notify(job.key);return;}
+      const previous=failures.get(job.key);
+      failures.set(job.key, {at:now(),url:job.url,prior:previous?.url===job.url?previous.prior:previous?.url,tries:previous?.url===job.url?previous.tries+1:1}); set(job.key, FAILED); watchRetry(job.key); trim();
     }).finally(() => {
       if (controllers.get(job.key) === controller) controllers.delete(job.key);
       if (version === generation) { active--; next(); }
@@ -87,18 +90,22 @@ export function createVideoFrameCache(options: { capture: FrameCapture; limit?: 
       let set = listeners.get(key);
       if (!set) listeners.set(key, set = new Set());
       set.add(listener); watchRetry(key);
-      return () => { set!.delete(listener); if (!set!.size) { listeners.delete(key); clearRetry(key); trim(); } };
+      return () => { set!.delete(listener); if (!set!.size) { listeners.delete(key); clearRetry(key);
+        if(states.get(key)?.state==='loading'){states.delete(key);controllers.get(key)?.abort();const i=waiting.findIndex(j=>j.key===key);if(i!==-1)waiting.splice(i,1);}
+        trim(); } };
     },
     /** Asks for a frame once: one that is ready, loading, queued or recently failed is left alone. */
     request(key: string, url: string, at: number) {
       const current = states.get(key);
       if (current && current.state !== 'failed') return;
       const failedAt = failures.get(key);
-      if (failedAt !== undefined && now() - failedAt < retryAfter) return;
-      clearRetry(key); failures.delete(key);
+      if(failedAt && ((failedAt.url===url && (failedAt.native || failedAt.tries>=2 || (!failedAt.due && now()-failedAt.at<retryAfter))) || (failedAt.url!==url && failedAt.prior===url)))return;
+      clearRetry(key);
       if (waiting.some(job => job.key === key)) return;
       waiting.push({ key, url, at }); states.set(key, LOADING); notify(key); next();
     },
+    failedFor(key:string,url:string) {return failures.get(key)?.url===url;},
+    nativeReady(key:string,url:string) {const f=failures.get(key);if(f?.url===url){f.native=true;clearRetry(key);}},
     /** Forget everything: another person is signed in, or no one is. Decoding under way is abandoned. */
     reset() {
       generation++; active = 0; waiting.length = 0;

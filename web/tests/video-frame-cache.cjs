@@ -96,11 +96,36 @@ test('a still-mounted tile is notified when its failed decode can retry', async 
 
 test('the store stays bounded, evicting the oldest frame nobody is showing first', async () => {
   const h = harness({ limit: 3, concurrency: 10 }); const offs = {};
-  for (const key of ['a', 'b', 'c', 'd']) { offs[key] = h.cache.subscribe(key, () => {}); h.cache.request(key, 'u-' + key, 0.8); }
-  offs.a(); offs.b();
-  for (const capture of h.captures) capture.resolve('data:image/jpeg;base64,' + capture.url);
-  await settle();
-  assert.equal(h.cache.size, 3);
+  for (const key of ['a','b','c']) { offs[key]=h.cache.subscribe(key,()=>{});h.cache.request(key,'u-'+key,0); }
+  for (const capture of h.captures) capture.resolve('data:image/jpeg;base64,'+capture.url);
+  await settle();offs.a();offs.b();
+  offs.d=h.cache.subscribe('d',()=>{});h.cache.request('d','u-d',0);h.captures.at(-1).resolve('data:image/jpeg;base64,D');await settle();
+  assert.equal(h.cache.size,3);
   assert.equal(h.cache.peek('a'), IDLE, 'the oldest unwatched frame went first');
   for (const key of ['b', 'c', 'd']) assert.equal(h.cache.peek(key).state, 'ready', key + ' stays');
+});
+test('a renewed grant immediately replaces a failed grant, without retry loops between old subscribers',async()=>{
+ const h=harness();const off=h.cache.subscribe('same-version',()=>{});
+ h.cache.request('same-version','expired',0);h.captures[0].reject(Error('media'));await settle();
+ h.cache.request('same-version','fresh',0);assert.equal(h.captures.length,2);h.captures[1].reject(Error('canvas'));await settle();
+ h.cache.request('same-version','expired',0);assert.equal(h.captures.length,2);h.cache.nativeReady('same-version','fresh');h.time(999999);
+ h.cache.request('same-version','fresh',0);assert.equal(h.captures.length,2,'a visible display-only still does not trigger recurring canvas downloads');off();h.cache.reset();
+});
+test('leaving the last observed tile aborts a decode and never publishes its late pixels',async()=>{
+ const h=harness(), off=h.cache.subscribe('x',()=>{});h.cache.request('x','u',0);off();assert.equal(h.captures[0].signal.aborted,true);
+ h.captures[0].resolve('data:image/jpeg;base64,LATE');await settle();assert.equal(h.cache.peek('x'),IDLE);
+});
+const {preparePausedStill}=load('lib/videoFrames.ts');
+function stillHarness(moment) {
+ let ready=0, failed=0, plays=0, seeks=0, position=0;
+ const v={duration:8,seeking:false,videoWidth:0,videoHeight:0,readyState:1,play(){plays++},pause(){},load(){},removeAttribute(){},get currentTime(){return position},set currentTime(n){seeks++;position=n}};
+ const close=preparePausedStill(v,'fixture.mp4',moment,()=>ready++,()=>failed++,false);
+ return {v,close,status:()=>({ready,failed,plays,seeks})};
+}
+test('legacy still never seeks, plays or accepts an audio-only decoded sample as a picture',()=>{
+ const h=stillHarness(0);try{h.v.onloadedmetadata();h.v.readyState=4;h.v.onloadeddata();assert.deepEqual(h.status(),{ready:0,failed:0,plays:0,seeks:0});
+ h.v.videoWidth=360;h.v.videoHeight=640;h.v.oncanplay();assert.deepEqual(h.status(),{ready:1,failed:0,plays:0,seeks:0});assert.equal(h.v.muted,true);assert.equal(h.v.autoplay,false);}finally{h.close();}
+});
+test('an authored time never reveals a pre-trim native frame while seek confirmation is pending',()=>{
+ const h=stillHarness(2);try{h.v.readyState=4;h.v.videoWidth=100;h.v.videoHeight=200;h.v.onloadedmetadata();h.v.onloadeddata();assert.equal(h.status().ready,0);assert.equal(h.v.currentTime,2);h.v.onseeked();assert.deepEqual(h.status(),{ready:1,failed:0,plays:0,seeks:1});}finally{h.close();}
 });

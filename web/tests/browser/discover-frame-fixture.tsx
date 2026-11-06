@@ -20,7 +20,8 @@ function App() {
       <div data-tile="red"><DiscoverTile post={row('red', origin + '/red.mp4')} /></div>
       <div data-tile="blue"><DiscoverTile post={row('blue', origin + '/blue.mp4', { coverUrl: origin + '/missing-cover.jpg' })} /></div>
       <div data-tile="green"><DiscoverTile post={row('green', origin + '/green.mp4', { trimStart: 2 })} /></div>
-      <div data-tile="sealed"><DiscoverTile post={row('sealed', origin + '/sealed.mp4')} /></div>
+      <div data-tile="sealed"><DiscoverTile post={row('sealed', origin + '/sealed.mp4', {trimStart:2})} /></div>
+      <div data-tile="slow"><DiscoverTile post={row('slow', origin + '/slow.mp4')} /></div>
     </div>
     <div style={{ height: 2600 }} aria-hidden="true" />
     <div className="grid grid-cols-2 gap-4"><div data-tile="far"><DiscoverTile post={row('far', origin + '/far.mp4')} /></div></div>

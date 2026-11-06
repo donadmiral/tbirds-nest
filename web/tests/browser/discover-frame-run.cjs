@@ -11,7 +11,7 @@ const root = path.resolve(__dirname, '../../..');
 const output = process.env.DISCOVER_FRAME_OUTPUT || '/tmp/platinum-web-discover-frames';
 const evidence = process.env.DISCOVER_FRAME_EVIDENCE || '/tmp/platinum-web-discover-frames-evidence';
 const checks = [], requests = [];
-const COLOURS = { red: 'red', blue: 'blue', green: 'green', sealed: 'magenta', far: 'yellow' };
+const COLOURS = { red: 'red', blue: 'blue', green: 'green', sealed: 'magenta', far: 'yellow', slow: 'cyan' };
 const serve = (bytes, req, res, cors) => {
   const range = /^bytes=(\d+)-(\d*)$/.exec(req.headers.range || '');
   const start = range ? Number(range[1]) : 0, end = range?.[2] ? Math.min(Number(range[2]), bytes.length - 1) : bytes.length - 1;
@@ -21,10 +21,12 @@ const serve = (bytes, req, res, cors) => {
 };
 async function main() {
   await fs.mkdir(output, { recursive: true }); await fs.mkdir(evidence, { recursive: true });
-  for (const [name, colour] of Object.entries(COLOURS)) await promisify(execFile)('ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', `color=c=${colour}:s=160x120:r=24`, '-t', '4', '-c:v', 'libx264', '-threads', '1', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', path.join(output, name + '.mp4')], { timeout: 20000 });
+  for (const [name, colour] of Object.entries(COLOURS)) await promisify(execFile)('ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', name==='red' ? 'color=c=red:s=160x120:r=24:d=0.375[a];color=c=blue:s=160x120:r=24:d=3.625[b];[a][b]concat=n=2:v=1:a=0' : name==='green' ? 'color=c=red:s=160x120:r=24:d=1.5[a];color=c=green:s=160x120:r=24:d=2.5[b];[a][b]concat=n=2:v=1:a=0' : `color=c=${colour}:s=160x120:r=24`, '-t', '4', '-c:v', 'libx264', '-threads', '1', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', path.join(output, name + '.mp4')], { timeout: 20000 });
   const media = http.createServer(async (req, res) => {
     const name = path.basename(new URL(req.url, 'http://localhost').pathname);
+    const firstSlow=name==='slow.mp4' && req.method==='GET' && !requests.some(x=>x.name===name);
     requests.push({ name, range: req.headers.range || null });
+    if(firstSlow)await new Promise(resolve=>setTimeout(resolve,12_500));
     // the sealed clip is served without cross-origin headers: a browser may play it but may not read its pixels
     const cors = name === 'sealed.mp4' ? {} : { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'range, if-range', 'Access-Control-Expose-Headers': 'Content-Length, Content-Range, Accept-Ranges' };
     if (req.method === 'OPTIONS') { res.writeHead(204, cors); res.end(); return; }
@@ -67,9 +69,13 @@ async function main() {
     const green = await frame('green');
     assert.ok(green.g > 100 && green.r < 60 && green.b < 60, 'the author trim start is honoured for the frame moment: ' + JSON.stringify(green));
     checks.push('The frame is taken at the author\'s chosen moment when the recipe has one');
-    await page.locator('[data-tile="sealed"] [data-video-frame="failed"]').waitFor({ timeout: 30000 });
-    assert.equal(await page.locator('[data-tile="sealed"]').getByText('Video', { exact: true }).count(), 1, 'a clip served without cross-origin headers keeps the placeholder');
-    checks.push('A clip the browser may not read keeps the same placeholder as before, without a broken image or a page error');
+    const native=page.locator('[data-tile="sealed"] video[data-video-frame="native"]');await native.waitFor({timeout:30000});
+    const picture=await native.evaluate(v=>({w:v.videoWidth,h:v.videoHeight,at:v.currentTime,paused:v.paused,muted:v.muted,auto:v.autoplay}));
+    assert.ok(picture.w>0&&picture.h>0&&picture.paused&&picture.muted&&!picture.auto&&Math.abs(picture.at-2)<.1);
+    await page.waitForTimeout(350);assert.equal(await native.evaluate(v=>v.currentTime),picture.at);
+    checks.push('A display-only cross-origin clip shows an actual paused, muted native picture at the authored trim without reading a canvas');
+    const slow=await frame('slow');assert.ok(slow.g>150 && slow.b>150);
+    checks.push('A 12.5-second metadata request still decodes its first picture');
     assert.equal(requests.filter(r => r.name === 'far.mp4').length, 0, 'a tile far below the fold has fetched nothing');
     await page.evaluate(() => window.__frameFixture.dataSaver(true));
     await page.locator('[data-tile="far"]').scrollIntoViewIfNeeded();

@@ -202,10 +202,10 @@ test('the deployed entrypoint forwards the request cancellation signal into both
  vm.runInNewContext(code,{exports:{},fetch,Headers,console:{warn(){}},Deno:{env:{get:()=>origin},serve(){}},require(name){
   if(name==='npm:@supabase/supabase-js@2.112.3')return{createClient:()=>({rpc:()=>({abortSignal(signal){received=signal;return Promise.resolve({data:null,error:null});}})})};
   if(name==='./handler.ts')return{createMediaContentHandler(value){deps=value;return()=>{};}};
-    if(name==='../_shared/serviceRoleFetch.ts')return load('supabase/functions/_shared/serviceRoleFetch.ts');
+    if(name==='./proofTransport.ts')return load('supabase/functions/media-content/proofTransport.ts');
     if(name==='./adaptive.ts')return load('supabase/functions/media-content/adaptive.ts');throw Error(name);
  }});
- const controller=new AbortController();await deps.resolve(token,bucket,objectPath,controller.signal);assert.equal(received,controller.signal);
+ const controller=new AbortController();await deps.resolve(token,bucket,objectPath,controller.signal,'authorization',{until:Date.now()+12000,attempts:[],retried:false});assert.equal(received.aborted,false);controller.abort();assert.equal(received.aborted,true);
 });
 
 const variant={bucket:'derived-media',path:'10000000-0000-4000-8000-000000000001/_derived_v1/20000000-0000-4000-8000-000000000001/30000000-0000-4000-8000-000000000001.mp4',version:'derived-version',etag:'derived-etag',sourceVersion:'object-version'};
@@ -231,4 +231,8 @@ test('derived version or ETag replacement after header fetch suppresses bytes an
 });
 test('source permission revocation still wins over a valid derived publication',async()=>{
  const h=harness({resolveVariant:async()=>variant,revoke:2,fetch:variantFetch});assert.equal((await h.handler(new Request(url))).status,403);assert.equal(h.reads.length,1);
+});
+test('a failed post-storage variant lookup is attributed to variant revalidation before any bytes leave',async()=>{
+ let choices=0;const h=harness({resolveVariant:async()=>{if(choices++)throw Error('unavailable');return variant;},fetch:variantFetch});
+ assert.equal((await h.handler(new Request(url))).status,503);assert.equal(h.events.at(-1).stage,'variant_revalidation');assert.equal(h.events.at(-1).bytesRead,0);
 });

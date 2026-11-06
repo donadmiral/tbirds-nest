@@ -1,13 +1,14 @@
-type Stage = 'authorization' | 'storage_headers' | 'revalidation' | 'first_byte' | 'stream';
+import { proofDiagnostics, type ProofBudget, type ProofStage } from './proofTransport.ts';
+type Stage = ProofStage | 'storage_headers' | 'first_byte' | 'stream';
 type Outcome = 'ready' | 'complete' | 'aborted' | 'timeout' | 'error';
 export type MediaDeliveryDiagnostic = {
   outcome: Outcome; stage: Stage; elapsedMs: number; bytesRead: number;
-  timings: Partial<Record<Stage, number>>; upstreamStatus?: number;
+  timings: Partial<Record<Stage, number>>; upstreamStatus?: number; resolver?: ReturnType<typeof proofDiagnostics>;
 };
 type Dependencies = {
   base: string; serviceKey: string;
-  resolve(token: string, bucket: string, path: string, signal: AbortSignal): Promise<{ bucket: string; path: string; version: string; expiresAt: string } | null>;
-  resolveVariant?(token: string, bucket: string, path: string, version: string, signal: AbortSignal): Promise<{
+  resolve(token: string, bucket: string, path: string, signal: AbortSignal, stage: 'authorization'|'revalidation', budget:ProofBudget): Promise<{ bucket: string; path: string; version: string; expiresAt: string } | null>;
+  resolveVariant?(token: string, bucket: string, path: string, version: string, signal: AbortSignal, stage:'variant_selection'|'variant_revalidation', budget:ProofBudget): Promise<{
     bucket: string; path: string; version: string; etag: string; sourceVersion: string;
   } | { unavailable: true } | null>;
   fetch: typeof fetch;
@@ -53,6 +54,7 @@ export function createMediaContentHandler(deps: Dependencies) {
     if (!['GET', 'HEAD'].includes(request.method)) return error(405);
     const started = Date.now(), controller = new AbortController();
     const timings: Partial<Record<Stage, number>> = {};
+    const proof:ProofBudget={until:started+(deps.startupTimeoutMs ?? 12000),retried:false,attempts:[]};
     let stage: Stage = 'authorization', stageStarted = started, bytesRead = 0;
     let activeUpstream: Response | undefined;
     let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
@@ -63,7 +65,7 @@ export function createMediaContentHandler(deps: Dependencies) {
     const report = (outcome: Outcome) => {
       // No URL, token, path, identity, exception message or media bytes leave
       // this boundary. Timing fields can be correlated by the runtime's ID.
-      try { deps.diagnostic?.({ outcome, stage, elapsedMs: Date.now() - started, bytesRead, timings: { ...timings, [stage]: timings[stage] ?? Date.now() - stageStarted }, ...(activeUpstream ? { upstreamStatus: activeUpstream.status } : {}) }); } catch { /* Logging cannot interrupt delivery. */ }
+      try { deps.diagnostic?.({ outcome, stage, ...(proof.attempts.length ? {resolver:proofDiagnostics(proof)} : {}), elapsedMs: Date.now() - started, bytesRead, timings: { ...timings, [stage]: timings[stage] ?? Date.now() - stageStarted }, ...(activeUpstream ? { upstreamStatus: activeUpstream.status } : {}) }); } catch { /* Logging cannot interrupt delivery. */ }
     };
     const detach = () => {
       if (startupTimer) clearTimeout(startupTimer);
@@ -127,13 +129,13 @@ export function createMediaContentHandler(deps: Dependencies) {
       request.signal.addEventListener('abort', clientAbort, { once: true });
       if (request.signal.aborted) { stop('aborted'); return error(499); }
       startupTimer = setTimeout(() => stop('timeout'), deps.startupTimeoutMs ?? 12000);
-      const grant = await measure('authorization', () => deps.resolve(token, bucket, path, controller.signal));
+      const grant = await measure('authorization', () => deps.resolve(token, bucket, path, controller.signal, 'authorization', proof));
       if (!grant || grant.bucket !== bucket || grant.path !== path || typeof grant.version !== 'string' || !grant.version) { stop('complete'); return error(403); }
       // Selection uses the persisted ticket's creation time, never a TTL guess.
       // One playback URL therefore keeps its byte layout across Range requests.
-      const chooseVariant = () => deps.resolveVariant && ['post-media', 'story-media'].includes(bucket)
-        ? deps.resolveVariant(token, bucket, path, grant.version, controller.signal) : Promise.resolve(null);
-      const variant = await wait(chooseVariant());
+      const chooseVariant = (phase:'variant_selection'|'variant_revalidation') => deps.resolveVariant && ['post-media', 'story-media'].includes(bucket)
+        ? measure(phase, () => deps.resolveVariant!(token, bucket, path, grant.version, controller.signal,phase,proof)) : Promise.resolve(null);
+      const variant = await chooseVariant('variant_selection');
       if (variant && 'unavailable' in variant) { stop('complete'); return error(410); }
       if (variant && (variant.bucket !== 'derived-media' || variant.sourceVersion !== grant.version || !variant.version || !variant.etag
         || variant.path.split('/')[0] !== path.split('/')[0]
@@ -167,10 +169,10 @@ export function createMediaContentHandler(deps: Dependencies) {
         }
         return error(upstream.status === 404 ? 410 : 503);
       }
-      const after = await measure('revalidation', () => deps.resolve(token, bucket, path, controller.signal));
+      const after = await measure('revalidation', () => deps.resolve(token, bucket, path, controller.signal, 'revalidation', proof));
       if (!after || after.version !== grant.version || after.path !== path || after.bucket !== bucket) { stop('complete'); return error(403); }
       if (variant) {
-        const current = await wait(chooseVariant());
+        const current = await chooseVariant('variant_revalidation');
         if (!current || 'unavailable' in current || current.path !== variant.path || current.version !== variant.version
           || current.etag !== variant.etag || upstream.headers.get('ETag')?.trim().replace(/^"|"$/g, '') !== variant.etag) { stop('complete'); return error(410); }
       }
