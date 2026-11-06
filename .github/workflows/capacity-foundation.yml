@@ -14,6 +14,9 @@ on:
       - 'supabase/ops/prepared-feed-worker-v2/**'
       - 'tests/capacity*.cjs'
       - 'tests/prepared-feed-workers.test.cjs'
+  pull_request:
+    paths:
+      - 'supabase/migrations/20261106201000_prepared_feed_time_seek.sql'
   workflow_dispatch:
 
 permissions:
@@ -32,8 +35,12 @@ jobs:
       fail-fast: false
       matrix:
         profile: [foundation, expanded]
+        include:
+          - profile: expanded-4cpu
+            databaseCpus: 4
     env:
-      PC_CAPACITY_PROFILE: ${{ matrix.profile }}
+      PC_CAPACITY_PROFILE: ${{ matrix.profile == 'expanded-4cpu' && 'expanded' || matrix.profile }}
+      PC_DATABASE_CPUS: ${{ matrix.databaseCpus || 2 }}
       PGHOST: /tmp/pc-capacity-foundation
       PGPORT: '5432'
       PGUSER: pc_capacity
@@ -65,10 +72,12 @@ jobs:
           mkdir -p capacity-results
       - name: Start isolated PostgreSQL without TCP or container networking
         run: |
+          test "$(nproc)" -ge "$PC_DATABASE_CPUS"
+          nproc > capacity-results/runner-cpus.txt
           mkdir -p "$PGHOST"
           chmod 777 "$PGHOST"
           docker run --detach --name pc-capacity-foundation --network none \
-            --cpus 2 --memory 2g --shm-size 256m \
+            --cpus "$PC_DATABASE_CPUS" --memory 2g --shm-size 256m \
             --env POSTGRES_HOST_AUTH_METHOD=trust --env POSTGRES_USER=pc_capacity \
             --mount "type=bind,src=$PGHOST,dst=/var/run/postgresql" \
             postgres:17.11 -c listen_addresses='' -c jit=off \
@@ -131,7 +140,7 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
-          name: ${{ matrix.profile == 'foundation' && 'bounded-capacity-foundation' || 'bounded-capacity-expanded' }}
+          name: bounded-capacity-${{ matrix.profile }}
           path: capacity-results
           retention-days: 7
           if-no-files-found: error
