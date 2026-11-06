@@ -23,7 +23,7 @@ function harness(role='viewer', platform='ios') {
   const react={useState(initial){const i=cursor++;if(!(i in slots))slots[i]=typeof initial==='function'?initial():initial;return[slots[i],value=>slots[i]=typeof value==='function'?value(slots[i]):value];},useRef(initial){const i=cursor++;return slots[i]??={current:initial};},useCallback(fn,deps){const i=cursor++;if(!same(slots[i]?.deps,deps))slots[i]={deps,fn};return slots[i].fn;},useEffect(fn,deps){const i=cursor++;if(!same(slots[i]?.deps,deps)){const old=slots[i];slots[i]={deps};effects.push(()=>{old?.cleanup?.();slots[i].cleanup=fn();});}}};
   const runtime={jsx:(type,props)=>({type,props:props||{}}),jsxs:(type,props)=>({type,props:props||{}}),Fragment:'Fragment'};
   const commands=[],channels=[],alerts=[],navigations=[],keyboardListeners=new Map();let loadFailure=null,keyboardDismissals=0;
-  let current={session:directory.parseLiveSession({id:id(1),title:'Live together',state:'live',host:{id:id(2),full_name:'Host'},chat_mode:'open',viewer_count:17,audience:'public'}),raw:{role,capabilities:{view:true,chat:true},chat_topic:`live:${id(1)}:${id(3)}`,guest_topic:`live-guests:${id(1)}:${id(2)}`,stage:{limit:12,occupied:1,available:11},join_requests:[],own_join_request:null}};
+  let current={session:directory.parseLiveSession({id:id(1),title:'Live together',state:'live',host:{id:id(2),full_name:'Host'},chat_mode:'open',viewer_count:17,audience:'public'}),raw:{role,capabilities:{view:true,chat:true},chat_topic:`live:${id(1)}:${id(3)}`,guest_topic:`live-guests:${id(1)}:${id(2)}`,stage:{limit:12,occupied:1,available:11},can_request_join:role==='viewer',join_requests:[],own_join_request:null}};
   const playback={session:null,player:{},open:async()=>{},close(){},expand(){},minimize(){},retry:async()=>{},setPictureInPicture(){}};
   const rn=new Proxy({StyleSheet:{create:x=>x,absoluteFill:{position:'absolute',top:0,left:0,right:0,bottom:0}},Platform:{OS:platform},Keyboard:{dismiss(){keyboardDismissals++;},isVisible:()=>false,addListener(name,callback){keyboardListeners.set(name,callback);return{remove(){keyboardListeners.delete(name);}};}},Alert:{alert:(...args)=>alerts.push(args)}},{get:(obj,key)=>key in obj?obj[key]:key});
   const component=compile('src/screens/feed/LiveSessionScreen.tsx',{
@@ -213,4 +213,17 @@ test('Android closes Live tools and opens clips without depending on an iOS dism
   assert.equal(JSON.stringify(app.navigations),JSON.stringify([['LiveClips',{sessionId:id(1)}]]));
   sheet.props.onDismiss();
   assert.equal(app.navigations.length,1);
+});
+
+test('a declined viewer is told so, a viewer the server will not queue sees no request control, and an accepted guest can leave the live',async()=>{
+  const declined=harness();declined.update(value=>({...value,raw:{...value.raw,own_join_request:{status:'declined'},can_request_join:false}}));await declined.start();
+  assert.equal(declined.button('Request to join'),undefined,'No request control on the player while the server refuses requests');
+  declined.by('accessibilityLabel','Guests').props.onPress();
+  assert.match(words(declined.render()),/The host declined your request for this live\./);assert.equal(declined.button('Request to join'),undefined);
+  const guest=harness('guest');await guest.start();guest.by('accessibilityLabel','Guests').props.onPress();
+  guest.button('Leave the live').props.onPress();await guest.settle();
+  assert.equal(guest.commands[0][0],'leave_stage');assert.equal(guest.commands[0][1],id(1));
+  const studio=nodes(guest.render()).find(node=>node.type==='LiveStudio');assert.equal(studio,undefined,'The guest is not in the studio yet');
+  guest.button('Join live camera').props.onPress();
+  const opened=nodes(guest.render()).find(node=>node.type==='LiveStudio');assert.equal(typeof opened.props.onLeaveStage,'function','Leaving the camera from the studio also gives up the seat');
 });

@@ -18,7 +18,7 @@ function Thumbnail({ session }: { session: LiveSession }) {
   return <div className="relative grid aspect-video place-items-center overflow-hidden rounded-xl bg-surface-elevated text-ink">
     {session.thumbnail_url && failed !== session.thumbnail_url ? <img src={session.thumbnail_url} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover" onError={() => setFailed(session.thumbnail_url)} /> : <LiveIcon size={48} className="text-muted" />}
     <span className={'absolute left-3 top-3 rounded-md px-2 py-1 text-[10px] font-bold tracking-wide ' + (session.state === 'live' ? 'bg-red-600 text-white' : 'bg-[var(--canvas)] text-ink')}>{liveStateLabel(session)}</span>
-    {session.state === 'live' && session.viewer_count !== null ? <span className="absolute bottom-3 right-3 flex items-center gap-1 rounded-md bg-black/75 px-2 py-1 text-xs text-white"><Users size={12} />{session.viewer_count.toLocaleString()} watching</span> : null}
+    {['live', 'reconnecting'].includes(session.state) && session.viewer_count !== null ? <span className="absolute bottom-3 right-3 flex items-center gap-1 rounded-md bg-black/75 px-2 py-1 text-xs text-white"><Users size={12} />{session.viewer_count.toLocaleString()} watching</span> : null}
   </div>;
 }
 export function LiveDirectoryView() {
@@ -71,6 +71,22 @@ export function LiveDirectoryView() {
     } finally { if (version === request.current) lock.current = false; }
   }, [supabase, identity.owner, identity.initialized, key, filter, topic, view]);
   useEffect(() => { void load(); return () => { request.current++; lock.current = false; }; }, [load, revision]);
+  // A live card's count and state are a minute old at most: while 'Live now' is on screen, re-read the first page every
+  // sixty seconds and update the cards in place. Nothing is reset, nothing moves, and signed covers are kept.
+  const refreshCards = useCallback(async () => {
+    if (!identity.owner || !identity.initialized || view !== 'live' || lock.current) return;
+    try {
+      const { data, error } = await withTimeout(supabase.rpc('live_directory', { p_filter: filter, p_topic: topic === 'all' ? null : topic, p_state: view, p_cursor: null, p_limit: 24 }));
+      if (error || keyRef.current !== key) return;
+      const fresh = new Map(parseLiveDirectory(data).items.map(item => [item.id, item]));
+      setState(previous => previous.key !== key ? previous : { ...previous, items: previous.items.map(item => { const next = fresh.get(item.id); return next ? { ...next, thumbnail_url: item.thumbnail_url } : item; }) });
+    } catch { /* The next tick tries again; the cards keep what they show. */ }
+  }, [supabase, identity.owner, identity.initialized, key, filter, topic, view]);
+  useEffect(() => {
+    if (view !== 'live') return;
+    const timer = setInterval(() => { if (document.visibilityState === 'visible') void refreshCards(); }, 60000);
+    return () => clearInterval(timer);
+  }, [view, refreshCards]);
   const current = state.key === key ? state : { ...state, items: [], cursor: null, capabilities: NO_LIVE_CAPABILITIES, loading: !!identity.owner, error: null, setup: false };
   const items = current.items.filter(item => `${item.title} ${item.host.full_name ?? ''} ${item.host.username ?? ''}`.toLowerCase().includes(query.trim().toLowerCase()));
   return <div className="mx-auto max-w-6xl pb-24" data-live-directory>

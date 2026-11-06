@@ -41,11 +41,13 @@ function load(file, imports, context = {}) {
 }
 function nodes(value) { if (!value || typeof value !== 'object') return []; if (Array.isArray(value)) return value.flatMap(nodes); return [value, ...nodes(value.props?.children)]; }
 const find = (tree, key, value) => nodes(tree).find(node => node.props?.[key] === value);
-function harness({ initialPin = null, actualParent = false } = {}) {
-  const h = hooks(), parentHooks = hooks(), channels = [], reads = [], commands = [], details = [], listeners = new Map();
-  let detailBusy = false, canonicalDetail;
+function harness({ initialPin = null, actualParent = false, blocked = [] } = {}) {
+  const h = hooks(), parentHooks = hooks(), channels = [], reads = [], commands = [], details = [], listeners = new Map(), timers = new Map();
+  let detailBusy = false, canonicalDetail, timerSerial = 0;
+  const clock = { setTimeout(fn, delay) { const id = ++timerSerial; timers.set(id, { fn, delay }); return id; }, clearTimeout(id) { timers.delete(id); } };
   const document = { visibilityState: 'visible', addEventListener(name, callback) { listeners.set(name, callback); }, removeEventListener(name) { listeners.delete(name); } };
   const client = {
+    from(table) { assert.equal(table, 'blocked_users'); const query = { select() { return query; }, eq(column, value) { assert.equal(column, 'blocker_id'); assert.equal(value, ownerId); return query; }, limit() { return query; }, then(resolve) { return Promise.resolve({ data: blocked.map(blocked_id => ({ blocked_id })), error: null }).then(resolve); } }; return query; },
     rpc(name, args) {
       if (name === 'live_session') {
         assert.equal(args.p_session_id, sessionId);
@@ -65,7 +67,7 @@ function harness({ initialPin = null, actualParent = false } = {}) {
   const directory = load('shared/liveDirectory.ts', {});
   const api = load('web/lib/liveApi.ts', { './supabase/client': {}, './withTimeout': { withTimeout: work => Promise.resolve(work) }, '../../shared/liveDirectory': directory });
   const component = load('web/components/LiveChat.tsx', { react: h.react, 'react/jsx-runtime': h.runtime,
-    'lucide-react': { Heart: 'Heart', Flag: 'Flag', Pin: 'Pin', Send: 'Send', Trash2: 'Trash2' }, '@/lib/liveApi': api }, { document }).LiveChat;
+    'lucide-react': { Heart: 'Heart', Flag: 'Flag', Pin: 'Pin', Reply: 'Reply', Send: 'Send', Trash2: 'Trash2' }, '@/lib/liveApi': api }, { document, ...clock }).LiveChat;
   canonicalDetail = api.parseLiveDetail({ session: { id: sessionId, state: 'live', title: 'Conversation', host: { id: ownerId }, chat_mode: 'open', audience: 'public' },
     role: 'moderator', capabilities: { chat: true }, chat_topic: `live:${sessionId}:${id(902)}`, pinned_message: initialPin });
   let props = { client, ownerId, detail: canonicalDetail,
@@ -90,7 +92,11 @@ function harness({ initialPin = null, actualParent = false } = {}) {
     return tree;
   };
   const currentChat = () => channels.filter(c => c.topic === props.detail.chat_topic).at(-1);
-  return { render, reads, commands, channels, details, settle: h.settle,
+  const currentControl = () => channels.filter(c => c.topic === 'live-control:' + sessionId).at(-1);
+  return { render, reads, commands, channels, details, timers, settle: h.settle, props: () => props,
+    fireTimers() { const due = [...timers.entries()]; timers.clear(); due.forEach(([, timer]) => timer.fn()); },
+    emitControl(event, payload) { currentControl().handlers[event]({ payload }); },
+    async retopic(index, topic) { details[index].resolve(null, { chat_topic: topic }); await h.settle(); render(); await h.settle(); },
     async start() {
       if (actualParent) { renderParent(); await parentHooks.settle(); details[0].resolve(initialPin); await parentHooks.settle(); renderParent(); await parentHooks.settle(); }
       render(); await h.settle(); currentChat().status('SUBSCRIBED');
@@ -105,9 +111,9 @@ function harness({ initialPin = null, actualParent = false } = {}) {
     emit(event, payload) { currentChat().handlers[event]({ payload }); },
     status(value) { currentChat().status(value); },
     gap() { document.visibilityState = 'hidden'; listeners.get('visibilitychange')(); document.visibilityState = 'visible'; listeners.get('visibilitychange')(); currentChat().status('SUBSCRIBED'); },
-    bodies() { return nodes(render()).filter(n => n.type === 'p' && n.props.className === 'text-ink').map(n => n.props.children); },
+    bodies() { return nodes(render()).filter(n => n.type === 'p' && n.props.className === 'whitespace-pre-wrap text-ink').map(n => n.props.children); },
     count() { return nodes(render()).filter(n => n.type === 'time').length; },
-    pinnedBody() { return find(render(), 'className', 'break-words')?.props.children.at(-1) ?? null; },
+    pinnedBody() { return find(render(), 'className', 'whitespace-pre-wrap break-words')?.props.children.at(-1) ?? null; },
     parentPin() { return props.detail.pinned_message; },
     parentPatch(value) { props.onPatch(value); },
     draft(value) { find(render(), 'aria-label', 'Message the live chat').props.onChange({ target: { value } }); },
@@ -247,4 +253,67 @@ test('a failed web send keeps its draft and request identity across a history ga
   const second = app.send(); assert.equal(app.commands[1].args.p_request_id, app.commands[0].args.p_request_id);
   assert.equal(app.commands[1].args.p_payload.body, 'Retry this send'); app.commands[1].resolve({ ok: true }); await second;
   assert.equal(find(app.render(), 'aria-label', 'Message the live chat').props.value, '');
+});
+
+test('web history is read after the channel joins, so a reply sent between a snapshot and the join is never lost', async () => {
+  const app = harness(); app.render(); await app.settle();
+  assert.equal(app.reads.length, 0, 'No snapshot is taken before the join completes');
+  assert.ok(nodes(app.render()).some(n => n.type === 'p' && n.props.children === 'Loading chat…'));
+  app.status('SUBSCRIBED'); assert.equal(app.reads.length, 1);
+  await app.history(0, page(1)); assert.equal(app.count(), 50);
+  assert.equal(app.details.length, 0, 'The first join does not re-read the detail');
+});
+
+test('web viewers follow a chat topic rotated by a removal or block aimed at someone else', async () => {
+  const app = harness(); await app.start(); await app.history(0, page(1));
+  const before = app.channels.length;
+  app.emitControl('access_changed', { session_id: sessionId, user_id: id(950) });
+  assert.equal(app.details.length, 0, 'The detail read is spread over a moment');
+  app.fireTimers(); assert.equal(app.details.length, 1);
+  const topic = `live:${sessionId}:${id(903)}`;
+  await app.retopic(0, topic);
+  assert.equal(app.props().detail.chat_topic, topic);
+  assert.equal(app.channels.length, before + 2, 'A new chat channel and control channel replace the retired pair');
+  assert.equal(app.channels.at(-2).topic, topic);
+  app.status('SUBSCRIBED'); await app.history(1, page(101));
+  assert.ok(app.bodies().includes('Message 101')); assert.equal(app.bodies().includes('Message 1'), false);
+  await app.detail(1, null, { chat_topic: topic });
+  app.emitControl('access_changed', { session_id: sessionId, user_id: null });
+  app.fireTimers(); assert.equal(app.details.length, 3, 'A nameless rotation also re-reads the detail');
+});
+
+test('a lost web socket polls the canonical history until the channel returns, and sends still work', async () => {
+  const app = harness(); await app.start(); await app.history(0, page(1));
+  app.status('CHANNEL_ERROR');
+  assert.equal(app.count(), 0);
+  assert.ok(nodes(app.render()).some(n => n.type === 'p' && n.props.children === 'Reconnecting to chat…'));
+  assert.equal(app.reads.length, 1);
+  app.fireTimers(); assert.equal(app.reads.length, 2, 'The first poll happens shortly after the loss');
+  await app.history(1, page(101)); assert.equal(app.count(), 50); assert.ok(app.bodies().includes('Message 150'));
+  app.fireTimers(); assert.equal(app.reads.length, 3, 'Polling continues while disconnected');
+  app.draft('Still heard'); const sending = app.send(); app.commands[0].resolve({ ok: true, message: message(151) }); await sending;
+  assert.ok(app.bodies().includes('Message 151'));
+  app.status('SUBSCRIBED'); assert.equal(app.reads.length, 4);
+  app.fireTimers(); assert.equal(app.reads.length, 4, 'A joined channel stops the poll');
+  await app.history(3, page(101)); assert.equal(app.count(), 51);
+});
+
+test('web reply prefills the author handle and reactions are offered only while live', async () => {
+  const app = harness(); await app.start(); await app.history(0, [{ ...message(1), author: { id: ownerId, full_name: 'Member', username: 'member_one' } }]);
+  app.draft('hello'); find(app.render(), 'aria-label', 'Reply to message').props.onClick();
+  assert.equal(find(app.render(), 'aria-label', 'Message the live chat').props.value, 'hello @member_one ');
+  assert.equal(nodes(app.render()).filter(n => n.type === 'button' && n.props.children?.[1] === 'Love' || n.props?.children?.at?.(-1) === 'Love').every(n => n.props.disabled === false), true);
+  app.props().onPatch({ session: { id: sessionId, state: 'reconnecting' } });
+  const loveButtons = nodes(app.render()).filter(n => n.type === 'button' && Array.isArray(n.props.children) && n.props.children.at(-1) === 'Love');
+  assert.ok(loveButtons.length >= 1);
+  assert.equal(find(app.render(), 'aria-label', 'Message the live chat').props.disabled, false, 'Messages are still accepted while reconnecting');
+});
+
+test('web live messages and pins from people this viewer blocked are not shown', async () => {
+  const app = harness({ blocked: [id(960)] }); await app.start(); await app.history(0, page(1));
+  app.emit('message', { ...message(151), user_id: id(960), author: { id: id(960), full_name: 'Blocked' } });
+  assert.equal(app.bodies().includes('Message 151'), false);
+  app.emit('pin', { message: { ...message(152), user_id: id(960), author: { id: id(960), full_name: 'Blocked' } } });
+  assert.equal(app.pinnedBody(), null);
+  app.emit('message', message(153)); assert.ok(app.bodies().includes('Message 153'));
 });

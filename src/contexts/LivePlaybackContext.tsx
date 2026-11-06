@@ -33,7 +33,8 @@ export function LivePlaybackProvider({ children }: { children: React.ReactNode }
   const callBusy=useRef(false);callBusy.current=callState!=='idle'&&callState!=='failed';
   const [session, setSession] = useState<LiveSession | null>(null);
   const [expanded, setExpanded] = useState(false), [loading, setLoading] = useState(false), [error, setError] = useState<string | null>(null);
-  const [mediaPlaying, setMediaPlaying] = useState(false), [foreground, setForeground] = useState(AppState.currentState === 'active'), [pictureInPicture, setPictureInPicture] = useState(false);
+  // watching: the viewer has frames and has not paused, closed or hit an error. A rebuffer or a grant renewal does not end it.
+  const [watching, setWatching] = useState(false), [foreground, setForeground] = useState(AppState.currentState === 'active'), [pictureInPicture, setPictureInPicture] = useState(false);
   const player = useVideoPlayer(null, value => {
     value.loop = false;
     value.staysActiveInBackground = true;
@@ -44,10 +45,10 @@ export function LivePlaybackProvider({ children }: { children: React.ReactNode }
   const generation = useRef(0), active = useRef<LiveSession | null>(null), ticket = useRef<LivePlaybackTicket | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null), expires = useRef<ReturnType<typeof setTimeout> | null>(null), auth = useRef(owner), mounted = useRef(true);
   const sourceQueue = useRef<Promise<unknown>>(Promise.resolve());
-  const startup = useRef<LivePlaybackStartup | null>(null), startupTimer = useRef<ReturnType<typeof setTimeout> | null>(null), authorizationPending = useRef(false);
+  const startup = useRef<LivePlaybackStartup | null>(null), startupTimer = useRef<ReturnType<typeof setTimeout> | null>(null), authorizationPending = useRef(false), swapping = useRef(false);
   const scheduleStartupRetry = useRef<(message?: string) => boolean>(() => false);
   useLiveViewerPresence({ client: supabase, sessionId: session?.id ?? null, identityScope,
-    active: mediaPlaying && (foreground || pictureInPicture) && ticket.current?.live === true && !callBusy.current,
+    active: watching && (foreground || pictureInPicture) && ticket.current?.live === true && !callBusy.current,
     createPlaybackId: liveRequestId });
   auth.current = owner;
   const clearTimer = () => { if (timer.current) clearTimeout(timer.current); timer.current = null; };
@@ -83,12 +84,12 @@ export function LivePlaybackProvider({ children }: { children: React.ReactNode }
     return true;
   };
   const close = useCallback(() => {
-    generation.current++; clearTimer(); clearStartupTimer(); startup.current = null; authorizationPending.current = false; if(expires.current)clearTimeout(expires.current);expires.current=null; active.current = null; ticket.current = null;
+    generation.current++; clearTimer(); clearStartupTimer(); startup.current = null; authorizationPending.current = false; swapping.current = false; if(expires.current)clearTimeout(expires.current);expires.current=null; active.current = null; ticket.current = null;
     player.pause(); void changeSource(()=>player.replaceAsync(null)).catch(() => {});
-    if (mounted.current) { setSession(null); setExpanded(false); setLoading(false); setError(null); setMediaPlaying(false); setPictureInPicture(false); }
+    if (mounted.current) { setSession(null); setExpanded(false); setLoading(false); setError(null); setWatching(false); setPictureInPicture(false); }
   }, [player]);
-  const refresh = useRef<(value: LiveSession, reset: boolean) => Promise<void>>(async () => {});
-  refresh.current = async (value, reset) => {
+  const refresh = useRef<(value: LiveSession, reset: boolean, renewal?: boolean) => Promise<void>>(async () => {});
+  refresh.current = async (value, reset, renewal = false) => {
     clearTimer(); clearStartupTimer(); const version = ++generation.current, scope = auth.current;
     if (!scope) return;
     authorizationPending.current = true;
@@ -102,21 +103,30 @@ export function LivePlaybackProvider({ children }: { children: React.ReactNode }
       ticket.current = next; authorizationPending.current = false; sourceAuthorized = true;
       if(expires.current)clearTimeout(expires.current);
       expires.current=setTimeout(()=>{if(ticket.current===next){generation.current++;clearStartupTimer();player.pause();ticket.current=null;void changeSource(()=>player.replaceAsync(null)).catch(()=>{});setLoading(false);setError('Playback access expired. Reconnect to continue.');}},Math.max(1000,next.expiresAt-Date.now()));
-      timer.current = setTimeout(() => { if (active.current?.id === value.id) void refresh.current(value, false); }, Math.max(1000, next.expiresAt - Date.now() - 25000 - Math.random()*5000));
+      timer.current = setTimeout(() => { if (active.current?.id === value.id) void refresh.current(value, false, true); }, Math.max(1000, next.expiresAt - Date.now() - 25000 - Math.random()*5000));
+      // The source swap pauses and reloads the player. That pause is the renewal, not the viewer leaving.
+      swapping.current = wasPlaying;
       await changeSource(async()=>{
         if(!mounted.current||version!==generation.current||scope!==auth.current)return;
         await player.replaceAsync(source(value, next));
       });
       if (!mounted.current || version !== generation.current || scope !== auth.current) return;
       if (position !== null) player.currentTime = position;
-      if (wasPlaying && !callBusy.current) player.play();
+      if (wasPlaying && !callBusy.current) player.play(); else swapping.current = false;
       setLoading(!!startupTimer.current);
     } catch (reason) {
       if (!mounted.current || version !== generation.current || scope !== auth.current) return;
       authorizationPending.current = false;
       if (sourceAuthorized && scheduleStartupRetry.current(reason instanceof Error ? reason.message : '')) return;
+      const held = ticket.current;
+      // A renewal that failed while the grant in use still works leaves playback alone and asks again before that grant runs out.
+      if (renewal && !sourceAuthorized && held && held.expiresAt > Date.now() + 8000) {
+        swapping.current = false;
+        timer.current = setTimeout(() => { if (active.current?.id === value.id) void refresh.current(value, false, true); }, Math.max(2000, Math.min(10000, held.expiresAt - Date.now() - 6000)));
+        setLoading(false); return;
+      }
       clearTimer(); clearStartupTimer(); if(expires.current)clearTimeout(expires.current);expires.current=null;
-      player.pause(); ticket.current = null;
+      swapping.current = false; player.pause(); ticket.current = null; setWatching(false);
       await changeSource(async()=>{if(version===generation.current)await player.replaceAsync(null);}).catch(() => {});
       setLoading(false); setError(reason instanceof Error ? reason.message : 'Playback could not connect. Retry to reconnect.');
     }
@@ -149,7 +159,7 @@ export function LivePlaybackProvider({ children }: { children: React.ReactNode }
       if(event==='access_changed') { if(!payload.user_id||payload.user_id===owner)changed(); }
       if(event==='session'&&liveObject(payload.session)) {
         if(['ending','ended','cancelled'].includes(String(payload.session.state))) {
-          generation.current++;player.pause();clearTimer();clearStartupTimer();ticket.current=null;setLoading(false);void changeSource(()=>player.replaceAsync(null)).catch(()=>{});
+          generation.current++;swapping.current=false;player.pause();clearTimer();clearStartupTimer();ticket.current=null;setLoading(false);setWatching(false);void changeSource(()=>player.replaceAsync(null)).catch(()=>{});
           setError('This live broadcast has ended. Open the stream to check its replay.');
         }
       }
@@ -157,13 +167,13 @@ export function LivePlaybackProvider({ children }: { children: React.ReactNode }
     return()=>{activeChannel=false;unsubscribe();};
   },[owner,session?.id,player]);
   useEffect(() => {
-    const markPlaying = () => { if (active.current && ticket.current && player.status === 'readyToPlay' && player.playing) { if (startup.current) startup.current.played = true; clearStartupTimer(); setLoading(false); setError(null); } };
+    const markPlaying = () => { if (active.current && ticket.current && player.status === 'readyToPlay' && player.playing) { if (startup.current) startup.current.played = true; clearStartupTimer(); swapping.current = false; setWatching(true); setLoading(false); setError(null); } };
     const listener = player.addListener('statusChange', event => {
-      setMediaPlaying(event.status === 'readyToPlay' && player.playing);
-      if (event.status === 'readyToPlay') markPlaying();
-      if (event.status === 'error' && active.current && !scheduleStartupRetry.current(event.error?.message)) { setError('Playback was interrupted. Retry when connected.'); setLoading(false); }
+      if (event.status === 'readyToPlay') { swapping.current = false; markPlaying(); }
+      if (event.status === 'error') { setWatching(false); if (active.current && !scheduleStartupRetry.current(event.error?.message)) { setError('Playback was interrupted. Retry when connected.'); setLoading(false); } }
     });
-    const playing = player.addListener('playingChange', event => { setMediaPlaying(event.isPlaying && player.status === 'readyToPlay'); if (event.isPlaying) markPlaying(); });
+    // Only the viewer's own pause ends the count. A pause raised by a source swap during renewal is the renewal.
+    const playing = player.addListener('playingChange', event => { if (event.isPlaying) { swapping.current = false; markPlaying(); } else if (!swapping.current) setWatching(false); });
     return () => { listener.remove(); playing.remove(); };
   }, [player]);
   useEffect(() => {mounted.current=true;return () => { mounted.current = false; generation.current++; clearTimer();clearStartupTimer();startup.current=null;if(expires.current)clearTimeout(expires.current); active.current = null; ticket.current = null; };}, []);

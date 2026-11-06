@@ -14,7 +14,7 @@ test('heartbeats reflect playback activity and use one stable instance with boun
   lease.setActive(true); await flush();
   assert.equal(calls.length, 1); assert.equal(calls[0].name, 'live_viewer_heartbeat'); assert.equal(calls[0].args.p_playback_id, 'one-player'); assert.equal(calls[0].args.p_active, true);
   lease.setActive(true); assert.equal(calls.length, 1);
-  const [id, timer] = [...timers][0]; assert.equal(timer.delay, 37500); timers.delete(id); timer.fn(); await flush();
+  const [id, timer] = [...timers][0]; assert.equal(timer.delay, 25000); timers.delete(id); timer.fn(); await flush();
   assert.equal(calls.length, 2);
   lease.setActive(false); await flush(); assert.equal(calls[2].args.p_active, false); assert.equal(timers.size, 0);
   lease.dispose(); await flush(); assert.equal(calls.length, 3);
@@ -29,6 +29,10 @@ test('unmount during a pending join sends leave after join completes and stops t
 });
 test('a failed heartbeat retries on the normal interval and a later pause still retires its lease', async () => {
   const calls = [], { lease, timers } = fixture(async (name, args) => { calls.push(args); throw Error('offline'); });
-  lease.setActive(true); await flush(); assert.equal(calls.length, 1); assert.equal([...timers.values()][0].delay, 37500);
+  lease.setActive(true); await flush(); assert.equal(calls.length, 1); assert.equal([...timers.values()][0].delay, 25000);
   lease.setActive(false); await flush(); assert.deepEqual(calls.map(call => call.p_active), [true, false]); assert.equal(timers.size, 0);
+});
+test('a lease names its stream and player so a closing page can send the leave itself', () => {
+  const { lease } = fixture(async () => ({ error: null }));
+  assert.equal(lease.sessionId, 'stream'); assert.equal(lease.playbackId, 'one-player');
 });

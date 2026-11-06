@@ -36,7 +36,7 @@ function harness({ live = true } = {}) {
   };
   function emit(name, value) { handlers.get(name)?.forEach(fn => fn(value)); }
   class Clock extends Date { static now() { return now; } }
-  const clock = { Date: Clock, setTimeout(fn, delay) { const id = ++serial; timers.set(id, { fn, at: now + delay }); return id; }, clearTimeout(id) { timers.delete(id); } };
+  const clock = { Date: Clock, setTimeout(fn, delay) { const id = ++serial; timers.set(id, { fn, at: now + delay, delay }); return id; }, clearTimeout(id) { timers.delete(id); } };
   const policy = load('src/services/livePlaybackStartup.ts', {}, clock);
   const component = load('src/contexts/LivePlaybackContext.tsx', {
     react, 'react-native': { AppState: { currentState: 'active', addEventListener(_name, fn) { appChange = fn; return { remove() {} }; } }, StyleSheet: { create: value => value } },
@@ -55,6 +55,9 @@ function harness({ live = true } = {}) {
     async background() { appChange('background'); await settle(); },
     async advanceRetry() { const entry = [...timers].sort((a, b) => a[1].at - b[1].at)[0]; assert.ok(entry && entry[1].at < now + 15000, 'Expected one bounded startup retry'); timers.delete(entry[0]); now = entry[1].at; entry[1].fn(); await settle(); },
     async revoke() { denial = 'This stream is unavailable or your access has changed.'; control('access_changed', { user_id: 'viewer' }); await settle(); },
+    deny(message) { denial = message; }, allow() { denial = null; },
+    timer(min, max) { return [...timers].find(([, t]) => t.delay >= min && t.delay <= max) || null; },
+    async fire(entry) { assert.ok(entry, 'Expected a scheduled timer'); timers.delete(entry[0]); now = entry[1].at; entry[1].fn(); await settle(); },
   };
 }
 
@@ -64,7 +67,7 @@ test('native measured presence requires ready playback and respects background, 
   await app.background(); assert.equal(app.presence.active, false);
   app.view.setPictureInPicture(true); await app.settle(); assert.equal(app.presence.active, true);
   app.player.pause(); await app.settle(); assert.equal(app.presence.active, false);
-  app.player.play(); await app.settle(); await app.status('loading'); assert.equal(app.presence.active, false);
+  app.player.play(); await app.settle(); await app.status('loading'); assert.equal(app.presence.active, true, 'A rebuffer does not end the count; the viewer is still there');
   const replay = harness({ live: false }); await replay.open(); await replay.status('readyToPlay'); assert.equal(replay.presence.active, false);
 });
 
@@ -81,4 +84,21 @@ test('native startup retries are cancelled immediately when access is revoked or
   assert.equal(app.sources.at(-1), null); assert.equal(app.timers.size, 0); assert.equal(app.presence.active, false); assert.match(app.view.error, /access has changed/);
   const closed = harness(); await closed.open(); await closed.status('error', 'HTTP 403'); closed.view.close(); await closed.settle();
   assert.equal(closed.timers.size, 0); assert.equal(closed.view.session, null); assert.equal(closed.presence.active, false);
+});
+
+test('a native grant renewal keeps the viewer counted through the source swap, and a failed renewal keeps playing while the held grant is valid', async () => {
+  const app = harness(); await app.open(); await app.status('readyToPlay'); assert.equal(app.presence.active, true);
+  const renewal = app.timer(60000, 100000); assert.ok(renewal, 'A renewal is scheduled before the grant expires');
+  const swaps = app.sources.length;
+  await app.fire(renewal);
+  assert.equal(app.sources.length, swaps + 1, 'The renewed grant is loaded');
+  assert.equal(app.presence.active, true, 'The swap is the renewal, not the viewer leaving');
+  await app.status('readyToPlay'); assert.equal(app.presence.active, true);
+  app.deny('The action could not be confirmed. Your details are still here. Retry when connected.');
+  await app.fire(app.timer(60000, 100000));
+  assert.equal(app.view.error, null); assert.equal(app.player.playing, true); assert.equal(app.presence.active, true);
+  assert.ok(app.timer(2000, 10000), 'Another attempt is scheduled while the held grant is valid');
+  app.allow(); await app.fire(app.timer(2000, 10000));
+  assert.equal(app.view.error, null); assert.ok(app.timer(60000, 100000), 'A successful retry schedules the next renewal');
+  app.player.pause(); await app.settle(); assert.equal(app.presence.active, false, 'The viewer\'s own pause still releases the lease');
 });

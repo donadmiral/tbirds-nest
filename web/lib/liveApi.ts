@@ -27,7 +27,10 @@ export const liveError = (error: unknown) => {
   if (/CLIP_NOT_READY|CLIP_PROCESSING_CONFLICT/.test(raw)) return 'Wait for this clip to finish processing, then refresh.';
   if (/PUBLISHED_CLIP_IMMUTABLE/.test(raw)) return 'A published clip cannot be edited. Create a new clip from the original stream.';
   if (/INVALID_SCHEDULE/.test(raw)) return 'Choose a future posting time within the next year.';
+  if (/FOLLOWERS_ONLY/.test(raw)) return 'Follow the host to join this chat.';
   if (/CHAT_CLOSED/.test(raw)) return 'Chat is currently closed for this stream.';
+  if (/INVALID_MESSAGE/.test(raw)) return 'Write a message of up to 500 characters.';
+  if (/INVALID_REACTION/.test(raw)) return 'Reactions are available while the stream is live.';
   if (/STATE_CONFLICT/.test(raw)) return 'The stream changed. Refresh and try again.';
   return 'This action could not complete. Please try again.';
 };

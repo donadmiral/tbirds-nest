@@ -12,8 +12,9 @@ const object = value => !!value && typeof value === 'object' && !Array.isArray(v
 const deferred = () => { let resolve, reject; const promise = new Promise((done, fail) => { resolve = done; reject = fail; }); return { promise, resolve, reject }; };
 const nodes = value => !value || typeof value !== 'object' ? [] : Array.isArray(value) ? value.flatMap(nodes) : [value, ...nodes(value.props?.children)];
 const words = value => Array.isArray(value) ? value.map(words).join('') : typeof value === 'string' ? value : value?.props ? words(value.props.children) : '';
-function harness({ deferCommands = false, overlay = false, compact = false, collapseHistory = false } = {}) {
-  let focused = true, appStateListener = () => {}, requestSerial = 1000;
+function harness({ deferCommands = false, overlay = false, compact = false, collapseHistory = false, blocked = [] } = {}) {
+  let focused = true, appStateListener = () => {}, requestSerial = 1000, controlListener = () => {}, timerSerial = 0, commandResult = () => ({ ok: true });
+  const timers = new Map();
   let cursor = 0, effects = [], slots = [], currentProps = { id: sid, topic, enabled: true, canModerate: true, overlay, compact, collapseHistory, pinned: null, onChanged() {}, onUpdate(value) { if ('pinned_message' in value) currentProps.pinned = value.pinned_message; if (value.removed_message_id && currentProps.pinned?.id === value.removed_message_id) currentProps.pinned = null; } };
   const pages = [], channels = [], commands = [], pendingCommands = [], scrolls = [], alerts = [];
   const same = (a, b) => !!a && !!b && a.length === b.length && a.every((v, i) => Object.is(v, b[i]));
@@ -29,19 +30,22 @@ function harness({ deferCommands = false, overlay = false, compact = false, coll
     '../theme/useTheme': { useTheme: () => ({ t: { ink: { primary: '#111', secondary: '#666', muted: '#888' }, surface: { sunken: '#eee' } } }) },
     '../stores/authStore': { useAuthStore: read => read({ profile: { id: uid } }) },
     '../../shared/liveDirectory': { isLiveUuid: value => typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value) },
-    '../services/liveControlEvents': { subscribeLiveControl: () => () => {} },
+    '../services/liveControlEvents': { subscribeLiveControl: (_id, _owner, fn) => { controlListener = fn; return () => {}; } },
     '../services/liveService': { liveObject: object, liveRows: value => Array.isArray(value) ? value : [], liveText: value => typeof value === 'string' ? value : '', liveRequestId: () => id(++requestSerial),
-      liveRpc: () => { const page = deferred(); pages.push(page); return page.promise; }, liveCommand: async (...args) => { commands.push(args); if (deferCommands) { const command = deferred(); pendingCommands.push(command); return command.promise; } return { ok: true }; } },
-    '../services/supabase': { supabase: { channel() { const handlers = {}; const channel = { handlers, on(_kind, filter, callback) { handlers[filter.event] = callback; return channel; }, subscribe(callback) { channel.status = callback; return channel; } }; channels.push(channel); return channel; }, removeChannel: async () => {} } },
+      liveRpc: () => { const page = deferred(); pages.push(page); return page.promise; }, liveCommand: async (...args) => { commands.push(args); if (deferCommands) { const command = deferred(); pendingCommands.push(command); return command.promise; } return commandResult(...args); } },
+    '../utils/profileRead': { profileRead: x => x },
+    '../services/supabase': { supabase: { from() { const query = { select() { return query; }, eq() { return query; }, limit() { return query; }, then(resolve) { return Promise.resolve({ data: blocked.map(blocked_id => ({ blocked_id })), error: null }).then(resolve); } }; return query; }, channel() { const handlers = {}; const channel = { handlers, on(_kind, filter, callback) { handlers[filter.event] = callback; return channel; }, subscribe(callback) { channel.status = callback; return channel; } }; channels.push(channel); return channel; }, removeChannel: async () => {} } },
   };
   const source = ts.transpileModule(fs.readFileSync(path.join(root, 'src/components/LiveChat.tsx'), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.React, esModuleInterop: true } }).outputText;
   const module = { exports: {} };
-  vm.runInNewContext(source, { module, exports: module.exports, require: name => { if (!(name in imports)) throw Error(name); return imports[name]; }, console, Date, Map, Set, Promise });
+  vm.runInNewContext(source, { module, exports: module.exports, require: name => { if (!(name in imports)) throw Error(name); return imports[name]; }, console, Date, Map, Set, Promise, Math,
+    setTimeout: (fn, delay) => { const id = ++timerSerial; timers.set(id, { fn, delay }); return id; }, clearTimeout: id => timers.delete(id) });
   const render = () => { cursor = 0; const tree = module.exports.LiveChat(currentProps); const list = nodes(tree).find(node => node.type === 'FlatList'); if(list)list.props.ref.current = { scrollToEnd: options => scrolls.push(options) }; return tree; };
   const settle = async () => { const pending = effects; effects = []; pending.forEach(fn => fn()); await new Promise(resolve => setImmediate(resolve)); };
   const list = () => nodes(render()).find(node => node.type === 'FlatList');
   const button = label => nodes(render()).find(node => node.type === 'TouchableOpacity' && words(node) === label);
-  return { render, settle, pages, channels, commands, pendingCommands, scrolls, alerts, list, button, props: currentProps,
+  return { render, settle, pages, channels, commands, pendingCommands, scrolls, alerts, list, button, props: currentProps, timers,
+    fire() { const due = [...timers.entries()]; timers.clear(); due.forEach(([, timer]) => timer.fn()); }, control(event, payload) { controlListener(event, payload); }, setCommandResult(fn) { commandResult = fn; },
     setFocused(value) { focused = value; }, setAppState(value) { appStateListener(value); },
     input: () => nodes(render()).find(node => node.type === 'TextInput'), emit(event, payload) { channels.at(-1).handlers[event]({ payload }); }, async start() { render(); await settle(); channels.at(-1).status('SUBSCRIBED'); } };
 }
@@ -247,4 +251,72 @@ test('compact live chat keeps its composer while history is collapsed and can re
   app.button('Show comments').props.onPress();
   assert.equal(app.list().props.style.height,64);assert.equal(app.list().props.data[0].body,'message 1');
   app.button('Hide comments').props.onPress();assert.equal(app.list(),undefined);assert.ok(app.input());
+});
+
+test('a native reply shows at once from the command result and its echo does not duplicate it', async () => {
+  const app = harness(); app.setCommandResult((action, _id, payload) => action === 'chat' ? { ok: true, message: message(7, { body: payload.body, user_id: uid, author: { id: uid, username: 'me' } }) } : { ok: true });
+  await app.start(); app.pages[0].resolve({ items: [], next_cursor: null }); await app.settle();
+  app.input().props.onChangeText('Hello room'); app.button('Send').props.onPress(); await app.settle();
+  assert.equal(app.list().props.data.length, 1); assert.equal(app.list().props.data[0].body, 'Hello room'); assert.equal(app.input().props.value, '');
+  app.emit('message', message(7, { body: 'Hello room' })); assert.equal(app.list().props.data.length, 1);
+});
+
+test('native viewers see reactions from others and admin warnings', async () => {
+  const app = harness({ overlay: true }); await app.start();
+  app.emit('reaction', { id: id(5), reaction: 'fire' }); assert.match(words(app.render()), /🔥/);
+  app.fire(); assert.doesNotMatch(words(app.render()), /🔥/);
+  app.emit('warning', { reason: 'Keep it respectful.' }); assert.match(words(app.render()), /Keep it respectful\./);
+  const full = harness(); await full.start(); full.emit('reaction', { id: id(6), reaction: 'applause' }); assert.match(words(full.render()), /👏/);
+});
+
+test('native earlier pages never evict the newest replies and the control stops at the history bound', async () => {
+  const app = harness(); await app.start();
+  app.pages[0].resolve({ items: Array.from({ length: 50 }, (_, i) => message(i + 101)), next_cursor: { id: id(101), created_at: message(101).created_at } }); await app.settle();
+  for (let n = 151; n <= 250; n++) app.emit('message', message(n));
+  assert.equal(app.list().props.data.length, 150); assert.equal(app.list().props.data.at(-1).id, id(250));
+  assert.equal(app.button('Earlier messages'), undefined); assert.equal(app.button('History limit reached').props.disabled, true);
+  const partial = harness(); await partial.start();
+  partial.pages[0].resolve({ items: [message(2)], next_cursor: { id: id(2), created_at: message(2).created_at } }); await partial.settle();
+  partial.button('Earlier messages').props.onPress(); partial.pages[1].resolve({ items: [message(1)], next_cursor: null }); await partial.settle();
+  partial.emit('message', message(3));
+  assert.deepEqual(Array.from(partial.list().props.data, row => row.id), [id(1), id(2), id(3)], 'An arrival after paging keeps the loaded page');
+});
+
+test('the native composer stays editable while a command is in flight', async () => {
+  const app = harness({ deferCommands: true }); await app.start(); app.pages[0].resolve({ items: [], next_cursor: null }); await app.settle();
+  app.input().props.onChangeText('typing'); app.button('Heart').props.onPress();
+  assert.equal(app.input().props.editable, true); assert.equal(app.button('Send').props.disabled, true);
+  app.pendingCommands[0].resolve({ ok: true }); await app.settle(); assert.equal(app.button('Send').props.disabled, false);
+  assert.equal(app.input().props.value, 'typing');
+});
+
+test('a lost native socket polls the canonical history until the channel returns', async () => {
+  const app = harness(); await app.start(); app.pages[0].resolve({ items: [message(1)], next_cursor: null }); await app.settle();
+  app.channels[0].status('CHANNEL_ERROR'); assert.equal(app.list().props.data.length, 0); assert.equal(app.pages.length, 1);
+  app.fire(); assert.equal(app.pages.length, 2, 'The first poll happens shortly after the loss');
+  app.pages[1].resolve({ items: [message(1), message(2)], next_cursor: null }); await app.settle();
+  assert.equal(app.list().props.data.length, 2);
+  app.fire(); assert.equal(app.pages.length, 3, 'Polling continues while disconnected');
+  app.channels[0].status('SUBSCRIBED'); assert.equal(app.pages.length, 4);
+  app.fire(); assert.equal(app.pages.length, 4, 'A joined channel stops the poll');
+});
+
+test('a removal aimed at someone else refreshes the native detail after a short spread', async () => {
+  const app = harness(); let refreshes = 0; app.props.onChanged = () => { refreshes++; }; await app.start();
+  app.control('access_changed', { session_id: sid, user_id: id(777) }); assert.equal(refreshes, 0);
+  app.fire(); assert.equal(refreshes, 1);
+  app.control('access_changed', { session_id: sid, user_id: uid }); assert.equal(refreshes, 2, 'A change aimed at this viewer is read at once');
+});
+
+test('native reactions are offered only while the stream is live', async () => {
+  const app = harness(); app.props.reactionsEnabled = false; await app.start();
+  assert.equal(app.button('Heart').props.disabled, true); assert.equal(app.button('Send').props.disabled, true);
+  app.input().props.onChangeText('still chatting'); assert.equal(app.button('Send').props.disabled, false);
+});
+
+test('native live messages and pins from people this viewer blocked are not shown', async () => {
+  const app = harness({ blocked: [id(960)] }); await app.start(); app.pages[0].resolve({ items: [], next_cursor: null }); await app.settle();
+  app.emit('message', message(1, { user_id: id(960) })); assert.equal(app.list().props.data.length, 0);
+  app.emit('pin', { message: message(2, { user_id: id(960) }) }); assert.equal(app.props.pinned, null);
+  app.emit('message', message(3, { user_id: id(961) })); assert.equal(app.list().props.data.length, 1);
 });

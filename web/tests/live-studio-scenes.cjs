@@ -1,6 +1,6 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),ts=require('typescript');
 const id=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
-const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return{promise,resolve};};
+const deferred=()=>{let resolve,reject;const promise=new Promise((r,j)=>{resolve=r;reject=j;});return{promise,resolve,reject};};
 const compile=file=>ts.transpileModule(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText;
 const load=file=>{const exports={};vm.runInNewContext(compile(file),{exports});return exports;};
 const scenes=load('../shared/liveStageScene.ts'),directory=load('../shared/liveDirectory.ts');
@@ -16,7 +16,7 @@ function harness(initial={}){let refreshResult=true;let cursor=0,dirty=true,tree
  const props={client:{},onRefresh:async()=>refreshResult};
  const render=()=>{cursor=0;dirty=false;tree=exports.LiveStudio({...props,detail});};
  const flush=async()=>{for(let n=0;n<20;n++){if(dirty)render();effects.splice(0).forEach(fn=>fn());await new Promise(r=>setImmediate(r));if(!dirty&&!effects.length)return;}throw Error('Unstable render');};
- return{commands,flush,select(label){return nodes(tree).find(node=>node.type==='select'&&node.props['aria-label']===label);},async choose(label,value){const select=this.select(label);assert.ok(select);if(!select.props.disabled)select.props.onChange({target:{value}});await flush();},async update(value){detail={...detail,...value};dirty=true;await flush();},setRefreshResult(value){refreshResult=value;},disabled(label){return nodes(tree).find(n=>n.type==='button'&&text(n)===label)?.props.disabled;},async click(label){const button=nodes(tree).find(n=>n.type==='button'&&text(n)===label);assert.ok(button,label);assert.ok(!button.props.disabled,label);button.props.onClick();await flush();},async people(rows){people=rows;events['participant-updated']?.();await flush();},async state(value){detail={...detail,session:{...detail.session,state:value}};dirty=true;await flush();},async tick(){const pending=[...timers.values()];timers.clear();pending.forEach(t=>t.fn());await flush();},get timers(){return timers.size;},captureTimer(){return [...timers.values()][0]?.fn;},cleanup(){slots.forEach(slot=>slot?.cleanup?.());}};
+ return{commands,flush,select(label){return nodes(tree).find(node=>node.type==='select'&&node.props['aria-label']===label);},async choose(label,value){const select=this.select(label);assert.ok(select);if(!select.props.disabled)select.props.onChange({target:{value}});await flush();},async update(value){detail={...detail,...value};dirty=true;await flush();},setRefreshResult(value){refreshResult=value;},disabled(label){return nodes(tree).find(n=>n.type==='button'&&text(n)===label)?.props.disabled;},async click(label){const button=nodes(tree).find(n=>n.type==='button'&&text(n)===label);assert.ok(button,label);assert.ok(!button.props.disabled,label);button.props.onClick();await flush();},async people(rows){people=rows;events['participant-updated']?.();await flush();},async state(value){detail={...detail,session:{...detail.session,state:value}};dirty=true;await flush();},async tick(){const pending=[...timers.values()];timers.clear();pending.forEach(t=>t.fn());await flush();},get timers(){return timers.size;},get tree(){return tree;},captureTimer(){return [...timers.values()][0]?.fn;},cleanup(){slots.forEach(slot=>slot?.cleanup?.());}};
 }
 test('actual web studio starts with connected guests and updates audience scenes once per membership change',async()=>{
  const h=harness();await h.flush();await h.click('Preview camera');await h.people([participant(1,true),participant(2)]);await h.click('Go live');assert.equal(h.commands.length,1);assert.equal(h.commands[0].body.scene.preset,'interview');assert.equal(h.commands[0].body.scene.participant_id,id(2));h.commands[0].resolve({ok:true});await h.flush();await h.state('live');assert.equal(h.timers,0);
@@ -47,4 +47,13 @@ test('broadcast format defaults to landscape and sends the selected portrait on 
 });
 test('a reconnected studio restores the persisted portrait format before any new scene command',async()=>{
  const h=harness({output_orientation:'portrait',session:{id:id(90),state:'live',started_at:'2026-11-04T12:00:00Z'}});await h.flush();assert.equal(h.select('Broadcast format').props.value,'portrait');assert.equal(h.select('Broadcast format').props.disabled,true);await h.click('Preview camera');await h.tick();assert.equal(h.commands[0].body.action,'scene');assert.equal(h.commands[0].body.scene.orientation,'portrait');h.commands[0].resolve({ok:true});await h.flush();h.cleanup();
+});
+
+test('automatic guest scenes wait for a live stream, and a failed scene offers a retry instead of staying stale',async()=>{
+ const h=harness();await h.flush();await h.click('Preview camera');await h.click('Go live');h.commands[0].resolve({ok:true});await h.flush();await h.state('reconnecting');
+ await h.people([participant(1,true),participant(2)]);await h.tick();assert.equal(h.commands.length,1,'The server refuses scenes while reconnecting, so none is sent');
+ await h.state('live');await h.tick();assert.equal(h.commands.length,2);assert.equal(h.commands[1].body.scene.preset,'interview');
+ h.commands[1].reject(Error('STATE_CONFLICT'));await h.flush();await h.tick();assert.equal(h.commands.length,2,'A failed automatic scene is not retried blindly');
+ assert.match(text(h.tree),/STATE_CONFLICT/);await h.click('Retry guest layout');await h.tick();assert.equal(h.commands.length,3);assert.equal(h.commands[2].body.scene.preset,'interview');assert.equal(h.commands[2].body.scene.participant_id,id(2));
+ h.commands[2].resolve({ok:true});await h.flush();assert.doesNotMatch(text(h.tree),/Retry guest layout/,'The retry control goes away once the scene is accepted');h.cleanup();
 });

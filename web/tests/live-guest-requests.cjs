@@ -38,3 +38,11 @@ test('private guest updates refresh only the current owner and stale or hidden c
 test('a foreign guest topic is never subscribed and a terminal stream exposes no join actions',async()=>{
  const h=harness({guest_topic:`live-guests:${id(1)}:${id(8)}`});await h.flush();assert.equal(h.channels.length,0);h.update({session:{id:id(1),state:'ended'}});await h.flush();assert.equal(h.tree,null);h.cleanup();
 });
+
+test('a declined viewer is told so without a dead button, and an accepted guest can leave the live',async()=>{
+ const h=harness({own_join_request:{status:'declined'},can_request_join:false});await h.flush();assert.match(text(h.tree),/The host declined your request for this live\./);assert.equal(h.button('Request to join'),undefined);
+ h.update({role:'guest',own_join_request:{status:'accepted'},can_request_join:false});await h.flush();h.click('Leave the live');assert.equal(h.commands[0].action,'leave_stage');h.commands[0].resolve({ok:true});await h.flush();assert.equal(h.refreshes,1);h.cleanup();
+});
+test('a full stage does not stop a viewer from queueing a request',async()=>{
+ const h=harness({stage:{limit:2,occupied:2,available:0}});await h.flush();assert.equal(h.button('Request to join').props.disabled,false);h.click('Request to join');assert.equal(h.commands[0].action,'request_join');h.commands[0].resolve({ok:true});await h.flush();h.cleanup();
+});

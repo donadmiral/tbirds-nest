@@ -13,11 +13,16 @@ export const liveRows = (value: unknown, max = 100): LiveObject[] => Array.isArr
 export function liveError(value: unknown): string {
   const code = liveObject(value) ? liveText(value.message || value.error, 200) : '';
   if (/AUTH_REQUIRED|ACTIVE_SESSION|JWT/.test(code)) return 'Sign in again to use Live.';
-  if (/ACCESS_DENIED|NOT_AVAILABLE/.test(code)) return 'This stream is unavailable or your access has changed.';
-  if (/RATE_LIMIT|CAPACITY_REACHED/.test(code)) return 'Live is busy. Wait a moment and try again.';
   if (/STAGE_FULL/.test(code)) return 'The live stage is full. Remove a guest or invitation before accepting another.';
   if (/JOIN_REQUEST_QUEUE_FULL/.test(code)) return 'The host has many requests. Please try again shortly.';
   if (/JOIN_REQUEST_NOT_AVAILABLE/.test(code)) return 'This guest request is no longer available. Refresh the stream.';
+  if (/FOLLOWERS_ONLY/.test(code)) return 'Follow the host to join this chat.';
+  if (/CHAT_CLOSED/.test(code)) return 'Chat is currently closed for this stream.';
+  if (/INVALID_MESSAGE/.test(code)) return 'Write a message of up to 500 characters.';
+  if (/INVALID_REACTION/.test(code)) return 'Reactions are available while the stream is live.';
+  if (/ACCESS_DENIED|NOT_AVAILABLE/.test(code)) return 'This stream is unavailable or your access has changed.';
+  if (/RATE_LIMIT/.test(code)) return 'Please wait a moment before trying again.';
+  if (/CAPACITY_REACHED/.test(code)) return 'Live is busy. Wait a moment and try again.';
   if (/NOT_READY|PGRST202|42883/.test(code)) return 'This Live service is not available yet.';
   if (/STATE_CONFLICT|IDEMPOTENCY/.test(code)) return 'The stream changed. Refresh before trying again.';
   if (/CLIP|RECORDING_UNAVAILABLE|RECORDING_NOT_READY/.test(code)) return 'This clip or recording is not available for that action yet. Refresh and check your access.';

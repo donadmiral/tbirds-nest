@@ -72,7 +72,7 @@ function native(options = {}) {
   const nativeChat = options.actualChat ? load('src/components/LiveChat.tsx', {
     react: childHooks.react, 'react-native': rn, '@react-navigation/native': { useIsFocused: () => true },
     '../theme/useTheme': { useTheme: () => ({ t: theme }) }, '../stores/authStore': { useAuthStore: read => read({ profile: { id: uid } }) },
-    '../../shared/liveDirectory': directory, '../services/liveControlEvents': { subscribeLiveControl: () => () => {} },
+    '../../shared/liveDirectory': directory, '../utils/profileRead':{profileRead:x=>x},'../services/liveControlEvents': { subscribeLiveControl: () => () => {} },
     '../services/liveService': { liveObject: object, liveText: value => typeof value === 'string' ? value : '', liveRows: value => Array.isArray(value) ? value : [], liveRpc: async () => ({ items: [], next_cursor: null }) },
     '../services/supabase': { supabase: { channel() { const channel = { handlers: {}, on(_type, filter, callback) { channel.handlers[filter.event] = callback; return channel; }, subscribe(callback) { channel.status = callback; return channel; } }; channels.push(channel); return channel; }, removeChannel: async () => {} } },
   }, childHooks.runtime).LiveChat : 'NativeLiveChat';

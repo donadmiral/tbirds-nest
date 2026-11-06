@@ -47,11 +47,13 @@ export function createLiveViewerPresence({ client, sessionId, playbackId, random
         // Serialize leave after a pending join, including unmount during a request.
         void send();
       } else if (active && !disposed) {
-        timer = setTimeout(() => { timer = undefined; void send(); }, 30000 + Math.floor(Math.max(0, Math.min(1, random())) * 15000));
+        // Twenty to thirty seconds between heartbeats: one lost request still renews the ninety-second server lease in time.
+        timer = setTimeout(() => { timer = undefined; void send(); }, 20000 + Math.floor(Math.max(0, Math.min(1, random())) * 10000));
       }
     }
   };
   return {
+    sessionId, playbackId,
     setActive(next: boolean) {
       if (disposed || active === next) return;
       active = next;
@@ -85,16 +87,19 @@ type ViewerPresenceHooks = {
 export function createLiveViewerPresenceHook({ useEffect, useRef }: ViewerPresenceHooks) {
   return function useLiveViewerPresence({ client, sessionId, identityScope, active, createPlaybackId }: ViewerPresenceInput) {
     const lease = useRef<ReturnType<typeof createLiveViewerPresence> | null>(null);
+    // The current lease, for a leave that must outlive the page (a closing tab).
+    const current = useRef<{ sessionId: string; playbackId: string } | null>(null);
     const latest = useRef({ active, createPlaybackId });
     latest.current = { active, createPlaybackId };
     useEffect(() => {
       if (!sessionId || !identityScope) return;
       const playbackId = latest.current.createPlaybackId();
-      const current = createLiveViewerPresence({ client, sessionId, playbackId });
-      lease.current = current;
-      current.setActive(latest.current.active);
-      return () => { current.dispose(); if (lease.current === current) lease.current = null; };
+      const created = createLiveViewerPresence({ client, sessionId, playbackId });
+      lease.current = created; current.current = { sessionId, playbackId };
+      created.setActive(latest.current.active);
+      return () => { created.dispose(); if (lease.current === created) { lease.current = null; current.current = null; } };
     }, [client, sessionId, identityScope]);
     useEffect(() => { lease.current?.setActive(active); }, [active, sessionId, identityScope]);
+    return current;
   };
 }

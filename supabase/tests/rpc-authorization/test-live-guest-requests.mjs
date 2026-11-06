@@ -22,7 +22,7 @@ before(async()=>{
  await loadDeployedMediaBaseline(db);await db.exec('alter table auth.users add column if not exists is_anonymous boolean default false');
  // Match the already deployed trigger search path from database_access_hardening.
  await db.exec("alter function public.stamp_notification_account_type() set search_path=pg_catalog,public,extensions,pg_temp");
- for(const n of ['20261103000609_live_portable_control_plane','20261103002858_live_interactivity','20261104022616_live_viewer_presence','20261104052000_live_cancel_stage_cleanup','20261104054700_live_terminal_eject_acknowledgement','20261104175749_live_guest_requests','20261104180010_live_portrait_broadcast','20261104180300_live_approved_guest_sources','20261104180638_live_detail_orientation'])await db.exec(await source(`supabase/migrations/${n}.sql`));
+ for(const n of ['20261103000609_live_portable_control_plane','20261103002858_live_interactivity','20261104022616_live_viewer_presence','20261104052000_live_cancel_stage_cleanup','20261104054700_live_terminal_eject_acknowledgement','20261104175749_live_guest_requests','20261104180010_live_portrait_broadcast','20261104180300_live_approved_guest_sources','20261104180638_live_detail_orientation','20261106031000_live_guest_leave_and_removal'])await db.exec(await source(`supabase/migrations/${n}.sql`));
  for(const name of names){await db.query('insert into auth.users(id,email) values($1,$2)',[actors[name],name+'@example.test']);
   await db.query("insert into public.profiles(id,username,email,full_name,profile_visibility,account_type) values($1,$2,$3,$2,'public','personal') on conflict(id) do update set username=excluded.username,profile_visibility='public'",[actors[name],name,name+'@example.test']);
   await db.query("insert into auth.sessions(id,user_id,aal) values($1,$2,'aal1')",[sessions[name],actors[name]]);}
@@ -171,4 +171,33 @@ test('automatic guest identities are private, accepted-guest-only and require a 
  assert.deepEqual((await detail('viewer',id)).stage_guest_identities,[]);
  await db.query('update live_streams.stage_grants set revoked_at=now() where session_id=$1 and user_id=$2',[id,actors.viewer]);
  assert.deepEqual((await detail('host',id)).stage_guest_identities,[]);
+});
+
+test('an accepted guest can leave the stage: the place frees, the grant is revoked, an eject is queued and a later request is allowed',async()=>{
+ const id=await create();await command('viewer','request_join',id);await command('host','accept_join_request',id,{user_id:actors.viewer});
+ assert.equal((await detail('host',id)).stage.occupied,2);
+ const identity=await value('select provider_identity from live_streams.members where session_id=$1 and user_id=$2',[id,actors.viewer]);
+ await db.query("insert into live_streams.stage_grants(session_id,user_id,auth_session_id,provider_identity,expires_at) values($1,$2,$3,$4,now()+interval '6 hours')",[id,actors.viewer,sessions.viewer,identity]);
+ await db.query("update live_streams.provider_sessions set published_participants=jsonb_build_array(jsonb_build_object('provider_identity',$2::text)) where session_id=$1",[id,identity]);
+ await assert.rejects(command('host','leave_stage',id),/ACCESS_DENIED/);
+ await assert.rejects(command('other','leave_stage',id),/STATE_CONFLICT/);
+ assert.equal((await command('viewer','leave_stage',id)).ok,true);
+ assert.equal((await detail('host',id)).stage.occupied,1);assert.equal((await detail('viewer',id)).role,'viewer');
+ assert.equal(await value('select count(*) from live_streams.stage_grants where session_id=$1 and user_id=$2 and revoked_at is null',[id,actors.viewer]),0);
+ assert.equal(await value("select count(*) from live_streams.provider_outbox where session_id=$1 and action='eject' and provider_identity=$2",[id,identity]),1);
+ assert.deepEqual(await value('select published_participants from live_streams.provider_sessions where session_id=$1',[id]),[]);
+ const after=await detail('viewer',id);assert.equal(after.own_join_request.status,'cancelled');assert.equal(after.can_request_join,true);
+ assert.equal((await command('viewer','request_join',id)).status,'pending');
+});
+test('removing a guest who is on air frees the published layout and revokes the grant instead of ending the broadcast',async()=>{
+ const id=await create();await command('viewer','request_join',id);await command('host','accept_join_request',id,{user_id:actors.viewer});
+ const identity=await value('select provider_identity from live_streams.members where session_id=$1 and user_id=$2',[id,actors.viewer]);
+ await db.query("insert into live_streams.stage_grants(session_id,user_id,auth_session_id,provider_identity,expires_at) values($1,$2,$3,$4,now()+interval '6 hours')",[id,actors.viewer,sessions.viewer,identity]);
+ await db.query("update live_streams.provider_sessions set published_participants=jsonb_build_array(jsonb_build_object('provider_identity',$2::text),jsonb_build_object('provider_identity','host-identity')) where session_id=$1",[id,identity]);
+ await command('host','remove_member',id,{user_id:actors.viewer});
+ assert.equal(await value('select count(*) from live_streams.stage_grants where session_id=$1 and user_id=$2 and revoked_at is null',[id,actors.viewer]),0);
+ assert.deepEqual(await value('select published_participants from live_streams.provider_sessions where session_id=$1',[id]),[{provider_identity:'host-identity'}]);
+ assert.equal(await value("select count(*) from live_streams.provider_outbox where session_id=$1 and action='eject' and provider_identity=$2",[id,identity]),1);
+ assert.equal(await value("select count(*) from live_streams.provider_outbox where session_id=$1 and action='stop'",[id]),0);
+ assert.equal(await value('select state from live_streams.sessions where id=$1',[id]),'live');
 });
