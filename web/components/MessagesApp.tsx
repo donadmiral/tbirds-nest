@@ -11,7 +11,7 @@ import { loadConversations, loadConversationWindow, loadMoreConversations, looku
 import { createInboxMergeGuard, inboxQueryKey, type InboxPaging } from '../../shared/inboxWindow';
 import { createInboxRefreshQueue } from '../../shared/inboxRefreshQueue';
 import { signChatMedia, isChatMediaUrl, withoutChatMedia } from "@/lib/chatMedia";
-import { enqueueMessage, readOutbox, sendOutboxMessage, clearOutbox, forgetOutboxMessage, type OutboxMessage } from "@/lib/messageOutbox";
+import { createOutboxReplay, enqueueMessage, readOutbox, sendOutboxMessage, clearOutbox, forgetOutboxMessage, type OutboxMessage } from "@/lib/messageOutbox";
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { CallButtons } from "@/components/CallButtons";
 import { GroupCallBar } from "@/components/GroupCallBar";
@@ -900,6 +900,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     typingIdle.current = setTimeout(() => { typingIdle.current = null; void setTyping(false); }, 1500);
   }
 
+  const replay = useRef<ReturnType<typeof createOutboxReplay> | null>(null);
   const deliverQueued = useCallback(async (queued: OutboxMessage) => {
     const generation = accountGeneration.current;
     const result = await sendOutboxMessage(supabase, queued);
@@ -912,20 +913,27 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     } else if (activeRef.current?.id === queued.conversation_id) {
       setMsgs(list => list.map(row => row.id === queued.id && row._delivery ? { ...row, _delivery: result.status } : row));
     }
+    if (result.status === 'pending') replay.current?.wake();
+    return result.status;
   }, [supabase]);
 
   useEffect(() => {
     if (!uid) return;
-    let live = true;
-    const recover = async () => {
-      for (const row of readOutbox(uid)) {
-        if (!live || uidRef.current !== uid) return;
-        if (row._delivery === 'pending') await deliverQueued(row);
-      }
+    const worker = createOutboxReplay({
+      pending: () => readOutbox(uid).filter(row => row._delivery === 'pending'),
+      active: () => uidRef.current === uid && navigator.onLine !== false && document.visibilityState !== 'hidden',
+      deliver: deliverQueued,
+    });
+    replay.current = worker;
+    worker.wake();
+    window.addEventListener('online', worker.wake);
+    document.addEventListener('visibilitychange', worker.wake);
+    return () => {
+      worker.dispose();
+      replay.current = null;
+      window.removeEventListener('online', worker.wake);
+      document.removeEventListener('visibilitychange', worker.wake);
     };
-    void recover();
-    window.addEventListener('online', recover);
-    return () => { live = false; window.removeEventListener('online', recover); };
   }, [uid, deliverQueued]);
 
   async function insertMessage(text: string | null, mediaUrl: string | null, mediaType: string | null, target = activeRef.current, replyId = replyTo?.id ?? null) {

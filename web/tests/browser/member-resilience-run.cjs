@@ -77,6 +77,18 @@ async function fillListing(page) {
   await page.locator('input[type=file]').setInputFiles({ name: 'audit.png', mimeType: 'image/png', buffer: png });
   await page.getByLabel('Share to feed', { exact: true }).uncheck();
 }
+test('Listing accepts ten photos and restores a removed slot', '/market/new', 'normal', '', async page => {
+  const picker = page.locator('input[type=file]');
+  const images = Array.from({length: 11}, (_, i) => ({name: 'photo-' + i + '.png', mimeType: 'image/png', buffer: png}));
+  await picker.setInputFiles(images);
+  await page.getByRole('button', {name: 'Remove photo 10', exact: true}).waitFor();
+  assert.equal(await page.getByRole('button', {name: /^Remove photo /}).count(), 10);
+  assert.equal(await page.getByRole('button', {name: 'Add photos'}).count(), 0);
+  await page.getByRole('button', {name: 'Remove photo 3', exact: true}).click();
+  await page.getByRole('button', {name: 'Add photos'}).waitFor();
+  await picker.setInputFiles(images[2]);
+  await page.getByRole('button', {name: 'Remove photo 10', exact: true}).waitFor();
+});
 for (const target of ['storage:market-media', 'table:marketplace_listings:insert']) for (const mode of ['normal', 'resolved', 'rejected']) test('Listing ' + target + ' ' + mode + ' then successful submit', '/market/new', mode, target, async page => {
   await fillListing(page); await page.getByRole('button', { name: 'Publish listing', exact: true }).click();
   if (mode !== 'normal') {
