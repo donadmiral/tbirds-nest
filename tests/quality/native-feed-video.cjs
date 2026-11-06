@@ -87,16 +87,46 @@ test('clipped media bounds do not establish production autoplay eligibility', ()
 
 });
 
-test('iPhone video acquisition preserves the already-playing position instead of centering behind the header', () => {
+test('platform video acquisition respects Android clipped bounds and the iPhone fixed header', () => {
   const flow = YAML.parseAllDocuments(fs.readFileSync(path.join(root, 'tests/native/flows/feed-video.yaml'), 'utf8'))[1].toJSON();
-  const acquisitions = flow.filter(command => command.scrollUntilVisible?.element?.id === 'native-feed-video');
-  assert.equal(acquisitions.length, 3);
-  for (const command of acquisitions) assert.deepEqual(command.scrollUntilVisible, {
-    element: { id: 'native-feed-video' }, direction: 'DOWN', visibilityPercentage: 100, centerElement: false,
-  });
+  function platformCommands(commands, platform) {
+    return commands.flatMap(command => command.runFlow?.when?.platform
+      ? command.runFlow.when.platform === platform ? platformCommands(command.runFlow.commands, platform) : []
+      : [command]);
+  }
+  for (const platform of ['Android', 'iOS']) {
+    const commands = platformCommands(flow, platform);
+    const acquisitions = commands.filter(command => command.scrollUntilVisible?.element?.id === 'native-feed-video');
+    assert.equal(acquisitions.length, 3, platform + ' must acquire the initial, returned and refreshed video');
+    for (const command of acquisitions) assert.deepEqual(command.scrollUntilVisible, {
+      element: { id: 'native-feed-video' }, direction: 'DOWN', visibilityPercentage: 100, centerElement: platform === 'Android',
+    });
+    for (const command of acquisitions) {
+      assert.deepEqual(commands[commands.indexOf(command) + 1], {
+        extendedWaitUntil: { visible: 'Native feed video playing', timeout: 15000 },
+      }, platform + ' must prove actual playback immediately after each acquisition');
+    }
+  }
   const gates = flow.filter(command => command.extendedWaitUntil?.visible === 'Native feed video playing');
   assert.equal(gates.length, 4);
   for (const gate of gates) assert.equal(gate.extendedWaitUntil.timeout, 15000);
+
+  // e221 iPhone artifact 13388330985 found the final checkpoint fully visible
+  // at [0,595][402,646] after 16s. Centering repeatedly requested more scroll
+  // beyond the list boundary until the original 20s deadline expired.
+  const checkpointBounds = { top: 595, bottom: 646 };
+  const viewportBounds = { top: 184, bottom: 840 };
+  assert.ok(checkpointBounds.top >= viewportBounds.top && checkpointBounds.bottom <= viewportBounds.bottom);
+  const iosCommands = platformCommands(flow, 'iOS');
+  const checkpoint = iosCommands.findIndex(command => command.scrollUntilVisible?.element === 'Feed scroll checkpoint.');
+  assert.deepEqual(iosCommands[checkpoint], { scrollUntilVisible: {
+    element: 'Feed scroll checkpoint.', direction: 'DOWN', visibilityPercentage: 100, timeout: 20000, centerElement: false,
+  } });
+  assert.deepEqual(iosCommands[checkpoint + 1], { assertNotVisible: 'Native feed video playing' },
+    'Reaching the final row must still prove that the first video stopped');
+  assert.deepEqual(platformCommands(flow, 'Android').find(command => command.scrollUntilVisible?.element === 'Feed scroll checkpoint.'), {
+    scrollUntilVisible: { element: 'Feed scroll checkpoint.', direction: 'DOWN', centerElement: true },
+  }, 'Keep the passing Android checkpoint behavior unchanged');
 
   // Current-source iPhone artifact 13377228916, SHA256
   // be9ed79dced40bd3189b3b9691496bde53a808fbaebf11d55ab3c62c99824db0.
@@ -125,4 +155,18 @@ test('iPhone video acquisition preserves the already-playing position instead of
   scope.report(); assert.deepEqual(Array.from(visible), ['video']);
   scope.scrollOffsetRef.current = 276; scope.report();
   assert.deepEqual(Array.from(visible), [], '47.2% of the post remains visible after the unnecessary centering scroll');
+
+  // Android artifact 13387079306 reported only [0,531][320,592] for the
+  // 240px video. Maestro called that 61px clipped target 100% visible and did
+  // not scroll. The post starts at 383 and the viewport is [147,592]. Its
+  // header plus video alone is 388px, before any footer, so even the maximum
+  // possible initial row visibility is 209/388, below the production 55%.
+  // The prior passing artifact 13378276809 had identical initial bounds.
+  // Centering scrolled 327px to expose the full video at [0,204][320,444].
+  scope.historyViewport.current = 445;
+  scope.historyRects.current.get('video').height = 388;
+  scope.scrollOffsetRef.current = -236;
+  scope.report(); assert.deepEqual(Array.from(visible), [], 'The clipped Android target must not be treated as a playable row');
+  scope.scrollOffsetRef.current += 327;
+  scope.report(); assert.deepEqual(Array.from(visible), ['video'], 'Android centering restores a playable row in the actual viewport');
 });
