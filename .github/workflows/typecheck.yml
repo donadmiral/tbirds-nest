@@ -56,7 +56,7 @@ jobs:
           done
           test "$ready" = true
           psql --dbname=postgres --command='select version(), inet_server_addr();'
-          for database in pc_scale_counters pc_scale_feed pc_scale_paging pc_scale_context pc_scale_business pc_scale_mentions pc_scale_media_jobs pc_scale_service_proof pc_scale_feed_rank pc_scale_distributed_counters pc_scale_notification_fanout pc_scale_admin_projection pc_scale_media_v2 pc_scale_private_hls pc_scale_observability pc_scale_book_window pc_scale_unique_reach pc_scale_push_badge pc_scale_notification_worker pc_scale_media_tickets pc_scale_live_cancel pc_scale_live_lease_lock; do
+          for database in pc_scale_counters pc_scale_feed pc_scale_paging pc_scale_context pc_scale_business pc_scale_mentions pc_scale_media_jobs pc_scale_service_proof pc_scale_feed_rank pc_scale_distributed_counters pc_scale_notification_fanout pc_scale_admin_projection pc_scale_media_v2 pc_scale_media_sandbox pc_scale_private_hls pc_scale_observability pc_scale_book_window pc_scale_unique_reach pc_scale_push_badge pc_scale_notification_worker pc_scale_media_tickets pc_scale_live_cancel pc_scale_live_lease_lock; do
             createdb "$database"
           done
       - name: Verify real lock waits, retries, access boundaries and cleanup
@@ -75,6 +75,7 @@ jobs:
           PGDATABASE=pc_scale_notification_fanout node supabase/tests/notification-fanout-db.test.cjs
           PGDATABASE=pc_scale_admin_projection node supabase/tests/admin-projection-db.test.cjs
           PGDATABASE=pc_scale_media_v2 node supabase/tests/media-renditions-db.test.cjs
+          PGDATABASE=pc_scale_media_sandbox node --test supabase/tests/media-sandbox-db.test.cjs
           PGDATABASE=pc_scale_private_hls node supabase/tests/private-hls-db.test.cjs
           PGDATABASE=pc_scale_observability node supabase/tests/capacity-observability.test.cjs
           PGDATABASE=pc_scale_book_window node supabase/tests/memory-book-window-db.test.cjs
@@ -156,11 +157,15 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: admin-web/package-lock.json
+          cache-dependency-path: |
+            admin-web/package-lock.json
+            supabase/tests/rpc-authorization/package-lock.json
       - run: npm ci
         working-directory: admin-web
       - run: npx tsc --noEmit
         working-directory: admin-web
+      - name: Install isolated database for staff report tests
+        run: npm ci --prefix supabase/tests/rpc-authorization
       - name: Test operations quality regressions
         run: node --test --test-concurrency=2 tests/*.cjs
         working-directory: admin-web

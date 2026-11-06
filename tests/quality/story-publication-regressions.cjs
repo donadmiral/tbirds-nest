@@ -55,12 +55,23 @@ function harness(options = {}) {
     },
   };
   const actors = { authorId: () => actorId };
+  const runtime = {
+    process: { env: { EXPO_PUBLIC_SUPABASE_URL: 'https://example.invalid', EXPO_PUBLIC_SUPABASE_ANON_KEY: 'synthetic' } },
+    FormData: class { fields = []; append(...args) { this.fields.push(args); } }, AbortController,
+    setTimeout: options.setTimeout ?? (() => 1), clearTimeout: options.clearTimeout ?? (() => {}),
+    fetch: async (url, request) => { calls.push({ upload: true, url, request }); return options.upload ? options.upload(url, request) : { ok: true }; },
+  };
+  const nativeFile = load('src/services/uploadNativeFile.ts', {
+    './supabase': { SUPABASE_URL: runtime.process.env.EXPO_PUBLIC_SUPABASE_URL, SUPABASE_ANON_KEY: 'synthetic' },
+    'expo-file-system': { File: class { size = 42; } }, 'expo/fetch': {},
+    './resumableUpload': { STORAGE_CHUNK_BYTES: 6 * 1024 * 1024 },
+  }, runtime);
   const service = load('src/services/storiesService.ts', {
     '../../shared/musicAvailability': load('shared/musicAvailability.ts', {}),
     '../../shared/originalAudioAvailability': originalAvailability,
     '../../shared/soundtrackPicker': soundtrackPicker,
     '../../shared/contentMedia': { canonicalContentMedia: value => value },
-    './supabase': { supabase: client }, '../utils/publication': publication, '../stores/actorStore': actors,
+    './uploadNativeFile': nativeFile, './supabase': { supabase: client }, '../utils/publication': publication, '../stores/actorStore': actors,
     './contentMedia': { hydrateStoryMedia: async rows => rows, hydrateSoundMedia: async rows => rows },
     './originalAudioService': { addOriginalAudio: async (uri, owner, audioOptions) => {
       calls.push({ originalUpload: true, uri, owner, options: audioOptions });
@@ -68,12 +79,7 @@ function harness(options = {}) {
     } },
     '../utils/sniffMedia': { resolveTrueMeta: async () => ({ ext: 'jpg', mime: 'image/jpeg', kind: 'image' }) },
     '../utils/uploadSafe': { ensureUploadSafe: async (uri) => ({ uri, ext: 'jpg', mime: 'image/jpeg' }) },
-  }, {
-    process: { env: { EXPO_PUBLIC_SUPABASE_URL: 'https://example.invalid', EXPO_PUBLIC_SUPABASE_ANON_KEY: 'synthetic' } },
-    FormData: class { fields = []; append(...args) { this.fields.push(args); } }, AbortController,
-    setTimeout: options.setTimeout ?? (() => 1), clearTimeout: options.clearTimeout ?? (() => {}),
-    fetch: async (url, request) => { calls.push({ upload: true, url, request }); return options.upload ? options.upload(url, request) : { ok: true }; },
-  });
+  }, runtime);
   const react = {
     useState(initial) { const key = slot++; if (!(key in values)) values[key] = typeof initial === 'function' ? initial() : initial; return [values[key], (value) => { values[key] = typeof value === 'function' ? value(values[key]) : value; }]; },
     useRef(initial) { const key = slot++; if (!(key in values)) values[key] = { current: initial }; return values[key]; },

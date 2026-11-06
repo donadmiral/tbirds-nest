@@ -19,6 +19,7 @@ import { canonicalContentMedia } from "../../shared/contentMedia";
 import { loadPostStorySticker } from "@/lib/storyPostShare";
 import { StoryTiming } from "@/components/StoryTiming";
 import { StoryCapture } from "@/components/StoryCapture";
+import { createStoryUpload } from "@/lib/storyUpload";
 import { publishStoryClipQueue, readStoryClipQueue, type StoryClipQueue } from "@/lib/storyClipQueue";
 import { StoryEditor } from "@/components/StoryEditor";
 import { StoryDrawStudio } from "@/components/StoryDrawStudio";
@@ -101,6 +102,7 @@ function ComposerInner() {
   const [previewPlaying, setPreviewPlaying] = useState(false);
   const draftSaveIds = useRef(new Map<string, string>());
   const [allowReplies, setAllowReplies] = useState(true);
+  const mediaUploads = useRef(new WeakMap<File, ReturnType<typeof createStoryUpload>>());
   const [failedUploads, setFailedUploads] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState({ index: 0, total: 0 });
   const replacePreview = useCallback((url: string | null) => {
@@ -217,6 +219,7 @@ function ComposerInner() {
         setOwnerEpoch(ownerVersion.current);
         ownerRef.current = next;
         draftRequest.current += 1;
+        mediaUploads.current = new WeakMap();
         cancelPending();
         busyRef.current = false;
         publication.current = null;
@@ -459,12 +462,17 @@ function ComposerInner() {
             });
             assertOwner(owner, version);
           }
-          const ext = (f.name.split(".").pop() || (isVideo ? "mp4" : "jpg")).toLowerCase(), path = owner + "/" + crypto.randomUUID() + "." + ext;
-          const { error: upErr } = await runBounded(supabase.storage.from("story-media").upload(path, f, { contentType: f.type, upsert: false }), 120000);
-          assertOwner(owner, version); if (upErr) throw upErr;
-          const { data: pub } = supabase.storage.from("story-media").getPublicUrl(path);
+          let attempt = mediaUploads.current.get(f);
+          if (!attempt) {
+            attempt = createStoryUpload(supabase, owner, f, () => isCurrent(owner, version), runBounded);
+            mediaUploads.current.set(f, attempt);
+          }
+          await attempt.upload();
+          assertOwner(owner, version);
+          const { data: pub } = supabase.storage.from("story-media").getPublicUrl(attempt.path);
           const preview = URL.createObjectURL(f); localPreviews.current.add(preview);
           added.push({ id: crypto.randomUUID(), mediaUrl: pub.publicUrl, previewUrl: preview, mediaType: isVideo ? 'video' : 'image', durationSec: duration, caption: '', stickers: [], transform: { scale: 1, translateNX: 0, translateNY: 0, fit: 'contain', ...(isVideo && duration ? { trimStart: 0, trimEnd: Math.min(60, duration) } : {}) }, background: { colors: ['#111518','#41474F'] }, filterId: null, audioDraft: null, draftId: null });
+          mediaUploads.current.delete(f);
         } catch (failure) { assertOwner(owner, version); failed.push(f); lastFailure = failure; }
       }
       assertOwner(owner, version);

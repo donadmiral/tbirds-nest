@@ -159,6 +159,7 @@ function scenario(initial = [row(1)], options = {}) {
     }
     if (name === '@/components/ForwardConversationPicker' && !options.forwardPicker) return { ForwardConversationPicker: props => runtime.jsx('div', { children:
       props.conversations.filter(row => row.id !== props.activeId && !row.request_pending).map(row => runtime.jsx('button', { disabled: props.busy, onClick: () => props.onSelect(row), children: row.title })) }) };
+    if (name === '@/lib/resumableAttachment') return {ATTACHMENT_CHUNK_BYTES:6*1024*1024, memberAttachmentUpload:options.largeUpload};
     if (name === '@/lib/chatMedia') return { signGroupAvatars: async rows => rows, signChatMedia: options.signChatMedia || (async rows => rows), isChatMediaUrl: safeChatMedia.isChatMediaUrl, withoutChatMedia: safeChatMedia.withoutChatMedia };
     if (name === '@/lib/feed') return { timeAgo: () => 'now' };
     if (name === 'next/link') return { __esModule: true, default: 'Link' };
@@ -649,4 +650,38 @@ test('a queued web full refresh holds its real transport across timeout and hidd
   await new Promise(resolve => setTimeout(resolve, 220)); await app.flush();
   assert.equal(app.rpcs.filter(call => call.name === 'get_inbox_page_v2').length, before + 2);
   assert.ok(app.text.includes('Conversation chat0')); app.unmount();
+});
+
+test('ordinary large file retry keeps the same private object and sends exactly one ordinary message', async () => {
+  const attempts=[];let calls=0;
+  const app=scenario(undefined,{largeUpload:(_client,bucket,owner,path,file,current)=>{
+    attempts.push({bucket,owner,path,file});return async()=>{
+      assert.equal(current(),true);if(++calls===1)throw Error('interrupted');
+    };
+  }});
+  await app.flush();await app.open('a');await app.flush();
+  const file={name:'large document.pdf',type:'application/pdf',size:7*1024*1024};
+  const picker=app.find(n=>n.type==='input'&&n.props.type==='file');
+  await picker.props.onChange({target:{files:[file]}});await app.flush();
+  assert.equal(app.writes.filter(w=>w.table==='messages'&&w.op==='insert').length,0);
+  await app.click('Retry attachment');await app.flush();
+  assert.equal(calls,2);assert.equal(attempts.length,1);assert.equal(attempts[0].bucket,'chat-files');
+  assert.equal(attempts[0].owner,'me');assert.match(attempts[0].path,/^me\/[a-f0-9-]+_large_document.pdf$/);
+  const sent=app.writes.filter(w=>w.table==='messages'&&w.op==='insert').map(w=>w.input[0]);
+  assert.equal(sent.length,1);assert.equal(sent[0].conversation_id,'a');assert.equal(sent[0].view_limit,null);
+  app.unmount();
+});
+
+test('switching chats fences unfinished large attachments, including returning to the original chat', async()=>{
+  const wait=deferred(),scope=[];
+  const app=scenario([row(1),row(2,{conversation_id:'b'})],{largeUpload:(_client,bucket,_owner,_path,_f,current)=>{
+    scope.push(current);assert.equal(bucket,'chat-media');return ()=>wait.promise;
+  }});
+  await app.flush();await app.open('a');await app.flush();
+  const picker=app.find(n=>n.type==='input'&&n.props.type==='file');
+  const pending=picker.props.onChange({target:{files:[{name:'large.mp4',type:'video/mp4',size:8*1024*1024}]}});
+  await app.flush();assert.equal(scope[0](),true);await app.open('b');await app.flush();
+  await app.open('a');await app.flush();assert.equal(scope[0](),false);
+  wait.resolve();await pending;await app.flush();
+  assert.equal(app.writes.filter(w=>w.table==='messages'&&w.op==='insert').length,0);app.unmount();
 });

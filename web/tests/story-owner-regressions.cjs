@@ -11,7 +11,7 @@ const publication = compile('lib/publication.ts');
 const queueSource = compile('lib/storyClipQueue.ts');
 const defer = () => { let resolve; const promise = new Promise(done => resolve = done); return { promise, resolve }; };
 const draft = (owner, name = 'draft-' + owner) => ({ id: name, user_id: owner, media_url: 'https://media.test/' + name, media_type: 'image', audience: 'only_with', shared_with: ['friend-' + owner], caption: 'Private ' + owner, duration_sec: null });
-const text = node => typeof node === 'string' ? node : Array.isArray(node) ? node.map(text).join('') : text(node?.props?.children ?? '');
+const text = node => typeof node === 'number' ? String(node) : typeof node === 'string' ? node : Array.isArray(node) ? node.map(text).join('') : text(node?.props?.children ?? '');
 const nodes = node => !node || typeof node !== 'object' ? [] : Array.isArray(node) ? node.flatMap(nodes) : [node, ...nodes(node.props?.children)];
 
 function scenario(options = {}) {
@@ -38,7 +38,7 @@ function scenario(options = {}) {
   const client = {
     rpc(name,payload) { const call={table:name,op:'rpc',payload,filters:{}}; writes.push(call); return options.write ? options.write(call) : Promise.resolve({data:'saved',error:null}); },
     auth: {
-      getSession: () => options.session ? options.session(owner) : Promise.resolve({ data: { session: owner ? { user: { id: owner } } : null }, error: null }),
+      getSession: () => options.session ? options.session(owner) : Promise.resolve({ data: { session: owner ? { user: { id: owner }, access_token:'synthetic-'+owner } : null }, error: null }),
       getUser: () => options.user ? options.user() : Promise.resolve({ data: { user: owner ? { id: owner } : null }, error: null }),
       onAuthStateChange: callback => { listener=callback; return { data: { subscription: { unsubscribe() { listener=null; } } } }; },
     },
@@ -48,13 +48,14 @@ function scenario(options = {}) {
       then(ok,bad){return Promise.resolve().then(()=>execute(call)).then(ok,bad);},
     }; return query; },
     storage: { from() { return {
-      upload(path,file) { uploads.push({path,file}); return options.upload ? options.upload(path,file) : Promise.resolve({ error:null }); },
+      info: path => options.info ? options.info(path) : Promise.resolve({data:null}),
+      upload(path,file,settings) { uploads.push({path,file}); return options.upload ? options.upload(path,file,settings) : Promise.resolve({ error:null }); },
       getPublicUrl: path => ({ data:{ publicUrl:'https://media.test/'+path } }),
     }; } },
   };
   const runtime={jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})};
   const storage = new Map(options.storage || []);
-  const common={sessionStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},console,Promise,Set,Map,Error,crypto:{randomUUID:()=> 'upload-'+(++nextUuid)},
+  const common={sessionStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},console,Promise,Set,Map,Error,TextEncoder,btoa,AbortSignal,fetch:options.transport || fetch,crypto:{randomUUID:()=> 'upload-'+(++nextUuid)},
     setTimeout:(callback,ms)=>{const id=++nextTimer;timers.set(id,{callback,ms});return id;},clearTimeout:id=>timers.delete(id),
     URL:class extends URL { static createObjectURL(){return 'blob:preview';} static revokeObjectURL(value){revoked.push(value);} },
     process:{env:{NEXT_PUBLIC_SUPABASE_URL:'https://media.test'}},
@@ -65,6 +66,8 @@ function scenario(options = {}) {
     if(name==='../../shared/contentMedia')return load(compile('../shared/contentMedia.ts'));
     if(name==='../../shared/storyColorMatrix')return load(compile('../shared/storyColorMatrix.ts'));
     if(name==='./storyFilterAppearance')return load(compile('../shared/storyFilterAppearance.ts'));
+    if(name==='@/lib/storyUpload')return load(compile('lib/storyUpload.ts'));
+    if(name==='./resumableAttachment')return load(compile('lib/resumableAttachment.ts'));
     if(name==='@/lib/storyPostShare')return{loadPostStorySticker:async(_client,id,check)=>{const result=await options.loadPost(id,owner);check();return result;}};
     if(name==='react')return hooks;if(name==='react/jsx-runtime')return runtime;
     if(name==='./memory/useMemoryDialog')return load(compile('components/memory/useMemoryDialog.ts'));
@@ -319,4 +322,40 @@ test('an old pending preview cannot replace the next account story after its res
  await h.flush();h.changeOwner('b');await h.flush();h.pick();await h.flush();
  preview.resolve([{media_url:'https://media.test/signed-a?token=private'}]);await h.flush();
  assert.ok(!nodes(h.tree).some(n=>n.props?.src?.includes('signed-a')));assert.ok(nodes(h.tree).some(n=>n.type==='img'&&n.props.src==='blob:preview'));h.unmount();
+});
+
+
+test('real story transport resumes the retained file after lost chunk and completion acknowledgements',async()=>{
+ const chunk=6*1024*1024,file=new File([new Uint8Array(chunk+7)],'large.jpg',{type:'image/jpeg'});
+ const requests=[];let name,nonce,committed=0;
+ const h=scenario({
+   transport:async(url,init)=>{
+     requests.push(init.method);assert.equal(init.headers.Authorization,'Bearer synthetic-a');
+     if(init.method==='POST'){
+       const meta=Object.fromEntries(init.headers['Upload-Metadata'].split(',').map(s=>{const [k,v]=s.split(' ');return[k,Buffer.from(v,'base64').toString()];}));
+       assert.equal(meta.bucketName,'story-media');name=meta.objectName;nonce=JSON.parse(meta.metadata).uploadNonce;
+       return new Response(null,{status:201,headers:{Location:url.href+'/fixture'}});
+     }
+     if(init.method==='HEAD')return new Response(null,{status:200,headers:{'Upload-Length':String(file.size),'Upload-Offset':String(committed)}});
+     assert.equal(Number(init.headers['Upload-Offset']),committed);
+     committed+=init.body.size;throw Error('Lost committed acknowledgement');
+   },
+   info:async()=>({data:committed===file.size?{name,size:file.size,metadata:{uploadNonce:nonce}}:null}),
+ });
+ await h.flush();h.pickMany([{type:'image/jpeg',name:'first.jpg'},file]);await h.flush();
+ assert.equal(h.editor().props.clips.length,1);
+ h.button('Retry 1 remaining uploads').props.onClick();await h.flush();
+ h.button('Retry 1 remaining uploads').props.onClick();await h.flush();
+ assert.deepEqual(requests,['POST','PATCH','HEAD','PATCH']);assert.equal(h.editor().props.clips.length,2);assert.equal(h.uploads.length,1);
+ await h.button('Save as draft').props.onClick();await h.flush();
+ assert.ok(h.writes.some(w=>w.table==='story_drafts'&&w.payload.media_url==='https://media.test/'+name));
+ assert.ok(!h.writes.some(w=>w.table==='publish_story_v2'));h.unmount();
+});
+test('lost small story upload response uses the same object receipt and account changes clear failed files',async()=>{
+ let receipt;const file=new File(['abc'],'small.jpg',{type:'image/jpeg'});
+ const h=scenario({upload:async(path,f,opts)=>{receipt={name:path,size:f.size,metadata:opts.metadata};throw Error('Lost response');},info:async()=>({data:receipt})});
+ await h.flush();h.pickMany([file]);await h.flush();h.button('Retry 1 remaining uploads').props.onClick();await h.flush();
+ assert.equal(h.uploads.length,1);assert.equal(h.editor().props.clips.length,1);
+ h.pickMany([new File(['b'],'next.jpg',{type:'image/jpeg'})]);await h.flush();
+ h.changeOwner('b');await h.flush();assert.equal(h.button('Retry 1 remaining uploads'),undefined);h.unmount();
 });

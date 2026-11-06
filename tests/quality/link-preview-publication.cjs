@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const ts = require('typescript');
+const nativePublicationUpload = require('./fixtures/native-publication-upload.cjs');
 
 const source = fs.readFileSync(path.resolve(__dirname, '../../src/screens/feed/FeedScreen.tsx'), 'utf8');
 const ast = ts.createSourceFile('FeedScreen.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
@@ -173,22 +174,24 @@ test('native publication preserves the current link without depending on a cache
 });
 
 test('native React publication persists the same original shown by the composer media', async () => {
-  const h = publicationFixture('My reaction', null), checked = [];
-  const media = { uri: 'reaction.mp4', type: 'video', ext: 'mp4', width: 720, height: 1280, reactSource: { postId: 'original-a', creatorId: 'creator-a', creatorName: 'Original creator' } };
+  const h = publicationFixture('My reaction', null), checked = [], uploads = [];
+  const media = { uri: 'file:///cache/reaction.mp4', type: 'video', ext: 'mp4', width: 720, height: 1280, reactSource: { postId: 'original-a', creatorId: 'creator-a', creatorName: 'Original creator' } };
   Object.assign(h.context, {
     composerMedia: [media], ORIGINAL_AUDIO_ENABLED: false,
     assertReactSourceAccess: async source => { checked.push(source.postId); },
     ensureUploadSafe: async (uri, type) => ({ uri, mime: type === 'video' ? 'video/mp4' : 'image/jpeg', ext: type === 'video' ? 'mp4' : 'jpg' }),
-    VideoThumbnails: { getThumbnailAsync: async () => ({ uri: 'thumb.jpg' }) },
+    VideoThumbnails: { getThumbnailAsync: async () => ({ uri: 'file:///cache/thumb.jpg' }) },
     safeExtFromUri: (_uri, fallback) => fallback,
     FormData: class { append() {} }, AbortController,
     process: { env: { EXPO_PUBLIC_SUPABASE_URL: 'https://fixture.invalid', EXPO_PUBLIC_SUPABASE_ANON_KEY: 'fixture' } },
-    fetch: async () => ({ ok: true }),
+    fetch: async url => { uploads.push(url); return new Response(null, { status: 200 }); },
   });
+  h.context.uploadNativeFile = nativePublicationUpload(h.context);
   const displayed = handoff.reactDraftAttribution(h.context.composerMedia, null);
   await h.context.publish();
   assert.equal(h.errors.length, 0);
   assert.equal(h.posts[0].quoted_post_id, displayed.postId);
+  assert.equal(uploads.length, 2);
   assert.deepEqual(checked, ['original-a', 'original-a']);
 });
 

@@ -20,7 +20,8 @@
     "autolinking": {
       "android": {
         "buildFromSource": [
-          "expo-video"
+          "expo-video",
+          "expo-file-system"
         ]
       }
     }

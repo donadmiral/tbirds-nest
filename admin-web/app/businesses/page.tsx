@@ -8,11 +8,12 @@ import Shell from '@/components/Shell';
 import { approveBusinessApplication, rejectBusinessApplication } from '@/lib/actions';
 import Seal from '@/components/Seal';
 import { completeRead } from '@/lib/completeRead';
+import { businessesHref, decisionCursor, type BusinessDecision } from '@/lib/businessDecisions';
 import RefreshDesk from '@/components/RefreshDesk';
 
 export const dynamic = 'force-dynamic';
 
-export default async function BusinessesPage({ searchParams }: { searchParams: Promise<{ page?: string; applications?: string }> }) {
+export default async function BusinessesPage({ searchParams }: { searchParams: Promise<{ page?: string; applications?: string; beforeDecision?: string; decisionId?: string }> }) {
   const admin = await requireDesk('/businesses');
   const svc = serviceClient();
   const params = await searchParams;
@@ -20,15 +21,17 @@ export default async function BusinessesPage({ searchParams }: { searchParams: P
   const page = pageNumber(params.page);
   const applicationPage = pageNumber(params.applications);
   const pageSize = 25;
-  const href = (businessPage: number, applications: number) => `/businesses?page=${businessPage}&applications=${applications}`;
+  const cursor = decisionCursor(params);
+  const href = (businessPage: number, applications: number) => businessesHref(businessPage, applications, cursor);
   const [pendingResult, decidedResult, businessResult] = await Promise.all([
     svc.from('business_applications').select('*', { count: 'exact' }).eq('status', 'submitted').order('created_at', { ascending: true }).order('id').range((applicationPage - 1) * pageSize, applicationPage * pageSize - 1),
-    svc.from('business_applications').select('id, company_name, desired_username, status, decision_reason, decided_at').neq('status', 'submitted').order('decided_at', { ascending: false }).limit(5),
+    svc.rpc('admin_business_decision_page', { p_before_at: cursor?.decided_at ?? null, p_before_id: cursor?.id ?? null }),
     svc.from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier, created_at, deactivated_at', { count: 'exact' }).eq('account_type', 'business').order('created_at', { ascending: false }).order('id').range((page - 1) * pageSize, page * pageSize - 1),
   ]);
   if (pendingResult.error || decidedResult.error || businessResult.error || pendingResult.count === null || businessResult.count === null) throw new Error('Business applications and accounts could not be loaded.');
   const pendingApps = pendingResult.data;
-  const decidedApps = decidedResult.data;
+  const decisions = (decidedResult.data ?? []) as BusinessDecision[];
+  const decidedApps = decisions.slice(0, pageSize);
   const bizs = businessResult.data;
   const aids = Array.from(new Set((pendingApps ?? []).map(application => application.applicant_id).filter((id): id is string => typeof id === 'string' && id.length > 0)));
   const applicants: Record<string, { id: string; full_name: string | null; username: string | null }> = {};
@@ -45,7 +48,7 @@ export default async function BusinessesPage({ searchParams }: { searchParams: P
     (memberResult.data ?? []).forEach(m => { counts[m.business_id] = (counts[m.business_id] || 0) + 1; });
   }
   return (
-    <Shell admin={admin} active="/businesses" title="Businesses" sub="Review business applications, inspect recent decisions and browse registered accounts." pageActions={<RefreshDesk />}>
+    <Shell admin={admin} active="/businesses" title="Businesses" sub="Review business applications, browse past decisions and browse registered accounts." pageActions={<RefreshDesk />}>
       <p className="mb-4 text-[13px] text-[var(--txt-muted)]">{pendingResult.count} applications awaiting a decision · {businessResult.count} registered businesses</p>
       {(pendingApps ?? []).length ? (
         <div className="mb-6">
@@ -96,7 +99,7 @@ export default async function BusinessesPage({ searchParams }: { searchParams: P
       </nav>
       {(decidedApps ?? []).length ? (
         <div className="mb-6">
-          <p className="mb-2 text-[12px] font-semibold uppercase tracking-wider text-[#9A9DA4]">Recent decisions</p>
+          <p className="mb-2 text-[12px] font-semibold uppercase tracking-wider text-[#9A9DA4]">Application decisions</p>
           {(decidedApps ?? []).map(a => (
             <div key={a.id} className="mb-2 rounded-[12px] border border-[#E5E4E0] bg-white p-4">
               <div className="flex items-center gap-2">
@@ -108,6 +111,12 @@ export default async function BusinessesPage({ searchParams }: { searchParams: P
             </div>
           ))}
         </div>
+      ) : null}
+      {cursor || decisions.length > pageSize ? (
+        <nav aria-label="Business decision history" className="mb-6 flex flex-wrap items-center gap-4 text-[13px]">
+          {cursor ? <Link className="underline" href={businessesHref(page, applicationPage, null)}>Newest decisions</Link> : null}
+          {decisions.length > pageSize ? <Link className="underline" href={businessesHref(page, applicationPage, decidedApps[pageSize - 1])}>Older decisions</Link> : null}
+        </nav>
       ) : null}
       <p className="mb-2 text-[12px] font-semibold uppercase tracking-wider text-[#9A9DA4]">Registered businesses</p>
       <div className="rounded-[12px] border border-[#E8E6E1] bg-white">

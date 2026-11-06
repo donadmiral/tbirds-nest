@@ -57,6 +57,7 @@ before(async () => {
   await exec(sql('20261105160752_prepared_mass_integer_seek.sql'));
   await exec(sql('20261105164113_prepared_statement_score_cache.sql'));
   await exec(sql('20261105171503_prepared_affinity_cohort_bound.sql'));
+  await exec(sql('20261106201000_prepared_feed_time_seek.sql'));
   await exec('select configure_indexed_feed_v1(true);');
  }
  await exec(`create function pg_temp.prepared_expected_error(statement text) returns text language plpgsql security invoker as $$
@@ -159,16 +160,16 @@ async function canonicalIds(mode){
  }
  return expected;
 }
-async function boundaryFixture(check, equalScores=false){
+async function boundaryFixture(check, equalScores=false, budget=64, postCount=80){
  await admin();await exec('begin;');
  try{
   await exec(`truncate posts cascade;delete from follows;
    insert into posts(id,user_id,content,created_at,likes_count,channel)
    select ('10000000-0000-4000-8000-'||lpad((970000+n)::text,12,'0'))::uuid,
     ('10000000-0000-4000-8000-'||lpad((200+n)::text,12,'0'))::uuid,
-    'Boundary proof',now()-interval '1 hour',${equalScores?'1':'n'},'home' from generate_series(1,80)n;`);
+    'Boundary proof',now()-interval '1 hour',${equalScores?'1':'n'},'home' from generate_series(1,${postCount})n;`);
   let definition=(await rows("select pg_get_functiondef('prepared_feed.select_page(text,double precision,uuid,integer)'::regprocedure) definition"))[0].definition;
-  definition=definition.replace('maximum_candidates constant integer:=10000','maximum_candidates constant integer:=64');
+  definition=definition.replace('maximum_candidates constant integer:=10000','maximum_candidates constant integer:='+budget);
   // Remove only the conservative float padding in this test variant to put
   // the remaining raw bound exactly on the last selected score.
   if(equalScores)definition=definition.replaceAll('*(1.0+1e-12)','');
@@ -189,6 +190,14 @@ test('an unproven final boundary still falls back without another fetch',narrowO
   const page=(await rows("select prepared_feed.select_page('for_you',null,null,80) result"))[0].result;
   assert.equal(page.fallback,true);assert.equal(page.reason,'proof_budget');assert.equal(page.candidates,64);
  });
+});
+test('larger sorted batches retain the final 128-ID proof allowance',narrowOnly,async()=>{
+ const budget=620;
+ await boundaryFixture(async()=>{
+  const page=(await rows("select prepared_feed.select_page('for_you',null,null,200) result"))[0].result;
+  assert.equal(page.fallback,true);assert.equal(page.reason,'proof_budget');
+  assert.ok(page.candidates>=budget && page.candidates<=budget+127);
+ },true,budget,1000);
 });
 test('a remaining bound equal to the selected score cannot pass the strict proof',narrowOnly,async()=>{
  await boundaryFixture(async()=>{
@@ -449,4 +458,46 @@ if (process.env.PREPARED_FEED_NARROW === '1') test('catalog authorization uses a
  const plan=real?JSON.parse(await db.query(statement)):(await db.query(statement)).rows[0]['QUERY PLAN'];
  const nodes=[];const visit=value=>{if(!value||typeof value!=='object')return;if(value['Relation Name'])nodes.push(value);for(const child of Object.values(value))if(Array.isArray(child))child.forEach(visit);else visit(child);};visit(plan);
  assert.ok(nodes.some(node=>node['Relation Name']==='posts'&&String(node['Index Cond']).includes('catalog.post_id')), 'Post visibility must use the catalog ID as its index condition');
+});
+
+test('a chronological continuation seeks past tied posts under the worker RLS policy',narrowOnly,async t=>{
+ await admin();await exec('begin;');
+ try {
+  await exec(`insert into posts(id,user_id,content,created_at)
+   select ('10000000-0000-4000-8000-'||lpad((980000+n)::text,12,'0'))::uuid,
+    '${OWNER}','Time seek',date_trunc('day',now())-interval '12 hours'+make_interval(secs=>n/8)
+   from generate_series(1,2048)n;analyze feed_ranking.catalog;analyze posts;`);
+  const [{config}]=await rows("select proconfig config from pg_proc where oid='prepared_feed.select_page(text,double precision,uuid,integer)'::regprocedure");
+  assert.ok(config.includes('enable_bitmapscan=off'));
+  await exec("set local plan_cache_mode=force_generic_plan;set local enable_bitmapscan=off;set role prepared_feed_reader;");
+  const cursor=(await rows(`select bucket::text, created_at::text,post_id from feed_ranking.catalog
+   where post_id='${id(980513)}'`))[0];
+  const predicate='(c.created_at,c.post_id)<($2,$3)';
+  const args=`('${cursor.bucket}','${cursor.created_at}','${cursor.post_id}')`;
+  const results={};
+  for(const [name,filter] of [['old','($2 is null or '+predicate+')'],['seek',predicate]]){
+   const stmt='feed_time_'+name;
+   await exec(`prepare ${stmt}(date,timestamptz,uuid) as select c.post_id,c.created_at
+    from feed_ranking.catalog c where c.bucket=$1 and ${filter} order by c.created_at desc,c.post_id desc limit 64;`);
+   const explain='explain(analyze,buffers,timing off,format json) execute '+stmt+args;
+   const [plan]=real?JSON.parse(await db.query(explain)):(await db.query(explain)).rows[0]['QUERY PLAN'];
+   const nodes=[];
+   function visit(node){nodes.push(node);for(const child of node.Plans||[])visit(child);}
+   visit(plan.Plan);
+   const scan=nodes.find(node=>node['Index Name']==='feed_catalog_time');
+   assert.ok(scan,'Expected chronological catalog index for the bounded page');
+   results[name]={hasCursorCondition:scan['Index Cond'].includes('ROW('),rowsFiltered:scan['Rows Removed by Filter']||0,
+    elapsedMs:plan['Execution Time'],rows:scan['Actual Rows']};
+  }
+  assert.equal(results.old.hasCursorCondition,false);
+  assert.equal(results.seek.hasCursorCondition,true);
+  assert.equal(results.seek.rows,64);
+  assert.ok(results.old.rowsFiltered>=1500 && results.seek.rowsFiltered<results.old.rowsFiltered);
+  const resultSql=filter=>`select c.post_id from feed_ranking.catalog c where c.bucket='${cursor.bucket}'
+   and ${filter} order by c.created_at desc,c.post_id desc limit 64`;
+  const rowKey=`(c.created_at,c.post_id)<('${cursor.created_at}'::timestamptz,'${cursor.post_id}'::uuid)`;
+  assert.deepEqual(await rows(resultSql(rowKey)),await rows(resultSql(`('${cursor.created_at}'::timestamptz is null or ${rowKey})`)));
+  t.diagnostic('Chronological batch '+JSON.stringify(results));
+  await exec('deallocate feed_time_old;deallocate feed_time_seek;');
+ }finally{await exec('rollback;');await authenticate();}
 });

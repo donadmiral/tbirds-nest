@@ -73,6 +73,7 @@ import { normalizePostPlayback } from '../../../shared/postVoiceEffects';
 import { postLookRecipe } from '../../../shared/postMediaEditing';
 import { Image as ExpoImage } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
+import { uploadNativeFile } from '../../services/uploadNativeFile';
 import { ensureUploadSafe } from '../../utils/uploadSafe';
 import * as Clipboard from 'expo-clipboard';
 import DiscoverTile from '../../components/feed/DiscoverTile';
@@ -2105,15 +2106,10 @@ export default function FeedScreen({ navigation }: any) {
           if (error) throw error;
         };
         const upload = async (uri: string, mime: string, name: string) => {
-          const token = await check();
-          const form = new FormData(); form.append('file', { uri, type: mime, name: name.split('/').pop() } as any);
-          const controller = new AbortController(), timeout = setTimeout(() => controller.abort(), 120000);
-          try {
-            const result = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/storage/v1/object/post-media/${name}`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, apikey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY as string, 'x-upsert': 'true' }, body: form, signal: controller.signal });
-            if (!result.ok) throw new Error(`Media upload failed (${result.status}). Please retry.`);
-            await check();
-            return `${process.env.EXPO_PUBLIC_SUPABASE_URL}/storage/v1/object/public/post-media/${name}`;
-          } finally { clearTimeout(timeout); }
+          await uploadNativeFile({ uri, bucket: 'post-media', path: name, mime,
+            filename: name.split('/').pop()!, upsert: true, token: check });
+          await check();
+          return `${process.env.EXPO_PUBLIC_SUPABASE_URL}/storage/v1/object/public/post-media/${name}`;
         };
         const currentLink = composerText.match(/https?:\/\/[^\s<>"]+/)?.[0] ?? null;
         const post: any = {

@@ -21,9 +21,9 @@ const installed = require('expo-video/package.json').version;
 const originalGradle = fs.readFileSync('node_modules/expo-video/android/build.gradle', 'utf8')
   .replace('def androidxMedia3Version = "1.11.1"', 'def androidxMedia3Version = "1.8.0"');
 
-test('the real Expo options loader selects only Android video source and retains the Apple options', async () => {
+test('the real Expo options loader selects the adapted Android module sources and retains the Apple options', async () => {
   const loader = createAutolinkingOptionsLoader({ projectRoot: process.cwd() });
-  assert.deepEqual((await loader.getPlatformOptions('android')).buildFromSource, ['expo-video']);
+  assert.deepEqual((await loader.getPlatformOptions('android')).buildFromSource, ['expo-video', 'expo-file-system']);
   assert.equal((await loader.getPlatformOptions('apple')).buildFromSource, undefined);
 });
 
