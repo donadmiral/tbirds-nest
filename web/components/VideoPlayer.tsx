@@ -8,6 +8,7 @@ import { PLAYBACK_SPEEDS, playbackWindow, clampVideoTime, formatVideoTime } from
 import { videoPreloads } from '@/lib/videoReadiness';
 import { getNavigationStore } from '@/lib/navigationCache';
 import { attachAdaptiveVideo, clearAdaptiveVideo, prefetchAdaptiveVideo } from '@/lib/adaptiveVideo';
+import { useVideoFrame } from '@/lib/videoFrames';
 
 import {PostSoundtrack} from './PostSoundtrack';
 import type {SoundtrackSelection} from '../../shared/soundtrack';
@@ -37,7 +38,7 @@ function remember(src: string, time: number) {
 const viewSession = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : String(Date.now());
 
 type WebVideo = HTMLVideoElement & { webkitEnterFullscreen?: () => void };
-export type PostMediaEditRecipe = PostFrameRecipe & { rotation?: number; flipX?: boolean; speed?:number|null; coverAt?:number|null; coverUrl?:string|null; soundtrack?:SoundtrackSelection|null; scale?: number; translateNX?: number; translateNY?: number; fit?: "cover" | "contain"; filterId?: string | null; filterAmt?: number; adjust?: { con?: number; hi?: number; sh?: number; grain?: number; bri?: number; warm?: number; tint?: number; sat?: number; fade?: number; vig?: number } | null; trimStart?: number | null; trimEnd?: number | null; muted?: boolean };
+export type PostMediaEditRecipe = PostFrameRecipe & { rotation?: number; flipX?: boolean; speed?:number|null; coverAt?:number|null; coverUrl?:string|null; thumbnail?:string|null; soundtrack?:SoundtrackSelection|null; scale?: number; translateNX?: number; translateNY?: number; fit?: "cover" | "contain"; filterId?: string | null; filterAmt?: number; adjust?: { con?: number; hi?: number; sh?: number; grain?: number; bri?: number; warm?: number; tint?: number; sat?: number; fade?: number; vig?: number } | null; trimStart?: number | null; trimEnd?: number | null; muted?: boolean };
 type Props = {
   src: string; postId: string; viewsCount?: number | null;
   width?: number; height?: number; onDims?: (w: number, h: number) => void;
@@ -64,6 +65,11 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
   const [requested, setRequested] = useState(false);
   const [frameReady, setFrameReady] = useState(false);
   const [posterFailed, setPosterFailed] = useState(false);
+  // The still shown before the first frame: the stored cover, a live clip's poster, or, when the post has neither or
+  // the cover no longer loads, a frame the browser decodes from the video itself; never while the player is already
+  // fetching the same video for playback, and never under data saver.
+  const still = poster || edit?.coverUrl || edit?.thumbnail || null;
+  const decodedStill = useVideoFrame(!frameReady && !requested && (!still || posterFailed) ? src : null, edit?.coverAt ?? edit?.trimStart ?? undefined);
   const frameReadyRef = useRef(false);
   const frameRequest = useRef<number | null>(null);
   const frameGeneration = useRef(0);
@@ -397,7 +403,9 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
         className="block h-full w-full"
       />
       {!frameReady ? <div data-video-poster={src} aria-hidden="true" className="pointer-events-none absolute inset-0 flex items-center justify-center bg-[#0B1E3D]">
-        {!posterFailed && (poster || edit?.coverUrl) ? <img key={poster || edit?.coverUrl} src={poster || edit?.coverUrl || undefined} alt="" loading="lazy" decoding="async" onError={() => setPosterFailed(true)} style={{ objectFit: showFullFrame ? 'contain' : expanded ? 'cover' : edit?.fit || 'cover' }} className="h-full w-full" /> : <span className="text-sm text-white/80">Video</span>}
+        {!posterFailed && still ? <img key={still} src={still} alt="" loading="lazy" decoding="async" onError={() => setPosterFailed(true)} style={{ objectFit: showFullFrame ? 'contain' : expanded ? 'cover' : edit?.fit || 'cover' }} className="h-full w-full" />
+          : decodedStill.src ? <img key="decoded-still" src={decodedStill.src} alt="" decoding="async" data-video-frame="ready" style={{ objectFit: showFullFrame ? 'contain' : expanded ? 'cover' : edit?.fit || 'cover' }} className="h-full w-full" />
+          : <span className="text-sm text-white/80">Video</span>}
       </div> : null}
       {frameReady ? <>{mediaOverlay}<PostCaption captions={edit?.captions} time={time} /></> : null}
       </div>

@@ -50,6 +50,7 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
     if (name === 'react') return new Proxy({}, { get: (_, key) => (...args) => currentHooks[key](...args) });
     if (name === 'react/jsx-runtime') return runtime;
     if (name === 'next/image') return {__esModule:true,default:'img'};
+    if (name === '@/lib/videoFrames') return { useVideoFrame: () => ({ state: 'idle', src: null }) };
     if (name === '@/lib/videoPlayback') return helper;
     if (name === '@/lib/videoReadiness') return preloadModule;
     if (name === '@/lib/adaptiveVideo') return moduleFor(compile('lib/adaptiveVideo.ts'));

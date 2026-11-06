@@ -19,8 +19,32 @@ const consumers = new Map<string, number>();
 const ownedFiles = new Set<string>();
 let generation = 0;
 let decoding = 0;
+// Two native decoders run at once. Everything else waits its turn; a visible
+// grid of videos is many tiles, and a tile that waits is still a tile that
+// will show a frame, so the line is long and only a scroll-away leaves it.
+const DECODERS = 2;
+const QUEUE_LIMIT = 60;
+// Measured from the moment a decoder takes the job, not from mount: a tile
+// at the back of the line has not failed, it is waiting.
+const DECODE_DEADLINE_MS = 12000;
 const queue: Array<{ key: string; run: () => void; reject: (error: Error) => void }> = [];
+const started = new Set<string>();
+const starters = new Map<string, Set<() => void>>();
 const stale = () => new Error('The video preview is no longer needed');
+function notifyStart(key: string) {
+  started.add(key);
+  const fns = starters.get(key);
+  starters.delete(key);
+  fns?.forEach(fn => fn());
+}
+/** Calls fn when the decode for key begins (at once if it already has). */
+function onDecodeStart(key: string, fn: () => void) {
+  if (started.has(key)) { fn(); return () => {}; }
+  let set = starters.get(key);
+  if (!set) { set = new Set(); starters.set(key, set); }
+  set.add(fn);
+  return () => { const current = starters.get(key); if (!current) return; current.delete(fn); if (!current.size) starters.delete(key); };
+}
 function deleteOwnedFile(uri: string) {
   if (!ownedFiles.delete(uri)) return;
   void FileSystem.deleteAsync(uri, { idempotent: true }).catch(() => {});
@@ -39,7 +63,7 @@ function trimCache() {
 subscribeNavigationScope(() => {
   generation++;
   for (const key of cache.keys()) evict(key);
-  consumers.clear(); pending.clear();
+  consumers.clear(); pending.clear(); starters.clear();
   for (const job of queue.splice(0)) job.reject(stale());
   // Native getThumbnailAsync has no cancellation method. Keep its real slots
   // occupied until completion, then discard its output using the generation.
@@ -49,6 +73,7 @@ function decode(uri: string, key: string, version: number): Promise<string> {
     const run = () => {
       if (version !== generation || !consumers.get(key)) { reject(stale()); queue.shift()?.run(); return; }
       decoding++;
+      notifyStart(key);
       Promise.resolve().then(() => VideoThumbnails.getThumbnailAsync(uri, { time: 0, quality: 0.5 }))
         .then(result => {
           if (!result.uri?.startsWith('file://')) { reject(new Error('No preview frame')); return; }
@@ -56,10 +81,10 @@ function decode(uri: string, key: string, version: number): Promise<string> {
           if (version !== generation || !consumers.get(key)) { deleteOwnedFile(result.uri); reject(stale()); return; }
           resolve(result.uri);
         }, reject)
-        .finally(() => { decoding--; queue.shift()?.run(); });
+        .finally(() => { decoding--; started.delete(key); queue.shift()?.run(); });
     };
-    if (decoding < 2) run();
-    else if (queue.length < 10) queue.push({ key, run, reject });
+    if (decoding < DECODERS) run();
+    else if (queue.length < QUEUE_LIMIT) queue.push({ key, run, reject });
     else reject(new Error('Preview queue is busy'));
   });
 }
@@ -102,17 +127,21 @@ export default function VideoThumb({ uri, posterUri, fallbackPosterUri, size = 6
     let ok = true;
     let deadline: ReturnType<typeof setTimeout> | undefined;
     let release: (() => void) | undefined;
+    let unwatch: (() => void) | undefined;
     setPreview({ source: key, thumb: cache.get(key) ?? null, failed: !uri });
     // A selected cover is an authorized image and avoids decoding video bytes
     // just to render the profile. If it fails, fall back to a real video frame.
     if (!usePoster && uri && allowDecode) {
       release = retainFrame(key, uri);
-      deadline = setTimeout(() => { if (ok) setPreview({ source: key, thumb: null, failed: true }); }, 8000);
+      if (!cache.get(key)) unwatch = onDecodeStart(key, () => {
+        if (!ok || deadline) return;
+        deadline = setTimeout(() => { if (ok) setPreview({ source: key, thumb: null, failed: true }); }, DECODE_DEADLINE_MS);
+      });
       frame(uri, key)
         .then(thumb => { if (deadline) clearTimeout(deadline); if (ok) setPreview({ source: key, thumb, failed: false }); })
         .catch(() => { if (deadline) clearTimeout(deadline); if (ok) setPreview({ source: key, thumb: null, failed: true }); });
     }
-    return () => { ok = false; if (deadline) clearTimeout(deadline); release?.(); };
+    return () => { ok = false; if (deadline) clearTimeout(deadline); unwatch?.(); release?.(); };
   }, [uri, usePoster, key, allowDecode]);
   // A reused list tile must never show the preceding video's frame, even for
   // the render before the effect has reset its state.

@@ -15,6 +15,7 @@ import { RichText } from "@/components/RichText";
 import { RelativeTime } from "@/components/RelativeTime";
 import { displayImageUrl } from "@/lib/media";
 import { hydratePostMedia } from "@/lib/contentMedia";
+import { VideoFrame } from "@/components/VideoFrame";
 import { withTimeout } from "@/lib/withTimeout";
 import { ErrorState } from "@/components/ErrorState";
 
@@ -328,7 +329,7 @@ function SearchResults({ initialQuery }: { initialQuery: string }) {
                 {media.map((m) => (
                   <Link key={m.post_id + m.url} href={"/post/" + m.post_id} onClick={() => saveRecent(q)} className="relative block aspect-square overflow-hidden rounded-md bg-surface">
                     {m.media_type === "video" ? (
-                      <span className="relative block h-full w-full"><video src={m.url} preload="metadata" muted playsInline className="h-full w-full object-cover" /><span className="absolute inset-0 flex items-center justify-center bg-black/25 text-white"><Play size={20} /></span></span>
+                      <span className="relative block h-full w-full"><VideoFrame url={m.url} className="h-full w-full object-cover" fallback={<video src={m.url} preload="metadata" muted playsInline className="h-full w-full object-cover" />} /><span className="absolute inset-0 flex items-center justify-center bg-black/25 text-white"><Play size={20} /></span></span>
                     ) : (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={displayImageUrl(m.url, 400)!} onError={(e) => { if (e.currentTarget.src !== m.url) e.currentTarget.src = m.url; }} alt="" loading="lazy" className="h-full w-full object-cover" />

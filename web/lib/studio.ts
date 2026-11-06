@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { checkUploadableBytes } from "@/lib/media";
 import { saveStudioDraft } from "../../shared/studioDraftRetry";
+import { capturePostCover } from "@/lib/videoCover";
 
 export type StudioRole = "owner" | "admin" | "editor" | "recruiter" | "support";
 export type StudioMe = {
@@ -19,7 +20,7 @@ export type Metrics = { posts: number; likes: number; comments: number; reposts:
 export type ScheduledPost = {
   id: string; status: "draft" | "scheduled" | "publishing" | "published" | "failed" | "cancelled";
   publish_at: string | null; content: string | null; body: string | null; category: string | null; community_id: string | null;
-  media: { url: string; media_type: string; width?: number; height?: number }[];
+  media: { url: string; media_type: string; width?: number; height?: number; edit?: { coverUrl?: string | null; coverAt?: number | null } | null }[];
   products: { title: string; subtitle?: string | null; price?: number | null; currency?: string; image_url?: string | null; listing_id?: string | null; link_url?: string | null; cta_label?: string }[];
   published_post_id: string | null; error: string | null; created_at: string; updated_at: string;
 };
@@ -112,18 +113,40 @@ export async function deleteScheduled(id: string) {
   const { error } = await sb().rpc("studio_delete_post", { p_id: id });
   if (error) throw error;
 }
-export async function uploadStudioMedia(file: File): Promise<{ url: string; media_type: string }> {
+export async function uploadStudioMedia(file: File): Promise<ScheduledPost["media"][number]> {
   const s = sb();
   const { data } = await s.auth.getSession();
   const uid = data.session?.user.id;
   if (!uid) throw new Error("Not signed in");
   const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace("jpeg", "jpg");
-  const path = uid + "/studio_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8) + "." + ext;
+  const base = uid + "/studio_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8);
+  const path = base + "." + ext;
   const bad = await checkUploadableBytes(file);
   if (bad) throw new Error(bad);
   const up = await s.storage.from("post-media").upload(path, file, { contentType: file.type || "application/octet-stream" });
   if (up.error) throw up.error;
-  return { url: s.storage.from("post-media").getPublicUrl(path).data.publicUrl, media_type: file.type.startsWith("video") ? "video" : "image" };
+  const url = s.storage.from("post-media").getPublicUrl(path).data.publicUrl;
+  if (!file.type.startsWith("video")) return { url, media_type: "image" };
+  // A planned video carries a real first frame, the same way a composed post
+  // does, so Discover tiles, feed cards and the phone show a picture instead
+  // of a placeholder. A browser that cannot decode this file still schedules
+  // it; the clients then draw a frame at view time.
+  const edit = await captureStudioCover(s, file, base);
+  return edit ? { url, media_type: "video", edit } : { url, media_type: "video" };
+}
+async function captureStudioCover(s: ReturnType<typeof sb>, file: File, base: string): Promise<{ coverUrl: string; coverAt: number } | null> {
+  const preview = URL.createObjectURL(file);
+  try {
+    const cover = await capturePostCover(preview, 0);
+    const coverPath = base + "_cover.jpg";
+    const up = await s.storage.from("post-media").upload(coverPath, cover, { contentType: "image/jpeg", upsert: false });
+    if (up.error) return null;
+    return { coverUrl: s.storage.from("post-media").getPublicUrl(coverPath).data.publicUrl, coverAt: 0 };
+  } catch {
+    return null;
+  } finally {
+    URL.revokeObjectURL(preview);
+  }
 }
 export async function myListings() {
   const s = sb();

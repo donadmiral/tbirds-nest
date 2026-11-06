@@ -13,11 +13,24 @@
  * grid of them still has rhythm.
  */
 import Link from "next/link";
+import { useState } from "react";
 import { Play, FileText, Link2, EyeOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { FeedRow } from "@/lib/feed";
 import { displayImageUrl } from "@/lib/media";
 import { VerifiedBadge, getTierColor } from "@/components/VerifiedBadge";
+import { VideoFrame } from "@/components/VideoFrame";
+
+// The still for a video: its stored cover when the post has one, otherwise a frame the browser decodes from the video
+// itself, so a tile shows the video and not a label that says "Video". A cover the browser cannot load any more (an
+// expired capability, a removed file) falls back to a frame the same way. The placeholder only remains while a frame
+// is on its way or when none can be had, and it is the same placeholder as before.
+function VideoTileFrame({ media }: { media: FeedRow["media"][number] }) {
+  const cover = media.edit?.coverUrl || media.edit?.thumbnail || null; // a live clip published to the feed names its poster `thumbnail`
+  const [failedCover, setFailedCover] = useState<string | null>(null);
+  if (cover && failedCover !== cover) return <img key={cover} src={cover} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" onError={() => setFailedCover(cover)} />;
+  return <VideoFrame url={media.url} at={media.edit?.coverAt ?? media.edit?.trimStart ?? undefined} className="h-full w-full object-cover" fallback={<span className="flex h-full items-center justify-center gap-2 text-muted"><Play size={20} />Video</span>} />;
+}
 
 // Inline, because a tile that fails to clamp turns the grid into one column of
 // full articles, which is exactly what happened.
@@ -84,8 +97,7 @@ export function DiscoverTile({ post, onHide, onOpen }: { post: FeedRow; onHide?:
         <span className="relative block aspect-square w-full overflow-hidden bg-surface">
           {first.is_sensitive || first.edit?.sensitive ? <span className="flex h-full items-center justify-center gap-2 text-muted"><EyeOff size={20}/>Sensitive content</span> : isVideo ? (
             <>
-              {first.edit?.coverUrl ? <img key={first.edit.coverUrl} src={first.edit.coverUrl} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
-                : <span className="flex h-full items-center justify-center gap-2 text-muted"><Play size={20} />Video</span>}
+              <VideoTileFrame media={first} />
               <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white">
                 <Play size={13} fill="currentColor" />
               </span>

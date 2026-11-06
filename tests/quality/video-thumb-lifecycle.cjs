@@ -156,11 +156,39 @@ test('preview deadlines show a truthful fallback without exceeding two actual na
   const h=harness();
   for(let i=0;i<13;i++)h.render(`pending-${i}`,null,{},`tile-${i}`);
   h.flush();await tick();assert.equal(h.requests.length,2);h.deadlines();
-  for(let i=0;i<13;i++)assert.match(h.render(`pending-${i}`,null,{},`tile-${i}`).props.accessibilityLabel,/unavailable/);
+  // Only the two tiles a decoder actually took time out; the tiles still in line keep waiting.
+  for(let i=0;i<2;i++)assert.match(h.render(`pending-${i}`,null,{},`tile-${i}`).props.accessibilityLabel,/unavailable/);
+  for(let i=2;i<13;i++){const tree=h.render(`pending-${i}`,null,{},`tile-${i}`);assert.match(tree.props.accessibilityLabel,/Loading/);assert.ok(walk(tree).some(n=>n.type==='Spinner'));}
   assert.equal(h.requests.length,2);
   h.changeScope('account-b:2');await tick();
   h.requests[0].resolve({uri:'file:///cache/abandoned-0.jpg'});h.requests[1].resolve({uri:'file:///cache/abandoned-1.jpg'});await tick();
   assert.equal(h.requests.length,2,'Old queued work never starts after account invalidation');
   assert.deepEqual(h.removed.sort(),['file:///cache/abandoned-0.jpg','file:///cache/abandoned-1.jpg']);
   for(let i=0;i<13;i++)h.dispose(`tile-${i}`);
+});
+
+test('a freed decoder starts the next waiting tile and its deadline begins only then',async()=>{
+  const h=harness();
+  for(let i=0;i<3;i++)h.render(`line-${i}`,null,{},`tile-${i}`);
+  h.flush();await tick();assert.equal(h.requests.length,2);
+  h.requests[0].resolve({uri:'file:///cache/line-0.jpg'});await tick();
+  assert.equal(h.requests.length,3,'the third tile starts as soon as a decoder is free');
+  assert.equal(h.requests[2].uri,'line-2');
+  assert.equal(walk(h.render('line-0',null,{},'tile-0')).find(n=>n.type==='Image').props.source.uri,'file:///cache/line-0.jpg');
+  h.deadlines();
+  assert.equal(walk(h.render('line-0',null,{},'tile-0')).find(n=>n.type==='Image').props.source.uri,'file:///cache/line-0.jpg');
+  assert.match(h.render('line-1',null,{},'tile-1').props.accessibilityLabel,/unavailable/);
+  assert.match(h.render('line-2',null,{},'tile-2').props.accessibilityLabel,/unavailable/);
+  h.requests[2].resolve({uri:'file:///cache/line-2.jpg'});await tick();
+  assert.equal(walk(h.render('line-2',null,{},'tile-2')).find(n=>n.type==='Image').props.source.uri,'file:///cache/line-2.jpg','a late frame still replaces the fallback');
+  for(let i=0;i<3;i++)h.dispose(`tile-${i}`);
+});
+test('a tile that scrolls away leaves the line without taking a decoder',async()=>{
+  const h=harness();
+  for(let i=0;i<4;i++)h.render(`row-${i}`,null,{},`tile-${i}`);
+  h.flush();await tick();assert.equal(h.requests.length,2);
+  h.dispose('tile-2');
+  h.requests[1].resolve({uri:'file:///cache/row-1.jpg'});await tick();
+  assert.equal(h.requests.length,3);assert.equal(h.requests[2].uri,'row-3');
+  for(const name of ['tile-0','tile-1','tile-3'])h.dispose(name);
 });

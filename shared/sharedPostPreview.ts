@@ -54,7 +54,7 @@ export function sharedPostPreview(row: SourceRow | null | undefined): { media: S
       media: {
         url,
         media_type: sharedPostMediaKind(first.media_type, url),
-        thumbnail_url: string(edit?.coverUrl) || string(first.thumbnail_url) || null,
+        thumbnail_url: string(edit?.coverUrl) || string(edit?.thumbnail) || string(first.thumbnail_url) || null,
       },
       mediaCount: media.length,
     };

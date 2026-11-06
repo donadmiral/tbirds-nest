@@ -29,6 +29,8 @@ export default function DiscoverTile({ post, author, width, onPress }: { post: T
   const isVideo = first?.media_type === 'video';
   const text = (post.content || '').trim();
   const link = post.link;
+  // a cover the device cannot load any more (an expired capability, a removed file) gives way to a real frame of the video
+  const [failedCover, setFailedCover] = React.useState<string | null>(null);
 
   const byline = (
     <View style={s.byline}>
@@ -41,12 +43,13 @@ export default function DiscoverTile({ post, author, width, onPress }: { post: T
   );
 
   if (first) {
-    const cover = isVideo ? ((first as any)?.edit?.coverUrl || null) : first.url;
+    const stored = isVideo ? ((first as any)?.edit?.coverUrl || (first as any)?.edit?.thumbnail || null) : first.url; // a live clip published to the feed names its poster `thumbnail`
+    const cover = stored && failedCover !== stored ? stored : null;
     return (
       <TouchableOpacity style={[s.tile, { width }]} activeOpacity={0.85} onPress={onPress}>
         <View style={[s.frame, { height: width }]}>
           {first.is_sensitive || first.edit?.sensitive ? <View style={[StyleSheet.absoluteFill, s.frameEmpty]}><Feather name="eye-off" size={24} color={getTheme().ink.muted} /><Text style={{color:getTheme().ink.secondary}}>Sensitive content</Text></View> : cover
-            ? <ExpoImage source={{ uri: cover }} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy={privateImageCachePolicy(cover)} />
+            ? <ExpoImage source={{ uri: cover }} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy={privateImageCachePolicy(cover)} onError={() => setFailedCover(cover)} />
             : isVideo
               ? <VideoThumb uri={first.url} fill chip={false} />
               : <View style={[StyleSheet.absoluteFill, s.frameEmpty]}><Feather name="image" size={22} color={getTheme().ink.muted} /></View>}

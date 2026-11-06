@@ -76,7 +76,7 @@ export function saveFeedStartupPreviews(account: string, rows: any[], eligible: 
       if (!id(row?.post_id) || !eligible.has(row.post_id) || restricted(row)) continue;
       const item = Array.isArray(row.media) ? [...row.media].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))[0] : null;
       if (!id(item?.id) || restricted(item) || !['image', 'video'].includes(item?.media_type)) continue;
-      const source = item.media_type === 'video' ? item.edit?.coverUrl || item.thumbnail_url : item.url;
+      const source = item.media_type === 'video' ? item.edit?.coverUrl || item.edit?.thumbnail || item.thumbnail_url : item.url;
       if (typeof source !== 'string' || !isContentCapability(source, SUPABASE_URL)) continue;
       const object = contentObject(source, SUPABASE_URL);
       if (!object || !['post-media', 'media'].includes(object.bucket)) continue;

@@ -12,7 +12,7 @@ export type MediaPreviewEdit = PostFrameRecipe & {
   rotation?: number; flipX?: boolean; scale?: number; translateNX?: number; translateNY?: number;
   fit?: 'cover' | 'contain'; filterId?: string | null; filterAmt?: number; adjust?: StoryAdjust | null;
   trimStart?: number | null; trimEnd?: number | null; speed?: number | null; muted?: boolean;
-  coverAt?: number | null; coverUrl?: string | null;
+  coverAt?: number | null; coverUrl?: string | null; thumbnail?: string | null;
 };
 export type ReviewMedia = { url: string; video?: boolean; poster?: string | null; width?: number | null; height?: number | null; edit?: MediaPreviewEdit | null };
 
@@ -23,7 +23,7 @@ type PreviewProps = ReviewMedia & { thumbnail?: boolean; expanded?: boolean; onE
 export default function MediaPreview(props: PreviewProps) {
   // Renewed capabilities and a different attachment must get a fresh media
   // lifecycle, including failure, duration and playback state.
-  return <MediaPreviewSource key={JSON.stringify([props.url, !!props.video, props.poster, props.edit?.coverUrl])} {...props} />;
+  return <MediaPreviewSource key={JSON.stringify([props.url, !!props.video, props.poster, props.edit?.coverUrl, props.edit?.thumbnail])} {...props} />;
 }
 
 function MediaPreviewSource({ url, video = false, poster: fallbackPoster, thumbnail = false, expanded = false, onExpand, edit, width, height }: PreviewProps) {
@@ -41,7 +41,7 @@ function MediaPreviewSource({ url, video = false, poster: fallbackPoster, thumbn
   const [ready, setReady] = useState(false);
   const [coverFailed, setCoverFailed] = useState(false);
   const [muted, setMuted] = useState(!!edit?.muted);
-  const poster = edit?.coverUrl || fallbackPoster;
+  const poster = edit?.coverUrl || edit?.thumbnail || fallbackPoster; // a live clip published to the feed names its poster `thumbnail`
   const readyFrame = (element: HTMLVideoElement) => {
     const window = postTrimWindow(element.duration, edit?.trimStart, edit?.trimEnd);
     const withinTrim = (position: number) => window.duration > 0 && Number.isFinite(position) && position >= window.start - .05 && position <= window.end + .05;
