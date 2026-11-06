@@ -10,6 +10,7 @@ import { loadConversations, loadConversationWindow, loadMoreConversations, looku
   webInboxOptions, matchesWebInbox, compareWebInbox, type Conv, type Msg } from "@/lib/messages";
 import { createInboxMergeGuard, inboxQueryKey, type InboxPaging } from '../../shared/inboxWindow';
 import { createInboxRefreshQueue } from '../../shared/inboxRefreshQueue';
+import { ATTACHMENT_CHUNK_BYTES, memberAttachmentUpload } from "@/lib/resumableAttachment";
 import { signChatMedia, isChatMediaUrl, withoutChatMedia } from "@/lib/chatMedia";
 import { createOutboxReplay, enqueueMessage, readOutbox, sendOutboxMessage, clearOutbox, forgetOutboxMessage, type OutboxMessage } from "@/lib/messageOutbox";
 import { StoryAvatar } from "@/components/StoryAvatar";
@@ -143,6 +144,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const messageActionPending = useRef(false);
   const sendPending = useRef(false);
   const uploadPending = useRef(false);
+  const largeAttachment = useRef<{ owner: string; conversation: string; file: File; path: string; reply: string | null; upload: () => Promise<void> } | null>(null);
   const uploadGeneration = useRef(0);
   const accountGeneration = useRef(0);
   const [accountVersion, setAccountVersion] = useState(0);
@@ -332,7 +334,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     setQuery(memory?.query ?? ''); setTab(memory?.tab ?? 'chats'); setDetailsOpen(memory?.detailsOpen ?? true);
     setHasOlder(memory?.hasOlder ?? false); setLoadingMsgs(false); setLoadingOlder(false);
     setPrivateMedia(null); setViewedPrivateIds(new Set()); setShareDetails(null); setNewMessageOpen(false);
-    setAttachmentDraft(null); setSendingFile(false); setReplyTo(null); setEditing(null); setForwarding(null); setPinnedMessage(null);
+    largeAttachment.current = null; setAttachmentDraft(null); setSendingFile(false); setReplyTo(null); setEditing(null); setForwarding(null); setPinnedMessage(null);
     setOffers({}); setRefListing(null); setOtherTyping(false); setGifMode(null);
     setActionError(null); setHistoryError(null); setConversationError(null); setNotice(null);
     setContentContext(context);
@@ -516,6 +518,11 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     historyAbort.current?.abort();
     const request = new AbortController(); historyAbort.current = request;
     const current = () => componentLive.current && accountGeneration.current === account && historyGeneration.current === generation && activeRef.current?.id === c.id;
+    if (largeAttachment.current && largeAttachment.current.conversation !== c.id) {
+      largeAttachment.current = null;
+      uploadGeneration.current += 1;
+      uploadPending.current = false; setSendingFile(false);
+    }
     activeRef.current = c;
     bindThreadHistory(true);
     setActive(c); setPrivateMedia(null); setShareDetails(null); setViewedPrivateIds(new Set());
@@ -526,7 +533,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       setDraft(drafts.current.get(c.id) || '');
       historyCursor.current = null; setHasOlder(false);
     }
-    setAttachmentDraft(null); setReplyTo(null); setEditing(null); setForwarding(null); setPinnedMessage(null);
+    setAttachmentDraft(largeAttachment.current?.file ?? null); setReplyTo(null); setEditing(null); setForwarding(null); setPinnedMessage(null);
     olderPending.current = false; setLoadingOlder(false);
     setRefListing(null); setOtherTyping(false);
     let contentReady = false;
@@ -749,7 +756,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
         drafts.current.clear();
         uidRef.current = nextId; setUid(nextId); activeRef.current = null; historyGeneration.current += 1;
         setActive(null); setMsgs([]); setConvs([]); setDraft(''); setGifMode(null); historyReady.current = false; lastRead.current = '';
-        setAttachmentDraft(null); setSendingFile(false); setReplyTo(null); setEditing(null); setForwarding(null); setPinnedMessage(null); setOffers({});
+        largeAttachment.current = null; setAttachmentDraft(null); setSendingFile(false); setReplyTo(null); setEditing(null); setForwarding(null); setPinnedMessage(null); setOffers({});
         setActionError(null); setNotice(null);
         inboxGeneration.current += 1;
         if (nextId) authReload = setTimeout(() => { if (componentLive.current) void loadInbox(); }, 0);
@@ -1015,13 +1022,31 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     const isVideo = f.type.startsWith("video/");
     const bucket = isImage || isVideo ? "chat-media" : "chat-files";
     const safeName = f.name.replace(/[^a-zA-Z0-9_.\-]/g, "_");
-    const path = senderId + "/" + crypto.randomUUID() + "_" + safeName;
-    const { error: upErr } = await supabase.storage.from(bucket).upload(path, f, { contentType: f.type || "application/octet-stream" });
-    if (upErr) throw new Error("Upload failed. Please try again.");
+    const current = () => componentLive.current && generation === accountGeneration.current && uidRef.current === senderId;
+    let path: string;
+    let reply = replyTo?.id ?? null;
+    if (f.size > ATTACHMENT_CHUNK_BYTES) {
+      let attempt = largeAttachment.current;
+      if (!attempt || attempt.owner !== senderId || attempt.conversation !== target.id || attempt.file !== f) {
+        path = senderId + "/" + crypto.randomUUID() + "_" + safeName;
+        const upload = memberAttachmentUpload(supabase, bucket, senderId, path, f,
+          () => current() && activeRef.current?.id === target.id && largeAttachment.current?.path === path);
+        attempt = { owner: senderId, conversation: target.id, file: f, path, reply, upload };
+        largeAttachment.current = attempt;
+      }
+      path = attempt.path; reply = attempt.reply;
+      await attempt.upload();
+      if (!current() || activeRef.current?.id !== target.id || largeAttachment.current !== attempt) return;
+    } else {
+      largeAttachment.current = null;
+      path = senderId + "/" + crypto.randomUUID() + "_" + safeName;
+      const { error } = await supabase.storage.from(bucket).upload(path, f, { contentType: f.type || "application/octet-stream" });
+      if (error) throw new Error("Upload failed. Please try again.");
+    }
     const { data: pub } = supabase.storage.from(bucket).getPublicUrl(path);
     if (!componentLive.current || generation !== accountGeneration.current || uidRef.current !== senderId) return;
-    const sent = await insertMessage(isImage || isVideo ? null : '📄 ' + f.name, pub.publicUrl, isImage ? 'image' : isVideo ? 'video' : 'document', target);
-    if (sent && activeRef.current?.id === target.id) { setAttachmentDraft(null); if (fileRef.current) fileRef.current.value = ''; if(cameraRef.current)cameraRef.current.value=''; }
+    const sent = await insertMessage(isImage || isVideo ? null : '📄 ' + f.name, pub.publicUrl, isImage ? 'image' : isVideo ? 'video' : 'document', target, reply);
+    if (sent && activeRef.current?.id === target.id) { largeAttachment.current = null; setAttachmentDraft(null); if (fileRef.current) fileRef.current.value = ''; if(cameraRef.current)cameraRef.current.value=''; }
     } catch (error) { if (componentLive.current && generation === accountGeneration.current && activeRef.current?.id === target.id) setActionError(error instanceof Error ? error.message : 'Attachment not sent. Please try again.'); }
     finally { if (uploadId === uploadGeneration.current) { uploadPending.current = false; setSendingFile(false); } }
   }
