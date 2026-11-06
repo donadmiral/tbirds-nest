@@ -18,6 +18,7 @@ const PRIVATE_HEADERS = {
   'Content-Security-Policy': "default-src 'none'; sandbox",
 };
 type BoundObject = { object_id: string; object_version: string };
+type Receipt = BoundObject & { lease?:string; bytes?:number; hash?:string; jpeg?:string; path?:string; etag?:string; version?:string };
 
 function unavailable(status: number, head: boolean): Response {
   return new Response(head ? null : JSON.stringify({ error: 'This media preview is unavailable. Refresh the review page.' }), {
@@ -139,6 +140,8 @@ export async function moderationMediaResponse(request: Request, options: Deliver
     if ((kind !== 'post' && kind !== 'story') || !UUID.test(entityId) || !BUCKETS.has(bucket) ||
         !path || path.length > 1024 || /[%\\\x00-\x1f\x7f]/.test(path) ||
         path.split('/').some(part => !part || part === '.' || part === '..')) return reject(400);
+    const representation=url.searchParams.get('representation');
+    if(representation!==null&&(url.searchParams.getAll('representation').length!==1||kind!=='post'||bucket!=='post-media'||!['poster','compatible'].includes(representation)))return reject(400);
     const range = request.headers.get('Range');
     if (range && !validMediaRange(range)) return reject(416);
 
@@ -146,23 +149,50 @@ export async function moderationMediaResponse(request: Request, options: Deliver
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
     if (configured.protocol !== 'https:' || configured.username || configured.password || !serviceKey) return reject(503);
     const svc = serviceClient();
-    const proof = async () => {
-      const { data, error } = await wait(svc.rpc('admin_bound_content_media_object', {
-        p_kind: kind, p_entity_id: entityId, p_bucket: bucket, p_path: path, p_origin: configured.origin,
-      }).abortSignal(controller.signal));
-      if (error) throw new Error('Media authorization unavailable');
-      return boundObject(data);
+    const proof = async (payload=false):Promise<Receipt|null> => {
+      const ordinary={p_kind:kind,p_entity_id:entityId,p_bucket:bucket,p_path:path,p_origin:configured.origin};
+      const {data,error}=await wait((representation
+        ?svc.rpc('admin_bound_post_representation_v1',{...ordinary,p_kind:representation,p_payload:payload})
+        :svc.rpc('admin_bound_content_media_object',ordinary)).abortSignal(controller.signal));
+      if(error)throw new Error('Media authorization unavailable');
+      const original=boundObject(data);if(!original||!representation)return original;
+      if(!data||!UUID.test(data.lease)||!Number.isSafeInteger(data.bytes)||data.bytes<1)throw Error('Invalid derived receipt');
+      if(representation==='poster'){
+        if(data.bytes>65536||typeof data.hash!=='string'||!/^[a-f0-9]{64}$/.test(data.hash)||
+          (payload&&(typeof data.jpeg!=='string'||data.jpeg.length>87384)))throw Error('Invalid image proof');
+        return {...original,lease:data.lease,bytes:data.bytes,hash:data.hash,...(payload?{jpeg:data.jpeg}:{})};
+      }
+      const parts=typeof data.path==='string'?data.path.split('/'):[];
+      if(data.bytes>33554432||parts.length!==5||parts[0]!==path.split('/')[0]||!UUID.test(parts[0])||parts[1]!=='_renditions_v2'||
+        !UUID.test(parts[2])||parts[3]!==data.lease||parts[4]!=='fallback.mp4'||typeof data.version!=='string'||
+        !/^[a-zA-Z0-9_-]{1,200}$/.test(data.version)||typeof data.etag!=='string'||!/^[\x21\x23-\x7e]{1,200}$/.test(data.etag))throw Error('Invalid video proof');
+      return {...original,lease:data.lease,bytes:data.bytes,path:data.path,etag:data.etag,version:data.version};
     };
-    const before = await proof();
-    if (!before) return reject(404);
-
-    const source = new URL(`/storage/v1/object/authenticated/${bucket}/${path.split('/').map(encodeURIComponent).join('/')}`, configured.origin);
+    const before=await proof(representation==='poster'&&!head);
+    if(!before)return reject(404);
+    const revalidate=async()=>{
+      const [after,currentAdmin]=await Promise.all([proof(),wait(getAdmin())]);
+      return !!after && after.object_id===before.object_id && after.object_version===before.object_version &&
+        after.lease===before.lease && after.bytes===before.bytes && after.hash===before.hash && after.path===before.path &&
+        after.etag===before.etag && after.version===before.version &&
+        !!currentAdmin && currentAdmin.id===admin.id && currentAdmin.sessionId===admin.sessionId && await wait(staffAllowed(currentAdmin));
+    };
+    if(representation==='poster'){
+      const jpeg=head?null:Uint8Array.from(atob(before.jpeg!),c=>c.charCodeAt(0));
+      if(jpeg&&(jpeg.length!==before.bytes||jpeg[0]!==255||jpeg[1]!==216||jpeg[2]!==255||jpeg.at(-2)!==255||jpeg.at(-1)!==217))return reject(503);
+      if(!await revalidate())return reject(403);
+      stop();return new Response(jpeg,{status:200,headers:{...PRIVATE_HEADERS,'Content-Type':'image/jpeg','Content-Disposition':'inline','Content-Length':String(before.bytes),'ETag':'"'+before.hash+'"'}});
+    }
+    const deliveredPath=before.path||path;
+    const source = new URL(`/storage/v1/object/authenticated/${representation==='compatible'?'adaptive-media':bucket}/${deliveredPath.split('/').map(encodeURIComponent).join('/')}`, configured.origin);
+    const representationTag=representation==='compatible'?'"pc-admin-'+before.lease+'-'+before.version+'"':null;
+    const forwardedRange=representationTag&&request.headers.has('If-Range')&&request.headers.get('If-Range')!==representationTag?null:range;
     // This server-only nonce prevents a stale Storage CDN response from being
     // reused after a processor replaces an object at the same path.
     source.searchParams.set('cacheNonce', before.object_version + '-' + crypto.randomUUID());
     await wait(fetch(source, {
       method: head ? 'HEAD' : 'GET', cache: 'no-store', redirect: 'error', signal: controller.signal,
-      headers: { Authorization: 'Bearer ' + serviceKey, apikey: serviceKey, 'Cache-Control': 'no-store', 'Accept-Encoding': 'identity', ...(range ? { Range: range } : {}) },
+      headers: { Authorization: 'Bearer ' + serviceKey, apikey: serviceKey, 'Cache-Control': 'no-store', 'Accept-Encoding': 'identity', ...(forwardedRange ? { Range: forwardedRange } : {}) },
     }).then(response => {
       upstream = response;
       if (controller.signal.aborted) { cancelUpstream(); throw new Error('Media preview stopped'); }
@@ -171,12 +201,11 @@ export async function moderationMediaResponse(request: Request, options: Deliver
     if (upstream.redirected || (upstream.status !== 200 && upstream.status !== 206)) {
       return reject(upstream.status === 416 ? 416 : upstream.status === 404 ? 404 : 503);
     }
-    const [after, currentAdmin] = await Promise.all([proof(), wait(getAdmin())]);
-    if (!after || after.object_id !== before.object_id || after.object_version !== before.object_version ||
-        !currentAdmin || currentAdmin.id !== admin.id || currentAdmin.sessionId !== admin.sessionId || !await wait(staffAllowed(currentAdmin))) {
-      return reject(403);
-    }
-    const mime = displayMime(upstream.headers.get('Content-Type'), path);
+    if(!await revalidate())return reject(403);
+    if(representation==='compatible'&&(upstream.headers.get('ETag')?.trim().replace(/^"|"$/g,'')!==before.etag||
+      (upstream.status===206?!upstream.headers.get('Content-Range')?.endsWith('/'+before.bytes):upstream.headers.get('Content-Length')!==String(before.bytes))))return reject(410);
+    const mime = displayMime(upstream.headers.get('Content-Type'), deliveredPath);
+    if(representation==='compatible'&&mime!=='video/mp4')return reject(415);
     if (!mime) return reject(415);
     // fetch can decode compressed bytes while retaining their original length.
     // Those headers cannot safely describe the delivered range.
@@ -184,6 +213,7 @@ export async function moderationMediaResponse(request: Request, options: Deliver
     if (encoding && encoding !== 'identity') throw new Error('Unexpected media encoding');
     const expectedBytes = responseSize(upstream);
     const headers = new Headers({ ...PRIVATE_HEADERS, 'Content-Type': mime, 'Content-Disposition': 'inline' });
+    if(representationTag)headers.set('ETag',representationTag);
     for (const name of ['Content-Length', 'Content-Range', 'Accept-Ranges']) {
       const value = upstream.headers.get(name);
       if (value) headers.set(name, value);

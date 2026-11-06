@@ -19,14 +19,15 @@ function fixture(options = {}) {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText;
   const dependencies = {
-    './adminAuth': { async getAdmin() { events.push(['auth']); authCount++; if (options.authPendingAt === authCount) return new Promise(() => {}); return options.unauthenticated || (options.revoked && authCount > 1) ? null : admin; } },
-    './adminAssurance': { async canAccessOperations() { return !options.assuranceDenied; } },
-    './permissions': { canPerform(role, permission) { assert.equal(role, 'moderator'); assert.equal(permission, 'post_moderate'); return !options.permissionDenied; } },
+    './adminAuth': { async getAdmin() { events.push(['auth']); authCount++; if (options.authPendingAt === authCount) return new Promise(() => {}); return options.unauthenticated || (options.revoked && authCount > 1) ? null : authCount>1 && options.afterAdmin ? {...admin,...options.afterAdmin}:admin; } },
+    './adminAssurance': { async canAccessOperations() { return !options.assuranceDenied && !(options.assuranceRevoked && authCount>1); } },
+    './permissions': { canPerform(role, permission) { assert.equal(permission, 'post_moderate'); return role==='moderator'&&!options.permissionDenied; } },
     './supabaseAdmin': { serviceClient() { events.push(['client']); return { rpc(name, args) {
       const pending = (async () => {
       events.push(['proof', name, { ...args }]); proofCount++;
       if (options.proofPendingAt === proofCount) return new Promise(() => {});
       if (options.proofError) return { error: { message: 'secret diagnostic' }, data: null };
+      if(options.derived)return {error:null,data:options.derived(proofCount,args)};
       if (options.unbound || (options.removed && proofCount > 1)) return { error: null, data: null };
       if (options.badProof) return { error: null, data: { object_id: 'not-an-id', object_version: true } };
       return { error: null, data: { ...object, ...(options.changed && proofCount > 1 ? { object_version: 'version-two' } : {}) } };
@@ -36,7 +37,7 @@ function fixture(options = {}) {
     } }; } },
   };
   vm.runInNewContext(code, { module, exports: module.exports, URL, URLSearchParams, Set, Map, Request, Response, Headers, AbortSignal, AbortController, ReadableStream, Uint8Array,
-    setTimeout, clearTimeout, crypto: webcrypto, process: { env: { NEXT_PUBLIC_SUPABASE_URL: base, SUPABASE_SERVICE_ROLE_KEY: 'fixture-server-key' } },
+    atob, setTimeout, clearTimeout, crypto: webcrypto, process: { env: { NEXT_PUBLIC_SUPABASE_URL: base, SUPABASE_SERVICE_ROLE_KEY: 'fixture-server-key' } },
     async fetch(url, init) {
       events.push(['fetch', String(url), init]);
       if (options.fetchError) throw new Error('upstream leaked secret');
@@ -215,4 +216,37 @@ test('compressed, redirected and inconsistent byte-range responses are rejected 
   const f = fixture({ fetch: async () => new Response('short', { headers: { ...videoHeaders, 'Content-Length': '8' } }) });
   const response = await f.moderationMediaResponse(f.request(), shortDeadlines);
   await assert.rejects(response.text(), /interrupted/);
+});
+const originalPath=id+'/video.mp4',lease='00000000-0000-4000-8000-000000000088';
+const rendition={...object,lease,bytes:20,path:id+'/_renditions_v2/'+objectId+'/'+lease+'/fallback.mp4',version:'rend-2',etag:'private-etag'};
+test('approved compatible moderation reads forward ranges only to the exact enrolled private output',async()=>{
+ const f=fixture({status:206,mime:'video/mp4',derived:()=>rendition}),r=await f.moderationMediaResponse(f.request({representation:'compatible',path:originalPath},{headers:{Range:'bytes=0-3'}}));
+ assert.equal(r.status,206);assert.equal(await r.text(),'fixt');assert.equal(r.headers.get('Location'),null);assert.match(r.headers.get('Cache-Control'),/no-store/);
+ assert.equal(f.events.filter(x=>x[0]==='auth').length,2);
+ for(const [_,rpc,args] of f.events.filter(x=>x[0]==='proof')){assert.equal(rpc,'admin_bound_post_representation_v1');assert.equal(args.p_path,originalPath);assert.equal(args.p_bucket,'post-media');}
+ const [_,href,init]=f.events.find(x=>x[0]==='fetch');assert.equal(new URL(href).pathname,'/storage/v1/object/authenticated/adaptive-media/'+rendition.path);assert.equal(init.headers.Range,'bytes=0-3');
+});
+test('poster and progressive both recheck staff identity, permission, assurance and immutable proof',async()=>{
+ const jpg=Buffer.from('ffd8ffe0'+'00'.repeat(42)+'ffd9','hex'),hash=require('node:crypto').createHash('sha256').update(jpg).digest('hex');
+ for(const rep of ['poster','compatible'])for(const fail of ['pass','permission','assurance','revoked','lost-assurance','wrong-post','changed']){
+  const f=fixture({status:206,mime:'video/mp4',permissionDenied:fail==='permission',assuranceDenied:fail==='assurance',revoked:fail==='revoked',assuranceRevoked:fail==='lost-assurance',
+   derived:(i,args)=>fail==='wrong-post'||(fail==='changed'&&i===2)?null:rep==='poster'?{...object,lease,bytes:jpg.length,hash,jpeg:args.p_payload?jpg.toString('base64'):null}:rendition});
+  const r=await f.moderationMediaResponse(f.request({representation:rep,path:originalPath},{headers:{Range:'bytes=0-3'}}));
+  if(fail==='pass'){if(rep==='poster'){assert.equal(r.status,200);assert.deepEqual(Buffer.from(await r.arrayBuffer()),jpg);assert.equal(f.events.some(x=>x[0]==='fetch'),false);}else assert.equal(r.status,206);}
+  else {assert.equal(r.status,fail==='wrong-post'?404:403);assert.equal(r.headers.get('Content-Type'),'application/json');}
+ }
+});
+test('the derived selector does not accept a new bucket, arbitrary output path, duplicate mode or unregistered source',async()=>{
+ const f=fixture({derived:()=>({...rendition,path:rendition.path.replace(id,'00000000-0000-4000-8000-000000000099')})});
+ assert.equal((await f.moderationMediaResponse(f.request({representation:'compatible',path:originalPath}))).status,503);
+ assert.equal((await f.moderationMediaResponse(f.request({representation:'poster',bucket:'adaptive-media',path:originalPath}))).status,400);
+ assert.equal((await f.moderationMediaResponse(f.request({representation:'unknown',path:originalPath}))).status,400);
+ assert.equal((await f.moderationMediaResponse(new Request(f.request({representation:'poster'}).url+'&representation=compatible'))).status,400);
+ assert.equal(f.events.some(x=>x[0]==='fetch'),false);
+});
+test('a replaced staff account or session, or lost role, stops ready adaptive bytes',async()=>{
+ for(const afterAdmin of [{id:objectId},{sessionId:id},{role:'analyst'}]){
+  const f=fixture({derived:()=>rendition,afterAdmin,status:206,mime:'video/mp4'}),r=await f.moderationMediaResponse(f.request({representation:'compatible',path:originalPath},{headers:{Range:'bytes=0-3'}}));
+  assert.equal(r.status,403);assert.doesNotMatch(await r.text(),/fixt/);assert.equal(f.upstream().bodyUsed,true);
+ }
 });

@@ -23,6 +23,10 @@ test('one operator-enrolled immutable source: lease, hash, CAS, exact ticket con
  create function media_renditions.source_matches(media_renditions.jobs) returns boolean language sql as $$select true$$;
  create function public.resolve_media_delivery(t text,b text,p text) returns jsonb language sql as $$select jsonb_build_object('bucket',bucket_id,'path',object_path,'version',object_version) from media_delivery.tickets where token_digest=extensions.digest(t,'sha256') and valid and bucket_id=b and object_path=p$$;`);
  await db.exec(await readFile(new URL('../../migrations/20261106163648_scoped_post_video_representation.sql',import.meta.url),'utf8'));
+ await db.exec(`create function public.admin_bound_content_media_object(k text,entity uuid,b text,p text,origin text) returns jsonb language sql as $$
+    select jsonb_build_object('object_id',o.id,'object_version',o.version) from public.content_media_bindings cb join storage.objects o on o.bucket_id=cb.bucket_id and o.name=cb.object_path
+    where cb.entity_kind=k and cb.entity_id=entity and cb.bucket_id=b and cb.object_path=p and origin='https://qa.invalid'$$;`);
+ await db.exec(await readFile(new URL('../../migrations/20261106165733_scoped_moderation_video_representation.sql',import.meta.url),'utf8'));
  await db.query('insert into public.posts values($1,$2)',[post,owner]);
  await db.query("insert into public.post_media(id,post_id,media_type,url,edit) values($1,$2,'video',$3,'{}')",[m,post,'https://qa.invalid/storage/v1/object/public/post-media/'+sourcePath]);
  await db.query("insert into public.content_media_bindings values('post',$1,$2,'post-media',$3)",[post,owner,sourcePath]);
@@ -42,12 +46,16 @@ test('one operator-enrolled immutable source: lease, hash, CAS, exact ticket con
  await db.query("update public.post_media set edit=jsonb_build_object('filterId','fade') where id=$1",[m]);assert.equal(await commit(),false);
  await db.query("update public.post_media set edit='{}'::jsonb where id=$1",[m]);assert.equal(await commit(),true);assert.equal(await commit(),true);
  assert.deepEqual(await value('select edit from public.post_media'),{generatedPosterV1:true});
+ const staffRead=(entity,kind,payload,origin='https://qa.invalid')=>value("select public.admin_bound_post_representation_v1($1,'post-media',$2,$3,$4,$5)",[entity,sourcePath,origin,kind,payload]);
+ assert.equal((await staffRead(post,'poster',true)).jpeg,jpeg.toString('base64'));assert.equal((await staffRead(post,'poster',false)).jpeg,null);
+ assert.equal((await staffRead(post,'compatible',false)).path,outPath);assert.equal(await staffRead(g(),'poster',true),null);assert.equal(await staffRead(post,'poster',true,'https://alien.invalid'),null);
+ for(const role of ['anon','authenticated','service_role'])assert.equal(await value("select has_function_privilege($1,'public.admin_bound_post_representation_v1(uuid,text,text,text,text,boolean)','execute')",[role]),role==='service_role');
  const read=kind=>value("select public.read_post_representation_v1($1,'post-media',$2,'original_v1',$3)",[token,sourcePath,kind]);
  assert.equal((await read('poster')).jpeg,jpeg.toString('base64'));assert.equal((await read('compatible')).path,outPath);
  await db.query("update media_delivery.tickets set source_id=$1",[g()]);assert.equal(await read('poster'),null);
  await db.query("update media_delivery.tickets set source_id=$1,valid=false",[post]);assert.equal(await read('compatible'),null);
  await db.exec("update media_delivery.tickets set valid=true;update media_renditions.settings set emergency_revoke=true");assert.equal(await read('compatible'),null);
- await db.exec("update media_renditions.settings set emergency_revoke=false;update storage.objects set version='replaced' where bucket_id='adaptive-media'");assert.equal(await read('poster'),null);
+ await db.exec("update media_renditions.settings set emergency_revoke=false;update storage.objects set version='replaced' where bucket_id='adaptive-media'");assert.equal(await read('poster'),null);assert.equal(await staffRead(post,'compatible',false),null);
  await db.query('delete from storage.objects where id=$1',[src]);assert.equal(await value('select count(*) from media_delivery.post_poster_jobs_v1'),0);
  for(const role of ['anon','authenticated'])assert.equal(await value("select has_function_privilege($1,'public.claim_post_poster_v1()','execute')",[role]),false);
  }finally{await db.close();}

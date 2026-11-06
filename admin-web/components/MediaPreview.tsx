@@ -12,7 +12,7 @@ export type MediaPreviewEdit = PostFrameRecipe & {
   rotation?: number; flipX?: boolean; scale?: number; translateNX?: number; translateNY?: number;
   fit?: 'cover' | 'contain'; filterId?: string | null; filterAmt?: number; adjust?: StoryAdjust | null;
   trimStart?: number | null; trimEnd?: number | null; speed?: number | null; muted?: boolean;
-  coverAt?: number | null; coverUrl?: string | null; thumbnail?: string | null;
+  generatedPosterV1?: boolean; coverAt?: number | null; coverUrl?: string | null; thumbnail?: string | null;
 };
 export type ReviewMedia = { url: string; video?: boolean; poster?: string | null; width?: number | null; height?: number | null; edit?: MediaPreviewEdit | null };
 

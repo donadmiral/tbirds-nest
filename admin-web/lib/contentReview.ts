@@ -2,6 +2,7 @@ import 'server-only';
 import { requirePermission } from './adminAuth';
 import { serviceClient } from './supabaseAdmin';
 import { isVideoMedia, isVideoUrl, pickAllMedia } from './media';
+import { moderationCoverRefs, reviewMediaForPost } from './moderationRecipe';
 import { resolveModerationMedia } from './moderationMedia';
 import { completeRead } from './completeRead';
 import type { MediaPreviewEdit, ReviewMedia } from '@/components/MediaPreview';
@@ -49,16 +50,16 @@ export async function loadContentReview(id: string, commentPage = 1, reportPage 
   const attachments = (mediaResult.data || []) as MediaRow[];
   // A legacy attachment is still reviewed when post_media has no rows.
   const media = attachments.length ? attachments : pickAllMedia({ media_url: post.media_url }).map(url => ({ url, media_type: isVideoUrl(url) ? 'video' : 'image', width: null, height: null, edit: null }));
-  const sources = media.flatMap(item => [item.url, item.edit?.coverUrl]);
+  const sources = media.flatMap(item => [item.url, ...moderationCoverRefs(item.edit)]);
   const [urls, authorsResult] = await Promise.all([
     resolveModerationMedia(sources, 'post', [id]),
     svc.from('profiles').select('id,full_name,username,is_verified').in('id', [...new Set([post.user_id, ...comments.map(comment => comment.user_id)])]),
   ]);
   if (authorsResult.error) throw new Error('Author details could not be loaded. Please retry.');
   const authors = Object.fromEntries(((authorsResult.data || []) as ReviewAuthor[]).map(author => [author.id, author]));
-  const gallery: ReviewMedia[] = media.filter(item => !!urls[item.url]).map(item => ({
-    url: urls[item.url], video: isVideoMedia(item.media_type, item.url), width: item.width, height: item.height,
-    edit: item.edit ? { ...item.edit, coverUrl: item.edit.coverUrl ? urls[item.edit.coverUrl] || null : null } : null,
-  }));
+  const gallery: ReviewMedia[] = media.filter(item => !!urls[item.url]).map(item => reviewMediaForPost({
+    url: item.url, video: isVideoMedia(item.media_type, item.url), width: item.width, height: item.height,
+    edit: item.edit,
+  },urls,id)).filter(item=>!!item.url);
   return { post, authors, gallery, unavailableAttachments: media.length - gallery.length, comments, reports, commentCount: commentResult.count, reportCount: reportResult.count };
 }

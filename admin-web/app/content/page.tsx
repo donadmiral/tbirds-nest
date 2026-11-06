@@ -7,6 +7,7 @@ import { Desk, StatStrip, type DeskRow, type Tone } from '@/components/Desk';
 import { Donut, StackBars, Empty, type Slice } from '@/components/Viz';
 import { fmt, ago } from '@/lib/fmt';
 import { pickMedia, isVideoMedia, isVideoUrl } from '@/lib/media';
+import { moderationCoverRefs, reviewMediaForPost } from '@/lib/moderationRecipe';
 import { resolveModerationMedia } from '@/lib/moderationMedia';
 import type { MediaPreviewEdit, ReviewMedia } from '@/components/MediaPreview';
 import RecordPages from '@/components/RecordPages';
@@ -86,8 +87,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
   // The resolver validates their location and current content binding.
   const previewSources = Object.values(mediaByPost).flat();
   const coverSources = posts.flatMap(post => (mediaByPost[post.id] || []).flatMap(url => {
-    const cover = mediaDetails[post.id + ':' + url]?.edit?.coverUrl;
-    return typeof cover === 'string' ? [cover] : [];
+    return moderationCoverRefs(mediaDetails[post.id + ':' + url]?.edit);
   }));
   const urlMap = await resolveModerationMedia([...previewSources, ...coverSources], 'post', posts.map(p => p.id));
 
@@ -142,14 +142,12 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
   const rows: DeskRow[] = posts.map(p => {
     const a = people[p.user_id] || { full_name: null, username: null, avatar_url: null, is_verified: false };
     const resolvedRaw = (mediaByPost[p.id] || []).filter(u => !!urlMap[u]);
-    const urls = resolvedRaw.map(u => urlMap[u]);
     const gallery: ReviewMedia[] = resolvedRaw.map(source => {
       const item = mediaDetails[p.id + ':' + source];
       const recipe = item?.edit && typeof item.edit === 'object' ? item.edit : null;
-      return { url: urlMap[source], video: isVideoMedia(item?.media_type, source), width: item?.width, height: item?.height,
-        edit: recipe ? { ...recipe, coverUrl: recipe.coverUrl ? urlMap[recipe.coverUrl] || null : null } : null };
-    });
-    const first = urls[0] || null;
+      return reviewMediaForPost({url:source,video:isVideoMedia(item?.media_type,source),width:item?.width,height:item?.height,edit:recipe},urlMap,p.id);
+    }).filter(item=>!!item.url);
+    const first = gallery[0]?.url || null;
     const video = gallery[0]?.video || isVideo(resolvedRaw[0] || (mediaByPost[p.id] || [])[0]);
     const rep = reportsByPost[p.id];
     const trend = trendRank[p.id];
@@ -171,7 +169,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
       search: [text, a.full_name, a.username, kind].map(x => String(x || '').toLowerCase()).join(' '),
       facets: { type: kind, status: status.v },
       cells: [
-        { t: 'media', v: text || (mediaCount ? kind + ' post' : 'Empty post'), sub: '@' + (a.username || 'member'), thumb: first, video, poster: gallery[0]?.edit?.coverUrl },
+        { t: 'media', v: text || (mediaCount ? kind + ' post' : 'Empty post'), sub: '@' + (a.username || 'member'), thumb: first, video, poster: gallery[0]?.edit?.coverUrl || gallery[0]?.edit?.thumbnail || gallery[0]?.poster },
         { t: 'user', v: a.full_name || 'Unnamed', sub: '@' + (a.username || 'member'), img: a.avatar_url },
         { t: 'pill', v: kind, tone: kind === 'Video' ? 'info' : kind === 'Text' ? 'neutral' : 'accent' },
         { t: 'pill', v: status.v, tone: status.tone },

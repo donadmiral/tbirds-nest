@@ -33,7 +33,7 @@ function harness({ deny = false, missing = false, failTable, count = 41, unbound
     if (table === 'posts') data = missing ? null : post;
     else if (table === 'post_media') data = legacy ? [] : [
       { url: raw, media_type: 'image', width: 900, height: 1200, edit: { fit: 'contain' } },
-      { url: raw.replace('photo.jpg', 'clip.mp4'), media_type: 'video', width: 1920, height: 1080, edit: { trimStart: 2, trimEnd: 7, coverUrl: raw.replace('photo.jpg', 'cover.jpg') } },
+      { url: raw.replace('photo.jpg', 'clip.mp4'), media_type: 'video', width: 1920, height: 1080, edit: { trimStart: 2, trimEnd: 7, coverUrl: raw.replace('photo.jpg', 'cover.jpg'), thumbnail: raw.replace('photo.jpg', 'thumb.jpg') } },
     ];
     else if (table === 'post_comments') data = [{ id: postId, user_id: ownerId, body: 'Review comment', content: null, created_at: post.created_at, media_url: null }];
     else if (table === 'post_reports') data = [{ id: postId, reason: 'Spam', status: 'open', created_at: post.created_at }];
@@ -45,11 +45,12 @@ function harness({ deny = false, missing = false, failTable, count = 41, unbound
   const media = load('lib/media.ts', { 'server-only': {}, './supabaseAdmin': api, './publicMedia': {} });
   const contract = load('lib/contentReview.ts', {
     'server-only': {}, './supabaseAdmin': api, './media': media,
+    './moderationRecipe': load('lib/moderationRecipe.ts'),
     './completeRead': load('lib/completeRead.ts', { 'server-only': {} }),
     './adminAuth': { requirePermission: async permission => { assert.equal(permission, 'post_moderate'); if (deny) throw new Error('denied'); authorized = true; events.push({ permission }); } },
     './moderationMedia': { resolveModerationMedia: async (values, kind, ids) => {
       assert.equal(authorized, true); assert.equal(kind, 'post'); assert.deepEqual(Array.from(ids), [postId]);
-      return Object.fromEntries(values.filter(Boolean).filter(value => !unbound || !value.endsWith('photo.jpg')).map(value => [value, `/api/moderation-media?bound=${encodeURIComponent(value)}`]));
+      return Object.fromEntries(values.filter(Boolean).filter(value => !unbound || (!value.endsWith('photo.jpg') && !value.endsWith('thumb.jpg'))).map(value => [value, `/api/moderation-media?kind=post&id=${postId}&bound=${encodeURIComponent(value)}`]));
     } },
   });
   return { ...contract, events, post };
@@ -75,11 +76,12 @@ test('ordered gallery and video recipe use authenticated proxy URLs including th
   assert.equal(review.gallery.length, 2); assert.equal(review.gallery[0].width, 900); assert.equal(review.gallery[1].video, true);
   assert.equal(review.gallery[1].edit.trimStart, 2); assert.equal(review.gallery[1].edit.trimEnd, 7);
   assert.match(review.gallery[1].edit.coverUrl, /^\/api\/moderation-media\?/);
+  assert.match(review.gallery[1].edit.thumbnail, /^\/api\/moderation-media\?/);
   assert.equal(h.events.find(event => event.table === 'post_media').query.get('order'), 'sort_order.asc');
 });
 test('legacy media is preserved while unbound attachments remain explicitly unavailable', async () => {
   const legacy = await harness({ legacy: true }).loadContentReview(postId); assert.equal(legacy.gallery.length, 1);
-  const denied = await harness({ unbound: true }).loadContentReview(postId); assert.equal(denied.gallery.length, 1); assert.equal(denied.unavailableAttachments, 1);
+  const denied = await harness({ unbound: true }).loadContentReview(postId); assert.equal(denied.gallery.length, 1); assert.equal(denied.unavailableAttachments, 1);assert.equal(denied.gallery[0].edit.thumbnail,null);
 });
 test('conversation and reports use independent stable pages and exact counts', async () => {
   const h = harness(); const review = await h.loadContentReview(postId, 2, 3);
