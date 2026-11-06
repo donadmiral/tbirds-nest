@@ -26,6 +26,7 @@ function harness({ deferCommands = false, overlay = false, compact = false, coll
   };
   const rn = new Proxy({ StyleSheet: { create: x => x }, Alert: {alert:(...args)=>alerts.push(args)}, AppState: { currentState: 'active', addEventListener: (_event, callback) => { appStateListener = callback; return { remove() {} }; } } }, { get: (target, key) => key in target ? target[key] : key });
   const imports = {
+    '../../shared/liveReactionSummary': require('../shared/liveReactionSummary.ts'),
     react, 'react-native': rn, '@react-navigation/native': { useIsFocused: () => focused },
     '../theme/useTheme': { useTheme: () => ({ t: { ink: { primary: '#111', secondary: '#666', muted: '#888' }, surface: { sunken: '#eee' } } }) },
     '../stores/authStore': { useAuthStore: read => read({ profile: { id: uid } }) },
@@ -350,4 +351,10 @@ test('an unresolved outage read gets no overlapping poll and cannot rearm after 
  ch.status('TIMED_OUT');app.fire();assert.equal(app.pages.length,2);
  ch.status('SUBSCRIBED');assert.equal(app.pages.length,3);
  app.pages[1].resolve({items:[],next_cursor:null});await app.settle();app.fire();assert.equal(app.pages.length,3);
+});
+
+test('summarizes a batched room reaction without multiplying the UI event', async () => {
+  const room = harness(); await room.start();
+  room.emit('reaction', { id: id(6), reaction: 'heart', counts: { heart: 15, fire: 7, applause: 3 } });
+  assert.match(words(room.render()), /♥ 15  👏 3  🔥 7/);
 });

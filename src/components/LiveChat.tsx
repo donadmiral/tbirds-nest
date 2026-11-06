@@ -1,3 +1,4 @@
+import { liveReactionSummary } from '../../shared/liveReactionSummary';
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, AppState, StyleSheet, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
@@ -104,7 +105,7 @@ export function LiveChat({ id, topic, enabled, canModerate, pinned, onChanged, o
       currentPin.current = nextPin; update.current({ pinned_message: nextPin });
     })
       .on('broadcast', { event: 'session' }, event => { if (version === generation.current&&liveObject(event.payload)) update.current(event.payload); })
-      .on('broadcast', { event: 'reaction' }, event => { if (version !== generation.current || !liveObject(event.payload) || !['heart','applause','fire'].includes(String(event.payload.reaction))) return; setReaction(String(event.payload.reaction)); clearTimeout(reactionTimer.current); reactionTimer.current = setTimeout(() => setReaction(''), 1600); })
+      .on('broadcast', { event: 'reaction' }, event => { if (version !== generation.current || !liveObject(event.payload) || !['heart','applause','fire'].includes(String(event.payload.reaction))) return; setReaction(liveReactionSummary(event.payload)); clearTimeout(reactionTimer.current); reactionTimer.current = setTimeout(() => setReaction(''), 1600); })
       .on('broadcast', { event: 'warning' }, event => { if (version === generation.current && liveObject(event.payload)) setError(liveText(event.payload.reason, 500) || 'This stream is under review.'); });
     let poll: ReturnType<typeof setTimeout> | undefined;
     let polling = false, pollEpoch = 0;
@@ -177,7 +178,7 @@ export function LiveChat({ id, topic, enabled, canModerate, pinned, onChanged, o
       <TextInput ref={input} value={body} onChangeText={setBody} maxLength={500} editable={enabled} placeholder={enabled?'Add a comment…':'Comments are closed'} placeholderTextColor="rgba(255,255,255,0.8)" accessibilityLabel="Live chat message" style={s.overlayInput} multiline/>
       <TouchableOpacity accessibilityRole="button" accessibilityLabel="Send comment" disabled={!enabled||busy||!body.trim()} onPress={()=>void send('chat',{body:body.trim()})} style={[s.overlayAction,{opacity:!enabled||busy||!body.trim()?.4:1}]}><Text style={{color:'#fff',fontWeight:'800'}}>Send</Text></TouchableOpacity>
       {([['heart','Heart','♡'],['applause','Applause','👏'],['fire','Fire','🔥']] as const).map(([kind,label,glyph])=><TouchableOpacity key={kind} accessibilityRole="button" accessibilityLabel={label} disabled={!reactionsOn||busy} onPress={()=>void send('reaction',{reaction:kind})} style={{minWidth:40,minHeight:44,alignItems:'center',justifyContent:'center',opacity:!reactionsOn||busy?.4:1}}><Text style={{color:'#fff',fontSize:22}}>{glyph}</Text></TouchableOpacity>)}
-      {reaction?<Text testID="live-received-reaction" accessibilityLiveRegion="polite" style={{color:'#fff',fontSize:18}}>{reaction==='heart'?'♥':reaction==='fire'?'🔥':'👏'}</Text>:null}
+      {reaction?<Text testID="live-received-reaction" accessibilityLiveRegion="polite" style={{color:'#fff',fontSize:18}}>{reaction}</Text>:null}
     </View>
     {actionSheet}
     {reportSent?<Text accessibilityLiveRegion="polite" style={s.overlayText}>Report sent.</Text>:null}
@@ -197,7 +198,7 @@ export function LiveChat({ id, topic, enabled, canModerate, pinned, onChanged, o
       renderItem={({item})=><View style={{paddingVertical:3}}><TouchableOpacity onPress={()=>messageActions(item)} accessibilityRole="button"><Text accessibilityLabel={`${liveObject(item.author)?liveText(item.author.full_name||item.author.username,100):'Member'}: ${item.removed===true?'Message removed':liveText(item.body,500)}`} style={{color:t.ink.primary,lineHeight:20}}><Text style={{fontWeight:'700'}}>{liveObject(item.author)?liveText(item.author.full_name||item.author.username,100):'Member'} </Text>{item.removed===true?'Message removed':liveText(item.body,500)}</Text></TouchableOpacity>{canModerate && item.removed!==true?<View style={s.row}>{button('Pin',()=>void send('pin',{message_id:item.id}))}{button('Remove',()=>void send('remove_message',{message_id:item.id}))}</View>:null}</View>} ListEmptyComponent={<Text style={{color:t.ink.secondary,textAlign:'center',padding:24}}>Messages will appear here.</Text>}/>
     {showLatest ? button('Latest messages', () => { followLatest.current = true; setShowLatest(false); list.current?.scrollToEnd({ animated: false }); }, false) : null}
     <View style={s.row}><TextInput value={body} onChangeText={setBody} maxLength={500} editable={enabled} placeholder={enabled?'Send a message':'Chat is currently closed'} placeholderTextColor={t.ink.muted} accessibilityLabel="Live chat message" style={[s.input,{color:t.ink.primary,backgroundColor:t.surface.sunken,flex:1}]} multiline/>{button('Send',()=>void send('chat',{body:body.trim()}),!enabled||busy||!body.trim())}</View>
-    <View style={s.row}>{[['heart','Heart'],['applause','Applause'],['fire','Fire']].map(([kind,label])=><React.Fragment key={kind}>{button(label,()=>void send('reaction',{reaction:kind}),busy||!reactionsOn)}</React.Fragment>)}{reaction?<Text testID="live-received-reaction" accessibilityLiveRegion="polite" style={{color:t.ink.secondary,fontSize:16}}>{reaction==='heart'?'♥':reaction==='fire'?'🔥':'👏'}</Text>:null}</View>
+    <View style={s.row}>{[['heart','Heart'],['applause','Applause'],['fire','Fire']].map(([kind,label])=><React.Fragment key={kind}>{button(label,()=>void send('reaction',{reaction:kind}),busy||!reactionsOn)}</React.Fragment>)}{reaction?<Text testID="live-received-reaction" accessibilityLiveRegion="polite" style={{color:t.ink.secondary,fontSize:16}}>{reaction}</Text>:null}</View>
     {canModerate?<View style={s.row}>{[0,5,10,15,30].map(value=><React.Fragment key={value}>{button(value?value+' second slow mode':'Normal chat',()=>void send('chat_settings',{slow_mode_seconds:value}))}</React.Fragment>)}{button('Open chat',()=>void send('chat_settings',{chat_mode:'open'}))}{button('Followers only',()=>void send('chat_settings',{chat_mode:'followers'}))}{button('Close chat',()=>void send('chat_settings',{chat_mode:'closed'}))}</View>:null}
     {error?<Text accessibilityRole="alert" style={{color:t.ink.primary}}>{error}</Text>:null}
   </View>;
