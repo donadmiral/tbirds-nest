@@ -92,7 +92,7 @@ export function buildLiveLayout(scene: LiveScene, context: ProviderContext, pres
     selected = [host, ...allowed.filter(p => p.id !== host.id && guests.has(p.userId)).sort((a,b) => a.userId.localeCompare(b.userId))];
     // The caller cannot select a source by sending a connection ID. Build the
     // roster from current server authority, then verify the host observed it.
-    // During an overlap wait for one connection per host/guest, never broadcast both.
+    // A connection must match both the observed identity and its allowed publishing role.
     const connections = scene.connection_ids;
     if (connections) {
       const identities = scene.preset === 'host' ? [scene.participant_id] :
@@ -100,17 +100,19 @@ export function buildLiveLayout(scene: LiveScene, context: ProviderContext, pres
       if (!identities || identities.length !== connections.length || !identities.every(validUuid)) throw new Error('INVALID_SCENE');
       const matches = (person: Presence, i: number) =>
         person.id.toLowerCase() === connections[i]?.toLowerCase() && person.userId.toLowerCase() === identities[i]?.toLowerCase();
-      const hosts = allowed.filter(p => hostIdentities.has(p.userId));
-      if (hosts.length !== 1 || selected.length !== connections.length
-        || new Set(selected.map(p => p.userId)).size !== selected.length || !selected.every(matches)) {
-        if (!start) throw new Error('STAGE_CONNECTION_CHANGED');
-        // Start already owns a broadcast reservation. Start safely with the
-        // verified host and only guests whose exact connection both sides see.
-        // The caller will synchronize the full scene once the stream is live.
-        const safeHost = hosts.find(p => matches(p,0)) ?? (hosts.length === 1 ? hosts[0] : null);
+      const trustedHosts = allowed.filter(p => hostIdentities.has(p.userId));
+      const bound = identities.map((identity,i) => allowed.find(p => matches(p,i)
+        && (i === 0 ? hostIdentities.has(p.userId) : guests.has(identity!))));
+      if (bound.every((p): p is Presence => !!p)) {
+        // The old connection may linger in REST after Daily JS has observed the
+        // replacement. Select exactly one live, authorized pair per identity.
+        selected = bound;
+      } else if (start) {
+        const safeHost = bound[0] ?? (trustedHosts.length === 1 ? trustedHosts[0] : null);
         if (!safeHost) throw new Error('SOURCE_NOT_CONNECTED');
-        selected = [safeHost, ...selected.filter(p => guests.has(p.userId)
-          && matches(p,identities.indexOf(p.userId)) && selected.filter(other=>other.userId===p.userId).length===1)];
+        selected = [safeHost,...bound.slice(1).filter((p):p is Presence=>!!p)];
+      } else {
+        throw new Error('STAGE_CONNECTION_CHANGED');
       }
     }
     scene = { ...scene, preset: selected.length === 1 ? 'host' : selected.length === 2 ? 'interview' : 'grid' };

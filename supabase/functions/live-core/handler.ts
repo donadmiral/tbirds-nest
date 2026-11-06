@@ -4,7 +4,7 @@ export { dailyCommandAccepted } from '../_shared/dailyCommandAcknowledgement.ts'
 type RpcResult = { data: unknown; error: { message?: string } | null };
 type Rpc = { rpc(name: string, args?: Record<string, unknown>): PromiseLike<RpcResult> };
 type Caller = Rpc & { auth: { getUser(): PromiseLike<{ data: { user: { id: string; is_anonymous?: boolean } | null }; error: unknown }> } };
-export type LiveDependencies = { caller(request: Request): Caller; service: Rpc; config: LiveProviderConfig; fetch: typeof fetch; removeCovers?: (paths: string[]) => Promise<{ error: unknown }>; now?: () => number };
+export type LiveDependencies = { caller(request: Request): Caller; service: Rpc; config: LiveProviderConfig; fetch: typeof fetch; removeCovers?: (paths: string[]) => Promise<{ error: unknown }>; now?: () => number; wait?: (ms:number,signal:AbortSignal) => Promise<void> };
 type Mode = 'stage' | 'control' | 'playback' | 'webhook' | 'maintenance';
 const headers = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization,apikey,x-client-info,content-type',
   'Access-Control-Allow-Methods': 'POST,OPTIONS', 'Content-Type': 'application/json', 'Cache-Control': 'private, no-store, max-age=0', 'CDN-Cache-Control': 'no-store' };
@@ -40,6 +40,14 @@ async function provider(deps:LiveDependencies,path:string,init:RequestInit,signa
   const response=await deps.fetch(`https://api.daily.co/v1${path}`,{...init,headers:dailyHeaders(deps.config),signal,redirect:'error'});
   if(!response.ok)throw new Error(response.status===404?'PROVIDER_NOT_FOUND':`PROVIDER_REJECTED_${response.status}`);
   const data:unknown=JSON.parse(await boundedText(response.body,65536));if(!object(data))throw new Error('INVALID_PROVIDER_RESPONSE');return data;
+}
+function waitForPresence(ms:number,signal:AbortSignal):Promise<void>{
+ return new Promise((resolve,reject)=>{
+  if(signal.aborted){reject(new Error('STAGE_CONNECTION_CHANGED'));return;}
+  const cancel=()=>{clearTimeout(timer);reject(new Error('STAGE_CONNECTION_CHANGED'));};
+  const timer=setTimeout(()=>{signal.removeEventListener('abort',cancel);resolve();},ms);
+  signal.addEventListener('abort',cancel,{once:true});
+ });
 }
 async function ensureRoom(deps:LiveDependencies,context:ProviderContext,signal:AbortSignal,now:number){
   if(!/^pc-live-[0-9a-f]{32}$/.test(context.room_name))throw new Error('INVALID_PROVIDER_ROOM');
@@ -196,19 +204,31 @@ export function createLiveHandler(mode:Mode,deps:LiveDependencies){
     let payload:Record<string,unknown>={instanceId:context.instance_id};
     if(context.action!=='stop'){
       await ensureRoom(deps,context,signal,now);
-      const present=await provider(deps,`/rooms/${context.room_name}/presence?limit=${context.max_stage_members+1}`,{},signal);
-      if(!Array.isArray(present.data)||Number(present.total_count)>context.max_stage_members)throw new Error('STAGE_FULL');
-      // Refresh source membership after the provider presence fetch. Removed
-      // or revoked backstage sessions cannot be selected from a stale snapshot.
-      const fresh=await rpc<ProviderContext>(deps.service,'live_service_context',{p_session_id:sessionId,p_actor_id:actor.userId,p_auth_session_id:actor.sessionId,p_purpose:'control_check',p_operation_id:prepared.operation_id});
-      if(fresh.lease_id!==context.lease_id)throw new Error('CONTROL_LEASE_EXPIRED');
-      const scene=fresh.payload?.scene??{preset:'host'};
-      const composed=buildLiveLayout(scene,fresh,present.data as Presence[],context.action==='start');published=composed.published;
-      payload={...payload,layout:composed.layout,...(context.action==='start'?{endpoints:[{endpoint:liveEndpointName(deps.config,fresh)}],...liveOutputSize(fresh),fps:30}:{} )};
+      const clock=deps.now??Date.now, stopReading=now+12000, delays=[900,2200,4200];
+      for(let attempt=0;;attempt++){
+        if(signal.aborted)throw new Error('STAGE_CONNECTION_CHANGED');
+        const present=await provider(deps,`/rooms/${context.room_name}/presence?limit=${context.max_stage_members+1}`,{cache:'no-store'},signal);
+        if(!Array.isArray(present.data)||Number(present.total_count)>context.max_stage_members)throw new Error('STAGE_FULL');
+        // Refresh authenticated scope and the operation lease after every REST read.
+        const fresh=await rpc<ProviderContext>(deps.service,'live_service_context',{p_session_id:sessionId,p_actor_id:actor.userId,p_auth_session_id:actor.sessionId,p_purpose:'control_check',p_operation_id:prepared.operation_id});
+        if(fresh.lease_id!==context.lease_id)throw new Error('CONTROL_LEASE_EXPIRED');
+        const scene=fresh.payload?.scene??{preset:'host'};
+        try{
+          const composed=buildLiveLayout(scene,fresh,present.data as Presence[],context.action==='start');published=composed.published;
+          payload={...payload,layout:composed.layout,...(context.action==='start'?{endpoints:[{endpoint:liveEndpointName(deps.config,fresh)}],...liveOutputSize(fresh),fps:30}:{})};
+          break;
+        }catch(e){
+          const delay=delays[attempt];
+          if(!(e instanceof Error)||e.message!=='STAGE_CONNECTION_CHANGED'||context.action!=='scene'||!scene.connection_ids
+            ||!delay||clock()+delay>=stopReading||signal.aborted)throw e;
+          await (deps.wait??waitForPresence)(delay,signal);
+        }
+      }
     }
     // Recheck current authenticated authority immediately before the provider
     // call. This checks the operation without minting viewer/stage credentials.
     await rpc(caller,'live_prepare_control',{p_session_id:sessionId,p_action:body.action,p_request_id:body.requestId,p_scene:body.scene??null,p_reason:body.reason??null});
+    if(signal.aborted)throw new Error('STAGE_CONNECTION_CHANGED');
     const response=await provider(deps,`/rooms/${context.room_name}/live-streaming/${context.action==='scene'?'update':context.action}`,{method:'POST',body:JSON.stringify(payload)},signal);
     if(!dailyCommandAccepted(response))throw new Error('PROVIDER_OPERATION_UNCONFIRMED');
     const finished=await rpc(deps.service,'live_finish_control',{p_operation_id:prepared.operation_id,p_lease_id:context.lease_id,p_accepted:true,p_error:null,p_published:published});

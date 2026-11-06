@@ -7,7 +7,7 @@ function load(file, imports = {}) {
   vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../functions', file), 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText, { module, exports: module.exports, Request, Response, Headers, URL, AbortSignal, TextEncoder, TextDecoder,
-    Uint8Array, Date, Error, crypto: webcrypto, atob, btoa, require(name) { if (name in imports) return imports[name]; throw Error(name); } });
+    Uint8Array, Date, Error, setTimeout, clearTimeout, crypto: webcrypto, atob, btoa, require(name) { if (name in imports) return imports[name]; throw Error(name); } });
   return module.exports;
 }
 const p = load('live-core/provider.ts');
@@ -564,7 +564,8 @@ test('fresh guest connection must match current provider presence and server rol
  const current=[updated,present[2],present[0]];
  assert.deepEqual(plain(p.buildLiveLayout(scene,context,current,false).layout.participants),
    {video:[id(31),id(52)],audio:[id(31),id(52)]});
- for(const rows of [present,[...present,updated],[updated,present[2]]]){
+ assert.deepEqual(plain(p.buildLiveLayout(scene,context,[...present,updated],false).layout.participants),{audio:[id(31),id(52)],video:[id(31),id(52)]});
+ for(const rows of [present,[updated,present[2]]]){
    assert.throws(()=>p.buildLiveLayout(scene,context,rows,false),/STAGE_CONNECTION_CHANGED/);
  }
  assert.throws(()=>p.buildLiveLayout(scene,{...context,allowed_participants:context.allowed_participants.map(m=>m.role==='guest'?{...m,role:'camera'}:m)},current,false),/STAGE_CONNECTION_CHANGED/);
@@ -589,23 +590,31 @@ test('HTTP control reports only proven connection mismatches as retriable; stale
  const token='header.'+Buffer.from(JSON.stringify({sub:host,session_id:id(80)})).toString('base64url')+'.signature';
  const caller={auth:{getUser:async()=>({data:{user:{id:host}},error:null})},rpc:async()=>({data:{operation_id:id(82),status:'queued'},error:null})};
  const room={privacy:'private',url:'https://example.daily.co/'+context.room_name,config:{max_participants:12,streaming_endpoints:p.hlsEndpoints(config,context)}};
- for(const [action,roster,wantedStatus,confirmed] of [
+ for(const [action,roster,wantedStatus,confirmed,variant] of [
    ['scene',present,409,null],['start',present,200,false],['start',[present[0],{...present[1],id:id(53)}],200,true],
-   ['scene',[present[0],{...present[1],id:id(53)}],200,null]
+   ['scene',[present[0],{...present[1],id:id(53)}],200,null],
+   ['scene',present,200,null,'catch-up'],['scene',present,403,null,'revoked'],['scene',present,409,null,'cancel']
  ]){
-   const sends=[],finishes=[];
+   const sends=[],finishes=[],waits=[],abort=new AbortController();let reads=0,checks=0;
    const ctx={...context,action,lease_id:id(81),payload:{scene}};
-   const handler=createLiveHandler('control',{caller:()=>caller,config,now:()=>now,service:{rpc:async(name,args)=>{
+   const handler=createLiveHandler('control',{caller:()=>caller,config,now:()=>now,wait:async(ms)=>{waits.push(ms);if(variant==='cancel')abort.abort();},service:{rpc:async(name,args)=>{
+     if(name==='live_service_context'&&args.p_purpose==='control_check'){checks++;if(variant==='revoked'&&checks===2)return {data:null,error:{message:'ACCESS_DENIED'}};}
      if(name==='live_finish_control'){finishes.push(args);return {data:{ok:args.p_accepted},error:null};}
      return {data:ctx,error:null};
    }},fetch:async(url,init={})=>{
-     if(url.includes('/presence?'))return Response.json({total_count:roster.length,data:roster});
+     if(url.includes('/presence?')){reads++;const rows=variant==='catch-up'&&reads===3?[...present,{...present[1],id:id(53)}]:roster;
+       return Response.json({total_count:rows.length,data:rows});}
      if(url.includes('/live-streaming/')){sends.push(JSON.parse(init.body));return Response.json({status:'sent'});}
      return Response.json(room);
    }});
-   const res=await handler(new Request('https://synthetic.invalid/control',{method:'POST',headers:{Authorization:'Bearer '+token},body:JSON.stringify({sessionId:session,action,requestId:id(82),scene})}));
+   const res=await handler(new Request('https://synthetic.invalid/control',{method:'POST',signal:abort.signal,headers:{Authorization:'Bearer '+token},body:JSON.stringify({sessionId:session,action,requestId:id(82),scene})}));
    assert.equal(res.status,wantedStatus);const body=await res.json();assert.equal(finishes.length,1);
-   if(wantedStatus===409){assert.deepEqual(body,{error:'STAGE_CONNECTION_CHANGED'});assert.equal(sends.length,0);assert.equal(finishes[0].p_accepted,false);}
+   assert.equal(checks,reads,'Every presence fetch must recheck the lease and current authorization');
+   if(variant==='catch-up'){assert.equal(reads,3);assert.deepEqual(waits,[900,2200]);}
+   if(variant==='cancel')assert.equal(reads,1);
+   if(wantedStatus===409&&!variant)assert.equal(reads,4,'Bounded to three additional reads, no extra publication');
+   if(wantedStatus===403){assert.equal(sends.length,0);assert.equal(finishes[0].p_accepted,false);assert.equal(checks,2);}
+   else if(wantedStatus===409){assert.deepEqual(body,{error:'STAGE_CONNECTION_CHANGED'});assert.equal(sends.length,0);assert.equal(finishes[0].p_accepted,false);}
    else{assert.equal(sends.length,1);assert.equal(finishes[0].p_accepted,true);
      assert.equal(body.scene_connections_confirmed??null,confirmed);
      const expected=confirmed===false?[id(31)]:scene.connection_ids;
