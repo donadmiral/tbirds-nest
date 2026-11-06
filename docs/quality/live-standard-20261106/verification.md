@@ -62,3 +62,6 @@ Both final internal QA builds finished. The source-to-build link, gate runs and 
 - [Android QA build 10](https://expo.dev/accounts/donadmiral/projects/platinum-circles/builds/19e82621-8758-484a-9344-544d45aa40f3)
 
 These use the QA environment. Neither build was submitted to an app store or installed on a physical phone as part of this release. [Build receipts](internal-mobile-builds.json).
+
+
+All seven jobs on the final test revision (500823c1) completed successfully: [six type and quality jobs](https://github.com/donadmiral/tbirds-nest/actions/runs/42283751201) including the entire phone regression and RPC authorization suite, and [the isolated Live SQL and edge benchmark](https://github.com/donadmiral/tbirds-nest/actions/runs/42283751237). See [the complete final CI receipt](final-seven-gates.json). These results do not replace the separate regional provider load qualification.
